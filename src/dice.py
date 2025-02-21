@@ -33,6 +33,13 @@ class Dice:
         if self.rolls is None:
             raise RuntimeError("No roll has been made yet! Call roll() first before attempting to print the dice as string.")
 
+        total_text = f"**{self.get_total()}**"
+        rolls_text = f"({', '.join(map(str, self.rolls))})"
         modifier_text = f"{'+' if self.modifier > 0 else '-' if self.modifier < 0 else ''} {abs(self.modifier)}" if self.modifier else ""
-        return f"**{self.get_total()}** | ({', '.join(map(str, self.rolls))}) {modifier_text}"
+        
+        if len(self.rolls) != 1 or self.modifier:
+            return f"{total_text} {rolls_text} {modifier_text}"
+
+        return total_text
+        
 

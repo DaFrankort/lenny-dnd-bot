@@ -38,7 +38,7 @@ class Dice:
         modifier_text = f"{'+' if self.modifier > 0 else '-' if self.modifier < 0 else ''} {abs(self.modifier)}" if self.modifier else ""
         
         if len(self.rolls) != 1 or self.modifier:
-            return f"{total_text} {rolls_text} {modifier_text}"
+            return f"{rolls_text} {modifier_text} => {total_text}"
 
         return total_text
         

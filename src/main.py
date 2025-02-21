@@ -38,18 +38,22 @@ async def roll(ctx, diceroll: str):
     name="advantage",
     description="Lucky you! Roll and take the best of two!",
 )
-async def advantage(ctx, dice: str):
-    #TODO - double dice roll and return best result
-    await ctx.response.send_message("Oopsie not working yet")
+async def advantage(ctx, diceroll: str):
+    dice = Dice(diceroll)
+    # TODO: Send error to user if wrong syntax
+    result = max(dice.roll(), dice.roll())
+    await ctx.response.send_message(result)
     return
 
 @cmd_tree.command(
     name="disadvantage",
     description="Tough luck chump... Roll twice and suck it.",
 )
-async def disadvantage(ctx, dice: str):
-    #TODO - double dice roll and return worst result
-    await ctx.response.send_message("Oopsie not working yet")
+async def disadvantage(ctx, diceroll: str):
+    dice = Dice(diceroll)
+    # TODO: Send error to user if wrong syntax
+    result = min(dice.roll(), dice.roll())
+    await ctx.response.send_message(result)
     return
 
 # Run

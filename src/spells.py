@@ -18,8 +18,9 @@ SPELL_SCHOOLS = {
 
 
 def clean_dnd_text(text: str) -> str:
-    text = re.sub(r"\{@damage (.*?)\}", r"``\1``", text)
+    text = re.sub(r"\{@damage (.*?)\}", r"**\1**", text)
     text = re.sub(r"\{@i (.*?)\}", r"*\1*", text)
+    text = re.sub(r"\{@spell (.*?)\}", r"__\1__", text)
 
     return text
 
@@ -86,7 +87,6 @@ class Spells(object):
             if name == spell.name:
                 exact.append(spell)
             elif fuzz.ratio(query, name) > fuzzy_threshold:
-                print(f"'{query}' '{name}' {fuzz.ratio(query, name)}")
                 fuzzy.append(spell)
 
         if len(exact) > 0:

@@ -16,11 +16,18 @@ SPELL_SCHOOLS = {
     "T": "Transmutation",
 }
 
+def capitalize(string: str) -> str:
+    string[0] = string[0].upper()
+    return string
 
 def clean_dnd_text(text: str) -> str:
     text = re.sub(r"\{@damage (.*?)\}", r"**\1**", text)
     text = re.sub(r"\{@i (.*?)\}", r"*\1*", text)
     text = re.sub(r"\{@spell (.*?)\}", r"__\1__", text)
+    text = re.sub(r"\{@creature (.*?)(\|.*?)?\}", r"__\1__", text)
+    text = re.sub(r"\{@status (.*?)\}", r"*\1*", text)
+    text = re.sub(r"\{@skill (.*?)\}", r"*\1*", text)
+    text = re.sub(r"\{@dice (.*?)\}", r"\1", text)
 
     return text
 
@@ -94,26 +101,92 @@ class Spells(object):
         return fuzzy
 
 
-def clean_description(description: any) -> str:
-    if isinstance(description, str):
-        return clean_dnd_text(description)
+class SpellEmbed(object):
+    spell: Spell
 
-    if isinstance(description, list):
-        return "\n\n".join([clean_description(desc) for desc in description])
+    def __init__(self, spell: Spell):
+        self.spell = spell
 
-    if description["type"] == "quote":
-        quote = clean_description(description["entries"])
-        by = description["by"]
-        return f"*{quote}* - {by}"
+    def build(self) -> discord.Embed:
+        title = f"{self.spell.name} ({self.spell.source})"
 
-    if description["type"] == "list":
-        bullet = "•" # U+2022
-        points = []
-        for item in description["items"]:
-            points.append(f"{bullet} {clean_description(item)}")
-        return "\n".join(points)
+        if self.spell.level == 0:
+            level = "Cantrip"
+        else:
+            level = f"Level {self.spell.level}"
+        info = f"*{level} {self.spell.schoolName}*"
+        descriptions = self._build_description("Description", self.spell.description)
 
-    return f"**VERY DANGEROUS WARNING: This description has a type '{description['type']}' which isn't implemented yet. Please complain to your local software engineer.**"
+        embed = discord.Embed(title=title, type="rich")
+        embed.color = discord.Color.dark_green()
+        embed.add_field(name="", value=info)
+        for name, value in descriptions:
+            embed.add_field(name=name, value=value, inline=False)
+
+        return embed
+
+    @staticmethod
+    def _build_description_block(description: any) -> str:
+        if isinstance(description, str):
+            return clean_dnd_text(description)
+
+        if description["type"] == "quote":
+            quote = SpellEmbed._build_description_block_from_blocks(
+                description["entries"]
+            )
+            by = description["by"]
+            return f"*{quote}* - {by}"
+
+        if description["type"] == "list":
+            bullet = "•"  # U+2022
+            points = []
+            for item in description["items"]:
+                points.append(f"{bullet} {SpellEmbed._build_description_block(item)}")
+            return "\n".join(points)
+
+        if description["type"] == "inset":
+            return f"*{SpellEmbed._build_description_block_from_blocks(description['entries'])}*"
+
+        return f"**VERY DANGEROUS WARNING: This description has a type '{description['type']}' which isn't implemented yet. Please complain to your local software engineer.**"
+
+    @staticmethod
+    def _build_description_block_from_blocks(descriptions: list[any]) -> str:
+        blocks = [SpellEmbed._build_description_block(desc) for desc in descriptions]
+        return "\n\n".join(blocks)
+
+    @staticmethod
+    def _build_description_from_table(description: any) -> str:
+        return "TODO"
+
+    @staticmethod
+    def _build_description(name: str, description: list[any]) -> list[tuple[str, str]]:
+        subdescriptions: list[tuple[str, str]] = []
+
+        blocks: list[str] = []
+
+        for desc in description:
+            # Special case scenario where an entry is a description on its own
+            # These will be handled separately
+            if not isinstance(desc, str):
+                if desc["type"] == "entries":
+                    subdescriptions.extend(
+                        SpellEmbed._build_description(desc["name"], desc["entries"])
+                    )
+                elif desc["type"] == "table":
+                    subdescriptions.append(
+                        SpellEmbed._build_description_from_table(desc)
+                    )
+            else:
+                blocks.append(SpellEmbed._build_description_block(desc))
+
+        descriptions = []
+        if len(blocks) > 0:
+            descriptions.append((name, blocks[0]))
+        for i in range(1, len(blocks)):
+            descriptions.append(("", blocks[i]))
+        descriptions.extend(subdescriptions)
+
+        return descriptions
 
 
 # Temporary function, need to discuss how we're going to handle message
@@ -130,10 +203,7 @@ async def pretty_response_spell(ctx: discord.Interaction, spells: list[Spell]) -
         await ctx.response.send_message(response)
 
     # Exactly one spell found
-    spell = spells[0]
-    embed = discord.Embed(title=spell.name, type="rich")
-    embed.color = discord.Color.dark_green()  # Dark green
-    embed.add_field(name="Description", value=clean_description(spell.description))
+    embed = SpellEmbed(spells[0])
 
-    await ctx.response.send_message(embed=embed)
+    await ctx.response.send_message(embed=embed.build())
     return

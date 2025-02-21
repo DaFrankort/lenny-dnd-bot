@@ -106,6 +106,13 @@ def clean_description(description: any) -> str:
         by = description["by"]
         return f"*{quote}* - {by}"
 
+    if description["type"] == "list":
+        bullet = "•" # U+2022
+        points = []
+        for item in description["items"]:
+            points.append(f"{bullet} {clean_description(item)}")
+        return "\n".join(points)
+
     return f"**VERY DANGEROUS WARNING: This description has a type '{description['type']}' which isn't implemented yet. Please complain to your local software engineer.**"
 
 

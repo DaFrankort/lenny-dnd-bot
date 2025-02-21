@@ -66,7 +66,7 @@ class Spells(object):
             self._load_spells_file(sourcePath)
 
     def _load_spells_file(self, path: str):
-        with open(path, "r") as file:
+        with open(path, "r", encoding="utf-8") as file:
             spells = json.load(file)
             for spell in spells["spell"]:
                 self.spells.append(Spell(spell))
@@ -101,6 +101,11 @@ def clean_description(description: any) -> str:
     if isinstance(description, list):
         return "\n\n".join([clean_description(desc) for desc in description])
 
+    if description["type"] == "quote":
+        quote = clean_description(description["entries"])
+        by = description["by"]
+        return f"*{quote}* - {by}"
+
     return f"**VERY DANGEROUS WARNING: This description has a type '{description['type']}' which isn't implemented yet. Please complain to your local software engineer.**"
 
 
@@ -120,7 +125,7 @@ async def pretty_response_spell(ctx: discord.Interaction, spells: list[Spell]) -
     # Exactly one spell found
     spell = spells[0]
     embed = discord.Embed(title=spell.name, type="rich")
-    embed.color = discord.Color.dark_green() # Dark green
+    embed.color = discord.Color.dark_green()  # Dark green
     embed.add_field(name="Description", value=clean_description(spell.description))
 
     await ctx.response.send_message(embed=embed)

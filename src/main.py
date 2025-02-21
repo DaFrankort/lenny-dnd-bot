@@ -31,14 +31,16 @@ spells = Spells("./submodules/5etools-src/data/spells")
 )
 async def roll(ctx, diceroll: str):
     dice = Dice(diceroll)
+    if not dice.is_valid:
+        await ctx.response.send_message('⚠️ Format has to be NdN or NdN+N, ex: 2d6 / 1d4+1 ⚠️', ephemeral=True)
+        return
 
-    # TODO: Send error to user if wrong syntax
-    # if dice is None:
-    #     await ctx.response.send_message('⚠️ Format has to be NdN, ex: 1d4. ⚠️', ephemeral=True)
-    #     return
-
-    result = dice.roll()
-    await ctx.response.send_message(result)
+    dice.roll()
+    response = (
+        f"🎲 Roll! ``{diceroll.lower()}``\n"
+        f"Roll: {dice}\n"
+    )
+    await ctx.response.send_message(response)
 
 
 @cmd_tree.command(
@@ -46,11 +48,24 @@ async def roll(ctx, diceroll: str):
     description="Lucky you! Roll and take the best of two!",
 )
 async def advantage(ctx, diceroll: str):
-    dice = Dice(diceroll)
-    # TODO: Send error to user if wrong syntax
-    result = max(dice.roll(), dice.roll())
-    await ctx.response.send_message(result)
-    return
+    dices = [Dice(diceroll), Dice(diceroll)]
+    if not dices[0].is_valid:
+        await ctx.response.send_message('⚠️ Format has to be NdN or NdN+N, ex: 2d6 / 1d4+1 ⚠️', ephemeral=True)
+        return
+    
+    for dice in dices:
+        dice.roll()
+    
+    total1, total2 = dices[0].get_total(), dices[1].get_total()
+    best_total = max(total1, total2)
+
+    response = (
+        f"🎲 Advantage Roll! ``{diceroll.lower()}``\n"
+        f"Roll 1: {dices[0]}\n"
+        f"Roll 2: {dices[1]}\n"
+        f"✅ Best Roll: **{best_total}**"
+    )
+    await ctx.response.send_message(response)
 
 
 @cmd_tree.command(
@@ -58,11 +73,24 @@ async def advantage(ctx, diceroll: str):
     description="Tough luck chump... Roll twice and suck it.",
 )
 async def disadvantage(ctx, diceroll: str):
-    dice = Dice(diceroll)
-    # TODO: Send error to user if wrong syntax
-    result = min(dice.roll(), dice.roll())
-    await ctx.response.send_message(result)
-    return
+    dices = [Dice(diceroll), Dice(diceroll)]
+    if not dices[0].is_valid:
+        await ctx.response.send_message('⚠️ Format has to be NdN or NdN+N, ex: 2d6 / 1d4+1 ⚠️', ephemeral=True)
+        return
+    
+    for dice in dices:
+        dice.roll()
+    
+    total1, total2 = dices[0].get_total(), dices[1].get_total()
+    worst_total = min(total1, total2)
+
+    response = (
+        f"🎲 Disadvantage Roll! ``{diceroll.lower()}`` \n"
+        f"Roll 1: {dices[0]}\n"
+        f"Roll 2: {dices[1]}\n"
+        f"✅ Worst Roll: **{worst_total}**"
+    )
+    await ctx.response.send_message(response)
 
 
 @cmd_tree.command(name="spell", description="Search for a spell.")

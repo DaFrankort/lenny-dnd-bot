@@ -1,6 +1,8 @@
 import random
+import re
 import discord
 import os
+from dice import Dice
 from discord.ext import commands
 from discord import app_commands
 from dotenv import load_dotenv
@@ -16,27 +18,20 @@ intents.message_content = True
 bot = discord.Client(intents=intents)
 cmd_tree = app_commands.CommandTree(bot)
 
-def dice_roll(dice: str):
-    try:
-        rolls, limit = map(int, dice.split('d'))
-    except ValueError:
-        return None
-    
-    result = ', '.join(str(random.randint(1, limit)) for r in range(rolls))
-    return result
-
 # Slash commands
 @cmd_tree.command(
     name="roll",
     description="Roll your d20s!",
 )
-async def roll(ctx, dice: str):
-    result = dice_roll(dice=dice)
+async def roll(ctx, diceroll: str):
+    dice = Dice(diceroll)
 
-    if result is None:
-        await ctx.response.send_message('⚠️ Format has to be NdN, ex: 1d4. ⚠️', ephemeral=True)
-        return
-
+    # TODO: Send error to user if wrong syntax
+    # if dice is None:
+    #     await ctx.response.send_message('⚠️ Format has to be NdN, ex: 1d4. ⚠️', ephemeral=True)
+    #     return
+    
+    result = dice.roll()
     await ctx.response.send_message(result)
 
 @cmd_tree.command(

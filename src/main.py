@@ -31,10 +31,6 @@ async def on_ready():
 
 @bot.command(name='roll')
 async def roll(ctx, dice: str):
-    if dice is None:
-        await ctx.send('Roll fucking WHAT brother.')
-        return
-
     result = dice_roll(dice=dice)
 
     if result is None:

@@ -1,1 +1,1 @@
-py -3 dndiscord.py
+py -3 ./src/main.py

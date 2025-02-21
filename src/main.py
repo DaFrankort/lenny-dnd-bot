@@ -29,6 +29,7 @@ spells = Spells("./submodules/5etools-src/data/spells")
     description="Roll your d20s!",
 )
 async def roll(ctx: commands.Context, diceroll: str):
+    print(f"{ctx.user.name} => /roll {diceroll}")
     dice = Dice(diceroll)
     if not dice.is_valid:
         await ctx.response.send_message('⚠️ Format has to be NdN or NdN+N, ex: 2d6 / 1d4+1 ⚠️', ephemeral=True)
@@ -49,6 +50,7 @@ async def roll(ctx: commands.Context, diceroll: str):
     description="Lucky you! Roll and take the best of two!",
 )
 async def advantage(ctx: commands.Context, diceroll: str):
+    print(f"{ctx.user.name} => /advantage {diceroll}")
     dices = [Dice(diceroll), Dice(diceroll)]
     if not dices[0].is_valid:
         await ctx.response.send_message('⚠️ Format has to be NdN or NdN+N, ex: 2d6 / 1d4+1 ⚠️', ephemeral=True)
@@ -74,6 +76,7 @@ async def advantage(ctx: commands.Context, diceroll: str):
     description="Tough luck chump... Roll twice and suck it.",
 )
 async def disadvantage(ctx: commands.Context, diceroll: str):
+    print(f"{ctx.user.name} => /disadvantage {diceroll}")
     dices = [Dice(diceroll), Dice(diceroll)]
     if not dices[0].is_valid:
         await ctx.response.send_message('⚠️ Format has to be NdN or NdN+N, ex: 2d6 / 1d4+1 ⚠️', ephemeral=True)
@@ -96,6 +99,7 @@ async def disadvantage(ctx: commands.Context, diceroll: str):
 
 @cmd_tree.command(name="spell", description="Search for a spell.")
 async def search_spell(ctx, name: str):
+    print(f"{ctx.user.name} => /spell {name}")
     found = spells.search_spell(name)
     await pretty_response_spell(ctx, found)
     return
@@ -104,6 +108,7 @@ async def search_spell(ctx, name: str):
 # Run
 @bot.event
 async def on_ready():
+    print("------ INIT ------")
     guild = bot.get_guild(guild_id)
     if guild is None:
         print("HELP, CAN'T GET GUILD")
@@ -111,7 +116,6 @@ async def on_ready():
         print(guild.name)
     await cmd_tree.sync(guild=guild)
     print(f"Logged in as {bot.user} (ID: {bot.user.id})")
-    print("------")
-
+    print("------ READY ------")
 
 bot.run(token)

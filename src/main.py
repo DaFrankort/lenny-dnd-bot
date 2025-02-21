@@ -38,6 +38,7 @@ async def roll(ctx: commands.Context, diceroll: str):
     dice.roll()
 
     embed = embeds.get_roll_embed(
+            # TODO Move this to embeds.py (?)
             ctx=ctx,
             title=f"{ctx.user.display_name.capitalize()} rolled {diceroll.lower()}!",
             description=(f"🎲 Result: {dice}\n")
@@ -61,6 +62,7 @@ async def advantage(ctx: commands.Context, diceroll: str):
     
     total1, total2 = dices[0].get_total(), dices[1].get_total()
     embed = embeds.get_roll_embed(
+        # TODO Move this to embeds.py (?) Possibly make a get_advantage_embed or get_double_roll_embed (?)
         ctx=ctx,
         title=f"{ctx.user.display_name.capitalize()} rolled {diceroll.lower()} with advantage!",
         description=(
@@ -87,6 +89,7 @@ async def disadvantage(ctx: commands.Context, diceroll: str):
     
     total1, total2 = dices[0].get_total(), dices[1].get_total()
     embed = embeds.get_roll_embed(
+        # TODO Move this to embeds.py (?) Possibly make a get_advantage_embed or get_double_roll_embed (?)
         ctx=ctx,
         title=f"{ctx.user.display_name.capitalize()} rolled {diceroll.lower()} with disadvantage!",
         description=(

@@ -1,6 +1,6 @@
 import discord
 import os
-from dice import Dice, DiceEmbed, RollMode
+from dice import Die, DiceEmbed, RollMode
 from spells import Spells, pretty_response_spell
 from discord.ext import commands
 from discord import app_commands
@@ -29,14 +29,14 @@ spells = Spells("./submodules/5etools-src/data/spells")
 )
 async def roll(ctx: commands.Context, diceroll: str):
     print(f"{ctx.user.name} => /roll {diceroll}")
-    dice = Dice(diceroll)
-    if not dice.is_valid:
+    die = Die(diceroll)
+    if not die.is_valid:
         await ctx.response.send_message('⚠️ Format has to be NdN or NdN+N, ex: 2d6 / 1d4+1 ⚠️', ephemeral=True)
         return
 
-    dice.roll()
+    die.roll()
 
-    embed = DiceEmbed(ctx=ctx, dices=[dice]).build()
+    embed = DiceEmbed(ctx=ctx, dice=[die]).build()
     await ctx.response.send_message(embed=embed)
 
 
@@ -46,15 +46,15 @@ async def roll(ctx: commands.Context, diceroll: str):
 )
 async def advantage(ctx: commands.Context, diceroll: str):
     print(f"{ctx.user.name} => /advantage {diceroll}")
-    dices = [Dice(diceroll), Dice(diceroll)]
-    if not dices[0].is_valid:
+    dice = [Die(diceroll), Die(diceroll)]
+    if not dice[0].is_valid:
         await ctx.response.send_message('⚠️ Format has to be NdN or NdN+N, ex: 2d6 / 1d4+1 ⚠️', ephemeral=True)
         return
     
-    for dice in dices:
-        dice.roll()
+    for die in dice:
+        die.roll()
     
-    embed = DiceEmbed(ctx=ctx, dices=dices, mode=RollMode.ADVANTAGE).build()
+    embed = DiceEmbed(ctx=ctx, dice=dice, mode=RollMode.ADVANTAGE).build()
     await ctx.response.send_message(embed=embed)
 
 
@@ -64,15 +64,15 @@ async def advantage(ctx: commands.Context, diceroll: str):
 )
 async def disadvantage(ctx: commands.Context, diceroll: str):
     print(f"{ctx.user.name} => /disadvantage {diceroll}")
-    dices = [Dice(diceroll), Dice(diceroll)]
-    if not dices[0].is_valid:
+    dice = [Die(diceroll), Die(diceroll)]
+    if not dice[0].is_valid:
         await ctx.response.send_message('⚠️ Format has to be NdN or NdN+N, ex: 2d6 / 1d4+1 ⚠️', ephemeral=True)
         return
     
-    for dice in dices:
-        dice.roll()
+    for die in dice:
+        die.roll()
     
-    embed = DiceEmbed(ctx=ctx, dices=dices, mode=RollMode.DISADVANTAGE).build()
+    embed = DiceEmbed(ctx=ctx, dice=dice, mode=RollMode.DISADVANTAGE).build()
     await ctx.response.send_message(embed=embed)
 
 

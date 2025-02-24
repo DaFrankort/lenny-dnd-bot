@@ -27,7 +27,7 @@ spells = Spells("./submodules/5etools-src/data/spells")
     name="roll",
     description="Roll your d20s!",
 )
-async def roll(ctx: commands.Context, diceroll: str):
+async def roll(ctx: commands.Context, diceroll: str, reason: str = None):
     print(f"{ctx.user.name} => /roll {diceroll}")
     die = Die(diceroll)
     if not die.is_valid:
@@ -36,7 +36,7 @@ async def roll(ctx: commands.Context, diceroll: str):
 
     die.roll()
 
-    embed = DiceEmbed(ctx=ctx, dice=[die]).build()
+    embed = DiceEmbed(ctx=ctx, dice=[die], reason=reason).build()
     await ctx.response.send_message(embed=embed)
 
 
@@ -44,7 +44,7 @@ async def roll(ctx: commands.Context, diceroll: str):
     name="advantage",
     description="Lucky you! Roll and take the best of two!",
 )
-async def advantage(ctx: commands.Context, diceroll: str):
+async def advantage(ctx: commands.Context, diceroll: str, reason: str = None):
     print(f"{ctx.user.name} => /advantage {diceroll}")
     dice = [Die(diceroll), Die(diceroll)]
     if not dice[0].is_valid:
@@ -54,7 +54,7 @@ async def advantage(ctx: commands.Context, diceroll: str):
     for die in dice:
         die.roll()
     
-    embed = DiceEmbed(ctx=ctx, dice=dice, mode=RollMode.ADVANTAGE).build()
+    embed = DiceEmbed(ctx=ctx, dice=dice, reason=reason, mode=RollMode.ADVANTAGE).build()
     await ctx.response.send_message(embed=embed)
 
 
@@ -62,7 +62,7 @@ async def advantage(ctx: commands.Context, diceroll: str):
     name="disadvantage",
     description="Tough luck chump... Roll twice and suck it.",
 )
-async def disadvantage(ctx: commands.Context, diceroll: str):
+async def disadvantage(ctx: commands.Context, diceroll: str, reason: str = None):
     print(f"{ctx.user.name} => /disadvantage {diceroll}")
     dice = [Die(diceroll), Die(diceroll)]
     if not dice[0].is_valid:
@@ -72,7 +72,7 @@ async def disadvantage(ctx: commands.Context, diceroll: str):
     for die in dice:
         die.roll()
     
-    embed = DiceEmbed(ctx=ctx, dice=dice, mode=RollMode.DISADVANTAGE).build()
+    embed = DiceEmbed(ctx=ctx, dice=dice, reason=reason, mode=RollMode.DISADVANTAGE).build()
     await ctx.response.send_message(embed=embed)
 
 

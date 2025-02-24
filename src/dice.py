@@ -15,7 +15,7 @@ class Dice:
         if not match:
             raise ValueError("Invalid dice format! Use 'NdN' or 'NdN±X' (e.g., 1d20, 2d6+3).")
 
-        self.dice_notation = dice_notation
+        self.dice_notation = dice_notation.lower()
         self.num_rolls = int(match.group(1))
         self.dice_sides = int(match.group(2))
         self.modifier = int(match.group(3)) if match.group(3) else 0
@@ -59,7 +59,7 @@ class DiceEmbed:
         self.mode = mode
         return
     
-    def _get_color_from_username(username: str):
+    def _get_embed_color(self):
         """Coding master Tomlolo's AMAZING code to get a hex value from a username.\n
         Turns the first 6 letters of a user's username into a hex-value for color.\n
         Outputs discord.Color
@@ -74,7 +74,7 @@ class DiceEmbed:
 
         while hex_place < 6:
             try:
-                alpha_value = get_alpha(username[hex_place]) * get_alpha(username[hex_place + 1])
+                alpha_value = get_alpha(self.username[hex_place]) * get_alpha(self.username[hex_place + 1])
             except:
                 # When username is shorter than 6 characters, inserts replacement value.
                 alpha_value = 0 # Value can be changed to 255 for light and blue colors, 0 for dark and red colors.
@@ -91,18 +91,18 @@ class DiceEmbed:
     def _get_title(self):
         match self.mode:
             case RollMode.NORMAL:
-                return f"{self.username} rolled {self.dices[0].diceroll}!"
+                return f"{self.username} rolled {self.dices[0].dice_notation}!"
             
             case RollMode.ADVANTAGE:
-                return f"{self.username} rolled {self.dices[0].diceroll} with advantage!"
+                return f"{self.username} rolled {self.dices[0].dice_notation} with advantage!"
             
             case RollMode.DISADVANTAGE:
-                return f"{self.username} rolled {self.dices[0].diceroll} with disadvantage!"
+                return f"{self.username} rolled {self.dices[0].dice_notation} with disadvantage!"
 
     def _get_description(self):
         match self.mode:
             case RollMode.NORMAL:
-                return f"🎲 Result: **{self.dices[0]}**\n"
+                return f"🎲 Result: {self.dices[0]}\n"
             
             case RollMode.ADVANTAGE:
                 total1, total2 = self.dices[0].get_total(), self.dices[1].get_total()
@@ -127,5 +127,5 @@ class DiceEmbed:
             name=self._get_title(),
             icon_url=self.avatar_url
         )
-        embed.color = self._get_color_from_username(self.username)
+        embed.color = self._get_embed_color()
         return embed

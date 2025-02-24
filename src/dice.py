@@ -1,5 +1,8 @@
 import random
 import re
+import discord
+from discord.ext import commands
+from enum import Enum
 
 class Dice:
     DICE_PATTERN = re.compile(r"^\s*(\d+)d(\d+)([+-]\d+)?\s*$", re.IGNORECASE)
@@ -12,6 +15,7 @@ class Dice:
         if not match:
             raise ValueError("Invalid dice format! Use 'NdN' or 'NdN±X' (e.g., 1d20, 2d6+3).")
 
+        self.dice_notation = dice_notation
         self.num_rolls = int(match.group(1))
         self.dice_sides = int(match.group(2))
         self.modifier = int(match.group(3)) if match.group(3) else 0
@@ -41,5 +45,87 @@ class Dice:
             return f"{rolls_text} {modifier_text} => {total_text}"
 
         return total_text
-        
 
+class RollMode(Enum):
+    NORMAL = "normal"
+    ADVANTAGE = "advantage"
+    DISADVANTAGE = "disadvantage"
+
+class DiceEmbed:
+    def __init__(self, ctx: commands.Context, dices: list[Dice], mode: RollMode = RollMode.NORMAL):
+        self.username = ctx.user.display_name.capitalize()
+        self.avatar_url = ctx.user.avatar.url
+        self.dices = dices
+        self.mode = mode
+        return
+    
+    def _get_color_from_username(username: str):
+        """Coding master Tomlolo's AMAZING code to get a hex value from a username.\n
+        Turns the first 6 letters of a user's username into a hex-value for color.\n
+        Outputs discord.Color
+        """
+        hex_value = ""
+        hex_place = 0
+
+        # This cute little function converts characters into unicode
+        # I made it so the the alpha_value assignment line wouldn't be so hard to read
+        def get_alpha(char):
+            return ord(char.lower())-96
+
+        while hex_place < 6:
+            try:
+                alpha_value = get_alpha(username[hex_place]) * get_alpha(username[hex_place + 1])
+            except:
+                # When username is shorter than 6 characters, inserts replacement value.
+                alpha_value = 0 # Value can be changed to 255 for light and blue colors, 0 for dark and red colors.
+
+            alpha_value = min(alpha_value, 255)
+            if alpha_value < 16:
+                hex_value = hex_value + "0" + hex(alpha_value)[2:]
+            else:
+                hex_value = hex_value + hex(alpha_value)[2:]
+
+            hex_place += 2
+        return discord.Color.from_str("#" + hex_value)
+    
+    def _get_title(self):
+        match self.mode:
+            case RollMode.NORMAL:
+                return f"{self.username} rolled {self.dices[0].diceroll}!"
+            
+            case RollMode.ADVANTAGE:
+                return f"{self.username} rolled {self.dices[0].diceroll} with advantage!"
+            
+            case RollMode.DISADVANTAGE:
+                return f"{self.username} rolled {self.dices[0].diceroll} with disadvantage!"
+
+    def _get_description(self):
+        match self.mode:
+            case RollMode.NORMAL:
+                return f"🎲 Result: **{self.dices[0]}**\n"
+            
+            case RollMode.ADVANTAGE:
+                total1, total2 = self.dices[0].get_total(), self.dices[1].get_total()
+                return (
+                    f"{'✅' if total1 >= total2 else '🎲'} 1st Roll: {self.dices[0]}\n"
+                    f"{'✅' if total2 >= total1 else '🎲'} 2nd Roll: {self.dices[1]}\n"
+                )
+            
+            case RollMode.DISADVANTAGE:
+                total1, total2 = self.dices[0].get_total(), self.dices[1].get_total()
+                return(
+                    f"{'✅' if total1 <= total2 else '🎲'} 1st Roll: {self.dices[0]}\n"
+                    f"{'✅' if total2 <= total1 else '🎲'} 2nd Roll: {self.dices[1]}\n"
+                )
+
+    def build(self):
+        embed = discord.Embed(
+            type="rich",
+            description=self._get_description()
+            )
+        embed.set_author(
+            name=self._get_title(),
+            icon_url=self.avatar_url
+        )
+        embed.color = self._get_color_from_username(self.username)
+        return embed

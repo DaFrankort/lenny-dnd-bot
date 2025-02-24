@@ -1,7 +1,6 @@
 import discord
 import os
-import embeds
-from dice import Dice
+from dice import Dice, DiceEmbed, RollMode
 from spells import Spells, pretty_response_spell
 from discord.ext import commands
 from discord import app_commands
@@ -37,12 +36,7 @@ async def roll(ctx: commands.Context, diceroll: str):
 
     dice.roll()
 
-    embed = embeds.get_roll_embed(
-            # TODO Move this to embeds.py (?)
-            ctx=ctx,
-            title=f"{ctx.user.display_name.capitalize()} rolled {diceroll.lower()}!",
-            description=(f"🎲 Result: {dice}\n")
-        )
+    embed = DiceEmbed(ctx=ctx, dices=[dice]).build()
     await ctx.response.send_message(embed=embed)
 
 
@@ -60,16 +54,7 @@ async def advantage(ctx: commands.Context, diceroll: str):
     for dice in dices:
         dice.roll()
     
-    total1, total2 = dices[0].get_total(), dices[1].get_total()
-    embed = embeds.get_roll_embed(
-        # TODO Move this to embeds.py (?) Possibly make a get_advantage_embed or get_double_roll_embed (?)
-        ctx=ctx,
-        title=f"{ctx.user.display_name.capitalize()} rolled {diceroll.lower()} with advantage!",
-        description=(
-                f"{'✅' if total1 >= total2 else '🎲'} 1st Roll: {dices[0]}\n"
-                f"{'✅' if total2 >= total1 else '🎲'} 2nd Roll: {dices[1]}\n"
-            )
-    )
+    embed = DiceEmbed(ctx=ctx, dices=dices, mode=RollMode.ADVANTAGE).build()
     await ctx.response.send_message(embed=embed)
 
 
@@ -87,16 +72,7 @@ async def disadvantage(ctx: commands.Context, diceroll: str):
     for dice in dices:
         dice.roll()
     
-    total1, total2 = dices[0].get_total(), dices[1].get_total()
-    embed = embeds.get_roll_embed(
-        # TODO Move this to embeds.py (?) Possibly make a get_advantage_embed or get_double_roll_embed (?)
-        ctx=ctx,
-        title=f"{ctx.user.display_name.capitalize()} rolled {diceroll.lower()} with disadvantage!",
-        description=(
-                f"{'✅' if total1 <= total2 else '🎲'} 1st Roll: {dices[0]}\n"
-                f"{'✅' if total2 <= total1 else '🎲'} 2nd Roll: {dices[1]}\n"
-            )
-    )
+    embed = DiceEmbed(ctx=ctx, dices=dices, mode=RollMode.DISADVANTAGE).build()
     await ctx.response.send_message(embed=embed)
 
 

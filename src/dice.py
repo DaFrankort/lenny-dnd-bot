@@ -1,6 +1,7 @@
 import random
 import re
 import discord
+import sys
 from discord.ext import commands
 from enum import Enum
 
@@ -18,9 +19,10 @@ class Die:
             return
 
         self.die_notation = die_notation.lower()
-        self.num_rolls = int(match.group(1))
-        self.die_sides = int(match.group(2))
-        self.modifier = int(match.group(3)) if match.group(3) else 0
+        # TODO Add feedback when size limit was exceeded!
+        self.num_rolls = min(int(match.group(1)), 256)
+        self.die_sides = min(int(match.group(2)), 2048)
+        self.modifier = min(int(match.group(3)), 2048) if match.group(3) else 0
         self.rolls = []
 
     def roll(self):
@@ -32,7 +34,8 @@ class Die:
         if self.rolls is None:
             raise RuntimeError("No roll has been made yet! Call roll() before getting the total.")
         
-        return sum(self.rolls) + self.modifier
+        rolls_sum = min(sum(self.rolls), sys.maxsize) 
+        return rolls_sum + self.modifier
 
     def __str__(self):
         """Returns a formatted string representation of the roll result."""
@@ -54,10 +57,11 @@ class RollMode(Enum):
     DISADVANTAGE = "disadvantage"
 
 class DiceEmbed:
-    def __init__(self, ctx: commands.Context, dice: list[Die], mode: RollMode = RollMode.NORMAL):
+    def __init__(self, ctx: commands.Context, dice: list[Die], reason: str | None,  mode: RollMode = RollMode.NORMAL):
         self.username = ctx.user.display_name.capitalize()
         self.avatar_url = ctx.user.avatar.url
         self.dice = dice
+        self.reason = reason.capitalize() if reason is not None else reason
         self.mode = mode
         return
     
@@ -102,22 +106,24 @@ class DiceEmbed:
                 return f"{self.username} rolled {self.dice[0].die_notation} with disadvantage!"
 
     def _get_description(self):
+        prefix = "Result" if self.reason is None else self.reason
+
         match self.mode:
             case RollMode.NORMAL:
-                return f"🎲 Result: {self.dice[0]}\n"
+                return f"🎲 {prefix}: {self.dice[0]}\n"
             
             case RollMode.ADVANTAGE:
                 total1, total2 = self.dice[0].get_total(), self.dice[1].get_total()
                 return (
-                    f"{'✅' if total1 >= total2 else '🎲'} 1st Roll: {self.dice[0]}\n"
-                    f"{'✅' if total2 >= total1 else '🎲'} 2nd Roll: {self.dice[1]}\n"
+                    f"{'✅' if total1 >= total2 else '🎲'} 1st {prefix}: {self.dice[0]}\n"
+                    f"{'✅' if total2 >= total1 else '🎲'} 2nd {prefix}: {self.dice[1]}\n"
                 )
             
             case RollMode.DISADVANTAGE:
                 total1, total2 = self.dice[0].get_total(), self.dice[1].get_total()
                 return(
-                    f"{'✅' if total1 <= total2 else '🎲'} 1st Roll: {self.dice[0]}\n"
-                    f"{'✅' if total2 <= total1 else '🎲'} 2nd Roll: {self.dice[1]}\n"
+                    f"{'✅' if total1 <= total2 else '🎲'} 1st {prefix}: {self.dice[0]}\n"
+                    f"{'✅' if total2 <= total1 else '🎲'} 2nd {prefix}: {self.dice[1]}\n"
                 )
 
     def build(self):

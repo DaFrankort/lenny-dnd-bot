@@ -4,29 +4,29 @@ import discord
 from discord.ext import commands
 from enum import Enum
 
-class Dice:
-    DICE_PATTERN = re.compile(r"^\s*(\d+)d(\d+)([+-]\d+)?\s*$", re.IGNORECASE)
+class Die:
+    DIE_PATTERN = re.compile(r"^\s*(\d+)d(\d+)([+-]\d+)?\s*$", re.IGNORECASE)
 
-    def __init__(self, dice_notation: str):
-        """Parses the dice notation (e.g., '1d20+3') and initializes attributes."""
-        match = self.DICE_PATTERN.match(dice_notation)
+    def __init__(self, die_notation: str):
+        """Parses the die notation (e.g., '1d20+3') and initializes attributes."""
+        match = self.DIE_PATTERN.match(die_notation)
         self.is_valid = bool(match)
 
         if not match:
-            raise ValueError("Invalid dice format! Use 'NdN' or 'NdN±X' (e.g., 1d20, 2d6+3).")
+            raise ValueError("Invalid die format! Use 'NdN' or 'NdN±X' (e.g., 1d20, 2d6+3).")
 
-        self.dice_notation = dice_notation.lower()
+        self.die_notation = die_notation.lower()
         self.num_rolls = int(match.group(1))
-        self.dice_sides = int(match.group(2))
+        self.die_sides = int(match.group(2))
         self.modifier = int(match.group(3)) if match.group(3) else 0
         self.rolls = []
 
     def roll(self):
-        """Internally rolls the dice, use get_total() to get the result."""
-        self.rolls = [random.randint(1, self.dice_sides) for _ in range(self.num_rolls)]
+        """Internally rolls the die, use get_total() to get the result."""
+        self.rolls = [random.randint(1, self.die_sides) for _ in range(self.num_rolls)]
 
     def get_total(self) -> int:
-        """Returns the total of the rolled dice + modifier"""
+        """Returns the total of the rolled die + modifier"""
         if self.rolls is None:
             raise RuntimeError("No roll has been made yet! Call roll() before getting the total.")
         
@@ -35,7 +35,7 @@ class Dice:
     def __str__(self):
         """Returns a formatted string representation of the roll result."""
         if self.rolls is None:
-            raise RuntimeError("No roll has been made yet! Call roll() first before attempting to print the dice as string.")
+            raise RuntimeError("No roll has been made yet! Call roll() first before attempting to print the die as string.")
 
         total_text = f"**{self.get_total()}**"
         rolls_text = f"({', '.join(map(str, self.rolls))})"
@@ -52,10 +52,10 @@ class RollMode(Enum):
     DISADVANTAGE = "disadvantage"
 
 class DiceEmbed:
-    def __init__(self, ctx: commands.Context, dices: list[Dice], mode: RollMode = RollMode.NORMAL):
+    def __init__(self, ctx: commands.Context, dice: list[Die], mode: RollMode = RollMode.NORMAL):
         self.username = ctx.user.display_name.capitalize()
         self.avatar_url = ctx.user.avatar.url
-        self.dices = dices
+        self.dice = dice
         self.mode = mode
         return
     
@@ -91,31 +91,31 @@ class DiceEmbed:
     def _get_title(self):
         match self.mode:
             case RollMode.NORMAL:
-                return f"{self.username} rolled {self.dices[0].dice_notation}!"
+                return f"{self.username} rolled {self.dice[0].dice_notation}!"
             
             case RollMode.ADVANTAGE:
-                return f"{self.username} rolled {self.dices[0].dice_notation} with advantage!"
+                return f"{self.username} rolled {self.dice[0].dice_notation} with advantage!"
             
             case RollMode.DISADVANTAGE:
-                return f"{self.username} rolled {self.dices[0].dice_notation} with disadvantage!"
+                return f"{self.username} rolled {self.dice[0].dice_notation} with disadvantage!"
 
     def _get_description(self):
         match self.mode:
             case RollMode.NORMAL:
-                return f"🎲 Result: {self.dices[0]}\n"
+                return f"🎲 Result: {self.dice[0]}\n"
             
             case RollMode.ADVANTAGE:
-                total1, total2 = self.dices[0].get_total(), self.dices[1].get_total()
+                total1, total2 = self.dice[0].get_total(), self.dice[1].get_total()
                 return (
-                    f"{'✅' if total1 >= total2 else '🎲'} 1st Roll: {self.dices[0]}\n"
-                    f"{'✅' if total2 >= total1 else '🎲'} 2nd Roll: {self.dices[1]}\n"
+                    f"{'✅' if total1 >= total2 else '🎲'} 1st Roll: {self.dice[0]}\n"
+                    f"{'✅' if total2 >= total1 else '🎲'} 2nd Roll: {self.dice[1]}\n"
                 )
             
             case RollMode.DISADVANTAGE:
-                total1, total2 = self.dices[0].get_total(), self.dices[1].get_total()
+                total1, total2 = self.dice[0].get_total(), self.dice[1].get_total()
                 return(
-                    f"{'✅' if total1 <= total2 else '🎲'} 1st Roll: {self.dices[0]}\n"
-                    f"{'✅' if total2 <= total1 else '🎲'} 2nd Roll: {self.dices[1]}\n"
+                    f"{'✅' if total1 <= total2 else '🎲'} 1st Roll: {self.dice[0]}\n"
+                    f"{'✅' if total2 <= total1 else '🎲'} 2nd Roll: {self.dice[1]}\n"
                 )
 
     def build(self):

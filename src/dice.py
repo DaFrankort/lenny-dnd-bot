@@ -13,7 +13,9 @@ class Die:
         self.is_valid = bool(match)
 
         if not match:
-            raise ValueError("Invalid die format! Use 'NdN' or 'NdN±X' (e.g., 1d20, 2d6+3).")
+            self.is_valid = False
+            print(f" !!! Invalid die notation by user \"{die_notation}\" !!!")
+            return
 
         self.die_notation = die_notation.lower()
         self.num_rolls = int(match.group(1))
@@ -91,13 +93,13 @@ class DiceEmbed:
     def _get_title(self):
         match self.mode:
             case RollMode.NORMAL:
-                return f"{self.username} rolled {self.dice[0].dice_notation}!"
+                return f"{self.username} rolled {self.dice[0].die_notation}!"
             
             case RollMode.ADVANTAGE:
-                return f"{self.username} rolled {self.dice[0].dice_notation} with advantage!"
+                return f"{self.username} rolled {self.dice[0].die_notation} with advantage!"
             
             case RollMode.DISADVANTAGE:
-                return f"{self.username} rolled {self.dice[0].dice_notation} with disadvantage!"
+                return f"{self.username} rolled {self.dice[0].die_notation} with disadvantage!"
 
     def _get_description(self):
         match self.mode:

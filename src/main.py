@@ -31,8 +31,6 @@ async def roll(ctx: commands.Context, diceroll: str, reason: str = None):
         await ctx.response.send_message('⚠️ Format has to be NdN or NdN+N, ex: 2d6 / 1d4+1 ⚠️', ephemeral=True)
         return
 
-    die.roll()
-
     embed = DiceEmbed(ctx=ctx, dice=[die], reason=reason).build()
     await ctx.response.send_message(embed=embed)
 
@@ -45,9 +43,6 @@ async def advantage(ctx: commands.Context, diceroll: str, reason: str = None):
         await ctx.response.send_message('⚠️ Format has to be NdN or NdN+N, ex: 2d6 / 1d4+1 ⚠️', ephemeral=True)
         return
     
-    for die in dice:
-        die.roll()
-    
     embed = DiceEmbed(ctx=ctx, dice=dice, reason=reason, mode=RollMode.ADVANTAGE).build()
     await ctx.response.send_message(embed=embed)
 
@@ -59,9 +54,6 @@ async def disadvantage(ctx: commands.Context, diceroll: str, reason: str = None)
     if not dice[0].is_valid:
         await ctx.response.send_message('⚠️ Format has to be NdN or NdN+N, ex: 2d6 / 1d4+1 ⚠️', ephemeral=True)
         return
-    
-    for die in dice:
-        die.roll()
     
     embed = DiceEmbed(ctx=ctx, dice=dice, reason=reason, mode=RollMode.DISADVANTAGE).build()
     await ctx.response.send_message(embed=embed)

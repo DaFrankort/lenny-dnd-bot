@@ -63,6 +63,9 @@ class Dice:
             else:
                 self.is_valid = False
                 print(f" !!! Invalid token in dice expression: {part} !!!")
+                return
+        
+        self.roll()
 
     def roll(self):
         """Randomise all NdN values within the Dice"""
@@ -72,12 +75,10 @@ class Dice:
     
     def get_total(self) -> int:
         """Returns the total of the rolled dice"""
-        i = 0
         total = 0
-        while i < len(self.steps):
+        for i in range(0, self.steps, 2):
             operator = self.steps[i]
             value = self.steps[i+1]
-            i += 2
 
             if isinstance(value, _Die):
                 value = value.get_total()

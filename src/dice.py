@@ -5,51 +5,108 @@ import sys
 from discord.ext import commands
 from enum import Enum
 
-class Die:
-    DIE_PATTERN = re.compile(r"^\s*(\d+)d(\d+)([+-]\d+)?\s*$", re.IGNORECASE)
+def _match_NdN(die_notation: str):
+    return re.fullmatch(r'(\d+)d(\d+)', die_notation.lower())
 
+class _Die:
+    """PRIVATE class used to store NdN values and easily manipulate them within a Dice's steps."""
     def __init__(self, die_notation: str):
-        """Parses the die notation (e.g., '1d20+3') and initializes attributes."""
-        match = self.DIE_PATTERN.match(die_notation)
-        self.is_valid = bool(match)
+        match = _match_NdN(die_notation)
+        self.is_valid = True
 
         if not match:
             self.is_valid = False
-            print(f" !!! Invalid die notation by user \"{die_notation}\" !!!")
+            print(" !!! Invalid die notation. Use the format 'NdN' (e.g., '2d20'). !!! ")
             return
 
-        self.die_notation = die_notation.lower()
-        # TODO Add feedback when size limit was exceeded!
-        self.num_rolls = min(int(match.group(1)), 256)
-        self.die_sides = min(int(match.group(2)), 2048)
-        self.modifier = min(int(match.group(3)), 2048) if match.group(3) else 0
-        self.rolls = []
-
+        self.rolls = min(int(match.group(1)), 128)
+        self.sides = min(int(match.group(2)), 256)
+        
     def roll(self):
-        """Internally rolls the die, use get_total() to get the result."""
-        self.rolls = [random.randint(1, self.die_sides) for _ in range(self.num_rolls)]
-
-    def get_total(self) -> int:
-        """Returns the total of the rolled die + modifier"""
+        """Randomise rolled values"""
+        self.rolls = [random.randint(1, self.sides) for _ in range(self.rolls)]
+    
+    def get_total(self):
         if self.rolls is None:
             raise RuntimeError("No roll has been made yet! Call roll() before getting the total.")
+        return min(sum(self.rolls), sys.maxsize)
+    
+    def __str__(self):
+        return f"({', '.join(map(str, self.rolls))})"
+
+class Dice:
+    """Used to convert a die_notation (ex. 2d6+1) to a randomized value."""
+    def __init__(self, die_notation: str):
+        self.notation = die_notation.lower()
+        self.is_valid = True
+
+        if die_notation[0] in "+-":
+            self.steps = [die_notation[0]]
+            die_notation = die_notation[1:]
+        else:
+            self.steps = ['+']
+
+        parts = re.split(r'([+-])', die_notation)
+
+        for part in parts:
+            if len(self.steps) > 32:
+                self.is_valid = False
+                print(f" !!! User's expression has too many steps !!!")
+                break
+
+            if part in "+-":
+                self.steps.append(part) # + or -
+            elif _match_NdN(part):
+                self.steps.append(_Die(part)) # Die (NdN)
+            elif part.isdigit():
+                self.steps.append(min(int(part), 8192)) # Modifier, limited to 10% of maxint
+            else:
+                self.is_valid = False
+                print(f" !!! Invalid token in dice expression: {part} !!!")
+                return
         
-        rolls_sum = min(sum(self.rolls), sys.maxsize) 
-        return rolls_sum + self.modifier
+        self.roll()
+
+    def roll(self):
+        """Randomise all NdN values within the Dice"""
+        for step in self.steps:
+            if isinstance(step, _Die):
+                step.roll()
+    
+    def get_total(self) -> int:
+        """Returns the total of the rolled dice"""
+        total = 0
+        for i in range(0, len(self.steps), 2):
+            operator = self.steps[i]
+            value = self.steps[i+1]
+
+            if isinstance(value, _Die):
+                value = value.get_total()
+
+            if operator is '+':
+                total += value
+            elif operator is '-':
+                total -= value
+
+            if total > sys.maxsize / 2:
+                print(" !!! Total exceeding threshold value! !!!")
+                break
+        return total
 
     def __str__(self):
         """Returns a formatted string representation of the roll result."""
-        if self.rolls is None:
-            raise RuntimeError("No roll has been made yet! Call roll() first before attempting to print the die as string.")
-
         total_text = f"**{self.get_total()}**"
-        rolls_text = f"({', '.join(map(str, self.rolls))})"
-        modifier_text = f"{'+' if self.modifier > 0 else '-' if self.modifier < 0 else ''} {abs(self.modifier)}" if self.modifier else ""
+        steps_text = ' '.join(str(step) for step in self.steps[1:])
         
-        if len(self.rolls) != 1 or self.modifier:
-            return f"{rolls_text} {modifier_text} => {total_text}"
+        if self.steps[0] is '-':
+            steps_text = f"- {steps_text}"
 
-        return total_text
+        if len(self.steps) == 2:
+            if isinstance(self.steps[1], _Die):
+                if self.steps[1].rolls == 1:
+                    return total_text
+
+        return f"{steps_text} => {total_text}"
 
 class RollMode(Enum):
     NORMAL = "normal"
@@ -57,7 +114,7 @@ class RollMode(Enum):
     DISADVANTAGE = "disadvantage"
 
 class DiceEmbed:
-    def __init__(self, ctx: commands.Context, dice: list[Die], reason: str | None,  mode: RollMode = RollMode.NORMAL):
+    def __init__(self, ctx: commands.Context, dice: list[Dice], reason: str | None,  mode: RollMode = RollMode.NORMAL):
         self.username = ctx.user.display_name.capitalize()
         self.avatar_url = ctx.user.avatar.url
         self.dice = dice
@@ -97,13 +154,13 @@ class DiceEmbed:
     def _get_title(self):
         match self.mode:
             case RollMode.NORMAL:
-                return f"{self.username} rolled {self.dice[0].die_notation}!"
+                return f"{self.username} rolled {self.dice[0].notation}!"
             
             case RollMode.ADVANTAGE:
-                return f"{self.username} rolled {self.dice[0].die_notation} with advantage!"
+                return f"{self.username} rolled {self.dice[0].notation} with advantage!"
             
             case RollMode.DISADVANTAGE:
-                return f"{self.username} rolled {self.dice[0].die_notation} with disadvantage!"
+                return f"{self.username} rolled {self.dice[0].notation} with disadvantage!"
 
     def _get_description(self):
         prefix = "Result" if self.reason is None else self.reason

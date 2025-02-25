@@ -16,9 +16,6 @@ SPELL_SCHOOLS = {
     "T": "Transmutation",
 }
 
-def capitalize(string: str) -> str:
-    string[0] = string[0].upper()
-    return string
 
 def clean_dnd_text(text: str) -> str:
     text = re.sub(r"\{@damage (.*?)\}", r"**\1**", text)
@@ -61,7 +58,7 @@ class Spell(object):
         return str(self)
 
 
-class Spells(object):
+class SpellList(object):
     spells: list[Spell] = []
 
     def __init__(self, path: str):
@@ -79,7 +76,7 @@ class Spells(object):
             for spell in spells["spell"]:
                 self.spells.append(Spell(spell))
 
-    def search_spell(
+    def search(
         self, query: str, ignore_phb2014: bool = True, fuzzy_threshold: float = 75
     ):
         query = query.strip().lower()
@@ -189,21 +186,29 @@ class SpellEmbed(object):
         return descriptions
 
 
-# Temporary function, need to discuss how we're going to handle message
-async def pretty_response_spell(ctx: discord.Interaction, spells: list[Spell]) -> None:
-    # No spells found
-    if len(spells) == 0:
-        await ctx.response.send_message("Couldn't find a spell with that name :(")
-        return
-    # More than one spell found
-    if len(spells) > 1:
-        response = "Multiple spells found: " + ", ".join(
-            [str(spell) for spell in spells]
-        )
-        await ctx.response.send_message(response)
+class SpellSearchEmbed(object):
+    query: str
+    spells: list[Spell]
 
-    # Exactly one spell found
-    embed = SpellEmbed(spells[0])
+    def __init__(self, query: str, spells: list[Spell]):
+        self.query = query
+        self.spells = spells
 
-    await ctx.response.send_message(embed=embed.build())
-    return
+    def build(self):
+        # One spell found
+        if len(self.spells) == 1:
+            return SpellEmbed(self.spells[0]).build()
+
+        # Multiple spells found
+        if len(self.spells) > 1:
+            embed = discord.Embed(title=f"Results for '{self.query}`", type="rich")
+            results = []
+            for i, spell in enumerate(self.spells):
+                results.append(f"{i+1} {spell.name}")
+            embed.add_field(name="", value="\n".join(results))
+            return embed
+
+        # No spells found
+        embed = discord.Embed(title="No results found.", type="rich")
+        embed.add_field(name="", value=f"No results found for '{self.query}'.")
+        return embed

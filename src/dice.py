@@ -13,7 +13,7 @@ class _Die:
     is_valid: bool
     rolls: int
     sides: int
-    rolls: list
+    rolls: list[int]
 
     """PRIVATE class used to store NdN values and easily manipulate them within a Dice's steps."""
     def __init__(self, die_notation: str):
@@ -45,7 +45,7 @@ class Dice:
     """Used to convert a die_notation (ex. 2d6+1) to a randomized value."""
     notation: str
     is_valid: bool
-    steps: list
+    steps: list[str | int | _Die]
 
     def __init__(self, die_notation: str):
         self.notation = die_notation.lower()

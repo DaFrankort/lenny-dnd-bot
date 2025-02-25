@@ -28,7 +28,7 @@ class _Die:
         self.rolls = [random.randint(1, self.sides) for _ in range(self.rolls)]
     
     def get_total(self):
-        if self.rolls is None:
+        if self.rolls == None:
             raise RuntimeError("No roll has been made yet! Call roll() before getting the total.")
         return min(sum(self.rolls), sys.maxsize)
     
@@ -84,9 +84,9 @@ class Dice:
             if isinstance(value, _Die):
                 value = value.get_total()
 
-            if operator is '+':
+            if operator == '+':
                 total += value
-            elif operator is '-':
+            elif operator == '-':
                 total -= value
 
             if total > sys.maxsize / 2:
@@ -99,7 +99,7 @@ class Dice:
         total_text = f"**{self.get_total()}**"
         steps_text = ' '.join(str(step) for step in self.steps[1:])
         
-        if self.steps[0] is '-':
+        if self.steps[0] == '-':
             steps_text = f"- {steps_text}"
 
         if len(self.steps) == 2:
@@ -158,7 +158,7 @@ class DiceEmbed:
         Returns a discord.Color value
         """
         hex_value = UserColor.load(self.user_id)
-        if hex_value is None:
+        if hex_value == None:
             hex_value = self.__generate_user_color()
         
         return discord.Color.from_str("#" + hex_value)
@@ -175,7 +175,7 @@ class DiceEmbed:
                 return f"{self.username} rolled {self.dice[0].notation} with disadvantage!"
 
     def _get_description(self):
-        prefix = "Result" if self.reason is None else self.reason
+        prefix = "Result" if self.reason == None else self.reason
 
         match self.mode:
             case RollMode.NORMAL:

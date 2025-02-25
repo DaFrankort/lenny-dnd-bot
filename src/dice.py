@@ -67,10 +67,9 @@ class DiceEmbed:
         self.mode = mode
         return
     
-    def _generate_user_color(self):
+    def __generate_user_color(self):
         """Coding master Tomlolo's AMAZING code to get a hex value from a username.\n
         Turns the first 6 letters of a user's username into a hex-value for color.\n
-        Outputs discord.Color
         """
         hex_value = ""
         hex_place = 0
@@ -97,9 +96,13 @@ class DiceEmbed:
         return hex_value
 
     def _get_embed_color(self):
+        """
+        Gets a user's self-defined color, if no color is set generates a color using the username as seed. \n
+        Returns a discord.Color value
+        """
         hex_value = UserColor.load(self.user_id)
         if hex_value is None:
-            hex_value = self._generate_user_color()
+            hex_value = self.__generate_user_color()
         
         return discord.Color.from_str("#" + hex_value)
     

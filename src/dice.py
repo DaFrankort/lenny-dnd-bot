@@ -10,6 +10,11 @@ def _match_NdN(die_notation: str):
     return re.fullmatch(r'(\d+)d(\d+)', die_notation.lower())
 
 class _Die:
+    is_valid: bool
+    rolls: int
+    sides: int
+    rolls: list
+
     """PRIVATE class used to store NdN values and easily manipulate them within a Dice's steps."""
     def __init__(self, die_notation: str):
         match = _match_NdN(die_notation)
@@ -22,6 +27,7 @@ class _Die:
 
         self.rolls = min(int(match.group(1)), 128)
         self.sides = min(int(match.group(2)), 256)
+        self.rolls = []
         
     def roll(self):
         """Randomise rolled values"""
@@ -37,6 +43,10 @@ class _Die:
 
 class Dice:
     """Used to convert a die_notation (ex. 2d6+1) to a randomized value."""
+    notation: str
+    is_valid: bool
+    steps: list
+
     def __init__(self, die_notation: str):
         self.notation = die_notation.lower()
         self.is_valid = True
@@ -115,6 +125,13 @@ class RollMode(Enum):
     DISADVANTAGE = "disadvantage"
 
 class DiceEmbed:
+    username: str
+    avatar_url: str
+    user_id: str
+    dice: list[Dice]
+    reason: str
+    mode: RollMode
+    
     def __init__(self, ctx: commands.Context, dice: list[Dice], reason: str | None,  mode: RollMode = RollMode.NORMAL):
         self.username = ctx.user.display_name.capitalize()
         self.avatar_url = ctx.user.avatar.url

@@ -9,6 +9,7 @@ def _match_NdN(die_notation: str):
     return re.fullmatch(r'(\d+)d(\d+)', die_notation.lower())
 
 class _Die:
+    """PRIVATE class used to store NdN values and easily manipulate them within a Dice's steps."""
     def __init__(self, die_notation: str):
         match = _match_NdN(die_notation)
         self.is_valid = True
@@ -34,6 +35,7 @@ class _Die:
         return f"({', '.join(map(str, self.rolls))})"
 
 class Dice:
+    """Used to convert a die_notation (ex. 2d6+1) to a randomized value."""
     def __init__(self, die_notation: str):
         self.notation = die_notation.lower()
         self.is_valid = True
@@ -63,12 +65,13 @@ class Dice:
                 print(f" !!! Invalid token in dice expression: {part} !!!")
 
     def roll(self):
+        """Randomise all NdN values within the Dice"""
         for step in self.steps:
             if isinstance(step, _Die):
                 step.roll()
     
     def get_total(self) -> int:
-        """Returns the total of the rolled die + modifier"""
+        """Returns the total of the rolled dice"""
         i = 0
         total = 0
         while i < len(self.steps):

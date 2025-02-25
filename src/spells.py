@@ -17,12 +17,155 @@ SPELL_SCHOOLS = {
 }
 
 
-def clean_dnd_text(text: str) -> str:
+def format_dnd_text(text: str) -> str:
     text = re.sub(r"\{@damage (.*?)\}", r"**\1**", text)
     text = re.sub(r"\{@i (.*?)\}", r"*\1*", text)
     text = re.sub(r"\{@spell (.*?)\}", r"__\1__", text)
+    text = re.sub(r"\{@creature (.*?)(\|.*?)?\}", r"__\1__", text)
+    text = re.sub(r"\{@status (.*?)\}", r"*\1*", text)
+    text = re.sub(r"\{@skill (.*?)\}", r"*\1*", text)
+    text = re.sub(r"\{@dice (.*?)\}", r"\1", text)
+    text = re.sub(r"\{@condition (.*?)\}", r"\1", text)
 
     return text
+
+
+def format_spell_level_school(level: int, school: str) -> str:
+    if level == 0:
+        level_str = "Cantrip"
+    else:
+        level_str = f"Level {level}"
+    return f"*{level_str} {SPELL_SCHOOLS[school]}*"
+
+
+def format_casting_time(time: any) -> str:
+    if len(time) > 1:
+        return f"Unsupported casting time type: '{len(time)}'"
+    amount = time[0]["number"]
+    unit = time[0]["unit"]
+
+    if unit == "action":
+        if amount == 1:
+            return "Action"
+        else:
+            return f"{amount} actions"
+
+    if unit == "bonus":
+        if amount == 1:
+            return "Bonus action"
+        else:
+            return f"{amount} bonus actions"
+
+    if amount == 1:
+        return f"{amount} {unit}"
+    return f"{amount} {unit}s"
+
+
+def format_duration_time(duration: any) -> str:
+    duration = duration[0]
+    if duration["type"] == "instant":
+        return "Instantaneous"
+
+    if duration["type"] == "permanent":
+        return "Permanent"
+
+    if duration["type"] == "timed":
+        amount = duration["duration"]["amount"]
+        unit = duration["duration"]["type"]
+        if amount > 1:
+            unit += "s"
+        return f"{amount} {unit}"
+
+    return f"Unsupported duration type: '{duration['type']}'"
+
+
+def format_range(spell_range: any) -> str:
+    if spell_range["type"] == "point":
+        if spell_range["distance"]["type"] == "touch":
+            return "Touch"
+        
+        if spell_range["distance"]["type"] == "self":
+            return "Self"
+        
+        if spell_range["distance"]["type"] == "feet":
+            return f"{spell_range['distance']['amount']} feet"
+        
+        return f"Unsupported point range type: {spell_range['distance']['type']}"
+
+    return f"Unsupported range type: '{spell_range['type']}'"
+
+
+def format_components(components: dict) -> str:
+    result = []
+    if components.get("v", False):
+        result.append("V")
+    if components.get("s", False):
+        result.append("S")
+    if "m" in components.keys():
+        material = components["m"]
+        if not isinstance(material, str):
+            material = material["text"]
+        result.append(f"M ({material})")
+    return ", ".join(result)
+
+
+def _format_description_block(description: any) -> str:
+    if isinstance(description, str):
+        return format_dnd_text(description)
+
+    if description["type"] == "quote":
+        quote = _format_description_block_from_blocks(description["entries"])
+        by = description["by"]
+        return f"*{quote}* - {by}"
+
+    if description["type"] == "list":
+        bullet = "•"  # U+2022
+        points = []
+        for item in description["items"]:
+            points.append(f"{bullet} {_format_description_block(item)}")
+        return "\n".join(points)
+
+    if description["type"] == "inset":
+        return f"*{_format_description_block_from_blocks(description['entries'])}*"
+
+    return f"**VERY DANGEROUS WARNING: This description has a type '{description['type']}' which isn't implemented yet. Please complain to your local software engineer.**"
+
+
+def _format_description_block_from_blocks(descriptions: list[any]) -> str:
+    blocks = [_format_description_block(desc) for desc in descriptions]
+    return "\n\n".join(blocks)
+
+
+def _format_description_from_table(description: any) -> str:
+    return "Table entries not supported for now"
+
+
+def format_descriptions(name: str, description: list[any]) -> list[tuple[str, str]]:
+    subdescriptions: list[tuple[str, str]] = []
+
+    blocks: list[str] = []
+
+    for desc in description:
+        # Special case scenario where an entry is a description on its own
+        # These will be handled separately
+        if not isinstance(desc, str):
+            if desc["type"] == "entries":
+                subdescriptions.extend(
+                    format_descriptions(desc["name"], desc["entries"])
+                )
+            elif desc["type"] == "table":
+                subdescriptions.append(_format_description_from_table(desc))
+        else:
+            blocks.append(_format_description_block(desc))
+
+    descriptions = []
+    if len(blocks) > 0:
+        descriptions.append((name, blocks[0]))
+    for i in range(1, len(blocks)):
+        descriptions.append(("", blocks[i]))
+    descriptions.extend(subdescriptions)
+
+    return descriptions
 
 
 class Spell(object):
@@ -30,6 +173,10 @@ class Spell(object):
     source: str
     level: str
     school: str
+    time: any
+    spell_range: any
+    components: any
+    duration: any
     description: list[any]
 
     def __init__(self, json: any):
@@ -37,14 +184,14 @@ class Spell(object):
         self.source = json["source"]
         self.level = json["level"]
         self.school = json["school"]
+        self.time = json["time"]
+        self.spell_range = json["range"]
+        self.components = json["components"]
+        self.duration = json["duration"]
         self.description = json["entries"]
 
     @property
-    def schoolName(self) -> str:
-        return SPELL_SCHOOLS[self.school]
-
-    @property
-    def is_phb2024(self) -> bool:
+    def is_phb2014(self) -> bool:
         return self.source == "XPHB"
 
     def __str__(self):
@@ -54,7 +201,7 @@ class Spell(object):
         return str(self)
 
 
-class Spells(object):
+class SpellList(object):
     spells: list[Spell] = []
 
     def __init__(self, path: str):
@@ -72,7 +219,7 @@ class Spells(object):
             for spell in spells["spell"]:
                 self.spells.append(Spell(spell))
 
-    def search_spell(
+    def search(
         self, query: str, ignore_phb2014: bool = True, fuzzy_threshold: float = 75
     ):
         query = query.strip().lower()
@@ -80,11 +227,11 @@ class Spells(object):
         fuzzy = []
 
         for spell in self.spells:
-            if ignore_phb2014 and spell.is_phb2024:
+            if ignore_phb2014 and spell.is_phb2014:
                 continue
 
             name = spell.name.strip().lower()
-            if name == spell.name:
+            if name == query:
                 exact.append(spell)
             elif fuzz.ratio(query, name) > fuzzy_threshold:
                 fuzzy.append(spell)
@@ -94,46 +241,65 @@ class Spells(object):
         return fuzzy
 
 
-def clean_description(description: any) -> str:
-    if isinstance(description, str):
-        return clean_dnd_text(description)
+class SpellEmbed(object):
+    spell: Spell
 
-    if isinstance(description, list):
-        return "\n\n".join([clean_description(desc) for desc in description])
+    def __init__(self, spell: Spell):
+        self.spell = spell
 
-    if description["type"] == "quote":
-        quote = clean_description(description["entries"])
-        by = description["by"]
-        return f"*{quote}* - {by}"
+    def build(self) -> discord.Embed:
+        title = f"{self.spell.name} ({self.spell.source})"
 
-    if description["type"] == "list":
-        bullet = "•" # U+2022
-        points = []
-        for item in description["items"]:
-            points.append(f"{bullet} {clean_description(item)}")
-        return "\n".join(points)
+        level_school = format_spell_level_school(self.spell.level, self.spell.school)
+        casting_time = format_casting_time(self.spell.time)
+        spell_range = format_range(self.spell.spell_range)
+        components = format_components(self.spell.components)
+        duration = format_duration_time(self.spell.duration)
+        descriptions = format_descriptions("Description", self.spell.description)
 
-    return f"**VERY DANGEROUS WARNING: This description has a type '{description['type']}' which isn't implemented yet. Please complain to your local software engineer.**"
+        casting_time = f"**Casting Time:** {casting_time}"
+        spell_range = f"**Range:** {spell_range}"
+        components = f"**Components:** {components}"
+        duration = f"**Duration:** {duration}"
+
+        embed = discord.Embed(title=title, type="rich")
+        embed.color = discord.Color.dark_green()
+        embed.add_field(name="", value=level_school, inline=False)
+        embed.add_field(name="", value=casting_time, inline=False)
+        embed.add_field(name="", value=spell_range, inline=False)
+        embed.add_field(name="", value=components, inline=False)
+        embed.add_field(name="", value=duration, inline=False)
+        for name, value in descriptions:
+            embed.add_field(name=name, value=value, inline=False)
+
+        return embed
 
 
-# Temporary function, need to discuss how we're going to handle message
-async def pretty_response_spell(ctx: discord.Interaction, spells: list[Spell]) -> None:
-    # No spells found
-    if len(spells) == 0:
-        await ctx.response.send_message("Couldn't find a spell with that name :(")
-        return
-    # More than one spell found
-    if len(spells) > 1:
-        response = "Multiple spells found: " + ", ".join(
-            [str(spell) for spell in spells]
-        )
-        await ctx.response.send_message(response)
+class SpellSearchEmbed(object):
+    query: str
+    spells: list[Spell]
 
-    # Exactly one spell found
-    spell = spells[0]
-    embed = discord.Embed(title=spell.name, type="rich")
-    embed.color = discord.Color.dark_green()  # Dark green
-    embed.add_field(name="Description", value=clean_description(spell.description))
+    def __init__(self, query: str, spells: list[Spell]):
+        self.query = query
+        self.spells = spells
 
-    await ctx.response.send_message(embed=embed)
-    return
+    def build(self):
+        # One spell found
+        if len(self.spells) == 1:
+            return SpellEmbed(self.spells[0]).build()
+
+        # Multiple spells found
+        if len(self.spells) > 1:
+            embed = discord.Embed(title=f"Results for '{self.query}`", type="rich")
+            embed.color = discord.Color.dark_green()
+            results = []
+            for i, spell in enumerate(self.spells):
+                results.append(f"{i+1}. {spell.name}")
+            embed.add_field(name="", value="\n".join(results))
+            return embed
+
+        # No spells found
+        embed = discord.Embed(title="No results found.", type="rich")
+        embed.color = discord.Color.dark_green()
+        embed.add_field(name="", value=f"No results found for '{self.query}'.")
+        return embed

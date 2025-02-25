@@ -1,7 +1,7 @@
 import discord
 import os
 from dice import Dice, DiceEmbed, RollMode
-from spells import Spells, pretty_response_spell
+from spells import SpellList, SpellSearchEmbed
 from discord.ext import commands
 from discord import app_commands
 from dotenv import load_dotenv
@@ -20,7 +20,7 @@ bot = discord.Client(intents=intents)
 cmd_tree = app_commands.CommandTree(bot)
 
 # Dictionaries
-spells = Spells("./submodules/5etools-src/data/spells")
+spells = SpellList("./submodules/5etools-src/data/spells")
 
 
 # Slash commands
@@ -63,8 +63,9 @@ async def disadvantage(ctx: commands.Context, diceroll: str, reason: str = None)
 @cmd_tree.command(name="spell", description="Search for a spell.")
 async def search_spell(ctx, name: str):
     print(f"{ctx.user.name} => /spell {name}")
-    found = spells.search_spell(name)
-    await pretty_response_spell(ctx, found)
+    found = spells.search(name)
+    embed = SpellSearchEmbed(name, found)
+    await ctx.response.send_message(embed=embed.build())
     return
 
 

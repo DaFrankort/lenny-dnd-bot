@@ -20,7 +20,7 @@ class _Die:
             return
 
         self.rolls = min(int(match.group(1)), 128)
-        self.sides = min(int(match.group(2)), 128)
+        self.sides = min(int(match.group(2)), 256)
         
     def roll(self):
         """Randomise rolled values"""
@@ -59,7 +59,7 @@ class Dice:
             elif _match_NdN(part):
                 self.steps.append(_Die(part)) # Die (NdN)
             elif part.isdigit():
-                self.steps.append(int(part)) # Modifier
+                self.steps.append(min(int(part), 8192)) # Modifier, limited to 10% of maxint
             else:
                 self.is_valid = False
                 print(f" !!! Invalid token in dice expression: {part} !!!")
@@ -76,7 +76,7 @@ class Dice:
     def get_total(self) -> int:
         """Returns the total of the rolled dice"""
         total = 0
-        for i in range(0, self.steps, 2):
+        for i in range(0, len(self.steps), 2):
             operator = self.steps[i]
             value = self.steps[i+1]
 

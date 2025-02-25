@@ -5,6 +5,7 @@ from spells import Spells, pretty_response_spell
 from discord.ext import commands
 from discord import app_commands
 from dotenv import load_dotenv
+from user_colors import UserColor, ColorEmbed
 
 # Init
 load_dotenv()
@@ -67,16 +68,40 @@ async def search_spell(ctx, name: str):
     return
 
 
+@cmd_tree.command(name="color", description="Set a preferred color using a hex-value. Leave hex_color empty to use auto-generated colors.")
+async def set_color(itr: discord.Interaction, hex_color: str = ""):
+    print(f"{itr.user.name} => /color {hex_color}")
+    if hex_color == '':
+        removed = UserColor.remove(itr.user.id)
+        message = "❌ Cleared user-defined color. ❌" if removed else "⚠️ You have not yet set a color. ⚠️"
+        await itr.response.send_message(message, ephemeral=True)
+        return
+
+    user_color = UserColor(itr=itr, hex_value=hex_color)
+    if not user_color.is_valid:
+        await itr.response.send_message('⚠️ Invalid hex value: Must be 6 valid hexadecimal characters (0-9, A-F), optionally starting with a # symbol. (eg. ff00ff / #ff00ff) ⚠️', ephemeral=True)
+        return
+    user_color.save()
+
+    embed = ColorEmbed(itr=itr, user_color=user_color).build()
+    await itr.response.send_message(embed=embed, ephemeral=True)
+
+
 # Run
 @bot.event
 async def on_ready():
     print("------ INIT ------")
+
+    if not os.path.exists("temp"):
+        os.mkdir("temp")
+
     guild = bot.get_guild(guild_id)
     if guild is None:
         print("HELP, CAN'T GET GUILD")
     else:
+        await cmd_tree.sync(guild=guild)
         print(guild.name)
-    await cmd_tree.sync(guild=guild)
+    
     await cmd_tree.sync()
     print(f"Logged in as {bot.user} (ID: {bot.user.id})")
     print("------ READY ------")

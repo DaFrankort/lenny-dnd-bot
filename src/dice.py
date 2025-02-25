@@ -4,6 +4,7 @@ import discord
 import sys
 from discord.ext import commands
 from enum import Enum
+from user_colors import UserColor
 
 def _match_NdN(die_notation: str):
     return re.fullmatch(r'(\d+)d(\d+)', die_notation.lower())
@@ -117,15 +118,15 @@ class DiceEmbed:
     def __init__(self, ctx: commands.Context, dice: list[Dice], reason: str | None,  mode: RollMode = RollMode.NORMAL):
         self.username = ctx.user.display_name.capitalize()
         self.avatar_url = ctx.user.avatar.url
+        self.user_id = str(ctx.user.id)
         self.dice = dice
         self.reason = reason.capitalize() if reason is not None else reason
         self.mode = mode
         return
     
-    def _get_embed_color(self):
+    def __generate_user_color(self):
         """Coding master Tomlolo's AMAZING code to get a hex value from a username.\n
         Turns the first 6 letters of a user's username into a hex-value for color.\n
-        Outputs discord.Color
         """
         hex_value = ""
         hex_place = 0
@@ -149,6 +150,17 @@ class DiceEmbed:
                 hex_value = hex_value + hex(alpha_value)[2:]
 
             hex_place += 2
+        return hex_value
+
+    def _get_embed_color(self):
+        """
+        Gets a user's self-defined color, if no color is set generates a color using the username as seed. \n
+        Returns a discord.Color value
+        """
+        hex_value = UserColor.load(self.user_id)
+        if hex_value is None:
+            hex_value = self.__generate_user_color()
+        
         return discord.Color.from_str("#" + hex_value)
     
     def _get_title(self):

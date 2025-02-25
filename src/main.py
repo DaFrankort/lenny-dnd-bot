@@ -99,6 +99,10 @@ async def set_color(itr: discord.Interaction, hex_color: str = ""):
 @bot.event
 async def on_ready():
     print("------ INIT ------")
+
+    if not os.path.exists("temp"):
+        os.mkdir("temp")
+
     guild = bot.get_guild(guild_id)
     if guild is None:
         print("HELP, CAN'T GET GUILD")

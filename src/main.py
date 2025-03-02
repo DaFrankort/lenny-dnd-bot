@@ -61,11 +61,12 @@ async def disadvantage(ctx: commands.Context, diceroll: str, reason: str = None)
 
 
 @cmd_tree.command(name="spell", description="Search for a spell.")
-async def search_spell(ctx, name: str):
+async def search_spell(ctx: discord.Interaction, name: str):
     print(f"{ctx.user.name} => /spell {name}")
     found = spells.search(name)
     embed = SpellSearchEmbed(name, found)
-    await ctx.response.send_message(embed=embed.build())
+    embed, view = embed.build()
+    await ctx.response.send_message(embed=embed, view=view)
     return
 
 

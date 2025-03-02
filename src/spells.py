@@ -31,8 +31,9 @@ class Spell(object):
         self.spell_range = format_range(json["range"])
         self.components = format_components(json["components"])
         self.duration = format_duration_time(json["duration"])
-        self.descriptions = format_descriptions("Description", json["entries"], self.fallbackUrl)
-        print(self.descriptions)
+        self.descriptions = format_descriptions(
+            "Description", json["entries"], self.fallbackUrl
+        )
 
     @property
     def fallbackUrl(self):
@@ -114,10 +115,40 @@ class SpellEmbed(object):
         embed.add_field(name="", value=components, inline=False)
         embed.add_field(name="", value=duration, inline=False)
         for name, value in self.spell.descriptions:
-            print(name)
             embed.add_field(name=name, value=value, inline=False)
 
         return embed
+
+
+class MultiSpellSelect(discord.ui.Select):
+    query: str
+    spells: list[Spell]
+
+    def __init__(self, query: str, spells: list[Spell]):
+        self.query = query
+        self.spells = spells
+
+        options = []
+        for spell in spells:
+            options.append(
+                discord.SelectOption(
+                    label=f"{spell.name}",
+                    description=f"{spell.level_school}, {spell.source}",
+                )
+            )
+
+        super().__init__(
+            placeholder=f"Results for '{query}'",
+            options=options,
+            min_values=1,
+            max_values=1,
+        )
+
+    async def callback(self, interaction: discord.Interaction):
+        name = self.values[0]
+        spell = [spell for spell in self.spells if spell.name == name][0]
+        embed = SpellEmbed(spell).build()
+        await interaction.response.send_message(embed=embed)
 
 
 class SpellSearchEmbed(object):
@@ -131,20 +162,16 @@ class SpellSearchEmbed(object):
     def build(self):
         # One spell found
         if len(self.spells) == 1:
-            return SpellEmbed(self.spells[0]).build()
+            return SpellEmbed(self.spells[0]).build(), None
 
         # Multiple spells found
         if len(self.spells) > 1:
-            embed = discord.Embed(title=f"Results for '{self.query}`", type="rich")
-            embed.color = discord.Color.dark_green()
-            results = []
-            for i, spell in enumerate(self.spells):
-                results.append(f"{i+1}. {spell.name}")
-            embed.add_field(name="", value="\n".join(results))
-            return embed
+            view = discord.ui.View()
+            view.add_item(MultiSpellSelect(self.query, self.spells))
+            return None, view
 
         # No spells found
         embed = discord.Embed(title="No results found.", type="rich")
         embed.color = discord.Color.dark_green()
         embed.add_field(name="", value=f"No results found for '{self.query}'.")
-        return embed
+        return embed, None

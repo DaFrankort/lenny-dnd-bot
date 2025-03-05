@@ -25,8 +25,13 @@ class _Die:
             print(" !!! Invalid die notation. Use the format 'NdN' (e.g., '2d20'). !!! ")
             return
 
-        self.roll_amount = min(int(match.group(1)), 128)
-        self.sides = min(int(match.group(2)), 256)
+        roll_amount = int(match.group(1))
+        sides = int(match.group(2))
+        if sides == 0:
+            sides = 1
+
+        self.roll_amount = min(roll_amount, 128)
+        self.sides = min(sides, 256)
         self.rolls = []
 
     def roll(self):

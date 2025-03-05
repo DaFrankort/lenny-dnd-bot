@@ -151,7 +151,8 @@ class DiceEmbed:
         # This cute little function converts characters into unicode
         # I made it so the the alpha_value assignment line wouldn't be so hard to read
         def get_alpha(char):
-            return ord(char.lower())-96
+            print(f"{char} => {char.lower()} => {ord(char.lower())-96}")
+            return abs(ord(char.lower())-96)
 
         while hex_place < 6:
             try:
@@ -160,7 +161,9 @@ class DiceEmbed:
                 # When username is shorter than 6 characters, inserts replacement value.
                 alpha_value = 0 # Value can be changed to 255 for light and blue colors, 0 for dark and red colors.
 
-            alpha_value = min(alpha_value, 255)
+            if alpha_value > 255:
+                alpha_value = alpha_value & 255
+                
             if alpha_value < 16:
                 hex_value = hex_value + "0" + hex(alpha_value)[2:]
             else:
@@ -177,6 +180,7 @@ class DiceEmbed:
         hex_value = UserColor.load(self.user_id)
         if hex_value == None:
             hex_value = self.__generate_user_color()
+            print(hex_value)
         
         return discord.Color.from_str("#" + hex_value)
     

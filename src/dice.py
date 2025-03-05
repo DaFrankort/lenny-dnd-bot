@@ -179,7 +179,6 @@ class DiceEmbed:
         hex_value = UserColor.load(self.user_id)
         if hex_value == None:
             hex_value = self.__generate_user_color()
-            print(hex_value)
         
         return discord.Color.from_str("#" + hex_value)
     

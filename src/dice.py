@@ -70,7 +70,7 @@ class Dice:
                 print(f" !!! User's expression has too many steps !!!")
                 break
 
-            if part in "+-":
+            if part == "+" or part == "-":
                 self.steps.append(part) # + or -
             elif _match_NdN(part):
                 self.steps.append(_Die(part)) # Die (NdN)

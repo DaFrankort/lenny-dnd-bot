@@ -151,7 +151,6 @@ class DiceEmbed:
         # This cute little function converts characters into unicode
         # I made it so the the alpha_value assignment line wouldn't be so hard to read
         def get_alpha(char):
-            print(f"{char} => {char.lower()} => {ord(char.lower())-96}")
             return abs(ord(char.lower())-96)
 
         while hex_place < 6:

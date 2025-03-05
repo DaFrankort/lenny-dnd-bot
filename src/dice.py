@@ -25,13 +25,13 @@ class _Die:
             print(" !!! Invalid die notation. Use the format 'NdN' (e.g., '2d20'). !!! ")
             return
 
-        self.rolls = min(int(match.group(1)), 128)
+        self.roll_amount = min(int(match.group(1)), 128)
         self.sides = min(int(match.group(2)), 256)
         self.rolls = []
-        
+
     def roll(self):
         """Randomise rolled values"""
-        self.rolls = [random.randint(1, self.sides) for _ in range(self.rolls)]
+        self.rolls = [random.randint(1, self.sides) for _ in range(self.roll_amount)]
     
     def get_total(self):
         if self.rolls == None:

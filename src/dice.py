@@ -133,7 +133,7 @@ class DiceEmbed:
     mode: RollMode
     
     def __init__(self, ctx: commands.Context, dice: list[Dice], reason: str | None,  mode: RollMode = RollMode.NORMAL):
-        self.username = ctx.user.display_name.capitalize()
+        self.username = ctx.user.display_name
         self.avatar_url = ctx.user.avatar.url
         self.user_id = str(ctx.user.id)
         self.dice = dice
@@ -196,20 +196,26 @@ class DiceEmbed:
 
         match self.mode:
             case RollMode.NORMAL:
-                return f"🎲 {prefix}: {self.dice[0]}\n"
+                return f"🎲 **{prefix}:** {self.dice[0]}\n"
             
             case RollMode.ADVANTAGE:
                 total1, total2 = self.dice[0].get_total(), self.dice[1].get_total()
+                largest_value = max(total1,total2)
                 return (
-                    f"{'✅' if total1 >= total2 else '🎲'} 1st {prefix}: {self.dice[0]}\n"
-                    f"{'✅' if total2 >= total1 else '🎲'} 2nd {prefix}: {self.dice[1]}\n"
+                    f"🎲 1st Roll: {self.dice[0]}\n"
+                    f"🎲 2nd Roll: {self.dice[1]}\n"
+                    "----------------------------\n"
+                    f"🎲 **{prefix}:** {largest_value}"
                 )
             
             case RollMode.DISADVANTAGE:
                 total1, total2 = self.dice[0].get_total(), self.dice[1].get_total()
+                smallest_value = min(total1,total2)
                 return(
-                    f"{'✅' if total1 <= total2 else '🎲'} 1st {prefix}: {self.dice[0]}\n"
-                    f"{'✅' if total2 <= total1 else '🎲'} 2nd {prefix}: {self.dice[1]}\n"
+                    f"🎲 1st Roll: {self.dice[0]}\n"
+                    f"🎲 2nd Roll: {self.dice[1]}\n"
+                    "----------------------------\n"
+                    f"**{prefix}:** {smallest_value}"
                 )
 
     def build(self):

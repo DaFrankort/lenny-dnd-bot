@@ -2,6 +2,7 @@ import os.path
 import json
 import discord
 from rapidfuzz import fuzz
+from  discord.utils import MISSING
 
 from parser import (
     format_casting_time,
@@ -162,16 +163,16 @@ class SpellSearchEmbed(object):
     def build(self):
         # One spell found
         if len(self.spells) == 1:
-            return SpellEmbed(self.spells[0]).build(), None
+            return SpellEmbed(self.spells[0]).build(), MISSING
 
         # Multiple spells found
         if len(self.spells) > 1:
             view = discord.ui.View()
             view.add_item(MultiSpellSelect(self.query, self.spells))
-            return None, view
+            return MISSING, view
 
         # No spells found
         embed = discord.Embed(title="No results found.", type="rich")
         embed.color = discord.Color.dark_green()
         embed.add_field(name="", value=f"No results found for '{self.query}'.")
-        return embed, None
+        return embed, MISSING

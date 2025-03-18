@@ -67,7 +67,7 @@ async def search_spell(ctx: discord.Interaction, query: str):
     found = spells.search(query)
     embed = SpellSearchEmbed(query, found)
     embed, view = embed.build()
-    logging.debug(f"Found {len(spells)} for '{query}'")
+    logging.debug(f"Found {len(found)} for '{query}'")
     await ctx.response.send_message(embed=embed, view=view)
     return
 

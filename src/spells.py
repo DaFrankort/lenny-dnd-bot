@@ -45,7 +45,7 @@ class Spell(object):
 
     @property
     def is_phb2014(self) -> bool:
-        return self.source == "XPHB"
+        return self.source == "PHB"
 
     def __str__(self):
         return f"{self.name} ({self.source})"

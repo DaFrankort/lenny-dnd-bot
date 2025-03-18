@@ -1,4 +1,3 @@
-import logging
 import os.path
 import json
 import discord
@@ -69,16 +68,12 @@ class SpellList(object):
     def _load_spells_file(self, path: str):
         with open(path, "r", encoding="utf-8") as file:
             spells = json.load(file)
-            for raw in spells["spell"]:
-                spell = Spell(raw)
-                self.spells.append(spell)
-                logging.debug(f"SpellList: loaded spell '{str(spell)}'")
-        logging.debug(f"SpellList: loaded spell file '{path}'")
+            for spell in spells["spell"]:
+                self.spells.append(Spell(spell))
 
     def search(
         self, query: str, ignore_phb2014: bool = True, fuzzy_threshold: float = 75
     ):
-        logging.debug(f"SpellList: searching for '{query}' (Ignoring PHB'14 = {ignore_phb2014}, threshold = {fuzzy_threshold / 100})")
         query = query.strip().lower()
         exact = []
         fuzzy = []
@@ -150,13 +145,10 @@ class MultiSpellSelect(discord.ui.Select):
             max_values=1,
         )
 
-        logging.debug(f"MultiSpellSelect: found {len(spells)} spells for '{query}'")
-
     async def callback(self, interaction: discord.Interaction):
         name = self.values[0]
         spell = [spell for spell in self.spells if spell.name == name][0]
         embed = SpellEmbed(spell).build()
-        logging.debug(f"MultiSpellSelect: user {interaction.user.display_name} selected '{name}")
         await interaction.response.send_message(embed=embed)
 
 

@@ -2,7 +2,7 @@ import logging
 import discord
 import os
 from dice import Dice, DiceEmbed, RollMode
-from spells import SpellList, SpellSearchEmbed
+from spells import MultiSpellSelect, MultiSpellSelectView, NoSpellsFoundEmbed, SpellEmbed, SpellList
 from discord.ext import commands
 from discord import app_commands
 from dotenv import load_dotenv
@@ -67,15 +67,36 @@ async def disadvantage(ctx: commands.Context, diceroll: str, reason: str = None)
     await ctx.response.send_message(embed=embed)
 
 
-@cmd_tree.command(name="spell", description="Search for a spell.")
-async def search_spell(ctx: discord.Interaction, query: str):
-    logging.info(f"{ctx.user.name} => /spell {query}")
+@cmd_tree.command(name="spell", description="Get the details for a spell.")
+async def spell(ctx: discord.Interaction, name: str):
+    logging.info(f"{ctx.user.name} => /spell {name}")
+    found = spells.get(name)
+    logging.debug(f"Found {len(found)} for '{name}'")
+
+    if len(found) == 0:
+        embed = NoSpellsFoundEmbed(name)
+        await ctx.response.send_message(embed=embed)
+    
+    elif len(found) > 1:
+        view = MultiSpellSelectView(name, found)
+        await ctx.response.send_message(view=view)
+
+    else:
+        embed = SpellEmbed(found[0])
+        await ctx.response.send_message(embed=embed)
+        
+
+@cmd_tree.command(name="search", description="Search for a spell.")
+async def spell(ctx: discord.Interaction, query: str):
+    logging.info(f"{ctx.user.name} => /search {query}")
     found = spells.search(query)
-    embed = SpellSearchEmbed(query, found)
-    embed, view = embed.build()
-    logging.debug(f"Found {len(found)} for '{query}'")
-    await ctx.response.send_message(embed=embed, view=view)
-    return
+
+    if len(found) == 0:
+        embed = NoSpellsFoundEmbed(query)
+        await ctx.response.send_message(embed=embed)
+    else:
+        view = MultiSpellSelectView(query, found)
+        await ctx.response.send_message(view=view)
 
 
 @cmd_tree.command(name="color", description="Set a preferred color using a hex-value. Leave hex_color empty to use auto-generated colors.")

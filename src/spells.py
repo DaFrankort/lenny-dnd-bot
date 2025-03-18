@@ -3,7 +3,7 @@ import os.path
 import json
 import discord
 from rapidfuzz import fuzz
-from  discord.utils import MISSING
+from discord.utils import MISSING
 
 from parser import (
     format_casting_time,
@@ -75,11 +75,11 @@ class SpellList(object):
                 logging.debug(f"SpellList: loaded spell '{str(spell)}'")
         logging.debug(f"SpellList: loaded spell file '{path}'")
 
-    def search(
-        self, query: str, ignore_phb2014: bool = True, fuzzy_threshold: float = 75
-    ):
-        logging.debug(f"SpellList: searching for '{query}' (Ignoring PHB'14 = {ignore_phb2014}, threshold = {fuzzy_threshold / 100})")
-        query = query.strip().lower()
+    def get(self, name: str, ignore_phb2014: bool = True, fuzzy_threshold: float = 75):
+        logging.debug(
+            f"SpellList: getting '{name}' (Ignoring PHB'14 = {ignore_phb2014}, threshold = {fuzzy_threshold / 100})"
+        )
+        name = name.strip().lower()
         exact = []
         fuzzy = []
 
@@ -87,24 +87,42 @@ class SpellList(object):
             if ignore_phb2014 and spell.is_phb2014:
                 continue
 
-            name = spell.name.strip().lower()
-            if name == query:
+            spell_name = spell.name.strip().lower()
+            if name == spell_name:
                 exact.append(spell)
-            elif fuzz.ratio(query, name) > fuzzy_threshold:
+            elif fuzz.ratio(name, spell_name) > fuzzy_threshold:
                 fuzzy.append(spell)
 
         if len(exact) > 0:
             return exact
         return fuzzy
 
+    def search(
+        self, query: str, ignore_phb2014: bool = True, fuzzy_threshold: float = 75
+    ):
+        logging.debug(
+            f"SpellList: searching '{query}' (Ignoring PHB'14 = {ignore_phb2014}, threshold = {fuzzy_threshold / 100})"
+        )
+        query = query.strip().lower()
+        found = []
 
-class SpellEmbed(object):
+        for spell in self.spells:
+            if ignore_phb2014 and spell.is_phb2014:
+                continue
+
+            spell_name = spell.name.strip().lower()
+            if fuzz.partial_ratio(query, spell_name) > fuzzy_threshold:
+                found.append(spell)
+        found = sorted(found, key=lambda x: x.name)
+        return found
+
+
+class SpellEmbed(discord.Embed):
     spell: Spell
 
     def __init__(self, spell: Spell):
         self.spell = spell
 
-    def build(self) -> discord.Embed:
         title = f"{self.spell.name} ({self.spell.source})"
 
         level_school = f"*{self.spell.level_school}*"
@@ -113,17 +131,14 @@ class SpellEmbed(object):
         components = f"**Components:** {self.spell.components}"
         duration = f"**Duration:** {self.spell.duration}"
 
-        embed = discord.Embed(title=title, type="rich")
-        embed.color = discord.Color.dark_green()
-        embed.add_field(name="", value=level_school, inline=False)
-        embed.add_field(name="", value=casting_time, inline=False)
-        embed.add_field(name="", value=spell_range, inline=False)
-        embed.add_field(name="", value=components, inline=False)
-        embed.add_field(name="", value=duration, inline=False)
+        super().__init__(title=title, type="rich", color=discord.Color.dark_green())
+        self.add_field(name="", value=level_school, inline=False)
+        self.add_field(name="", value=casting_time, inline=False)
+        self.add_field(name="", value=spell_range, inline=False)
+        self.add_field(name="", value=components, inline=False)
+        self.add_field(name="", value=duration, inline=False)
         for name, value in self.spell.descriptions:
-            embed.add_field(name=name, value=value, inline=False)
-
-        return embed
+            self.add_field(name=name, value=value, inline=False)
 
 
 class MultiSpellSelect(discord.ui.Select):
@@ -155,32 +170,26 @@ class MultiSpellSelect(discord.ui.Select):
     async def callback(self, interaction: discord.Interaction):
         name = self.values[0]
         spell = [spell for spell in self.spells if spell.name == name][0]
-        embed = SpellEmbed(spell).build()
-        logging.debug(f"MultiSpellSelect: user {interaction.user.display_name} selected '{name}")
-        await interaction.response.send_message(embed=embed)
+        logging.debug(
+            f"MultiSpellSelect: user {interaction.user.display_name} selected '{name}"
+        )
+        await interaction.response.send_message(embed=SpellEmbed(spell))
 
 
-class SpellSearchEmbed(object):
-    query: str
-    spells: list[Spell]
+class NoSpellsFoundEmbed(discord.Embed):
+    def __init__(self, query: str):
+        super().__init__(
+            color=discord.Color.dark_green(),
+            title="No spells found.",
+            type="rich",
+            url=None,
+            description=None,
+            timestamp=None,
+        )
+        self.add_field(name="", value=f"No spells found for '{query}'.")
 
+
+class MultiSpellSelectView(discord.ui.View):
     def __init__(self, query: str, spells: list[Spell]):
-        self.query = query
-        self.spells = spells
-
-    def build(self):
-        # One spell found
-        if len(self.spells) == 1:
-            return SpellEmbed(self.spells[0]).build(), MISSING
-
-        # Multiple spells found
-        if len(self.spells) > 1:
-            view = discord.ui.View()
-            view.add_item(MultiSpellSelect(self.query, self.spells))
-            return MISSING, view
-
-        # No spells found
-        embed = discord.Embed(title="No results found.", type="rich")
-        embed.color = discord.Color.dark_green()
-        embed.add_field(name="", value=f"No results found for '{self.query}'.")
-        return embed, MISSING
+        super().__init__()
+        self.add_item(MultiSpellSelect(query, spells))

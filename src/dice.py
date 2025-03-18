@@ -142,7 +142,7 @@ class DiceEmbed:
         self.avatar_url = ctx.user.avatar.url
         self.user_id = str(ctx.user.id)
         self.dice = dice
-        self.reason = reason.capitalize() if reason is not None else reason
+        self.reason = reason if reason is not None else reason
         self.mode = mode
         return
     
@@ -190,13 +190,13 @@ class DiceEmbed:
     def _get_title(self):
         match self.mode:
             case RollMode.NORMAL:
-                return f"{self.username} rolled {self.dice[0].notation}!"
+                return f"Rolled {self.dice[0].notation}!"
             
             case RollMode.ADVANTAGE:
-                return f"{self.username} rolled {self.dice[0].notation} with advantage!"
+                return f"Rolled {self.dice[0].notation} with advantage!"
             
             case RollMode.DISADVANTAGE:
-                return f"{self.username} rolled {self.dice[0].notation} with disadvantage!"
+                return f"Rolled {self.dice[0].notation} with disadvantage!"
 
     def _get_description(self):
         prefix = "Result" if self.reason == None else self.reason
@@ -206,29 +206,30 @@ class DiceEmbed:
                 return f"🎲 **{prefix}:** {self.dice[0]}\n"
             
             case RollMode.ADVANTAGE:
-                total1, total2 = self.dice[0].get_total(), self.dice[1].get_total()
-                largest_value = max(total1,total2)
+                largest_value = max(self.dice[0].get_total(), self.dice[1].get_total())
                 return (
-                    f"🎲 1st Roll: {self.dice[0]}\n"
-                    f"🎲 2nd Roll: {self.dice[1]}\n"
-                    "----------------------------\n"
                     f"🎲 **{prefix}:** {largest_value}"
                 )
             
             case RollMode.DISADVANTAGE:
-                total1, total2 = self.dice[0].get_total(), self.dice[1].get_total()
-                smallest_value = min(total1,total2)
+                smallest_value = min(self.dice[0].get_total(), self.dice[1].get_total())
                 return(
-                    f"🎲 1st Roll: {self.dice[0]}\n"
-                    f"🎲 2nd Roll: {self.dice[1]}\n"
-                    "----------------------------\n"
-                    f"**{prefix}:** {smallest_value}"
+                    f"🎲 **{prefix}:** {smallest_value}"
                 )
 
     def build(self):
+        description = f"``{self.dice[0]}``\n"
+
+        if len(self.dice) != 1:
+            description = (
+                f"``{self.dice[0]}``\n"
+                f"``{self.dice[1]}``\n"
+                )
+
         embed = discord.Embed(
             type="rich",
-            description=self._get_description()
+            title=self._get_description(),
+            description=description
             )
         embed.set_author(
             name=self._get_title(),

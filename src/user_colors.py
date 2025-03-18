@@ -1,3 +1,4 @@
+import logging
 import discord
 import json
 import os
@@ -15,7 +16,7 @@ class UserColor:
         HEX_PATTERN = re.compile(r"^[0-9a-fA-F]{6}$")
         if not HEX_PATTERN.match(hex_value):
             self.is_valid = False
-            print(f"  !!! Invalid hex value \"{hex_value}\": Must be 6 valid hexadecimal characters (0-9, A-F) !!!")
+            logging.error(f"Invalid hex value \"{hex_value}\": Must be 6 valid hexadecimal characters (0-9, A-F)")
             return
         
         self.hex_value = hex_value

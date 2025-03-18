@@ -1,3 +1,4 @@
+import logging
 import discord
 import os
 from dice import Dice, DiceEmbed, RollMode
@@ -61,11 +62,12 @@ async def disadvantage(ctx: commands.Context, diceroll: str, reason: str = None)
 
 
 @cmd_tree.command(name="spell", description="Search for a spell.")
-async def search_spell(ctx: discord.Interaction, name: str):
-    print(f"{ctx.user.name} => /spell {name}")
-    found = spells.search(name)
-    embed = SpellSearchEmbed(name, found)
+async def search_spell(ctx: discord.Interaction, query: str):
+    logging.info(f"{ctx.user.name} => /spell {query}")
+    found = spells.search(query)
+    embed = SpellSearchEmbed(query, found)
     embed, view = embed.build()
+    logging.debug(f"Found {len(spells)} for '{query}'")
     await ctx.response.send_message(embed=embed, view=view)
     return
 

@@ -119,11 +119,11 @@ class Dice:
         if self.steps[0] == '-':
             steps_text = f"- {steps_text}"
 
-        if len(self.steps) == 2 & isinstance(self.steps[1], _Die): # Only show total if there's only 1 step.
+        if len(self.steps) == 2 and isinstance(self.steps[1], _Die): # Only show total if there's only 1 step.
             if len(self.steps[1].rolls) == 1:
                 return total_text
 
-        return f"{steps_text} => {total_text}"
+        return f"``{steps_text}`` -> {total_text}"
 
 class RollMode(Enum):
     NORMAL = "normal"
@@ -200,50 +200,30 @@ class DiceEmbed:
                 return f"Rolled {self.dice[0].notation} with disadvantage!"
 
     def _get_description(self):
+        description = ""
+        for die in self.dice:
+            description += f"- {die}\n"
+
         match self.mode:
             case RollMode.NORMAL:
-                return f"🎲 **{self.reason}:** {self.dice[0]}\n"
+                return description + f"🎲 **{self.reason}:** {self.dice[0]}\n"
             
             case RollMode.ADVANTAGE:
                 largest_value = max(self.dice[0].get_total(), self.dice[1].get_total())
-                return (
-                    f"🎲 **{self.reason}:** {largest_value}"
-                )
+                return description + f"🎲 **{self.reason}: {largest_value}**"
             
             case RollMode.DISADVANTAGE:
                 smallest_value = min(self.dice[0].get_total(), self.dice[1].get_total())
-                return(
-                    f"🎲 **{self.reason}:** {smallest_value}"
-                )
+                return description + f"🎲 **{self.reason}: {smallest_value}**"
 
     def build(self):
-        if len(self.dice) == 1: # Single roll dice embed
-            embed = discord.Embed(
-                type="rich",
-                description=self._get_description()
-            )
-            embed.set_author(
-                name=self._get_title(),
-                icon_url=self.avatar_url
-            )
-
-        elif len(self.dice) > 1: # Multiple roll dice embed
-            description = ""
-            for die in self.dice:
-                description += f"{die}\n"
-
-            embed = discord.Embed(
-                type="rich",
-                title=self._get_description(),
-                description=description
-            )
-            embed.set_author(
-                name=self._get_title(),
-                icon_url=self.avatar_url
-            )
-        else:
-            logging.error("Unknown dice amount in DiceEmbed.")
-            return None
-
+        embed = discord.Embed(
+            type="rich",
+            description=self._get_description()
+        )
+        embed.set_author(
+            name=self._get_title(),
+            icon_url=self.avatar_url
+        )
         embed.color = self._get_embed_color()
         return embed

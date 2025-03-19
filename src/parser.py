@@ -220,7 +220,9 @@ def format_descriptions(
     for desc in description:
         # Special case scenario where an entry is a description on its own
         # These will be handled separately
-        if not isinstance(desc, str):
+        if isinstance(desc, str):
+            blocks.append(format_dnd_text(desc))
+        else:
             if desc["type"] == "entries":
                 subdescriptions.extend(
                     format_descriptions(desc["name"], desc["entries"], fallbackUrl)
@@ -229,8 +231,8 @@ def format_descriptions(
                 subdescriptions.append(
                     _format_description_from_table(desc, fallbackUrl)
                 )
-        else:
-            blocks.append(_format_description_block(desc))
+            else:
+                blocks.append(_format_description_block(desc))
 
     descriptions = []
     if len(blocks) > 0:

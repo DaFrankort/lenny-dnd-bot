@@ -79,7 +79,7 @@ async def spell(ctx: discord.Interaction, name: str):
     
     elif len(found) > 1:
         view = MultiSpellSelectView(name, found)
-        await ctx.response.send_message(view=view)
+        await ctx.response.send_message(view=view, ephemeral=True)
 
     else:
         embed = SpellEmbed(found[0])
@@ -96,7 +96,7 @@ async def spell(ctx: discord.Interaction, query: str):
         await ctx.response.send_message(embed=embed)
     else:
         view = MultiSpellSelectView(query, found)
-        await ctx.response.send_message(view=view)
+        await ctx.response.send_message(view=view, ephemeral=True)
 
 
 @cmd_tree.command(name="color", description="Set a preferred color using a hex-value. Leave hex_color empty to use auto-generated colors.")

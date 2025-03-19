@@ -2,8 +2,7 @@ import logging
 import discord
 import os
 from dice import Dice, DiceEmbed, RollMode
-from spells import MultiSpellSelect, MultiSpellSelectView, NoSpellsFoundEmbed, SpellEmbed, SpellList
-from discord.ext import commands
+from spells import MultiSpellSelectView, NoSpellsFoundEmbed, SpellEmbed, SpellList
 from discord import app_commands
 from dotenv import load_dotenv
 from user_colors import UserColor, ColorEmbed

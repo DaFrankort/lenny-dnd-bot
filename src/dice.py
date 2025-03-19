@@ -3,7 +3,6 @@ import random
 import re
 import discord
 import sys
-from discord.ext import commands
 from enum import Enum
 from user_colors import UserColor
 
@@ -134,7 +133,7 @@ class DiceEmbed:
     reason: str
     mode: RollMode
     
-    def __init__(self, ctx: commands.Context, dice: list[Dice], reason: str | None,  mode: RollMode = RollMode.NORMAL):
+    def __init__(self, ctx: discord.Interaction, dice: list[Dice], reason: str | None,  mode: RollMode = RollMode.NORMAL):
         self.username = ctx.user.display_name.capitalize()
         self.avatar_url = ctx.user.avatar.url
         self.user_id = str(ctx.user.id)

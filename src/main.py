@@ -32,7 +32,7 @@ spells = SpellList("./submodules/5etools-src/data/spells")
 
 # Slash commands
 @cmd_tree.command(name="roll", description="Roll your d20s!")
-async def roll(ctx: commands.Context, diceroll: str, reason: str = None):
+async def roll(ctx: discord.Interaction, diceroll: str, reason: str = None):
     logging.info(f"{ctx.user.name} => /roll {diceroll} {reason if reason else ''}")
     die = Dice(diceroll)
     if not die.is_valid:
@@ -44,7 +44,7 @@ async def roll(ctx: commands.Context, diceroll: str, reason: str = None):
 
 
 @cmd_tree.command(name="advantage", description="Lucky you! Roll and take the best of two!")
-async def advantage(ctx: commands.Context, diceroll: str, reason: str = None):
+async def advantage(ctx: discord.Interaction, diceroll: str, reason: str = None):
     logging.info(f"{ctx.user.name} => /advantage {diceroll} {reason if reason else ''}")
     dice = [Dice(diceroll), Dice(diceroll)]
     if not dice[0].is_valid:
@@ -56,7 +56,7 @@ async def advantage(ctx: commands.Context, diceroll: str, reason: str = None):
 
 
 @cmd_tree.command(name="disadvantage", description="Tough luck chump... Roll twice and suck it.")
-async def disadvantage(ctx: commands.Context, diceroll: str, reason: str = None):
+async def disadvantage(ctx: discord.Interaction, diceroll: str, reason: str = None):
     logging.info(f"{ctx.user.name} => /disadvantage {diceroll} {reason if reason else ''}")
     dice = [Dice(diceroll), Dice(diceroll)]
     if not dice[0].is_valid:

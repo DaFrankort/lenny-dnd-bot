@@ -23,7 +23,7 @@ class _Die:
 
         if not match:
             self.is_valid = False
-            print(" !!! Invalid die notation. Use the format 'NdN' (e.g., '2d20'). !!! ")
+            logging.error("Invalid die notation. Use the format 'NdN' (e.g., '2d20').")
             return
 
         roll_amount = int(match.group(1))
@@ -38,6 +38,7 @@ class _Die:
     def roll(self):
         """Randomise rolled values"""
         self.rolls = [random.randint(1, self.sides) for _ in range(self.roll_amount)]
+        logging.debug(f"Rolled {self.roll_amount}d{self.sides} with result: {self.__str__}")
     
     def get_total(self):
         if self.rolls == None:
@@ -68,7 +69,7 @@ class Dice:
         for part in parts:
             if len(self.steps) > 32:
                 self.is_valid = False
-                print(f" !!! User's expression has too many steps !!!")
+                logging.error(f"User's dice expression has too many steps.")
                 break
 
             if part == "+" or part == "-":
@@ -79,7 +80,7 @@ class Dice:
                 self.steps.append(min(int(part), 8192)) # Modifier, limited to 10% of maxint
             else:
                 self.is_valid = False
-                print(f" !!! Invalid token in dice expression: {part} !!!")
+                logging.error(f"Invalid token in dice expression: {part}.")
                 return
         
         self.roll()
@@ -106,7 +107,7 @@ class Dice:
                 total -= value
 
             if total > sys.maxsize / 2:
-                print(" !!! Total exceeding threshold value! !!!")
+                logging.warning("Dice total too large whilst calculating total, stopped calculation to prevent errors.")
                 break
         return total
 

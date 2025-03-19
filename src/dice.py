@@ -1,3 +1,4 @@
+import logging
 import random
 import re
 import discord
@@ -117,10 +118,9 @@ class Dice:
         if self.steps[0] == '-':
             steps_text = f"- {steps_text}"
 
-        if len(self.steps) == 2:
-            if isinstance(self.steps[1], _Die):
-                if self.steps[1].rolls == 1:
-                    return total_text
+        if len(self.steps) == 2 & isinstance(self.steps[1], _Die): # Only show total if there's only 1 step.
+            if len(self.steps[1].rolls) == 1:
+                return total_text
 
         return f"{steps_text} => {total_text}"
 
@@ -218,22 +218,33 @@ class DiceEmbed:
                 )
 
     def build(self):
-        description = f"``{self.dice[0]}``\n"
-
-        if len(self.dice) != 1:
-            description = (
-                f"``{self.dice[0]}``\n"
-                f"``{self.dice[1]}``\n"
-                )
-
-        embed = discord.Embed(
-            type="rich",
-            title=self._get_description(),
-            description=description
+        if len(self.dice) == 1: # Single roll dice embed
+            embed = discord.Embed(
+                type="rich",
+                description=self._get_description()
             )
-        embed.set_author(
-            name=self._get_title(),
-            icon_url=self.avatar_url
-        )
+            embed.set_author(
+                name=self._get_title(),
+                icon_url=self.avatar_url
+            )
+
+        elif len(self.dice) > 1: # Multiple roll dice embed
+            description = ""
+            for die in self.dice:
+                description += f"{die}\n"
+
+            embed = discord.Embed(
+                type="rich",
+                title=self._get_description(),
+                description=description
+            )
+            embed.set_author(
+                name=self._get_title(),
+                icon_url=self.avatar_url
+            )
+        else:
+            logging.error("Unknown dice amount in DiceEmbed.")
+            return None
+
         embed.color = self._get_embed_color()
         return embed

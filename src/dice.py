@@ -143,7 +143,7 @@ class DiceEmbed:
         self.avatar_url = ctx.user.avatar.url
         self.user_id = str(ctx.user.id)
         self.dice = dice
-        self.reason = reason if reason is not None else reason
+        self.reason = reason if reason != None else "Result"
         self.mode = mode
         return
     
@@ -200,22 +200,20 @@ class DiceEmbed:
                 return f"Rolled {self.dice[0].notation} with disadvantage!"
 
     def _get_description(self):
-        prefix = "Result" if self.reason == None else self.reason
-
         match self.mode:
             case RollMode.NORMAL:
-                return f"🎲 **{prefix}:** {self.dice[0]}\n"
+                return f"🎲 **{self.reason}:** {self.dice[0]}\n"
             
             case RollMode.ADVANTAGE:
                 largest_value = max(self.dice[0].get_total(), self.dice[1].get_total())
                 return (
-                    f"🎲 **{prefix}:** {largest_value}"
+                    f"🎲 **{self.reason}:** {largest_value}"
                 )
             
             case RollMode.DISADVANTAGE:
                 smallest_value = min(self.dice[0].get_total(), self.dice[1].get_total())
                 return(
-                    f"🎲 **{prefix}:** {smallest_value}"
+                    f"🎲 **{self.reason}:** {smallest_value}"
                 )
 
     def build(self):

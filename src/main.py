@@ -2,8 +2,7 @@ import logging
 import discord
 import os
 from dice import Dice, DiceEmbed, RollMode
-from spells import MultiSpellSelect, MultiSpellSelectView, NoSpellsFoundEmbed, SpellEmbed, SpellList
-from discord.ext import commands
+from spells import MultiSpellSelectView, NoSpellsFoundEmbed, SpellEmbed, SpellList
 from discord import app_commands
 from dotenv import load_dotenv
 from stats import StatsEmbed
@@ -33,7 +32,7 @@ spells = SpellList("./submodules/5etools-src/data/spells")
 
 # Slash commands
 @cmd_tree.command(name="roll", description="Roll your d20s!")
-async def roll(ctx: commands.Context, diceroll: str, reason: str = None):
+async def roll(ctx: discord.Interaction, diceroll: str, reason: str = None):
     logging.info(f"{ctx.user.name} => /roll {diceroll} {reason if reason else ''}")
     die = Dice(diceroll)
     if not die.is_valid:
@@ -45,7 +44,7 @@ async def roll(ctx: commands.Context, diceroll: str, reason: str = None):
 
 
 @cmd_tree.command(name="advantage", description="Lucky you! Roll and take the best of two!")
-async def advantage(ctx: commands.Context, diceroll: str, reason: str = None):
+async def advantage(ctx: discord.Interaction, diceroll: str, reason: str = None):
     logging.info(f"{ctx.user.name} => /advantage {diceroll} {reason if reason else ''}")
     dice = [Dice(diceroll), Dice(diceroll)]
     if not dice[0].is_valid:
@@ -57,7 +56,7 @@ async def advantage(ctx: commands.Context, diceroll: str, reason: str = None):
 
 
 @cmd_tree.command(name="disadvantage", description="Tough luck chump... Roll twice and suck it.")
-async def disadvantage(ctx: commands.Context, diceroll: str, reason: str = None):
+async def disadvantage(ctx: discord.Interaction, diceroll: str, reason: str = None):
     logging.info(f"{ctx.user.name} => /disadvantage {diceroll} {reason if reason else ''}")
     dice = [Dice(diceroll), Dice(diceroll)]
     if not dice[0].is_valid:
@@ -109,13 +108,14 @@ async def set_color(itr: discord.Interaction, hex_color: str = ""):
         await itr.response.send_message(message, ephemeral=True)
         return
 
-    user_color = UserColor(itr=itr, hex_value=hex_color)
-    if not user_color.is_valid:
+    if not UserColor.validate(hex_color):
         await itr.response.send_message('⚠️ Invalid hex value: Must be 6 valid hexadecimal characters (0-9, A-F), optionally starting with a # symbol. (eg. ff00ff / #ff00ff) ⚠️', ephemeral=True)
         return
-    user_color.save()
 
-    embed = ColorEmbed(itr=itr, user_color=user_color).build()
+    color = UserColor.parse(hex_color)
+    UserColor.save(itr, color)
+
+    embed = ColorEmbed(itr=itr, hex_color=hex_color)
     await itr.response.send_message(embed=embed, ephemeral=True)
 
 @cmd_tree.command(name="stats", description="Roll stats for a new character, using the 4d6 drop lowest method.")

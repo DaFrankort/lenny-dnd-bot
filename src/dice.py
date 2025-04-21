@@ -26,8 +26,13 @@ class _Die:
             logging.error("Invalid die notation. Use the format 'NdN' (e.g., '2d20').")
             return
 
-        self.roll_amount = min(int(match.group(1)), 128)
-        self.sides = min(int(match.group(2)), 256)
+        roll_amount = int(match.group(1))
+        sides = int(match.group(2))
+        if sides == 0:
+            sides = 1
+
+        self.roll_amount = min(roll_amount, 128)
+        self.sides = min(sides, 256)
         self.rolls = []
 
     def roll(self):
@@ -67,7 +72,7 @@ class Dice:
                 logging.error(f"User's dice expression has too many steps.")
                 break
 
-            if part in "+-":
+            if part == "+" or part == "-":
                 self.steps.append(part) # + or -
             elif _match_NdN(part):
                 self.steps.append(_Die(part)) # Die (NdN)
@@ -114,12 +119,11 @@ class Dice:
         if self.steps[0] == '-':
             steps_text = f"- {steps_text}"
 
-        if len(self.steps) == 2:
-            if isinstance(self.steps[1], _Die):
-                if self.steps[1].rolls == 1:
-                    return total_text
+        if len(self.steps) == 2 and isinstance(self.steps[1], _Die): # Only show total if there's only 1 step.
+            if len(self.steps[1].rolls) == 1:
+                return total_text
 
-        return f"{steps_text} => {total_text}"
+        return f"``{steps_text}`` -> {total_text}"
 
 class RollMode(Enum):
     NORMAL = "normal"
@@ -135,11 +139,11 @@ class DiceEmbed:
     mode: RollMode
     
     def __init__(self, ctx: commands.Context, dice: list[Dice], reason: str | None,  mode: RollMode = RollMode.NORMAL):
-        self.username = ctx.user.display_name.capitalize()
+        self.username = ctx.user.display_name
         self.avatar_url = ctx.user.avatar.url
         self.user_id = str(ctx.user.id)
         self.dice = dice
-        self.reason = reason.capitalize() if reason is not None else reason
+        self.reason = reason if reason != None else "Result"
         self.mode = mode
         return
     
@@ -153,7 +157,7 @@ class DiceEmbed:
         # This cute little function converts characters into unicode
         # I made it so the the alpha_value assignment line wouldn't be so hard to read
         def get_alpha(char):
-            return ord(char.lower())-96
+            return abs(ord(char.lower())-96)
 
         while hex_place < 6:
             try:
@@ -162,7 +166,9 @@ class DiceEmbed:
                 # When username is shorter than 6 characters, inserts replacement value.
                 alpha_value = 0 # Value can be changed to 255 for light and blue colors, 0 for dark and red colors.
 
-            alpha_value = min(alpha_value, 255)
+            if alpha_value > 255:
+                alpha_value = alpha_value & 255
+                
             if alpha_value < 16:
                 hex_value = hex_value + "0" + hex(alpha_value)[2:]
             else:
@@ -185,40 +191,36 @@ class DiceEmbed:
     def _get_title(self):
         match self.mode:
             case RollMode.NORMAL:
-                return f"{self.username} rolled {self.dice[0].notation}!"
+                return f"Rolled {self.dice[0].notation}!"
             
             case RollMode.ADVANTAGE:
-                return f"{self.username} rolled {self.dice[0].notation} with advantage!"
+                return f"Rolled {self.dice[0].notation} with advantage!"
             
             case RollMode.DISADVANTAGE:
-                return f"{self.username} rolled {self.dice[0].notation} with disadvantage!"
+                return f"Rolled {self.dice[0].notation} with disadvantage!"
 
     def _get_description(self):
-        prefix = "Result" if self.reason == None else self.reason
+        description = ""
+        for die in self.dice:
+            description += f"- {die}\n"
 
         match self.mode:
             case RollMode.NORMAL:
-                return f"🎲 {prefix}: {self.dice[0]}\n"
+                return description + f"🎲 **{self.reason}:** {self.dice[0]}\n"
             
             case RollMode.ADVANTAGE:
-                total1, total2 = self.dice[0].get_total(), self.dice[1].get_total()
-                return (
-                    f"{'✅' if total1 >= total2 else '🎲'} 1st {prefix}: {self.dice[0]}\n"
-                    f"{'✅' if total2 >= total1 else '🎲'} 2nd {prefix}: {self.dice[1]}\n"
-                )
+                largest_value = max(self.dice[0].get_total(), self.dice[1].get_total())
+                return description + f"🎲 **{self.reason}: {largest_value}**"
             
             case RollMode.DISADVANTAGE:
-                total1, total2 = self.dice[0].get_total(), self.dice[1].get_total()
-                return(
-                    f"{'✅' if total1 <= total2 else '🎲'} 1st {prefix}: {self.dice[0]}\n"
-                    f"{'✅' if total2 <= total1 else '🎲'} 2nd {prefix}: {self.dice[1]}\n"
-                )
+                smallest_value = min(self.dice[0].get_total(), self.dice[1].get_total())
+                return description + f"🎲 **{self.reason}: {smallest_value}**"
 
     def build(self):
         embed = discord.Embed(
             type="rich",
             description=self._get_description()
-            )
+        )
         embed.set_author(
             name=self._get_title(),
             icon_url=self.avatar_url

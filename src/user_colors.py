@@ -28,8 +28,9 @@ class UserColor:
 
     @staticmethod
     def parse(hex_color: str) -> int:
-        hex_color = hex_color.strip("#")
-        return int(hex_color, base=16)
+        if not hex_color.startswith("#"):
+            hex_color = f"#{hex_color}"
+        return discord.Color.from_str(hex_color).value
 
     @staticmethod
     def generate(interaction: discord.Interaction) -> int:
@@ -47,8 +48,8 @@ class UserColor:
         while hex_place < 6:
             try:
                 alpha_value = get_alpha(
-                    interaction.user.display_icon[hex_place]
-                ) * get_alpha(interaction.user.display_icon[hex_place + 1])
+                    interaction.user.display_name[hex_place]
+                ) * get_alpha(interaction.user.display_name[hex_place + 1])
             except:
                 # When username is shorter than 6 characters, inserts replacement value.
                 alpha_value = 0  # Value can be changed to 255 for light and blue colors, 0 for dark and red colors.
@@ -74,6 +75,9 @@ class UserColor:
         except:
             color = UserColor.generate(interaction)
 
+        if color is None:
+            color = UserColor.generate(interaction)
+
         return color
 
     @staticmethod
@@ -85,11 +89,11 @@ class UserColor:
                 user_id = str(interaction.user.id)
                 if not user_id in data:
                     return False
-            del data[user_id]
+                del data[user_id]
             with open(UserColor.FILE_PATH, "w") as file:
                 json.dump(data, file, indent=4)
             return True
-        except:
+        except Exception as e:
             return False
 
 

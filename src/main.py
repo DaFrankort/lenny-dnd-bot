@@ -102,7 +102,7 @@ async def spell(ctx: discord.Interaction, query: str):
 async def set_color(itr: discord.Interaction, hex_color: str = ""):
     logging.info(f"{itr.user.name} => /color {hex_color}")
     if hex_color == '':
-        removed = UserColor.remove(itr.user.id)
+        removed = UserColor.remove(itr)
         message = "❌ Cleared user-defined color. ❌" if removed else "⚠️ You have not yet set a color. ⚠️"
         await itr.response.send_message(message, ephemeral=True)
         return

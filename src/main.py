@@ -107,13 +107,14 @@ async def set_color(itr: discord.Interaction, hex_color: str = ""):
         await itr.response.send_message(message, ephemeral=True)
         return
 
-    user_color = UserColor(itr=itr, hex_value=hex_color)
-    if not user_color.is_valid:
+    if not UserColor.validate(hex_color):
         await itr.response.send_message('⚠️ Invalid hex value: Must be 6 valid hexadecimal characters (0-9, A-F), optionally starting with a # symbol. (eg. ff00ff / #ff00ff) ⚠️', ephemeral=True)
         return
-    user_color.save()
 
-    embed = ColorEmbed(itr=itr, user_color=user_color).build()
+    color = UserColor.parse(hex_color)
+    UserColor.save(itr, color)
+
+    embed = ColorEmbed(itr=itr, hex_color=hex_color)
     await itr.response.send_message(embed=embed, ephemeral=True)
 
 

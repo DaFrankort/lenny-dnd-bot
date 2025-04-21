@@ -1,6 +1,7 @@
 import random
 import discord
-from tabulate import tabulate
+
+from user_colors import UserColor
 
 
 class StatsEmbed(discord.Embed):
@@ -12,7 +13,7 @@ class StatsEmbed(discord.Embed):
 
     def __init__(self, interaction: discord.Interaction) -> None:
         super().__init__(
-            color=discord.Color.dark_green(),
+            color=UserColor.get(interaction),
             title=f"Rolling stats for {interaction.user.display_name}",
             type="rich",
             url=None,
@@ -29,4 +30,3 @@ class StatsEmbed(discord.Embed):
         message += f"**Total**: {total}"
 
         self.add_field(name="", value=message)
-        

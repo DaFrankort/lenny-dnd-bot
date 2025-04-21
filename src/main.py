@@ -6,6 +6,7 @@ from spells import MultiSpellSelect, MultiSpellSelectView, NoSpellsFoundEmbed, S
 from discord.ext import commands
 from discord import app_commands
 from dotenv import load_dotenv
+from stats import StatsEmbed
 from user_colors import UserColor, ColorEmbed
 
 # Init
@@ -116,6 +117,12 @@ async def set_color(itr: discord.Interaction, hex_color: str = ""):
 
     embed = ColorEmbed(itr=itr, user_color=user_color).build()
     await itr.response.send_message(embed=embed, ephemeral=True)
+
+@cmd_tree.command(name="stats", description="Roll stats for a new character, using the 4d6 drop lowest method.")
+async def stats(itr: discord.Interaction):
+    logging.info(f"{itr.user.name} => /stats")
+    stats = StatsEmbed(itr)
+    await itr.response.send_message(embed=stats)
 
 
 # Run

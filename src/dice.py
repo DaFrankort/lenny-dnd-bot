@@ -144,49 +144,9 @@ class DiceEmbed:
         self.dice = dice
         self.reason = reason if reason != None else "Result"
         self.mode = mode
+        self.color = UserColor.get(ctx)
         return
-    
-    def __generate_user_color(self):
-        """Coding master Tomlolo's AMAZING code to get a hex value from a username.\n
-        Turns the first 6 letters of a user's username into a hex-value for color.\n
-        """
-        hex_value = ""
-        hex_place = 0
 
-        # This cute little function converts characters into unicode
-        # I made it so the the alpha_value assignment line wouldn't be so hard to read
-        def get_alpha(char):
-            return abs(ord(char.lower())-96)
-
-        while hex_place < 6:
-            try:
-                alpha_value = get_alpha(self.username[hex_place]) * get_alpha(self.username[hex_place + 1])
-            except:
-                # When username is shorter than 6 characters, inserts replacement value.
-                alpha_value = 0 # Value can be changed to 255 for light and blue colors, 0 for dark and red colors.
-
-            if alpha_value > 255:
-                alpha_value = alpha_value & 255
-                
-            if alpha_value < 16:
-                hex_value = hex_value + "0" + hex(alpha_value)[2:]
-            else:
-                hex_value = hex_value + hex(alpha_value)[2:]
-
-            hex_place += 2
-        return hex_value
-
-    def _get_embed_color(self):
-        """
-        Gets a user's self-defined color, if no color is set generates a color using the username as seed. \n
-        Returns a discord.Color value
-        """
-        hex_value = UserColor.load(self.user_id)
-        if hex_value == None:
-            hex_value = self.__generate_user_color()
-        
-        return discord.Color.from_str("#" + hex_value)
-    
     def _get_title(self):
         match self.mode:
             case RollMode.NORMAL:
@@ -224,5 +184,5 @@ class DiceEmbed:
             name=self._get_title(),
             icon_url=self.avatar_url
         )
-        embed.color = self._get_embed_color()
+        embed.color = self.color
         return embed

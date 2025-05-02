@@ -4,3 +4,9 @@ __pycache__
 /temp
 *.log
 venv
+/.idea/lenny-dnd-bot.iml
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/prettier.xml
+/.idea/inspectionProfiles/profiles_settings.xml
+/.idea/vcs.xml

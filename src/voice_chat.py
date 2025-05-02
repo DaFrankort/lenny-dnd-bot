@@ -27,11 +27,11 @@ class VC:
             logging.info(f"Joined VC: {VC.client.channel.name}")
 
     @staticmethod
-    async def leave(ctx: discord.Interaction):
-        VC.client = ctx.guild.voice_client
-        if ctx.voice_client:
-            ctx.voice_client.disconnect()
+    async def leave():
+        if VC.client:
+            VC.client.disconnect()
             logging.info("Left the voice channel.")
+        VC.client = None
 
     @staticmethod
     async def play(ctx: discord.Interaction, audio_file: str):

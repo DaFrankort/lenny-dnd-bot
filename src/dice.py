@@ -11,7 +11,7 @@ def _match_NdN(die_notation: str):
 
 class _Die:
     is_valid: bool
-    rolls: int
+    roll_amount: int
     sides: int
     rolls: list[int]
 
@@ -171,17 +171,16 @@ class DiceEmbed:
 
     def _get_description(self):
         description = ""
-        only_one_die = len(self.dice[0].steps) == 2
-        only_one_dice = len(self.dice) == 1
+        only_one_die = len(self.dice[0].steps) == 2 and isinstance(self.dice[0].steps[1], _Die) and self.dice[0].steps[1].roll_amount == 1 # Check for the case where there's one die with one roll (ex. 1d20)
 
         for die in self.dice:
-            if only_one_die and only_one_dice:
-                return
+            if only_one_die and len(self.dice) == 1:
+                break
             description += f"- {die}\n"
 
         match self.mode:
             case RollMode.NORMAL:
-                dice_text = self.dice[0] if only_one_die else self.dice[0].get_total()
+                dice_text = self.dice[0] if only_one_die else f"**{self.dice[0].get_total()}**"
                 return description + f"🎲 **{self.reason}:** {dice_text}\n"
             
             case RollMode.ADVANTAGE:

@@ -53,6 +53,7 @@ def format_dnd_text(text: str) -> str:
     text = re.sub(r"\{@race ([^\}]*?)\|\|([^\}]*?)\}", r"\2", text)
     text = re.sub(r"\{@race ([^\}]*?)\|([^\}]*?)\}", r"\1", text)
     text = re.sub(r"\{@race ([^\}]*?)\}", r"\1", text)
+    text = re.sub(r"\{@sense ([^\}]*?)\|[^\}]*?\}", r"\1", text)
     text = re.sub(r"\{@sense ([^\}]*?)\}", r"\1", text)
     text = re.sub(r"\{@skill ([^\}]*?)\|([^\}]*?)\}", r"*\1*", text)
     text = re.sub(r"\{@skill ([^\}]*?)\}", r"*\1*", text)

@@ -160,12 +160,29 @@ class DiceEmbed:
 
     def _get_description(self):
         description = ""
+        extra_message = ""
         for die in self.dice:
             description += f"- {die}\n"
 
+            if (
+                len(die.steps) == 2
+                and isinstance(die.steps[1], _Die)
+                and die.steps[1].roll_amount == 1
+                and die.steps[1].sides == 20
+            ):
+                rolled_value = die.steps[1].rolls[0]
+                total = die.get_total()
+
+                if rolled_value == 20:
+                    extra_message = "🎯 **Critical Hit!**"
+                elif rolled_value == 1:
+                    extra_message = "💀 **Critical Fail!**"
+                elif total >= 20:
+                    extra_message = "⚔️ **Dirty 20!**"
+
         match self.mode:
             case RollMode.NORMAL:
-                return description + f"🎲 **{self.reason}:** {self.dice[0]}\n"
+                return description + f"🎲 **{self.reason}:** {self.dice[0]}\n" + (f"\n{extra_message}" if extra_message else "")
             
             case RollMode.ADVANTAGE:
                 largest_value = max(self.dice[0].get_total(), self.dice[1].get_total())

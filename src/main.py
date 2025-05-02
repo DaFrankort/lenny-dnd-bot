@@ -7,6 +7,7 @@ from discord import app_commands
 from dotenv import load_dotenv
 from stats import StatsEmbed
 from user_colors import UserColor, ColorEmbed
+from voice_chat import VoiceChat
 
 # Init
 load_dotenv()
@@ -41,6 +42,7 @@ async def roll(ctx: discord.Interaction, diceroll: str, reason: str = None):
 
     embed = DiceEmbed(ctx=ctx, dice=[die], reason=reason).build()
     await ctx.response.send_message(embed=embed)
+    await VoiceChat.play(ctx, "./sounds/test_sound.mp3")
 
 
 @cmd_tree.command(name="advantage", description="Lucky you! Roll and take the best of two!")

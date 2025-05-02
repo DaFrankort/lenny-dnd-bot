@@ -8,7 +8,7 @@ from discord import app_commands
 from dotenv import load_dotenv
 from stats import StatsEmbed
 from user_colors import UserColor, ColorEmbed
-from voice_chat import VoiceChat
+from voice_chat import VC
 
 # Init
 load_dotenv()
@@ -43,7 +43,7 @@ async def roll(ctx: discord.Interaction, diceroll: str, reason: str = None):
 
     embed = DiceEmbed(ctx=ctx, dice=[die], reason=reason).build()
     await ctx.response.send_message(embed=embed)
-    await VoiceChat.play(ctx, "./sounds/test_sound.mp3")
+    await VC.play(ctx, "./sounds/test_sound.mp3")
 
 @cmd_tree.command(name="d20", description="Just roll a clean d20")
 async def d20(ctx: discord.Interaction):
@@ -153,7 +153,7 @@ async def on_ready():
     await cmd_tree.sync()
 
     logging.info(f"Logged in as {bot.user} (ID: {bot.user.id})")
-    VoiceChat.check_ffmpeg() # Check if ffmpeg is installed
+    VC.check_ffmpeg() # Check if ffmpeg is installed
     print("------ READY ------")
 
 

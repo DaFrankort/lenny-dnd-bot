@@ -190,6 +190,9 @@ def format_range(spell_range: any) -> str:
     if spell_range["type"] == "sphere":
         return f"Sphere ({format_distance(spell_range['distance'])})"
 
+    if spell_range["type"] == "hemisphere":
+        return f"Hemisphere ({format_distance(spell_range['distance'])})"
+
     if spell_range["type"] == "special":
         return "Special"
     

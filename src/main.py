@@ -1,3 +1,4 @@
+import argparse
 import logging
 import discord
 import os
@@ -44,6 +45,13 @@ async def roll(ctx: discord.Interaction, diceroll: str, reason: str = None):
     await ctx.response.send_message(embed=embed)
     await VoiceChat.play(ctx, "./sounds/test_sound.mp3")
 
+@cmd_tree.command(name="d20", description="Just roll a clean d20")
+async def d20(ctx: discord.Interaction):
+    logging.info(f"{ctx.user.name} => /d20")
+    die = Dice("1d20")
+
+    embed = DiceEmbed(ctx=ctx, dice=[die]).build()
+    await ctx.response.send_message(embed=embed)
 
 @cmd_tree.command(name="advantage", description="Lucky you! Roll and take the best of two!")
 async def advantage(ctx: discord.Interaction, diceroll: str, reason: str = None):
@@ -148,4 +156,37 @@ async def on_ready():
     VoiceChat.check_ffmpeg() # Check if ffmpeg is installed
     print("------ READY ------")
 
-bot.run(token)
+
+def check_support(spells: SpellList):
+    sorted_spells = sorted(spells.spells, key=lambda s: s.name)
+    unsupported = False
+
+    for spell in sorted_spells:
+        if "Unsupported" in spell.casting_time:
+            logging.warning(f"{spell.name}: {spell.casting_time}")
+            unsupported = True
+        if "Unsupported" in spell.duration:
+            logging.warning(f"{spell.name}: {spell.duration}")
+            unsupported = True
+        if "Unsupported" in spell.spell_range:
+            logging.warning(f"{spell.name}: {spell.spell_range}")
+            unsupported = True
+        
+        for (_, desc) in spell.descriptions:
+            if "Unsupported" in desc:
+                logging.warning(f"{spell.name}: {desc}")
+                unsupported = True
+    
+    if not unsupported:
+        logging.info("No unsupported spells found!")
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--check-support", type=bool,default=False, action=argparse.BooleanOptionalAction)
+
+    args = parser.parse_args()
+
+    if args.check_support:
+        check_support(spells)
+    else:
+        bot.run(token)

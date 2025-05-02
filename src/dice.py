@@ -177,7 +177,7 @@ class DiceEmbed:
                     extra_message = "🎯 **Critical Hit!**"
                 elif rolled_value == 1:
                     extra_message = "💀 **Critical Fail!**"
-                elif total >= 20:
+                elif total == 20:
                     extra_message = "⚔️ **Dirty 20!**"
 
         match self.mode:

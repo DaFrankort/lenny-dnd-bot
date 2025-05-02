@@ -219,7 +219,13 @@ def _format_description_block(description: any) -> str:
 
     if description["type"] == "inset":
         return f"*{_format_description_block_from_blocks(description['entries'])}*"
-
+    
+    if description["type"] == "item":
+        name = description["name"]
+        entries = [_format_description_block(e) for e in description["entries"]]
+        entries = '\n'.join(entries)
+        return f"**{name}**: {entries}"
+ 
     return f"Unsupported description type: '{description['type']}'"
 
 

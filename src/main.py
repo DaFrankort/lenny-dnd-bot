@@ -150,15 +150,15 @@ async def on_ready():
 def check_support(spells: SpellList):
     sorted_spells = sorted(spells.spells, key=lambda s: s.name)
     for spell in sorted_spells:
-        if spell.casting_time.startswith("Unsupported"):
+        if "Unsupported" in spell.casting_time:
             logging.warning(f"{spell.name}: {spell.casting_time}")
-        if spell.duration.startswith("Unsupported"):
+        if "Unsupported" in spell.duration:
             logging.warning(f"{spell.name}: {spell.duration}")
-        if spell.spell_range.startswith("Unsupported"):
+        if "Unsupported" in spell.spell_range:
             logging.warning(f"{spell.name}: {spell.spell_range}")
         
         for (_, desc) in spell.descriptions:
-            if desc.startswith("Unsupported"):
+            if "Unsupported" in desc:
                 logging.warning(f"{spell.name}: {desc}")
 
 if __name__ == "__main__":

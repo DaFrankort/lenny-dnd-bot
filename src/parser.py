@@ -139,38 +139,39 @@ def format_duration_time(duration: any) -> str:
 
     return f"Unsupported duration type: '{duration['type']}'"
 
+def format_distance(distance: any) -> str:
+    if distance["type"] == "touch":
+        return "Touch"
+
+    if distance["type"] == "self":
+        return "Self"
+
+    if distance["type"] == "sight":
+        return "Sight"
+    
+    if distance["type"] == "unlimited":
+        return "Unlimited"
+
+    if distance["type"] == "feet":
+        if distance["amount"] == 1:
+            return "1 foot"
+        else:
+            return f"{distance['amount']} feet"
+    
+    if distance["type"] == "miles":
+        if distance["amount"] == 1:
+            return "1 mile"
+        else:
+            return f"{distance['amount']} miles"
+
+    return f"Unsupported distance type: '{distance['type']}'"
 
 def format_range(spell_range: any) -> str:
     if spell_range["type"] == "point":
-        if spell_range["distance"]["type"] == "touch":
-            return "Touch"
-
-        if spell_range["distance"]["type"] == "self":
-            return "Self"
-
-        if spell_range["distance"]["type"] == "sight":
-            return "Sight"
-        
-        if spell_range["distance"]["type"] == "unlimited":
-            return "Unlimited"
-
-        if spell_range["distance"]["type"] == "feet":
-            # Note: amount should always be greater than one, as the game works in five foot tiles
-            return f"{spell_range['distance']['amount']} feet"
-        
-        if spell_range["distance"]["type"] == "miles":
-            if spell_range["distance"]["amount"] == 1:
-                return "1 mile"
-            else:
-                return f"{spell_range['distance']['amount']} miles"
-
-        return f"Unsupported point range type: {spell_range['distance']['type']}"
+        return format_distance(spell_range["distance"])
     
     if spell_range["type"] == "cube":
-        if spell_range["distance"]["type"] == "feet":
-            return f"{spell_range['distance']['amount']}-foot cube"
-        else:
-            return f"Unsupported cube distance type: {spell_range['distance']['type']}"
+        return f"Cube ({format_distance(spell_range['distance'])})"
 
     return f"Unsupported range type: '{spell_range['type']}'"
 

@@ -88,11 +88,13 @@ class Dice:
     def _sanitize_die_notation(self, notation: str) -> str:
         notation = notation.lower().replace(" ", "") # force to lowercas & remove spaces
         notation = re.sub(r"[^0-9d+\-]", "", notation) # remove irrelevant character (anything not 1d20+1 related)
-        
+
         # Collapse repeated characters into 1
         notation = re.sub(r"\++", "+", notation)
         notation = re.sub(r"\-+", "-", notation)
         notation = re.sub(r"d+", "d", notation)
+
+        notation = re.sub(r'(?<!\d)d', '1d', notation)  # add 1 before standalone 'd' (Convert d20 => 1d20)
         return notation
 
     def is_only_one_die(self) -> bool:

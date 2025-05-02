@@ -173,6 +173,9 @@ def format_range(spell_range: any) -> str:
     if spell_range["type"] == "cube":
         return f"Cube ({format_distance(spell_range['distance'])})"
 
+    if spell_range["type"] == "emanation":
+        return f"Emanation ({format_distance(spell_range['distance'])})"
+
     return f"Unsupported range type: '{spell_range['type']}'"
 
 

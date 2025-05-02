@@ -26,8 +26,12 @@ def format_dnd_text(text: str) -> str:
     text = re.sub(r"\{@b ([^\}]*?)\}", r"**\1**", text)
     text = re.sub(r"\{@book ([^\}]*?)\|([^\}]*?)\|([^\}]*?)\|([^\}]*?)\}", r"\1", text)
     text = re.sub(r"\{@book ([^\}]*?)\|([^\}]*?)\}", r"\1", text)
-    text = re.sub(r"\{@chance ([^\}]*?)\|\|\|([^\}]*?)\|([^\}]*?)\}", r"\1 percent", text)
-    text = re.sub(r"\{@classFeature ([^\}]*?)\|([^\}]*?)\|([^\}]*?)\|([^\}]*?)\}", r"\1", text)
+    text = re.sub(
+        r"\{@chance ([^\}]*?)\|\|\|([^\}]*?)\|([^\}]*?)\}", r"\1 percent", text
+    )
+    text = re.sub(
+        r"\{@classFeature ([^\}]*?)\|([^\}]*?)\|([^\}]*?)\|([^\}]*?)\}", r"\1", text
+    )
     text = re.sub(r"\{@condition ([^\}]*?)\|([^\}]*?)\}", r"\1", text)
     text = re.sub(r"\{@condition ([^\}]*?)\}", r"\1", text)
     text = re.sub(r"\{@creature ([^\}]*?)(\|[^\}]*?)?\}", r"__\1__", text)
@@ -72,27 +76,46 @@ def format_spell_level_school(level: int, school: str) -> str:
     return f"{level_str} {SPELL_SCHOOLS[school]}"
 
 
-def format_casting_time(time: any) -> str:
-    if len(time) > 1:
-        return f"Unsupported casting time type: '{len(time)}'"
-    amount = time[0]["number"]
-    unit = time[0]["unit"]
+def _format_single_casting_time(time: any) -> str:
+    amount = time["number"]
+    unit = time["unit"]
+    note = None
 
+    if "note" in time:
+        note = time["note"]
+
+    result = f"Unsupported casting time unit: {unit}"
     if unit == "action":
         if amount == 1:
-            return "Action"
+            result = "Action"
         else:
-            return f"{amount} actions"
+            result = f"{amount} actions"
 
-    if unit == "bonus":
+    elif unit == "bonus":
         if amount == 1:
-            return "Bonus action"
+            result = "Bonus action"
         else:
-            return f"{amount} bonus actions"
+            result = f"{amount} bonus actions"
 
-    if amount == 1:
-        return f"{amount} {unit}"
-    return f"{amount} {unit}s"
+    elif amount == 1:
+        result = f"{amount} {unit}"
+    else:
+        result = f"{amount} {unit}s"
+
+    # Add note, if exists
+    if note is not None:
+        result = f"{result} ({note})"
+
+    return result
+
+
+def format_casting_time(time: any) -> str:
+    if isinstance(time, list):
+        casting_times = [_format_single_casting_time(t) for t in time]
+    else:
+        casting_times = [_format_single_casting_time(time)]
+
+    return " or ".join(casting_times)
 
 
 def format_duration_time(duration: any) -> str:
@@ -162,7 +185,7 @@ def _format_description_block(description: any) -> str:
     if description["type"] == "inset":
         return f"*{_format_description_block_from_blocks(description['entries'])}*"
 
-    return f"**VERY DANGEROUS WARNING: This description has a type '{description['type']}' which isn't implemented yet. Please complain to your local software engineer.**"
+    return f"Unsupported description type: '{description['type']}'"
 
 
 def _format_description_block_from_blocks(descriptions: list[any]) -> str:

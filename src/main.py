@@ -1,3 +1,4 @@
+import argparse
 import logging
 import discord
 import os
@@ -137,4 +138,27 @@ async def on_ready():
     logging.info(f"Logged in as {bot.user} (ID: {bot.user.id})")
     print("------ READY ------")
 
-bot.run(token)
+
+def check_support(spells: SpellList):
+    for spell in spells.spells:
+        if spell.casting_time.startswith("Unsupported"):
+            logging.warning(f"{spell.name}: {spell.casting_time}")
+        if spell.duration.startswith("Unsupported"):
+            logging.warning(f"{spell.name}: {spell.duration}")
+        if spell.spell_range.startswith("Unsupported"):
+            logging.warning(f"{spell.name}: {spell.spell_range}")
+        
+        for (_, desc) in spell.descriptions:
+            if desc.startswith("Unsupported"):
+                logging.warning(f"{spell.name}: {desc}")
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--check-support", type=bool,default=False, action=argparse.BooleanOptionalAction)
+
+    args = parser.parse_args()
+
+    if args.check_support:
+        check_support(spells)
+    else:
+        bot.run(token)

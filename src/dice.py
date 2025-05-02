@@ -171,12 +171,18 @@ class DiceEmbed:
 
     def _get_description(self):
         description = ""
+        only_one_die = len(self.dice[0].steps) == 2
+        only_one_dice = len(self.dice) == 1
+
         for die in self.dice:
+            if only_one_die and only_one_dice:
+                return
             description += f"- {die}\n"
 
         match self.mode:
             case RollMode.NORMAL:
-                return description + f"🎲 **{self.reason}:** {self.dice[0]}\n"
+                dice_text = self.dice[0] if only_one_die else self.dice[0].get_total()
+                return description + f"🎲 **{self.reason}:** {dice_text}\n"
             
             case RollMode.ADVANTAGE:
                 largest_value = max(self.dice[0].get_total(), self.dice[1].get_total())

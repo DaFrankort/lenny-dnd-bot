@@ -26,8 +26,12 @@ def format_dnd_text(text: str) -> str:
     text = re.sub(r"\{@b ([^\}]*?)\}", r"**\1**", text)
     text = re.sub(r"\{@book ([^\}]*?)\|([^\}]*?)\|([^\}]*?)\|([^\}]*?)\}", r"\1", text)
     text = re.sub(r"\{@book ([^\}]*?)\|([^\}]*?)\}", r"\1", text)
-    text = re.sub(r"\{@chance ([^\}]*?)\|\|\|([^\}]*?)\|([^\}]*?)\}", r"\1 percent", text)
-    text = re.sub(r"\{@classFeature ([^\}]*?)\|([^\}]*?)\|([^\}]*?)\|([^\}]*?)\}", r"\1", text)
+    text = re.sub(
+        r"\{@chance ([^\}]*?)\|\|\|([^\}]*?)\|([^\}]*?)\}", r"\1 percent", text
+    )
+    text = re.sub(
+        r"\{@classFeature ([^\}]*?)\|([^\}]*?)\|([^\}]*?)\|([^\}]*?)\}", r"\1", text
+    )
     text = re.sub(r"\{@condition ([^\}]*?)\|([^\}]*?)\}", r"\1", text)
     text = re.sub(r"\{@condition ([^\}]*?)\}", r"\1", text)
     text = re.sub(r"\{@creature ([^\}]*?)(\|[^\}]*?)?\}", r"__\1__", text)
@@ -49,6 +53,7 @@ def format_dnd_text(text: str) -> str:
     text = re.sub(r"\{@race ([^\}]*?)\|\|([^\}]*?)\}", r"\2", text)
     text = re.sub(r"\{@race ([^\}]*?)\|([^\}]*?)\}", r"\1", text)
     text = re.sub(r"\{@race ([^\}]*?)\}", r"\1", text)
+    text = re.sub(r"\{@sense ([^\}]*?)\|[^\}]*?\}", r"\1", text)
     text = re.sub(r"\{@sense ([^\}]*?)\}", r"\1", text)
     text = re.sub(r"\{@skill ([^\}]*?)\|([^\}]*?)\}", r"*\1*", text)
     text = re.sub(r"\{@skill ([^\}]*?)\}", r"*\1*", text)
@@ -72,27 +77,46 @@ def format_spell_level_school(level: int, school: str) -> str:
     return f"{level_str} {SPELL_SCHOOLS[school]}"
 
 
-def format_casting_time(time: any) -> str:
-    if len(time) > 1:
-        return f"Unsupported casting time type: '{len(time)}'"
-    amount = time[0]["number"]
-    unit = time[0]["unit"]
+def _format_single_casting_time(time: any) -> str:
+    amount = time["number"]
+    unit = time["unit"]
+    note = None
 
+    if "note" in time:
+        note = time["note"]
+
+    result = f"Unsupported casting time unit: {unit}"
     if unit == "action":
         if amount == 1:
-            return "Action"
+            result = "Action"
         else:
-            return f"{amount} actions"
+            result = f"{amount} actions"
 
-    if unit == "bonus":
+    elif unit == "bonus":
         if amount == 1:
-            return "Bonus action"
+            result = "Bonus action"
         else:
-            return f"{amount} bonus actions"
+            result = f"{amount} bonus actions"
 
-    if amount == 1:
-        return f"{amount} {unit}"
-    return f"{amount} {unit}s"
+    elif amount == 1:
+        result = f"{amount} {unit}"
+    else:
+        result = f"{amount} {unit}s"
+
+    # Add note, if exists
+    if note is not None:
+        result = f"{result} ({note})"
+
+    return result
+
+
+def format_casting_time(time: any) -> str:
+    if isinstance(time, list):
+        casting_times = [_format_single_casting_time(t) for t in time]
+    else:
+        casting_times = [_format_single_casting_time(time)]
+
+    return " or ".join(casting_times)
 
 
 def format_duration_time(duration: any) -> str:
@@ -102,6 +126,9 @@ def format_duration_time(duration: any) -> str:
 
     if duration["type"] == "permanent":
         return "Permanent"
+
+    if duration["type"] == "special":
+        return "Special"
 
     if duration["type"] == "timed":
         amount = duration["duration"]["amount"]
@@ -113,21 +140,62 @@ def format_duration_time(duration: any) -> str:
     return f"Unsupported duration type: '{duration['type']}'"
 
 
+def format_distance(distance: any) -> str:
+    if distance["type"] == "touch":
+        return "Touch"
+
+    if distance["type"] == "self":
+        return "Self"
+
+    if distance["type"] == "sight":
+        return "Sight"
+
+    if distance["type"] == "unlimited":
+        return "Unlimited"
+
+    if distance["type"] == "feet":
+        if distance["amount"] == 1:
+            return "1 foot"
+        else:
+            return f"{distance['amount']} feet"
+
+    if distance["type"] == "miles":
+        if distance["amount"] == 1:
+            return "1 mile"
+        else:
+            return f"{distance['amount']} miles"
+
+    return f"Unsupported distance type: '{distance['type']}'"
+
+
 def format_range(spell_range: any) -> str:
     if spell_range["type"] == "point":
-        if spell_range["distance"]["type"] == "touch":
-            return "Touch"
+        return format_distance(spell_range["distance"])
 
-        if spell_range["distance"]["type"] == "self":
-            return "Self"
+    if spell_range["type"] == "cube":
+        return f"Cube ({format_distance(spell_range['distance'])})"
 
-        if spell_range["distance"]["type"] == "sight":
-            return "Sight"
+    if spell_range["type"] == "emanation":
+        return f"Emanation ({format_distance(spell_range['distance'])})"
 
-        if spell_range["distance"]["type"] == "feet":
-            return f"{spell_range['distance']['amount']} feet"
+    if spell_range["type"] == "radius":
+        return f"Radius ({format_distance(spell_range['distance'])})"
+    
+    if spell_range["type"] == "cone":
+        return f"Cone ({format_distance(spell_range['distance'])})"
+    
+    if spell_range["type"] == "line":
+        return f"Line ({format_distance(spell_range['distance'])})"
 
-        return f"Unsupported point range type: {spell_range['distance']['type']}"
+    if spell_range["type"] == "sphere":
+        return f"Sphere ({format_distance(spell_range['distance'])})"
+
+    if spell_range["type"] == "hemisphere":
+        return f"Hemisphere ({format_distance(spell_range['distance'])})"
+
+    if spell_range["type"] == "special":
+        return "Special"
+    
 
     return f"Unsupported range type: '{spell_range['type']}'"
 
@@ -164,8 +232,14 @@ def _format_description_block(description: any) -> str:
 
     if description["type"] == "inset":
         return f"*{_format_description_block_from_blocks(description['entries'])}*"
-
-    return f"**VERY DANGEROUS WARNING: This description has a type '{description['type']}' which isn't implemented yet. Please complain to your local software engineer.**"
+    
+    if description["type"] == "item":
+        name = description["name"]
+        entries = [_format_description_block(e) for e in description["entries"]]
+        entries = '\n'.join(entries)
+        return f"**{name}**: {entries}"
+ 
+    return f"Unsupported description type: '{description['type']}'"
 
 
 def _format_description_block_from_blocks(descriptions: list[any]) -> str:

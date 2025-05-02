@@ -149,17 +149,26 @@ async def on_ready():
 
 def check_support(spells: SpellList):
     sorted_spells = sorted(spells.spells, key=lambda s: s.name)
+    unsupported = False
+
     for spell in sorted_spells:
         if "Unsupported" in spell.casting_time:
             logging.warning(f"{spell.name}: {spell.casting_time}")
+            unsupported = True
         if "Unsupported" in spell.duration:
             logging.warning(f"{spell.name}: {spell.duration}")
+            unsupported = True
         if "Unsupported" in spell.spell_range:
             logging.warning(f"{spell.name}: {spell.spell_range}")
+            unsupported = True
         
         for (_, desc) in spell.descriptions:
             if "Unsupported" in desc:
                 logging.warning(f"{spell.name}: {desc}")
+                unsupported = True
+    
+    if not unsupported:
+        logging.info("No unsupported spells found!")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

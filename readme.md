@@ -20,7 +20,7 @@ To get the bot running on your own Discord server, follow these steps:
 Clone the repository using the following command:
 
 ```bash
-git clone --recursive https://github.com/DaFrankort/dndiscord-py.git
+git clone --recursive https://github.com/DaFrankort/lenny-dnd-bot.git
 ```
 
 ### 2. Install Dependencies
@@ -28,7 +28,8 @@ git clone --recursive https://github.com/DaFrankort/dndiscord-py.git
 Once cloned, navigate to the repository directory and install the required dependencies:
 
 ```bash
-cd dndiscord-py
+cd lenny-dnd-bot
+
 pip install -r requirements.txt
 ```
 

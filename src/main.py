@@ -6,6 +6,7 @@ from dice import Dice, DiceEmbed, RollMode
 from spells import MultiSpellSelectView, NoSpellsFoundEmbed, SpellEmbed, SpellList
 from discord import app_commands
 from dotenv import load_dotenv
+from stats import StatsEmbed
 from user_colors import UserColor, ColorEmbed
 
 # Init
@@ -103,19 +104,26 @@ async def spell(ctx: discord.Interaction, query: str):
 async def set_color(itr: discord.Interaction, hex_color: str = ""):
     logging.info(f"{itr.user.name} => /color {hex_color}")
     if hex_color == '':
-        removed = UserColor.remove(itr.user.id)
+        removed = UserColor.remove(itr)
         message = "❌ Cleared user-defined color. ❌" if removed else "⚠️ You have not yet set a color. ⚠️"
         await itr.response.send_message(message, ephemeral=True)
         return
 
-    user_color = UserColor(itr=itr, hex_value=hex_color)
-    if not user_color.is_valid:
+    if not UserColor.validate(hex_color):
         await itr.response.send_message('⚠️ Invalid hex value: Must be 6 valid hexadecimal characters (0-9, A-F), optionally starting with a # symbol. (eg. ff00ff / #ff00ff) ⚠️', ephemeral=True)
         return
-    user_color.save()
 
-    embed = ColorEmbed(itr=itr, user_color=user_color).build()
+    color = UserColor.parse(hex_color)
+    UserColor.save(itr, color)
+
+    embed = ColorEmbed(itr=itr, hex_color=hex_color)
     await itr.response.send_message(embed=embed, ephemeral=True)
+
+@cmd_tree.command(name="stats", description="Roll stats for a new character, using the 4d6 drop lowest method.")
+async def stats(itr: discord.Interaction):
+    logging.info(f"{itr.user.name} => /stats")
+    stats = StatsEmbed(itr)
+    await itr.response.send_message(embed=stats)
 
 
 # Run

@@ -1,94 +1,107 @@
-import logging
 import discord
 import json
-import os
 import re
+
 
 class UserColor:
     FILE_PATH = "temp/user_colors.json"
 
-    def __init__(self, itr: discord.Interaction, hex_value: str):
-        self.is_valid = True
-        hex_value = hex_value.lower()
-        if hex_value.startswith("#"):
-            hex_value = hex_value[1:]
-        
-        HEX_PATTERN = re.compile(r"^[0-9a-fA-F]{6}$")
-        if not HEX_PATTERN.match(hex_value):
-            self.is_valid = False
-            logging.error(f"Invalid hex value \"{hex_value}\": Must be 6 valid hexadecimal characters (0-9, A-F)")
-            return
-        
-        self.hex_value = hex_value
-        self.user_id = itr.user.id
-    
-    def save(self):
+    @staticmethod
+    def validate(hex_color: str) -> bool:
+        hex_color = hex_color.strip("#")
+        pattern = re.compile(r"^[0-9a-fA-F]{6}$")
+        return pattern.match(hex_color)
+
+    @staticmethod
+    def save(interaction: discord.Interaction, color: int) -> None:
         """Saves the user's color to a JSON file."""
-        data = {}
-        if os.path.exists(self.FILE_PATH):
-            with open(self.FILE_PATH, "r") as file:
-                try:
-                    data = json.load(file)
-                except json.JSONDecodeError:
-                    data = {}
-
-        data[str(self.user_id)] = self.hex_value
-
-        with open(self.FILE_PATH, "w") as file:
-            json.dump(data, file, indent=4)
-
-    @classmethod
-    def load(cls, user_id: str):
-        """Retrieves a user's saved color from the file."""
-        user_id = str(user_id)
-
-        # Load data if the file exists
-        if os.path.exists(cls.FILE_PATH):
-            with open(cls.FILE_PATH, "r") as file:
-                try:
-                    data = json.load(file)
-                    return data.get(user_id, None)  # Return the color or None
-                except json.JSONDecodeError:
-                    return None
-
-        return None
-    
-    @classmethod
-    def remove(cls, user_id: str) -> bool:
-        """Removes a user's saved color from the file."""
-        user_id = str(user_id)
-
-        if not os.path.exists(cls.FILE_PATH):
-            return False
-        
-        with open(cls.FILE_PATH, 'r') as file:
-            try:
+        try:
+            with open(UserColor.FILE_PATH, "r") as file:
                 data = json.load(file)
-            except json.JSONDecodeError:
-                return False
-            
-        if not user_id in data:
-            return False
-        
-        del data[user_id]
-        with open(cls.FILE_PATH, "w") as file:
-            json.dump(data, file, indent=4)
-        return True
-    
-    def get(self) -> discord.Color:
-        return discord.Color.from_str(f"#{self.hex_value}")
+        except:
+            data = {}
 
-class ColorEmbed:
-    def __init__(self, itr: discord.Interaction, user_color: UserColor):
-        self.user_color = user_color
-        self.avatar_url = itr.user.avatar.url
-        self.username = itr.user.display_name
-    
-    def build(self):
-        embed = discord.Embed(type="rich")
-        embed.set_author(
-            name=f"{self.username} set their color to #{self.user_color.hex_value.upper()}",
-            icon_url=self.avatar_url
+        data[str(interaction.user.id)] = color
+
+        with open(UserColor.FILE_PATH, "w") as file:
+            json.dump(data, file, indent=4)
+
+    @staticmethod
+    def parse(hex_color: str) -> int:
+        if not hex_color.startswith("#"):
+            hex_color = f"#{hex_color}"
+        return discord.Color.from_str(hex_color).value
+
+    @staticmethod
+    def generate(interaction: discord.Interaction) -> int:
+        """Coding master Tomlolo's AMAZING code to get a hex value from a username.\n
+        Turns the first 6 letters of a user's username into a hex-value for color.\n
+        """
+        hex_value = ""
+        hex_place = 0
+
+        # This cute little function converts characters into unicode
+        # I made it so the the alpha_value assignment line wouldn't be so hard to read
+        def get_alpha(char):
+            return abs(ord(char.lower()) - 96)
+
+        while hex_place < 6:
+            try:
+                alpha_value = get_alpha(
+                    interaction.user.display_name[hex_place]
+                ) * get_alpha(interaction.user.display_name[hex_place + 1])
+            except:
+                # When username is shorter than 6 characters, inserts replacement value.
+                alpha_value = 0  # Value can be changed to 255 for light and blue colors, 0 for dark and red colors.
+
+            if alpha_value > 255:
+                alpha_value = alpha_value & 255
+
+            if alpha_value < 16:
+                hex_value = hex_value + "0" + hex(alpha_value)[2:]
+            else:
+                hex_value = hex_value + hex(alpha_value)[2:]
+
+            hex_place += 2
+        return UserColor.parse(hex_value)
+
+    @staticmethod
+    def get(interaction: discord.Interaction) -> int:
+        """Retrieves a user's saved color from the file, or generates one if it does not exist."""
+        try:
+            with open(UserColor.FILE_PATH, "r") as file:
+                data = json.load(file)
+                color = data.get(str(interaction.user.id))
+        except:
+            color = UserColor.generate(interaction)
+
+        if color is None:
+            color = UserColor.generate(interaction)
+
+        return color
+
+    @staticmethod
+    def remove(interaction: discord.Interaction) -> bool:
+        """Removes a user's saved color from the file."""
+        try:
+            with open(UserColor.FILE_PATH, "r") as file:
+                data = json.load(file)
+                user_id = str(interaction.user.id)
+                if not user_id in data:
+                    return False
+                del data[user_id]
+            with open(UserColor.FILE_PATH, "w") as file:
+                json.dump(data, file, indent=4)
+            return True
+        except Exception as e:
+            return False
+
+
+class ColorEmbed(discord.Embed):
+    def __init__(self, itr: discord.Interaction, hex_color: str) -> None:
+        color = UserColor.parse(hex_color)
+        super().__init__(type="rich", color=color)
+        self.set_author(
+            name=f"{itr.user.display_name} set their color to #{hex_color.upper()}",
+            icon_url=itr.user.avatar.url,
         )
-        embed.color = self.user_color.get()
-        return embed

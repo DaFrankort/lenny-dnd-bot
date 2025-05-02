@@ -54,10 +54,11 @@ class Dice:
     steps: list[str | int | _Die]
 
     def __init__(self, die_notation: str):
-        self.notation = die_notation.lower()
+        die_notation = self._sanitize_die_notation(die_notation)
+        self.notation = die_notation
         self.is_valid = True
 
-        if die_notation[0] in "+-":
+        if die_notation[0] in "+-": # Add leading operators
             self.steps = [die_notation[0]]
             die_notation = die_notation[1:]
         else:
@@ -83,6 +84,16 @@ class Dice:
                 return
         
         self.roll()
+
+    def _sanitize_die_notation(self, notation: str) -> str:
+        notation = notation.lower().replace(" ", "") # force to lowercas & remove spaces
+        notation = re.sub(r"[^0-9d+\-]", "", notation) # remove irrelevant character (anything not 1d20+1 related)
+        
+        # Collapse repeated characters into 1
+        notation = re.sub(r"\++", "+", notation)
+        notation = re.sub(r"\-+", "-", notation)
+        notation = re.sub(r"d+", "d", notation)
+        return notation
 
     def roll(self):
         """Randomise all NdN values within the Dice"""

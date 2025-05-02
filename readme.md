@@ -60,7 +60,7 @@ Once the bot is added to your server, you can use the following commands:
 
 ### Dice Rolls
 
-- `/roll <dice>` – Roll a custom dice, e.g., `!roll 2d6` or `!roll 1d20+2`.
+- `/roll <dice>` – Roll a custom dice, e.g., `/roll 2d6` or `/roll 1d20+2`.
 - `/advantage <dice>` – Rolls twice, highlights the highest result, e.g., `/advantage  2d6` or `/advantage 1d20+2`.
 - `/disadvantage <dice>` – Rolls twice, highlights the lowest result, e.g., `/disadvantage 2d6` or `/disadvantage 1d20+2`.
 

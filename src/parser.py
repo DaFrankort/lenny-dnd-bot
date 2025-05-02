@@ -126,7 +126,7 @@ def format_duration_time(duration: any) -> str:
 
     if duration["type"] == "permanent":
         return "Permanent"
-    
+
     if duration["type"] == "special":
         return "Special"
 
@@ -139,6 +139,7 @@ def format_duration_time(duration: any) -> str:
 
     return f"Unsupported duration type: '{duration['type']}'"
 
+
 def format_distance(distance: any) -> str:
     if distance["type"] == "touch":
         return "Touch"
@@ -148,7 +149,7 @@ def format_distance(distance: any) -> str:
 
     if distance["type"] == "sight":
         return "Sight"
-    
+
     if distance["type"] == "unlimited":
         return "Unlimited"
 
@@ -157,7 +158,7 @@ def format_distance(distance: any) -> str:
             return "1 foot"
         else:
             return f"{distance['amount']} feet"
-    
+
     if distance["type"] == "miles":
         if distance["amount"] == 1:
             return "1 mile"
@@ -166,15 +167,19 @@ def format_distance(distance: any) -> str:
 
     return f"Unsupported distance type: '{distance['type']}'"
 
+
 def format_range(spell_range: any) -> str:
     if spell_range["type"] == "point":
         return format_distance(spell_range["distance"])
-    
+
     if spell_range["type"] == "cube":
         return f"Cube ({format_distance(spell_range['distance'])})"
 
     if spell_range["type"] == "emanation":
         return f"Emanation ({format_distance(spell_range['distance'])})"
+
+    if spell_range["type"] == "radius":
+        return f"Radius ({format_distance(spell_range['distance'])})"
 
     return f"Unsupported range type: '{spell_range['type']}'"
 

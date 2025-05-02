@@ -31,10 +31,6 @@ spells = SpellList("./submodules/5etools-src/data/spells")
 
 
 # Slash commands
-@cmd_tree.command(name="test", description="Pinfu smells")
-async def test(ctx: discord.Interaction):
-    print("test")
-
 @cmd_tree.command(name="roll", description="Roll your d20s!")
 async def roll(ctx: discord.Interaction, diceroll: str, reason: str = None):
     logging.info(f"{ctx.user.name} => /roll {diceroll} {reason if reason else ''}")

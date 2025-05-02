@@ -1,5 +1,6 @@
 import logging
 import subprocess
+import time
 import discord
 
 class VC:
@@ -47,11 +48,16 @@ class VC:
         
         await VC.join(ctx)
 
-        if VC.client.is_playing():
-            VC.client.stop()
+        retries = 0
+        while VC.client.is_playing():
+            if retries >= 15:
+                VC.client.stop()  # Stop playback to prevent infinite loop
+                break
+            time.sleep(1)
+            retries += 1
 
         try:
-            VC.client.play(discord.FFmpegPCMAudio(source="./sounds/test_sound.mp3"))
+            VC.client.play(discord.FFmpegPCMAudio(source="./sounds/test_sound.mp3", options="-filter:a \"volume=0.1\""))
         except Exception as e:
             logging.error(f"Error playing audio: {e}")
             VC.check_ffmpeg()

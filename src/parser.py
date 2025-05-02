@@ -149,6 +149,9 @@ def format_range(spell_range: any) -> str:
 
         if spell_range["distance"]["type"] == "sight":
             return "Sight"
+        
+        if spell_range["distance"]["type"] == "unlimited":
+            return "Unlimited"
 
         if spell_range["distance"]["type"] == "feet":
             return f"{spell_range['distance']['amount']} feet"

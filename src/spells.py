@@ -1,6 +1,7 @@
 import logging
 import os.path
 import json
+import re
 import discord
 from rapidfuzz import fuzz
 from discord.utils import MISSING
@@ -153,8 +154,8 @@ class MultiSpellSelect(discord.ui.Select):
         for spell in spells:
             options.append(
                 discord.SelectOption(
-                    label=f"{spell.name}",
-                    description=f"{spell.level_school}, {spell.source}",
+                    label=f"{spell.name} ({spell.source})",
+                    description=f"{spell.level_school}",
                 )
             )
 
@@ -168,8 +169,13 @@ class MultiSpellSelect(discord.ui.Select):
         logging.debug(f"MultiSpellSelect: found {len(spells)} spells for '{query}'")
 
     async def callback(self, interaction: discord.Interaction):
-        name = self.values[0]
-        spell = [spell for spell in self.spells if spell.name == name][0]
+        full_name = self.values[0]
+        name_pattern = r"^(.+) \(([^\)]+)\)" # "Name (Source)"
+        name_match = re.match(name_pattern, full_name)
+        name = name_match.group(1)
+        source = name_match.group(2)
+
+        spell = [spell for spell in self.spells if spell.name == name and spell.source == source][0]
         logging.debug(
             f"MultiSpellSelect: user {interaction.user.display_name} selected '{name}"
         )

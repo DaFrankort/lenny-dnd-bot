@@ -8,6 +8,7 @@ class VC:
 
     @staticmethod
     def check_ffmpeg():
+        """Check if FFmpeg is installed and available in PATH. If not installed, disable voice chat functionality."""
         try:
             subprocess.run(["ffmpeg", "-version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
             logging.info("FFmpeg installed and available, using voice chat functionality.")
@@ -17,6 +18,7 @@ class VC:
 
     @staticmethod
     async def join(ctx: discord.Interaction):
+        """Join the voice channel of the user who invoked the command."""
         if ctx.user.voice:
             channel = ctx.user.voice.channel
             if ctx.guild.voice_client is None:
@@ -28,6 +30,7 @@ class VC:
 
     @staticmethod
     async def leave():
+        """Leave the voice channel."""
         if VC.client:
             VC.client.disconnect()
             logging.info("Left the voice channel.")
@@ -35,6 +38,7 @@ class VC:
 
     @staticmethod
     async def play(ctx: discord.Interaction, audio_file: str):
+        """Play an audio file in the voice channel."""
         if not VC.ffmpeg_available:
             return
 
@@ -50,4 +54,4 @@ class VC:
             VC.client.play(discord.FFmpegPCMAudio(source="./sounds/test_sound.mp3"))
         except Exception as e:
             logging.error(f"Error playing audio: {e}")
-            return
+            VC.check_ffmpeg()

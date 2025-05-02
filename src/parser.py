@@ -125,6 +125,9 @@ def format_duration_time(duration: any) -> str:
 
     if duration["type"] == "permanent":
         return "Permanent"
+    
+    if duration["type"] == "special":
+        return "Special"
 
     if duration["type"] == "timed":
         amount = duration["duration"]["amount"]

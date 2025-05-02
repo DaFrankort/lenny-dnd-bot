@@ -50,7 +50,7 @@ async def roll(ctx: discord.Interaction):
         await ctx.response.send_message('⚠️ Format has to be NdN or NdN+N, ex: 2d6 / 1d4+1 ⚠️', ephemeral=True)
         return
 
-    embed = DiceEmbed(ctx=ctx, dice=[die], reason=reason).build()
+    embed = DiceEmbed(ctx=ctx, dice=[die]).build()
     await ctx.response.send_message(embed=embed)
 
 @cmd_tree.command(name="advantage", description="Lucky you! Roll and take the best of two!")

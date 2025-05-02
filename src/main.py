@@ -145,6 +145,7 @@ async def on_ready():
     await cmd_tree.sync()
 
     logging.info(f"Logged in as {bot.user} (ID: {bot.user.id})")
+    VoiceChat.check_ffmpeg() # Check if ffmpeg is installed
     print("------ READY ------")
 
 bot.run(token)

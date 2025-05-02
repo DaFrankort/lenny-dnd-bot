@@ -11,7 +11,7 @@ def _match_NdN(die_notation: str):
 
 class _Die:
     is_valid: bool
-    rolls: int
+    roll_amount: int
     sides: int
     rolls: list[int]
 
@@ -97,6 +97,13 @@ class Dice:
         notation = re.sub(r'(?<!\d)d', '1d', notation)  # add 1 before standalone 'd' (Convert d20 => 1d20)
         return notation
 
+    def is_only_one_die(self) -> bool:
+        """Check if the dice notation is a single die with one roll (ex. 1d20)"""
+        if len(self.steps) != 2:
+            return False
+
+        return len(self.steps) == 2 and isinstance(self.steps[1], _Die) and self.steps[1].roll_amount == 1
+
     def roll(self):
         """Randomise all NdN values within the Dice"""
         for step in self.steps:
@@ -173,12 +180,15 @@ class DiceEmbed:
 
     def _get_description(self):
         description = ""
-        for die in self.dice:
-            description += f"- {die}\n"
+
+        if not (self.dice[0].is_only_one_die() and len(self.dice) == 1):
+            for die in self.dice:
+                description += f"- {die}\n"
 
         match self.mode:
             case RollMode.NORMAL:
-                return description + f"🎲 **{self.reason}:** {self.dice[0]}\n"
+                dice_text = self.dice[0] if self.dice[0].is_only_one_die() else f"**{self.dice[0].get_total()}**"
+                return description + f"🎲 **{self.reason}:** {dice_text}\n"
             
             case RollMode.ADVANTAGE:
                 largest_value = max(self.dice[0].get_total(), self.dice[1].get_total())

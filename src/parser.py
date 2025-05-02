@@ -154,7 +154,14 @@ def format_range(spell_range: any) -> str:
             return "Unlimited"
 
         if spell_range["distance"]["type"] == "feet":
+            # Note: amount should always be greater than one, as the game works in five foot tiles
             return f"{spell_range['distance']['amount']} feet"
+        
+        if spell_range["distance"]["type"] == "miles":
+            if spell_range["distance"]["amount"] == 1:
+                return "1 mile"
+            else:
+                return f"{spell_range['distance']['amount']} miles"
 
         return f"Unsupported point range type: {spell_range['distance']['type']}"
     

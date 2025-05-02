@@ -46,9 +46,6 @@ async def roll(ctx: discord.Interaction, diceroll: str, reason: str = None):
 async def d20(ctx: discord.Interaction):
     logging.info(f"{ctx.user.name} => /d20")
     die = Dice("1d20")
-    if not die.is_valid:
-        await ctx.response.send_message('⚠️ Format has to be NdN or NdN+N, ex: 2d6 / 1d4+1 ⚠️', ephemeral=True)
-        return
 
     embed = DiceEmbed(ctx=ctx, dice=[die]).build()
     await ctx.response.send_message(embed=embed)

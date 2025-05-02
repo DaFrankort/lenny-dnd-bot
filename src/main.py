@@ -43,7 +43,7 @@ async def roll(ctx: discord.Interaction, diceroll: str, reason: str = None):
     await ctx.response.send_message(embed=embed)
 
 @cmd_tree.command(name="d20", description="Just roll a clean d20")
-async def roll(ctx: discord.Interaction):
+async def d20(ctx: discord.Interaction):
     logging.info(f"{ctx.user.name} => /d20")
     die = Dice("1d20")
     if not die.is_valid:

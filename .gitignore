@@ -4,10 +4,4 @@ __pycache__
 /temp
 *.log
 venv
-# This was added by pycharm
-/.idea/lenny-dnd-bot.iml
-/.idea/misc.xml
-/.idea/modules.xml
-/.idea/prettier.xml
-/.idea/inspectionProfiles/profiles_settings.xml
-/.idea/vcs.xml
+.idea

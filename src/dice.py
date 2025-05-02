@@ -95,6 +95,13 @@ class Dice:
         notation = re.sub(r"d+", "d", notation)
         return notation
 
+    def is_only_one_die(self) -> bool:
+        """Check if the dice notation is a single die with one roll (ex. 1d20)"""
+        if len(self.steps) != 2:
+            return False
+
+        return len(self.steps) == 2 and isinstance(self.steps[1], _Die) and self.steps[1].roll_amount == 1
+
     def roll(self):
         """Randomise all NdN values within the Dice"""
         for step in self.steps:
@@ -171,16 +178,14 @@ class DiceEmbed:
 
     def _get_description(self):
         description = ""
-        only_one_die = len(self.dice[0].steps) == 2 and isinstance(self.dice[0].steps[1], _Die) and self.dice[0].steps[1].roll_amount == 1 # Check for the case where there's one die with one roll (ex. 1d20)
 
-        for die in self.dice:
-            if only_one_die and len(self.dice) == 1:
-                break
-            description += f"- {die}\n"
+        if not (self.dice[0].is_only_one_die() and len(self.dice) == 1):
+            for die in self.dice:
+                description += f"- {die}\n"
 
         match self.mode:
             case RollMode.NORMAL:
-                dice_text = self.dice[0] if only_one_die else f"**{self.dice[0].get_total()}**"
+                dice_text = self.dice[0] if self.dice[0].is_only_one_die() else f"**{self.dice[0].get_total()}**"
                 return description + f"🎲 **{self.reason}:** {dice_text}\n"
             
             case RollMode.ADVANTAGE:

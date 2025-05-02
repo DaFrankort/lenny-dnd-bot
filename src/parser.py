@@ -154,6 +154,12 @@ def format_range(spell_range: any) -> str:
             return f"{spell_range['distance']['amount']} feet"
 
         return f"Unsupported point range type: {spell_range['distance']['type']}"
+    
+    if spell_range["type"] == "cube":
+        if spell_range["distance"]["type"] == "feet":
+            return f"{spell_range['distance']['amount']}-foot cube"
+        else:
+            return f"Unsupported cube distance type: {spell_range['distance']['type']}"
 
     return f"Unsupported range type: '{spell_range['type']}'"
 

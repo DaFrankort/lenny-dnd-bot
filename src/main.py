@@ -148,7 +148,8 @@ async def on_ready():
 
 
 def check_support(spells: SpellList):
-    for spell in spells.spells:
+    sorted_spells = sorted(spells.spells, key=lambda s: s.name)
+    for spell in sorted_spells:
         if spell.casting_time.startswith("Unsupported"):
             logging.warning(f"{spell.name}: {spell.casting_time}")
         if spell.duration.startswith("Unsupported"):

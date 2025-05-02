@@ -183,6 +183,10 @@ def format_range(spell_range: any) -> str:
     
     if spell_range["type"] == "cone":
         return f"Cone ({format_distance(spell_range['distance'])})"
+    
+    if spell_range["type"] == "special":
+        return "Special"
+    
 
     return f"Unsupported range type: '{spell_range['type']}'"
 

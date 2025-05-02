@@ -43,6 +43,13 @@ async def roll(ctx: discord.Interaction, diceroll: str, reason: str = None):
     embed = DiceEmbed(ctx=ctx, dice=[die], reason=reason).build()
     await ctx.response.send_message(embed=embed)
 
+@cmd_tree.command(name="d20", description="Just roll a clean d20")
+async def d20(ctx: discord.Interaction):
+    logging.info(f"{ctx.user.name} => /d20")
+    die = Dice("1d20")
+
+    embed = DiceEmbed(ctx=ctx, dice=[die]).build()
+    await ctx.response.send_message(embed=embed)
 
 @cmd_tree.command(name="advantage", description="Lucky you! Roll and take the best of two!")
 async def advantage(ctx: discord.Interaction, diceroll: str, reason: str = None):

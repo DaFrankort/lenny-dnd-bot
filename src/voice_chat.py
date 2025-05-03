@@ -1,7 +1,16 @@
+from enum import Enum
 import logging
+from pathlib import Path
+import random
 import subprocess
 import time
 import discord
+
+class SoundType(Enum):
+    ROLL = "roll"
+    NAT_20 = "nat_20"
+    NAT_1 = "nat_1"
+    DIRTY_20 = "dirty_20"
 
 class VC:
     client: discord.VoiceClient
@@ -38,7 +47,7 @@ class VC:
         VC.client = None
 
     @staticmethod
-    async def play(ctx: discord.Interaction, audio_file: str):
+    async def play(ctx: discord.Interaction, sound_type: SoundType):
         """Play an audio file in the voice channel."""
         if not VC.ffmpeg_available:
             return
@@ -50,14 +59,32 @@ class VC:
 
         retries = 0
         while VC.client.is_playing():
-            if retries >= 15:
-                VC.client.stop()  # Stop playback to prevent infinite loop
+            if retries >= 20: # 10s
+                VC.client.stop()  # Stop playback, makes bot not play sounds for long periods of time
                 break
-            time.sleep(1)
+            time.sleep(0.5)
             retries += 1
 
         try:
-            VC.client.play(discord.FFmpegPCMAudio(source="./sounds/test_sound.mp3", options="-filter:a \"volume=0.1\""))
+            VC.client.play(Sound.get(SoundType.ROLL))
         except Exception as e:
             logging.error(f"Error playing audio: {e}")
             VC.check_ffmpeg()
+
+class Sound:
+    BASE_PATH = Path("./sounds/")
+
+    @staticmethod
+    def get(sound_type: SoundType) -> discord.FFmpegPCMAudio:
+        """Get the path to the sound file based on the sound type."""
+        folder = Sound.BASE_PATH / sound_type.value
+        if not folder.exists() or not folder.is_dir():
+            folder.mkdir(parents=True, exist_ok=True)
+
+        sound_files = list(folder.glob("*.mp3"))
+        if not sound_files:
+            logging.warning(f"No sound files found in {folder}.")
+            return None
+
+        src = str(random.choice(sound_files))
+        return discord.FFmpegPCMAudio(source=src)

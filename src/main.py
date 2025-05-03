@@ -28,7 +28,7 @@ logging.basicConfig(
 )
 
 # Dictionaries
-spells = SpellList("./submodules/5etools-src/data/spells")
+spells = SpellList("./submodules/lenny-dnd-data/generated/spells.json")
 
 
 # Slash commands

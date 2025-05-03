@@ -95,7 +95,7 @@ class DiceExpression:
 
             if part == "+" or part == "-":
                 self.steps.append(part) # + or -
-            elif _match_NdN(part):
+            elif _Die.match_ndn(part):
                 self.steps.append(_Die(part)) # Die (NdN)
             elif part.isdigit():
                 self.steps.append(min(int(part), 8192)) # Modifier, limited to 10% of maxint

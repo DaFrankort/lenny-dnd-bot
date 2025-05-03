@@ -6,9 +6,6 @@ import sys
 from enum import Enum
 from user_colors import UserColor
 
-def _match_NdN(die_notation: str) -> (re.Match[str] | None):
-    """Matches a dice notation string of the format 'NdN' (e.g., '2d6', '1d20')."""
-    return re.fullmatch(r'(\d+)d(\d+)', die_notation.lower())
 
 class _Die:
     """

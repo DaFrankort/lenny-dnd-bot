@@ -27,6 +27,7 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[logging.StreamHandler()] # Output to console
 )
+logging.getLogger("discord.player").setLevel(logging.WARNING) # Suppress discord.py player logs
 
 # Dictionaries
 spells = SpellList("./submodules/5etools-src/data/spells")

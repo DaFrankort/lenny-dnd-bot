@@ -6,9 +6,6 @@ import sys
 from enum import Enum
 from user_colors import UserColor
 
-def _match_NdN(die_notation: str) -> (re.Match[str] | None):
-    """Matches a dice notation string of the format 'NdN' (e.g., '2d6', '1d20')."""
-    return re.fullmatch(r'(\d+)d(\d+)', die_notation.lower())
 
 class _Die:
     """
@@ -26,7 +23,8 @@ class _Die:
     rolls: list[int]
     
     def __init__(self, die_notation: str):
-        match = _match_NdN(die_notation)
+        match = _Die.match_ndn(die_notation)
+
         self.is_valid = True
 
         if not match:
@@ -42,6 +40,12 @@ class _Die:
         self.roll_amount = min(roll_amount, 128)
         self.sides = min(sides, 256)
         self.rolls = []
+
+    @staticmethod
+    def match_ndn(die_notation: str) -> (re.Match[str] | None):
+        return re.fullmatch(r'(\d+)d(\d+)', die_notation.lower())
+
+
 
     def roll(self):
         """Generates random values for each die-roll, stores the results in the rolls list."""
@@ -91,7 +95,7 @@ class DiceExpression:
 
             if part == "+" or part == "-":
                 self.steps.append(part) # + or -
-            elif _match_NdN(part):
+            elif _Die.match_ndn(part):
                 self.steps.append(_Die(part)) # Die (NdN)
             elif part.isdigit():
                 self.steps.append(min(int(part), 8192)) # Modifier, limited to 10% of maxint

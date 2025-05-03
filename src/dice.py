@@ -23,7 +23,8 @@ class _Die:
     rolls: list[int]
     
     def __init__(self, die_notation: str):
-        match = _match_NdN(die_notation)
+        match = _Die.match_ndn(die_notation)
+
         self.is_valid = True
 
         if not match:

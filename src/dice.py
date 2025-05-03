@@ -182,7 +182,7 @@ class DiceEmbed:
         extra_message = ""
 
         # Always build the description if multiple dice, or more than 1 roll
-        if not (self.dice[0].is_only_one_die() and len(self.dice) == 1):
+        if not (self.dice[0].is_only_one_die() and len(self.dice) == 1): #TODO -> Put elif inside forloop, then do xab's crit logic else
             for die in self.dice:
                 description += f"- {die}\n"
 

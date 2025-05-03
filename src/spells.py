@@ -37,6 +37,13 @@ class Spell(object):
         self.descriptions = format_descriptions(
             "Description", json["entries"], self.fallbackUrl
         )
+        if "entriesHigherLevel" in json:
+            for entry in json["entriesHigherLevel"]:
+                name = entry["name"]
+                entries = entry["entries"]
+                self.descriptions.extend(
+                    format_descriptions(name, entries, self.fallbackUrl)
+                )
 
     @property
     def fallbackUrl(self):
@@ -170,12 +177,16 @@ class MultiSpellSelect(discord.ui.Select):
 
     async def callback(self, interaction: discord.Interaction):
         full_name = self.values[0]
-        name_pattern = r"^(.+) \(([^\)]+)\)" # "Name (Source)"
+        name_pattern = r"^(.+) \(([^\)]+)\)"  # "Name (Source)"
         name_match = re.match(name_pattern, full_name)
         name = name_match.group(1)
         source = name_match.group(2)
 
-        spell = [spell for spell in self.spells if spell.name == name and spell.source == source][0]
+        spell = [
+            spell
+            for spell in self.spells
+            if spell.name == name and spell.source == source
+        ][0]
         logging.debug(
             f"MultiSpellSelect: user {interaction.user.display_name} selected '{name}"
         )

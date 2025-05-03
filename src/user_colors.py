@@ -4,10 +4,12 @@ import re
 
 
 class UserColor:
+    """Class to handle user colors, which are used in embeds."""
     FILE_PATH = "temp/user_colors.json"
 
     @staticmethod
     def validate(hex_color: str) -> bool:
+        """Validates if the given hex color is in the correct format."""
         hex_color = hex_color.strip("#")
         pattern = re.compile(r"^[0-9a-fA-F]{6}$")
         return pattern.match(hex_color)
@@ -28,14 +30,17 @@ class UserColor:
 
     @staticmethod
     def parse(hex_color: str) -> int:
+        """Parses a hex color string and returns its integer value."""
         if not hex_color.startswith("#"):
             hex_color = f"#{hex_color}"
         return discord.Color.from_str(hex_color).value
 
     @staticmethod
     def generate(interaction: discord.Interaction) -> int:
-        """Coding master Tomlolo's AMAZING code to get a hex value from a username.\n
-        Turns the first 6 letters of a user's username into a hex-value for color.\n
+        """Generates a hex value from a username.
+        Converts the first 6 characters of a user's display name into a hex value for color.
+        If the username is shorter than 6 characters, it uses a fallback value to complete the hex.
+        This ensures a unique and deterministic color for each user.
         """
         hex_value = ""
         hex_place = 0
@@ -98,6 +103,7 @@ class UserColor:
 
 
 class ColorEmbed(discord.Embed):
+    """Embed class for displaying user color changes."""
     def __init__(self, itr: discord.Interaction, hex_color: str) -> None:
         color = UserColor.parse(hex_color)
         super().__init__(type="rich", color=color)

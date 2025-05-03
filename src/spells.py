@@ -16,7 +16,7 @@ class Spell(object):
     components: str
     duration: str
     description: list
-    classes: set[str]
+    classes: list
 
     def __init__(self, json: any):
         self.name = json["name"]
@@ -28,6 +28,13 @@ class Spell(object):
         self.components = json["components"]
         self.duration = json["duration"]
         self.description = json["description"]
+
+        self.classes = []
+        for caster in json["classes"]:
+            if caster["source"] == "PHB":
+                continue
+            self.classes.append(caster["name"])
+        self.classes = sorted(list(set(self.classes)))
 
     @property
     def is_phb2014(self) -> bool:
@@ -44,13 +51,12 @@ class Spell(object):
 
 
 class SpellList(object):
-    spells_path = "./submodules/5etools-src/data/spells"
-    sources_path = "./submodules/5etools-src/data/spells/sources.json"
-
+    path = "./submodules/lenny-dnd-data/generated/spells.json"
+    
     spells: list[Spell] = []
 
-    def __init__(self, path: str):
-        with open(path, "r") as file:
+    def __init__(self):
+        with open(self.path, "r") as file:
             data = json.load(file)
             for spell in data:
                 self.spells.append(Spell(spell))
@@ -126,8 +132,11 @@ class SpellEmbed(discord.Embed):
         self.add_field(name="", value=spell_range, inline=False)
         self.add_field(name="", value=components, inline=False)
         self.add_field(name="", value=duration, inline=False)
+        self.add_field(name="", value=classes, inline=False)
         for description in self.spell.description:
-            self.add_field(name=description["name"], value=description["text"], inline=False)
+            self.add_field(
+                name=description["name"], value=description["text"], inline=False
+            )
 
 
 class MultiSpellSelect(discord.ui.Select):

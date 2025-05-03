@@ -1,19 +1,9 @@
 import logging
-import os.path
 import json
 import re
 import discord
 from rapidfuzz import fuzz
 from discord.utils import MISSING
-
-from parser import (
-    format_casting_time,
-    format_components,
-    format_descriptions,
-    format_duration_time,
-    format_range,
-    format_spell_level_school,
-)
 
 
 class Spell(object):
@@ -21,39 +11,32 @@ class Spell(object):
 
     name: str
     source: str
-    level_school: str
+    level: str
+    school: str
     casting_time: str
     spell_range: str
     components: str
     duration: str
-    descriptions: list[tuple[str, str]]
-    classes: set[str]
+    description: list
+    classes: list
 
     def __init__(self, json: any):
         self.name = json["name"]
         self.source = json["source"]
-        self.level_school = format_spell_level_school(json["level"], json["school"])
-        self.casting_time = format_casting_time(json["time"])
-        self.spell_range = format_range(json["range"])
-        self.components = format_components(json["components"])
-        self.duration = format_duration_time(json["duration"])
-        self.descriptions = format_descriptions(
-            "Description", json["entries"], self.fallbackUrl
-        )
-        if "entriesHigherLevel" in json:
-            for entry in json["entriesHigherLevel"]:
-                name = entry["name"]
-                entries = entry["entries"]
-                self.descriptions.extend(
-                    format_descriptions(name, entries, self.fallbackUrl)
-                )
-        self.classes = set()
+        self.level = json["level"]
+        self.school = json["school"]
+        self.casting_time = json["casting_time"]
+        self.spell_range = json["range"]
+        self.components = json["components"]
+        self.duration = json["duration"]
+        self.description = json["description"]
 
-    @property
-    def fallbackUrl(self):
-        url = f"https://5e.tools/spells.html#{self.name}_{self.source}"
-        url = url.replace(" ", "%20")
-        return url
+        self.classes = []
+        for caster in json["classes"]:
+            if caster["source"] == "PHB":
+                continue
+            self.classes.append(caster["name"])
+        self.classes = sorted(list(set(self.classes)))
 
     @property
     def is_phb2014(self) -> bool:
@@ -71,48 +54,15 @@ class Spell(object):
 
 class SpellList(object):
     """A class representing a list of Dungeons & Dragons spells."""
-    spells_path = "./submodules/5etools-src/data/spells"
-    sources_path = "./submodules/5etools-src/data/spells/sources.json"
-
+    path = "./submodules/lenny-dnd-data/generated/spells.json"
+    
     spells: list[Spell] = []
 
-    def __init__(self, ignore_phb2014: bool = True):
-        index = os.path.join(self.spells_path, "index.json")
-        with open(index, "r") as file:
-            spell_file = json.load(file)
-
-        for spell_source in spell_file:
-            spell_path = os.path.join(self.spells_path, spell_file[spell_source])
-            self._load_spells_file(spell_path)
-
-        with open(self.sources_path, "r") as file:
-            sources = json.load(file)
-            for source in sources:
-                if ignore_phb2014 and source == "PHB":
-                    continue
-                for spell in sources[source]:
-                    index = self.get_exact_index(spell, source)
-                    if "class" in sources[source][spell]:
-                        for caster_class in sources[source][spell]["class"]:
-                            self.spells[index].add_class(caster_class["name"])
-                    if "classVariant" in sources[source][spell]:
-                        for caster_class in sources[source][spell]["classVariant"]:
-                            self.spells[index].add_class(caster_class["name"])
-
-    def _load_spells_file(self, path: str):
-        """
-        Loads spells from a JSON file and appends them to the spell list.
-        Raises:
-            FileNotFoundError: If the specified file does not exist.
-            json.JSONDecodeError: If the file content is not valid JSON.
-        """
-        with open(path, "r", encoding="utf-8") as file:
-            spells = json.load(file)
-            for raw in spells["spell"]:
-                spell = Spell(raw)
-                self.spells.append(spell)
-                logging.debug(f"SpellList: loaded spell '{str(spell)}'")
-        logging.debug(f"SpellList: loaded spell file '{path}'")
+    def __init__(self):
+        with open(self.path, "r") as file:
+            data = json.load(file)
+            for spell in data:
+                self.spells.append(Spell(spell))
 
     def get(self, name: str, ignore_phb2014: bool = True, fuzzy_threshold: float = 75) -> list[Spell]:
         """
@@ -182,7 +132,7 @@ class SpellEmbed(discord.Embed):
 
         title = f"{self.spell.name} ({self.spell.source})"
 
-        level_school = f"*{self.spell.level_school}*"
+        level_school = f"*{self.spell.level} {self.spell.school}*"
         casting_time = f"**Casting Time:** {self.spell.casting_time}"
         spell_range = f"**Range:** {self.spell.spell_range}"
         components = f"**Components:** {self.spell.components}"
@@ -198,8 +148,10 @@ class SpellEmbed(discord.Embed):
         self.add_field(name="", value=components, inline=False)
         self.add_field(name="", value=duration, inline=False)
         self.add_field(name="", value=classes, inline=False)
-        for name, value in self.spell.descriptions:
-            self.add_field(name=name, value=value, inline=False)
+        for description in self.spell.description:
+            self.add_field(
+                name=description["name"], value=description["text"], inline=False
+            )
 
 
 class MultiSpellSelect(discord.ui.Select):
@@ -216,7 +168,7 @@ class MultiSpellSelect(discord.ui.Select):
             options.append(
                 discord.SelectOption(
                     label=f"{spell.name} ({spell.source})",
-                    description=f"{spell.level_school}",
+                    description=f"{spell.level} {spell.school}",
                 )
             )
 

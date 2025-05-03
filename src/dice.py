@@ -17,13 +17,16 @@ class _Die:
     to handle individual dice rolls.
     """
     is_valid: bool
+    is_positive: bool
+
     roll_amount: int
     sides: int
     rolls: list[int]
     
-    def __init__(self, die_notation: str):
+    def __init__(self, die_notation: str, is_positive: bool = True):
         match = _Die.match(die_notation)
         self.is_valid = True
+        self.is_positive = is_positive
 
         if not match:
             self.is_valid = False
@@ -58,50 +61,88 @@ class _Die:
         return min(sum(self.rolls), sys.maxsize)
     
     def __str__(self):
-        return f"({', '.join(map(str, self.rolls))})"
+        operator = '+' if self.is_positive else '-'
+        return f"{operator} ({', '.join(map(str, self.rolls))})"
     
     @staticmethod
     def match(die_notation: str) -> (re.Match[str] | None):
         """Matches a dice notation string to the format 'NdN' (e.g., '2d6', '1d20')."""
         return re.fullmatch(r'(\d+)d(\d+)', die_notation.lower())
 
+class _Modifier:
+    """Private class used to represent a modifier in a dice expression."""
+    value: int
+    is_positive: bool
+
+    def __init__(self, value: str, is_positive: bool = True):
+        self.is_positive = is_positive
+
+        if not value.isdigit():
+            logging.error("Invalid modifier notation. Use a number (e.g., '1', '2').")
+            return
+        
+        value = min(int(value), 8192) # Limit to 8192 to prevent overflow
+        self.value = value
+
+    def __str__(self):
+        operator = '+' if self.is_positive else '-'
+        return f"{operator} {self.value}"
+
 class DiceExpression:
     """Represents a dice expression (e.g., '2d6+1') and provides functionality to parse, validate, roll, and calculate the total value of the expression."""
     notation: str
-    is_valid: bool
-    steps: list[str | int | _Die]
+    is_valid: bool # TODO Rework
+
+    dice: list[_Die]
+    modifiers: list[_Modifier]
+    steps: list[_Die | _Modifier]
 
     def __init__(self, die_notation: str):
         die_notation = self._sanitize_die_notation(die_notation)
         self.notation = die_notation
         self.is_valid = True
+        self.dice, self.modifiers, self.steps = self._notation_to_steps(die_notation)
 
-        if die_notation[0] in "+-": # Add leading operators
-            self.steps = [die_notation[0]]
-            die_notation = die_notation[1:]
-        else:
-            self.steps = ['+']
+        self.roll()
 
-        parts = re.split(r'([+-])', die_notation)
+    def _notation_to_steps(self, notation: str) -> tuple[list[_Die], list[_Modifier], list[_Die | _Modifier]]:
+        """
+        Converts a dice notation string into a list of dice, modifiers, and steps.
+        Returns:
+            tuple: A tuple containing three lists:
+            - dice (list[_Die]): List of _Die objects parsed from the notation.
+            - modifiers (list[_Modifier]): List of _Modifier objects parsed from the notation.
+            - steps (list[_Die | _Modifier]): Ordered list of steps (dice and modifiers) for the expression.
+        """
+        dice = []
+        modifiers = []
+        steps = [] # In some cases we need to keep track of the order of operations, so we keep a general list of steps.
+
+        # Split notation into parts, (e.g., '2d6', '+1', '-2d4')
+        parts = re.split(r'([+-]?\d+d\d+|[+-]?\d+)', notation)
 
         for part in parts:
-            if len(self.steps) > 32:
-                self.is_valid = False
-                logging.error(f"User's dice expression has too many steps.")
-                break
+            part = part.strip()
+            if not part:
+                continue # Skip empty parts
 
-            if part == "+" or part == "-":
-                self.steps.append(part) # + or -
-            elif _Die.match(part):
-                self.steps.append(_Die(part)) # Die (NdN)
+            is_positive = not part.startswith('-')
+            part = part.lstrip('+-')
+
+            if _Die.match(part):
+                die = _Die(part, is_positive)
+                dice.append(die)
+                steps.append(die)
+
             elif part.isdigit():
-                self.steps.append(min(int(part), 8192)) # Modifier, limited to 10% of maxint
+                mod = _Modifier(part, is_positive)
+                modifiers.append(mod)
+                steps.append(mod)
+
             else:
-                self.is_valid = False
-                logging.error(f"Invalid token in dice expression: {part}.")
-                return
-        
-        self.roll()
+                raise ValueError(f"Invalid part in dice notation: {part}")
+            
+        return dice, modifiers, steps
 
     def _sanitize_die_notation(self, notation: str) -> str:
         """Sanitizes the dice notation by removing spaces and irrelevant characters."""
@@ -117,46 +158,55 @@ class DiceExpression:
         return notation
 
     def is_only_one_die(self) -> bool:
-        if len(self.steps) != 2:
-            return False
-
-        return len(self.steps) == 2 and isinstance(self.steps[1], _Die) and self.steps[1].roll_amount == 1
+        """Checks if the expression contains only one die with one roll."""
+        if len(self.steps) != 1:
+            return False # More than 1 step, so not a single die.
+        return len(self.dice) == 1 and self.dice[0].roll_amount == 1 # Single die with 1 roll.
 
     def roll(self):
-        for step in self.steps:
-            if isinstance(step, _Die):
-                step.roll()
+        for die in self.dice:
+            if isinstance(die, _Die):
+                die.roll()
     
     def get_total(self) -> int:
+        """Calculates and returns the total value of the dice expression."""
         total = 0
-        for i in range(0, len(self.steps), 2):
-            operator = self.steps[i]
-            value = self.steps[i+1]
 
-            if isinstance(value, _Die):
-                value = value.get_total()
+        def is_over_value_threshold(value: int) -> int:
+            """Checks if the value exceeds a certain threshold."""
+            return value > sys.maxsize / 2
 
-            if operator == '+':
-                total += value
-            elif operator == '-':
-                total -= value
-
-            if total > sys.maxsize / 2:
-                logging.warning("DiceExpression total too large whilst calculating total, stopped calculation to prevent errors.")
+        # Dice
+        for die in self.dice:
+            if is_over_value_threshold(total):
                 break
+
+            if die.is_positive:
+                total += die.get_total()
+            else:
+                total -= die.get_total()
+        
+        # Modifiers
+        for mod in self.modifiers:
+            if is_over_value_threshold(total):
+                break
+
+            if mod.is_positive:
+                total += mod.value
+            else:
+                total -= mod.value
+
         return total
 
     def __str__(self):
         """Generates and returns a formatted string representation of the dice roll result."""
         total_text = f"**{self.get_total()}**"
-        steps_text = ' '.join(str(step) for step in self.steps[1:])
+        if self.is_only_one_die(): # Only show total if there's only 1 step.
+            return total_text
         
-        if self.steps[0] == '-':
-            steps_text = f"- {steps_text}"
-
-        if len(self.steps) == 2 and isinstance(self.steps[1], _Die): # Only show total if there's only 1 step.
-            if len(self.steps[1].rolls) == 1:
-                return total_text
+        steps_text = ' '.join(str(step) for step in self.steps)
+        if steps_text.startswith('+ '):
+            steps_text = steps_text[2:] # Remove leading '+ '
 
         return f"``{steps_text}`` -> {total_text}"
 

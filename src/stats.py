@@ -5,6 +5,7 @@ from user_colors import UserColor
 
 
 class StatsEmbed(discord.Embed):
+    """Embed for rolling character-stats in D&D 5e."""
     def _roll(self) -> tuple[list[int], int]:
         rolls = [random.randint(1, 6) for _ in range(4)]
         rolls = sorted(rolls)

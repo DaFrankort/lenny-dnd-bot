@@ -38,6 +38,13 @@ class Spell(object):
         self.descriptions = format_descriptions(
             "Description", json["entries"], self.fallbackUrl
         )
+        if "entriesHigherLevel" in json:
+            for entry in json["entriesHigherLevel"]:
+                name = entry["name"]
+                entries = entry["entries"]
+                self.descriptions.extend(
+                    format_descriptions(name, entries, self.fallbackUrl)
+                )
         self.classes = set()
 
     @property

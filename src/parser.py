@@ -2,8 +2,12 @@
 Parses data from the 5e.tools submodule
 """
 
+import io
 import re
-from tabulate import tabulate
+import rich
+import rich.box
+from rich.table import Table
+from rich.console import Console
 
 
 SPELL_SCHOOLS = {
@@ -180,10 +184,10 @@ def format_range(spell_range: any) -> str:
 
     if spell_range["type"] == "radius":
         return f"Radius ({format_distance(spell_range['distance'])})"
-    
+
     if spell_range["type"] == "cone":
         return f"Cone ({format_distance(spell_range['distance'])})"
-    
+
     if spell_range["type"] == "line":
         return f"Line ({format_distance(spell_range['distance'])})"
 
@@ -195,7 +199,6 @@ def format_range(spell_range: any) -> str:
 
     if spell_range["type"] == "special":
         return "Special"
-    
 
     return f"Unsupported range type: '{spell_range['type']}'"
 
@@ -232,13 +235,13 @@ def _format_description_block(description: any) -> str:
 
     if description["type"] == "inset":
         return f"*{_format_description_block_from_blocks(description['entries'])}*"
-    
+
     if description["type"] == "item":
         name = description["name"]
         entries = [_format_description_block(e) for e in description["entries"]]
-        entries = '\n'.join(entries)
+        entries = "\n".join(entries)
         return f"**{name}**: {entries}"
- 
+
     return f"Unsupported description type: '{description['type']}'"
 
 
@@ -265,15 +268,40 @@ def _parse_table_value(value: any) -> str:
     return f"Unknown table value type {value['type']}"
 
 
-def _prettify_table(title: str, table: list[list[str]], fallbackUrl: str) -> str:
-    widths = [8, 44]
-    if len(table[0][0]) > 8:
-        widths = [16, 36]
+def _prettify_table(title: str, cells: list[list[str]], fallbackUrl: str) -> str:
+    """
+    Prettify a table, by converting it to a string. The field string length is less
+    than or equal to 1024 characters. Because the generated string needs at least 6
+    characters for the code block styling, the table string can only be 1018
+    characters long at most.
 
-    pretty = tabulate(table, tablefmt="rounded_grid", maxcolwidths=widths)
-    if len(pretty) > 1018:
-        return f"The table for [{title} can be found here]({fallbackUrl})."
-    return f"```{pretty}```"
+    The used library is 'rich'. Rich is originally meant to be a console application,
+    but with some workarounds you can save the generated table to a string.
+    """
+
+    # TODO remove formatting effects in the cells
+
+    failure = f"The table for [{title} can be found here]({fallbackUrl})."
+    headers = cells[0]
+    rows = cells[1:]
+
+    table = Table(style=None, box=rich.box.ROUNDED)
+    for header in headers:
+        table.add_column(header, justify="left", style=None)
+
+    for row in rows:
+        table.add_row(*row)
+
+    buffer = io.StringIO()
+    console = Console(file=buffer, width=56)
+    console.print(table)
+    table_string = buffer.getvalue()
+    buffer.close()
+
+    if len(table_string) > 1018:
+        return failure
+
+    return f"```{table_string}```"
 
 
 def _format_description_from_table(

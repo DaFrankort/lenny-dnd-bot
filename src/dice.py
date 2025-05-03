@@ -17,7 +17,7 @@ class _Die:
     This class encapsulates the logic for parsing, validating, and rolling dice
     based on the NdN notation (e.g., '2d6', '1d20'). It provides methods to roll
     the dice, calculate the total of the rolls, and represent the results as a string.
-    Instances of this class are typically used as part of a Dice object's steps
+    Instances of this class are typically used as part of a DiceExpression object's steps
     to handle individual dice rolls.
     """
     is_valid: bool
@@ -64,7 +64,7 @@ class _Die:
     def __str__(self):
         return f"({', '.join(map(str, self.rolls))})"
 
-class Dice:
+class DiceExpression:
     """Represents a dice expression (e.g., '2d6+1') and provides functionality to parse, validate, roll, and calculate the total value of the expression."""
     notation: str
     is_valid: bool
@@ -141,7 +141,7 @@ class Dice:
                 total -= value
 
             if total > sys.maxsize / 2:
-                logging.warning("Dice total too large whilst calculating total, stopped calculation to prevent errors.")
+                logging.warning("DiceExpression total too large whilst calculating total, stopped calculation to prevent errors.")
                 break
         return total
 
@@ -170,11 +170,11 @@ class DiceEmbed:
     username: str
     avatar_url: str
     user_id: str
-    dice: list[Dice]
+    dice: list[DiceExpression]
     reason: str
     mode: RollMode
     
-    def __init__(self, ctx: discord.Interaction, dice: list[Dice], reason: str | None = None,  mode: RollMode = RollMode.NORMAL):
+    def __init__(self, ctx: discord.Interaction, dice: list[DiceExpression], reason: str | None = None,  mode: RollMode = RollMode.NORMAL):
         self.username = ctx.user.display_name
         self.avatar_url = ctx.user.avatar.url
         self.user_id = str(ctx.user.id)

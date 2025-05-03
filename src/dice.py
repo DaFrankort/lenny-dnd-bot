@@ -60,6 +60,7 @@ class _Die:
     def __str__(self):
         return f"({', '.join(map(str, self.rolls))})"
     
+    @staticmethod
     def match(die_notation: str) -> (re.Match[str] | None):
         """Matches a dice notation string to the format 'NdN' (e.g., '2d6', '1d20')."""
         return re.fullmatch(r'(\d+)d(\d+)', die_notation.lower())

@@ -16,6 +16,7 @@ class Spell(object):
     components: str
     duration: str
     description: list
+    classes: set[str]
 
     def __init__(self, json: any):
         self.name = json["name"]
@@ -38,8 +39,14 @@ class Spell(object):
     def __repr__(self):
         return str(self)
 
+    def add_class(self, class_name: str) -> None:
+        self.classes.add(class_name)
+
 
 class SpellList(object):
+    spells_path = "./submodules/5etools-src/data/spells"
+    sources_path = "./submodules/5etools-src/data/spells/sources.json"
+
     spells: list[Spell] = []
 
     def __init__(self, path: str):
@@ -69,6 +76,12 @@ class SpellList(object):
         if len(exact) > 0:
             return exact
         return fuzzy
+
+    def get_exact_index(self, name: str, source: str) -> int:
+        for i, spell in enumerate(self.spells):
+            if spell.name == name and spell.source == source:
+                return i
+        return -1
 
     def search(
         self, query: str, ignore_phb2014: bool = True, fuzzy_threshold: float = 75
@@ -103,6 +116,9 @@ class SpellEmbed(discord.Embed):
         spell_range = f"**Range:** {self.spell.spell_range}"
         components = f"**Components:** {self.spell.components}"
         duration = f"**Duration:** {self.spell.duration}"
+
+        class_names = ", ".join(sorted(list(spell.classes)))
+        classes = f"**Classes:** {class_names}"
 
         super().__init__(title=title, type="rich", color=discord.Color.dark_green())
         self.add_field(name="", value=level_school, inline=False)

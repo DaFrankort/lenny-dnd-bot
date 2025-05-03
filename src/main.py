@@ -28,7 +28,7 @@ logging.basicConfig(
 )
 
 # Dictionaries
-spells = SpellList("./submodules/lenny-dnd-data/generated/spells.json")
+spells = SpellList()
 
 
 # Slash commands
@@ -95,7 +95,7 @@ async def spell(ctx: discord.Interaction, name: str):
         
 
 @cmd_tree.command(name="search", description="Search for a spell.")
-async def spell(ctx: discord.Interaction, query: str):
+async def search(ctx: discord.Interaction, query: str):
     logging.info(f"{ctx.user.name} => /search {query}")
     found = spells.search(query)
 

@@ -165,7 +165,6 @@ class DiceEmbed:
         self.reason = reason if reason != None else "Result"
         self.mode = mode
         self.color = UserColor.get(ctx)
-        return
 
     def _get_title(self):
         match self.mode:
@@ -182,10 +181,13 @@ class DiceEmbed:
         description = ""
         extra_message = ""
 
+        # Always build the description if multiple dice, or more than 1 roll
         if not (self.dice[0].is_only_one_die() and len(self.dice) == 1):
             for die in self.dice:
                 description += f"- {die}\n"
 
+        # Always evaluate dice for critical outcomes
+        for die in self.dice:
             if (
                 len(die.steps) == 2
                 and isinstance(die.steps[1], _Die)

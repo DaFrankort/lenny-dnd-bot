@@ -1,9 +1,9 @@
+import asyncio
 from enum import Enum
 import logging
 from pathlib import Path
 import random
 import subprocess
-import time
 import discord
 
 class SoundType(Enum):
@@ -62,11 +62,11 @@ class VC:
             if retries >= 20: # 10s
                 VC.client.stop()  # Stop playback, makes bot not play sounds for long periods of time
                 break
-            time.sleep(0.5)
+            await asyncio.sleep(0.5)
             retries += 1
 
         try:
-            VC.client.play(Sound.get(SoundType.ROLL))
+            VC.client.play(Sound.get(sound_type))
         except Exception as e:
             logging.error(f"Error playing audio: {e}")
             VC.check_ffmpeg()
@@ -87,4 +87,11 @@ class Sound:
             return None
 
         src = str(random.choice(sound_files))
-        return discord.FFmpegPCMAudio(source=src)
+        options = {
+            SoundType.ROLL: "-filter:a 'volume=0.1'",
+            SoundType.NAT_20: "-filter:a 'volume=0.5'",
+            SoundType.NAT_1: "-filter:a 'volume=0.5'",
+            SoundType.DIRTY_20: "-filter:a 'volume=0.5'"
+        }.get(sound_type, "-filter:a 'volume=0.1'")
+
+        return discord.FFmpegPCMAudio(source=src, options=options)

@@ -248,13 +248,6 @@ class DiceEmbed:
                 return f"Rolled {self.expressions[0].notation} with disadvantage!"
 
     def _get_description(self) -> str:
-        """
-        Generates a description of the dice roll results, including critical outcomes and roll mode.
-        This method constructs a detailed description of the dice rolls, evaluates for critical outcomes 
-        (e.g., critical hit, critical fail, or dirty 20), and formats the result based on the roll mode 
-        (NORMAL, ADVANTAGE, or DISADVANTAGE).
-        """
-
         description = ""
         extra_message = ""
 
@@ -295,11 +288,6 @@ class DiceEmbed:
                 return description + f"🎲 **{self.reason}: {smallest_value}**"
 
     def build(self) -> discord.Embed:
-        """
-        Builds and returns a Discord embed object with the specified attributes.
-        The embed object is configured with a description, author details, and color.
-        """
-
         embed = discord.Embed(
             type="rich",
             description=self._get_description()

@@ -77,16 +77,6 @@ class SpellList(object):
     spells: list[Spell] = []
 
     def __init__(self, ignore_phb2014: bool = True):
-        """
-        Initializes the spell loader and processes spell data from JSON files.
-        This method performs the following steps:
-        1. Loads the spell index from the "index.json" file located in the `spells_path` directory.
-        2. Iterates through the spell sources in the index and loads each spell file.
-        3. Loads the sources data from the `sources_path` file.
-        4. Processes each spell in the sources data:
-           - Skips spells from the "PHB" source if `ignore_phb2014` is True.
-           - Adds the spell to the appropriate class or class variant based on the source data.
-        """
         index = os.path.join(self.spells_path, "index.json")
         with open(index, "r") as file:
             spell_file = json.load(file)
@@ -115,8 +105,6 @@ class SpellList(object):
         Raises:
             FileNotFoundError: If the specified file does not exist.
             json.JSONDecodeError: If the file content is not valid JSON.
-        Logs:
-            Debug messages indicating the loading of individual spells and the file.
         """
         with open(path, "r", encoding="utf-8") as file:
             spells = json.load(file)

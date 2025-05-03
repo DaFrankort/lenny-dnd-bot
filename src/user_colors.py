@@ -37,10 +37,9 @@ class UserColor:
 
     @staticmethod
     def generate(interaction: discord.Interaction) -> int:
-        """Generates a hex value from a username.
+        """
+        Generates a hex value from a username.
         Converts the first 6 characters of a user's display name into a hex value for color.
-        If the username is shorter than 6 characters, it uses a fallback value to complete the hex.
-        This ensures a unique and deterministic color for each user.
         """
         hex_value = ""
         hex_place = 0

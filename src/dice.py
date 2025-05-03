@@ -221,15 +221,15 @@ class DiceEmbed:
     username: str
     avatar_url: str
     user_id: str
-    dice: list[DiceExpression]
+    expressions: list[DiceExpression]
     reason: str
     mode: RollMode
     
-    def __init__(self, ctx: discord.Interaction, dice: list[DiceExpression], reason: str | None = None,  mode: RollMode = RollMode.NORMAL):
+    def __init__(self, ctx: discord.Interaction, expressions: list[DiceExpression], reason: str | None = None,  mode: RollMode = RollMode.NORMAL):
         self.username = ctx.user.display_name
         self.avatar_url = ctx.user.avatar.url
         self.user_id = str(ctx.user.id)
-        self.dice = dice
+        self.expressions = expressions
         self.reason = reason if reason != None else "Result"
         self.mode = mode
         self.color = UserColor.get(ctx)
@@ -239,13 +239,13 @@ class DiceEmbed:
 
         match self.mode:
             case RollMode.NORMAL:
-                return f"Rolled {self.dice[0].notation}!"
+                return f"Rolled {self.expressions[0].notation}!"
             
             case RollMode.ADVANTAGE:
-                return f"Rolled {self.dice[0].notation} with advantage!"
+                return f"Rolled {self.expressions[0].notation} with advantage!"
             
             case RollMode.DISADVANTAGE:
-                return f"Rolled {self.dice[0].notation} with disadvantage!"
+                return f"Rolled {self.expressions[0].notation} with disadvantage!"
 
     def _get_description(self) -> str:
         """
@@ -259,20 +259,20 @@ class DiceEmbed:
         extra_message = ""
 
         # Always build the description if multiple dice, or more than 1 roll
-        if not (self.dice[0].is_only_one_die() and len(self.dice) == 1):
-            for die in self.dice:
+        if not (self.expressions[0].is_only_one_die() and len(self.expressions) == 1):
+            for die in self.expressions:
                 description += f"- {die}\n"
 
         # Always evaluate dice for critical outcomes
-        for die in self.dice:
+        for expression in self.expressions:
             if (
-                len(die.steps) == 2
-                and isinstance(die.steps[1], _Die)
-                and die.steps[1].roll_amount == 1
-                and die.steps[1].sides == 20
+                len(expression.steps) == 2
+                and isinstance(expression.steps[1], _Die)
+                and expression.steps[1].roll_amount == 1
+                and expression.steps[1].sides == 20
             ):
-                rolled_value = die.steps[1].rolls[0]
-                total = die.get_total()
+                rolled_value = expression.steps[1].rolls[0]
+                total = expression.get_total()
 
                 if rolled_value == 20:
                     extra_message = "🎯 **Critical Hit!**"
@@ -283,15 +283,15 @@ class DiceEmbed:
 
         match self.mode:
             case RollMode.NORMAL:
-                dice_text = self.dice[0] if self.dice[0].is_only_one_die() else f"**{self.dice[0].get_total()}**"
+                dice_text = self.expressions[0] if self.expressions[0].is_only_one_die() else f"**{self.expressions[0].get_total()}**"
                 return description + f"🎲 **{self.reason}:** {dice_text}\n" + (f"\n{extra_message}" if extra_message else "")
             
             case RollMode.ADVANTAGE:
-                largest_value = max(self.dice[0].get_total(), self.dice[1].get_total())
+                largest_value = max(self.expressions[0].get_total(), self.expressions[1].get_total())
                 return description + f"🎲 **{self.reason}: {largest_value}**"
             
             case RollMode.DISADVANTAGE:
-                smallest_value = min(self.dice[0].get_total(), self.dice[1].get_total())
+                smallest_value = min(self.expressions[0].get_total(), self.expressions[1].get_total())
                 return description + f"🎲 **{self.reason}: {smallest_value}**"
 
     def build(self) -> discord.Embed:

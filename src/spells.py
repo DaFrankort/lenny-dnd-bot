@@ -25,6 +25,7 @@ class Spell(object):
     components: str
     duration: str
     descriptions: list[tuple[str, str]]
+    classes: set[str]
 
     def __init__(self, json: any):
         self.name = json["name"]
@@ -44,6 +45,7 @@ class Spell(object):
                 self.descriptions.extend(
                     format_descriptions(name, entries, self.fallbackUrl)
                 )
+        self.classes = set()
 
     @property
     def fallbackUrl(self):
@@ -61,18 +63,38 @@ class Spell(object):
     def __repr__(self):
         return str(self)
 
+    def add_class(self, class_name: str) -> None:
+        self.classes.add(class_name)
+
 
 class SpellList(object):
+    spells_path = "./submodules/5etools-src/data/spells"
+    sources_path = "./submodules/5etools-src/data/spells/sources.json"
+
     spells: list[Spell] = []
 
-    def __init__(self, path: str):
-        index = os.path.join(path, "index.json")
+    def __init__(self, ignore_phb2014: bool = True):
+        index = os.path.join(self.spells_path, "index.json")
         with open(index, "r") as file:
-            sources = json.load(file)
+            spell_file = json.load(file)
 
-        for source in sources:
-            sourcePath = os.path.join(path, sources[source])
-            self._load_spells_file(sourcePath)
+        for spell_source in spell_file:
+            spell_path = os.path.join(self.spells_path, spell_file[spell_source])
+            self._load_spells_file(spell_path)
+
+        with open(self.sources_path, "r") as file:
+            sources = json.load(file)
+            for source in sources:
+                if ignore_phb2014 and source == "PHB":
+                    continue
+                for spell in sources[source]:
+                    index = self.get_exact_index(spell, source)
+                    if "class" in sources[source][spell]:
+                        for caster_class in sources[source][spell]["class"]:
+                            self.spells[index].add_class(caster_class["name"])
+                    if "classVariant" in sources[source][spell]:
+                        for caster_class in sources[source][spell]["classVariant"]:
+                            self.spells[index].add_class(caster_class["name"])
 
     def _load_spells_file(self, path: str):
         with open(path, "r", encoding="utf-8") as file:
@@ -104,6 +126,12 @@ class SpellList(object):
         if len(exact) > 0:
             return exact
         return fuzzy
+
+    def get_exact_index(self, name: str, source: str) -> int:
+        for i, spell in enumerate(self.spells):
+            if spell.name == name and spell.source == source:
+                return i
+        return -1
 
     def search(
         self, query: str, ignore_phb2014: bool = True, fuzzy_threshold: float = 75
@@ -139,12 +167,16 @@ class SpellEmbed(discord.Embed):
         components = f"**Components:** {self.spell.components}"
         duration = f"**Duration:** {self.spell.duration}"
 
+        class_names = ", ".join(sorted(list(spell.classes)))
+        classes = f"**Classes:** {class_names}"
+
         super().__init__(title=title, type="rich", color=discord.Color.dark_green())
         self.add_field(name="", value=level_school, inline=False)
         self.add_field(name="", value=casting_time, inline=False)
         self.add_field(name="", value=spell_range, inline=False)
         self.add_field(name="", value=components, inline=False)
         self.add_field(name="", value=duration, inline=False)
+        self.add_field(name="", value=classes, inline=False)
         for name, value in self.spell.descriptions:
             self.add_field(name=name, value=value, inline=False)
 

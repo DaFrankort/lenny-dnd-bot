@@ -8,7 +8,7 @@ from discord import app_commands
 from dotenv import load_dotenv
 from stats import StatsEmbed
 from user_colors import UserColor, ColorEmbed
-from voice_chat import VC
+from voice_chat import VC, SoundType
 
 # Init
 load_dotenv()
@@ -43,7 +43,7 @@ async def roll(ctx: discord.Interaction, diceroll: str, reason: str = None):
 
     embed = DiceEmbed(ctx=ctx, dice=[die], reason=reason).build()
     await ctx.response.send_message(embed=embed)
-    await VC.play(ctx, "./sounds/test_sound.mp3")
+    await VC.play(ctx, SoundType.ROLL)
 
 @cmd_tree.command(name="d20", description="Just roll a clean d20")
 async def d20(ctx: discord.Interaction):

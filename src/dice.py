@@ -43,6 +43,12 @@ class _Die:
         self.sides = min(sides, 256)
         self.rolls = []
 
+    @staticmethod
+    def match_ndn(die_notation: str) -> (re.Match[str] | None):
+        return re.fullmatch(r'(\d+)d(\d+)', die_notation.lower())
+
+
+
     def roll(self):
         """Generates random values for each die-roll, stores the results in the rolls list."""
         self.rolls = [random.randint(1, self.sides) for _ in range(self.roll_amount)]

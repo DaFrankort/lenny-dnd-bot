@@ -174,7 +174,7 @@ class NoItemsFoundEmbed(discord.Embed):
 
 
 class MultiItemSelectView(discord.ui.View):
-    """A class representing a Discord view for multiple spell selection."""
+    """A class representing a Discord view for multiple item selection."""
 
     def __init__(self, query: str, items: list[Item]):
         super().__init__()

@@ -1,72 +1,62 @@
+import pytest
+from dice import _Die, _Modifier, DiceExpression
+
+def assert_die_properties(die, is_positive, sides, roll_amount, is_single_roll, warnings_length=0):
+    assert die.is_valid is True, "Die should be valid"
+    assert die.is_positive == is_positive, f"Die should be {'positive' if is_positive else 'negative'}"
+    assert die.sides == sides, f"Sides should be {sides}"
+    assert die.roll_amount == roll_amount, f"Roll amount should be {roll_amount}"
+    assert len(die.warnings) == warnings_length, f"Warnings should be {warnings_length}"
+    assert die.is_single_roll() == is_single_roll, f"Die should {'be' if is_single_roll else 'not be'} a single roll"
+
 class Test_Die:
-    def test_init(self):
-        from dice import _Die
+    @pytest.mark.parametrize(
+        "notation, is_positive, sides, roll_amount, is_single_roll",
+        [("1d20", True, 20, 1, True), ("4d6", False, 6, 4, False)]
+    )
+    def test_init_valid(self, notation, is_positive, sides, roll_amount, is_single_roll):
+        die = _Die(notation, is_positive=is_positive)
+        assert_die_properties(die, is_positive, sides, roll_amount, is_single_roll)
 
-        # Test positive die, single roll
-        die = _Die("1d20")
-        assert die.is_valid == True, "Die should be valid"
-        assert die.is_positive == True, "Die should be positive"
-        assert die.sides == 20, "Sides should be 20"
-        assert die.roll_amount == 1, "Roll amount should be 1"
-        assert die.warnings == [], "Warnings should be empty"
-        assert die.is_single_roll() == True, "Die should be a single roll"
+    @pytest.mark.parametrize("notation", ["INVALID", "1d20+5", "4d6-3"])
+    def test_init_invalid(self, notation):
+        die = _Die(notation)
+        assert die.is_valid is False, "Die should be invalid"
 
-        # Test negative die, multiple rolls
-        die = _Die("4d6", is_positive=False)
-        assert die.is_valid == True, "Die should be valid"
-        assert die.is_positive == False, "Die should be positive"
-        assert die.sides == 6, "Sides should be 6"
-        assert die.roll_amount == 4, "Roll amount should be 4"
-        assert die.warnings == [], "Warnings should be empty"
-        assert die.is_single_roll() == False, "Die should not be a single roll"
-
-        # Invalid die
-        die = _Die("INVALID")
-        assert die.is_valid == False, "Die should be invalid"
-
-        # Test die with warnings
+    def test_warnings(self):
         roll_amount = 99999
-        die = _Die(f"{roll_amount}d20") # Too many rolls
-        assert die.is_valid == True, "Die should be valid"
+        die = _Die(f"{roll_amount}d20")
+        assert die.is_valid is True, "Die should be valid"
         assert die.roll_amount != roll_amount, "Rolls should be limited to lower value"
         assert len(die.warnings) > 0, "Warnings should not be empty"
 
         sides = 99999
-        die = _Die(f"1d{sides}") # Too many sides
-        assert die.is_valid == True, "Die should be valid"
+        die = _Die(f"1d{sides}")
+        assert die.is_valid is True, "Die should be valid"
         assert die.sides != sides, "Sides should be limited to lower value"
         assert len(die.warnings) > 0, "Warnings should not be empty"
 
     def test_str(self):
-        from dice import _Die
-        die = _Die("1d20")
-        assert str(die).startswith("+"), "String representation should start with '+'"
-
-        die = _Die("4d6", is_positive=False)
-        assert str(die).startswith("-"), "String representation should start with '-'"
+        assert str(_Die("1d20", is_positive=True)).startswith("+"), "String representation should start with '+'"
+        assert str(_Die("4d6", is_positive=False)).startswith("-"), "String representation should start with '-'"
 
     def test_roll(self):
-        from dice import _Die
         die = _Die("100d6")
-
         assert all(1 <= roll <= 6 for roll in die.rolls), "All rolled values should be between 1 and 6"
 
     def test_get_total(self):
-        from dice import _Die
         die = _Die("1d20", is_positive=True)
         assert die.get_total() == sum(die.rolls), "Total should be the sum of rolls"
-
-        die = _Die("4d6" , is_positive=False)
+        die = _Die("4d6", is_positive=False)
         assert die.get_total() == -sum(die.rolls), "Total should be the sum of rolls, but negative"
 
+
     def test_is_nat_20(self):
-        from dice import _Die
         die = _Die("1d20")
         die.rolls = [20]  # Simulate a nat 20
         assert die.is_natural_twenty() == True, "Die should be a natural 20"
 
     def test_is_nat_1(self):
-        from dice import _Die
         die = _Die("1d20")
         die.rolls = [1]  # Simulate a nat 1
         assert die.is_natural_one() == True, "Die should be a natural 1"

@@ -11,6 +11,7 @@ class Spell(object):
 
     name: str
     source: str
+    url: str
     level: str
     school: str
     casting_time: str
@@ -23,6 +24,7 @@ class Spell(object):
     def __init__(self, json: any):
         self.name = json["name"]
         self.source = json["source"]
+        self.url = json["url"]
         self.level = json["level"]
         self.school = json["school"]
         self.casting_time = json["casting_time"]
@@ -141,7 +143,12 @@ class SpellEmbed(discord.Embed):
         level_school = f"{self.spell.level} {self.spell.school}"
         class_names = ", ".join(sorted(list(spell.classes)))
 
-        super().__init__(title=title, type="rich", color=discord.Color.dark_green())
+        super().__init__(
+            title=title,
+            type="rich",
+            color=discord.Color.dark_green(),
+            url=self.spell.url,
+        )
         self.add_field(name="Type", value=level_school, inline=True)
         self.add_field(name="Casting Time", value=self.spell.casting_time, inline=True)
         self.add_field(name="Range", value=self.spell.spell_range, inline=True)

@@ -317,7 +317,7 @@ class DiceEmbed:
                 extra_message = "🎯 **Critical Hit!**"
             elif expression.dice[0].is_natural_one():
                 extra_message = "💀 **Critical Fail!**"
-            elif expression.is_dirty_twenty(): # Doesn't activate correctly, also activates on 2d20
+            elif expression.is_dirty_twenty():
                 extra_message = "⚔️ **Dirty 20!**"
 
         match self.mode:

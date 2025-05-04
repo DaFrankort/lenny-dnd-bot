@@ -68,6 +68,19 @@ class _Die:
     def match(die_notation: str) -> (re.Match[str] | None):
         """Matches a dice notation string to the format 'NdN' (e.g., '2d6', '1d20')."""
         return re.fullmatch(r'(\d+)d(\d+)', die_notation.lower())
+    
+    def is_single_roll(self) -> bool:
+        return self.roll_amount == 1
+    
+    def is_natural_twenty(self) -> bool:
+        if not self.is_single_roll():
+            return False
+        return self.sides == 20 and self.rolls[0] == 20
+    
+    def is_natural_one(self) -> bool:
+        if not self.is_single_roll():
+            return False
+        return self.sides == 20 and self.rolls[0] == 1
 
 class _Modifier:
     """Private class used to represent a modifier in a dice expression."""
@@ -95,7 +108,7 @@ class DiceExpression:
 
     dice: list[_Die]
     modifiers: list[_Modifier]
-    steps: list[_Die | _Modifier]
+    steps: list[_Die | _Modifier] # In some cases we need to keep track of the order of operations, so we keep a general list of steps.
 
     def __init__(self, die_notation: str):
         die_notation = self._sanitize_die_notation(die_notation)
@@ -116,7 +129,7 @@ class DiceExpression:
         """
         dice = []
         modifiers = []
-        steps = [] # In some cases we need to keep track of the order of operations, so we keep a general list of steps.
+        steps = []
 
         # Split notation into parts, (e.g., '2d6', '+1', '-2d4')
         parts = re.split(r'([+-]?\d+d\d+|[+-]?\d+)', notation)
@@ -157,11 +170,9 @@ class DiceExpression:
         notation = re.sub(r'(?<!\d)d', '1d', notation)  # add 1 before standalone 'd' (Convert d20 => 1d20)
         return notation
 
-    def is_only_one_die(self) -> bool:
+    def has_only_one_die(self) -> bool:
         """Checks if the expression contains only one die with one roll."""
-        if len(self.steps) != 1:
-            return False # More than 1 step, so not a single die.
-        return len(self.dice) == 1 and self.dice[0].roll_amount == 1 # Single die with 1 roll.
+        return len(self.dice) == 1
 
     def roll(self):
         for die in self.dice:
@@ -172,7 +183,7 @@ class DiceExpression:
         """Calculates and returns the total value of the dice expression."""
         total = 0
 
-        def is_over_value_threshold(value: int) -> int:
+        def is_over_value_threshold(value: int) -> bool:
             """Checks if the value exceeds a certain threshold."""
             return value > sys.maxsize / 2
 
@@ -201,7 +212,7 @@ class DiceExpression:
     def __str__(self):
         """Generates and returns a formatted string representation of the dice roll result."""
         total_text = f"**{self.get_total()}**"
-        if self.is_only_one_die(): # Only show total if there's only 1 step.
+        if self.has_only_one_die() and self.dice[0].is_single_roll(): # Only show total if there's only 1 step.
             return total_text
         
         steps_text = ' '.join(str(step) for step in self.steps)
@@ -209,6 +220,11 @@ class DiceExpression:
             steps_text = steps_text[2:] # Remove leading '+ '
 
         return f"``{steps_text}`` -> {total_text}"
+    
+    def is_dirty_twenty(self) -> bool:
+        if len(self.dice) != 1 and len(self.modifiers) != 1:
+            return False
+        return self.get_total() == 20
 
 class RollMode(Enum):
     """An enumeration representing the different modes of rolling dice in a Dungeons & Dragons context."""
@@ -251,32 +267,27 @@ class DiceEmbed:
         description = ""
         extra_message = ""
 
-        # Always build the description if multiple dice, or more than 1 roll
-        if not (self.expressions[0].is_only_one_die() and len(self.expressions) == 1):
+        # Always build the description if multiple dice, or more than 1 DiceExpression
+        if not (self.expressions[0].has_only_one_die() and self.expressions[0].dice[0].is_single_roll() and len(self.expressions) == 1):
             for die in self.expressions:
                 description += f"- {die}\n"
 
         # Always evaluate dice for critical outcomes
         for expression in self.expressions:
-            if (
-                len(expression.steps) == 2
-                and isinstance(expression.steps[1], _Die)
-                and expression.steps[1].roll_amount == 1
-                and expression.steps[1].sides == 20
-            ):
-                rolled_value = expression.steps[1].rolls[0]
-                total = expression.get_total()
+            if not expression.has_only_one_die():
+                continue
 
-                if rolled_value == 20:
-                    extra_message = "🎯 **Critical Hit!**"
-                elif rolled_value == 1:
-                    extra_message = "💀 **Critical Fail!**"
-                elif total == 20:
-                    extra_message = "⚔️ **Dirty 20!**"
+            if expression.dice[0].is_natural_twenty():
+                extra_message = "🎯 **Critical Hit!**"
+            elif expression.dice[0].is_natural_one():
+                extra_message = "💀 **Critical Fail!**"
+            elif expression.is_dirty_twenty(): # Doesn't activate correctly, also activates on 2d20
+                extra_message = "⚔️ **Dirty 20!**"
 
         match self.mode:
             case RollMode.NORMAL:
-                dice_text = self.expressions[0] if self.expressions[0].is_only_one_die() else f"**{self.expressions[0].get_total()}**"
+                expression = self.expressions[0]
+                dice_text = expression if expression.has_only_one_die() else f"**{expression.get_total()}**"
                 return description + f"🎲 **{self.reason}:** {dice_text}\n" + (f"\n{extra_message}" if extra_message else "")
             
             case RollMode.ADVANTAGE:

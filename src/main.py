@@ -3,6 +3,7 @@ import logging
 import discord
 import os
 from dice import DiceExpression, DiceEmbed, RollMode
+from items import ItemEmbed, ItemList, MultiItemSelectView, NoItemsFoundEmbed
 from spells import MultiSpellSelectView, NoSpellsFoundEmbed, SpellEmbed, SpellList
 from discord import app_commands
 from dotenv import load_dotenv
@@ -29,6 +30,7 @@ logging.basicConfig(
 
 # Dictionaries
 spells = SpellList()
+items = ItemList()
 
 
 # Slash commands
@@ -110,7 +112,26 @@ async def spell(ctx: discord.Interaction, name: str):
     else:
         embed = SpellEmbed(found[0])
         await ctx.response.send_message(embed=embed)
-        
+
+
+@cmd_tree.command(name="item", description="Get the details for an item.")
+async def item(ctx: discord.Interaction, name: str):
+    logging.info(f"{ctx.user.name} => /item {name}")
+    found = items.get(name)
+    logging.debug(f"Found {len(found)} for '{name}'")
+
+    if len(found) == 0:
+        embed = NoItemsFoundEmbed(name)
+        await ctx.response.send_message(embed=embed)
+    
+    elif len(found) > 1:
+        view = MultiItemSelectView(name, found)
+        await ctx.response.send_message(view=view, ephemeral=True)
+
+    else:
+        embed = ItemEmbed(found[0])
+        await ctx.response.send_message(embed=embed)
+            
 
 @cmd_tree.command(name="search", description="Search for a spell.")
 async def search(ctx: discord.Interaction, query: str):

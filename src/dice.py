@@ -16,6 +16,7 @@ class _Die:
     to handle individual dice rolls.
     """
     is_positive: bool
+    is_valid: bool
 
     roll_amount: int
     sides: int
@@ -24,12 +25,15 @@ class _Die:
     
     def __init__(self, die_notation: str, is_positive: bool = True):
         match = _Die.match(die_notation)
+        self.is_valid = True
         self.is_positive = is_positive
         self.rolls = []
         self.warnings = []
 
         if not match:
-            raise ValueError(f"Invalid die notation: \'{die_notation}\', should be in the format NdN (e.g., 2d6, 1d20).")
+            logging.error(f"Invalid die notation: \'{die_notation}\', should be in the format NdN (e.g., 2d6, 1d20).")
+            self.is_valid = False
+            return
 
         roll_amount = int(match.group(1))
         sides = int(match.group(2))
@@ -54,14 +58,10 @@ class _Die:
         logging.debug(f"Rolled {self.roll_amount}d{self.sides} with result: {self.__str__}")
     
     def get_total(self) -> int:
-        """
-        Calculates and returns the total of all dice rolls, considering the sign of the die.
-        Raises:
-            RuntimeError: If no rolls have been made (i.e., `rolls` is None).
-        """
+        """Calculates and returns the total of all dice rolls, considering the sign of the die."""
 
         if self.rolls == None:
-            raise RuntimeError("No roll has been made yet! Call roll() before getting the total.")
+            raise RuntimeError("No roll has been made yet! Call roll() before getting the total.") # TODO will be refactored => Dice rolls will be automatically rolled when creating a DiceExpression
         
         roll_sum = sum(self.rolls)
         if self.is_positive:
@@ -93,16 +93,21 @@ class _Die:
 
 class _Modifier:
     """Private class used to represent a modifier in a dice expression."""
-    value: int
     is_positive: bool
+    is_valid: bool
+
+    value: int
     warnings: list[str]
 
     def __init__(self, value: str, is_positive: bool = True):
+        self.is_valid = True
         self.is_positive = is_positive
         self.warnings = []
 
         if not value.isdigit():
-            raise ValueError(f"Invalid modifier notation: \'{value}\', should be a number.")
+            logging.error(f"Invalid modifier notation: \'{value}\', should be a number.")
+            self.is_valid = False
+            return
         
         value = int(value)
         value_limit = 8192
@@ -124,6 +129,7 @@ class _Modifier:
 class DiceExpression:
     """Represents a dice expression (e.g., '2d6+1') and provides functionality to parse, validate, roll, and calculate the total value of the expression."""
     notation: str
+    _is_valid: bool
 
     dice: list[_Die]
     modifiers: list[_Modifier]
@@ -132,6 +138,7 @@ class DiceExpression:
     def __init__(self, die_notation: str):
         die_notation = self._sanitize_die_notation(die_notation)
         self.notation = die_notation
+        self._is_valid = True
         self.dice, self.modifiers, self.steps = self._notation_to_steps(die_notation)
         self.roll()
 
@@ -170,7 +177,10 @@ class DiceExpression:
                 steps.append(mod)
 
             else:
-                raise ValueError(f"Invalid part in dice notation: {part}")
+                logging.error(f"Invalid part in dice notation: {part}")
+                print(f"Invalid part in dice notation: {part}")
+                self._is_valid = False
+                break
             
         return dice, modifiers, steps
 
@@ -241,9 +251,19 @@ class DiceExpression:
     def get_warnings_text(self) -> str:
         return '\n'.join(f'⚠️ {w}' for w in self.get_warnings())
     
+    def has_warnings(self) -> bool:
+        return len(self.get_warnings()) != 0
+    
     def is_valid(self) -> bool:
-        """Checks if the dice expression is has no warnings."""
-        return len(self.get_warnings()) == 0
+        for die in self.dice:
+            if not die.is_valid:
+                return False
+            
+        for mod in self.modifiers:
+            if not mod.is_valid:
+                return False
+        
+        return self._is_valid
 
 class RollMode(Enum):
     """An enumeration representing the different modes of rolling dice in a Dungeons & Dragons context."""

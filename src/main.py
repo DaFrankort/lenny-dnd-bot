@@ -39,14 +39,12 @@ async def roll(ctx: discord.Interaction, diceroll: str, reason: str = None):
     logging.info(f"{ctx.user.name} => /roll {diceroll} {reason if reason else ''}")
     additional_message = ""
 
-    try:
-        expression = DiceExpression(diceroll)
-        if not expression.is_valid():
-            additional_message = expression.get_warnings_text()
-    except Exception as e:
+    expression = DiceExpression(diceroll)
+    if not expression.is_valid():
         await ctx.response.send_message('❌ Something went wrong, please make sure to use the NdN or NdN+N format, ex: 2d6 / 1d4+1 ❌', ephemeral=True)
-        logging.error(f"Error parsing dice expression: {e}")
         return
+    elif expression.has_warnings():
+        additional_message = expression.get_warnings_text()
 
     embed = DiceEmbed(ctx=ctx, expressions=[expression], reason=reason).build()
     await ctx.response.send_message(additional_message, embed=embed)
@@ -63,15 +61,13 @@ async def d20(ctx: discord.Interaction):
 async def advantage(ctx: discord.Interaction, diceroll: str, reason: str = None):
     logging.info(f"{ctx.user.name} => /advantage {diceroll} {reason if reason else ''}")
     additional_message = ""
-
-    try:
-        expressions = [DiceExpression(diceroll), DiceExpression(diceroll)]
-        if not expressions[0].is_valid():
-            additional_message = expressions[0].get_warnings_text()
-    except Exception as e:
+    
+    expressions = [DiceExpression(diceroll), DiceExpression(diceroll)]
+    if not expressions[0].is_valid():
         await ctx.response.send_message('❌ Something went wrong, please make sure to use the NdN or NdN+N format, ex: 2d6 / 1d4+1 ❌', ephemeral=True)
-        logging.error(f"Error parsing dice expression: {e}")
         return
+    elif expressions[0].has_warnings():
+        additional_message = expressions[0].get_warnings_text()
 
     embed = DiceEmbed(ctx=ctx, expressions=expressions, reason=reason, mode=RollMode.ADVANTAGE).build()
     await ctx.response.send_message(additional_message, embed=embed)
@@ -82,14 +78,12 @@ async def disadvantage(ctx: discord.Interaction, diceroll: str, reason: str = No
     logging.info(f"{ctx.user.name} => /disadvantage {diceroll} {reason if reason else ''}")
     additional_message = ""
 
-    try:
-        expressions = [DiceExpression(diceroll), DiceExpression(diceroll)]
-        if not expressions[0].is_valid():
-            additional_message = expressions[0].get_warnings_text()
-    except Exception as e:
+    expressions = [DiceExpression(diceroll), DiceExpression(diceroll)]
+    if not expressions[0].is_valid():
         await ctx.response.send_message('❌ Something went wrong, please make sure to use the NdN or NdN+N format, ex: 2d6 / 1d4+1 ❌', ephemeral=True)
-        logging.error(f"Error parsing dice expression: {e}")
         return
+    elif expressions[0].has_warnings():
+        additional_message = expressions[0].get_warnings_text()
     
     embed = DiceEmbed(ctx=ctx, expressions=expressions, reason=reason, mode=RollMode.DISADVANTAGE).build()
     await ctx.response.send_message(additional_message, embed=embed)

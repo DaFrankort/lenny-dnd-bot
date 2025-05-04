@@ -2,7 +2,6 @@ import logging
 import random
 import re
 import discord
-import sys
 from enum import Enum
 from user_colors import UserColor
 

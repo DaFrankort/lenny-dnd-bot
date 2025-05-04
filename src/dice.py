@@ -188,7 +188,7 @@ class DiceExpression:
         return notation
 
     def has_only_one_die(self) -> bool:
-        """Checks if the expression contains only one die with one roll."""
+        """Checks if the expression contains only one die."""
         return len(self.dice) == 1
 
     def roll(self):
@@ -211,7 +211,7 @@ class DiceExpression:
     def __str__(self):
         """Generates and returns a formatted string representation of the dice roll result."""
         total_text = f"**{self.get_total()}**"
-        if self.has_only_one_die() and self.dice[0].is_single_roll(): # Only show total if there's only 1 step.
+        if self.has_only_one_die() and self.dice[0].is_single_roll() and len(self.modifiers) == 0: # Only show total if there's only 1 1-roll die without modifiers.
             return total_text
         
         steps_text = ' '.join(str(step) for step in self.steps)
@@ -269,6 +269,19 @@ class DiceEmbed:
         self.mode = mode
         self.color = UserColor.get(ctx)
 
+    def _should_only_show_results(self) -> bool:
+        """Returns True if the embed should only display the roll result (e.g., a single clean 1d20)."""
+        if len(self.expressions) != 1:
+            return False # Don't show for cases like advantage/disadvantage
+        if len(self.expressions[0].steps) != 1:
+            return False
+        if len(self.expressions[0].dice) != 1:
+            return False
+        if not self.expressions[0].dice[0].is_single_roll():
+            return False
+
+        return True
+
     def _get_title(self) -> str:
         """Generates a title string based on the current roll mode and dice notation."""
 
@@ -287,14 +300,18 @@ class DiceEmbed:
         extra_message = ""
 
         # Always build the description if multiple dice, or more than 1 DiceExpression
-        if not (self.expressions[0].has_only_one_die() and self.expressions[0].dice[0].is_single_roll() and len(self.expressions) == 1):
-            for die in self.expressions:
-                description += f"- {die}\n"
+        if not self._should_only_show_results():
+            for expression in self.expressions:
+                description += f"- {expression}\n"
 
         # Always evaluate dice for critical outcomes
         for expression in self.expressions:
             if not expression.has_only_one_die():
-                continue
+                continue # Only applies to single dice rolls (e.g., 1d20 / 1d20+1)
+            if not expression.dice[0].is_single_roll():
+                continue # Only applies to single rolls
+            if expression.dice[0].sides != 20:
+                continue # Only applies to 1d20 rolls
 
             if expression.dice[0].is_natural_twenty():
                 extra_message = "🎯 **Critical Hit!**"
@@ -305,9 +322,8 @@ class DiceEmbed:
 
         match self.mode:
             case RollMode.NORMAL:
-                expression = self.expressions[0]
-                dice_text = expression if expression.has_only_one_die() else f"**{expression.get_total()}**"
-                return description + f"🎲 **{self.reason}:** {dice_text}\n" + (f"\n{extra_message}" if extra_message else "")
+                total = f"**{self.expressions[0].get_total()}**"
+                return description + f"🎲 **{self.reason}:** {total}" + (f"\n{extra_message}" if extra_message else "")
             
             case RollMode.ADVANTAGE:
                 largest_value = max(self.expressions[0].get_total(), self.expressions[1].get_total())

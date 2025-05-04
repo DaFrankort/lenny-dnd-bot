@@ -54,8 +54,9 @@ class Spell(object):
 
 class SpellList(object):
     """A class representing a list of Dungeons & Dragons spells."""
+
     path = "./submodules/lenny-dnd-data/generated/spells.json"
-    
+
     spells: list[Spell] = []
 
     def __init__(self):
@@ -64,11 +65,13 @@ class SpellList(object):
             for spell in data:
                 self.spells.append(Spell(spell))
 
-    def get(self, name: str, ignore_phb2014: bool = True, fuzzy_threshold: float = 75) -> list[Spell]:
+    def get(
+        self, name: str, ignore_phb2014: bool = True, fuzzy_threshold: float = 75
+    ) -> list[Spell]:
         """
         Retrieve spells from the spell list based on their name, with optional fuzzy matching.
         Returns:
-            list: A list of spells that match the given name. If exact matches are found, 
+            list: A list of spells that match the given name. If exact matches are found,
                 only exact matches are returned. Otherwise, fuzzy matches are returned.
         """
         logging.debug(
@@ -99,13 +102,15 @@ class SpellList(object):
                 return i
         return -1
 
-    def search(self, query: str, ignore_phb2014: bool = True, fuzzy_threshold: float = 75):
+    def search(
+        self, query: str, ignore_phb2014: bool = True, fuzzy_threshold: float = 75
+    ):
         """
         Searches for spells in the spell list based on a query string.
         Returns:
             list: A list of spells that match the query, sorted alphabetically by name.
         """
-        
+
         logging.debug(
             f"SpellList: searching '{query}' (Ignoring PHB'14 = {ignore_phb2014}, threshold = {fuzzy_threshold / 100})"
         )
@@ -125,6 +130,7 @@ class SpellList(object):
 
 class SpellEmbed(discord.Embed):
     """A class representing a Discord embed for a Dungeons & Dragons spell."""
+
     spell: Spell
 
     def __init__(self, spell: Spell):
@@ -132,30 +138,33 @@ class SpellEmbed(discord.Embed):
 
         title = f"{self.spell.name} ({self.spell.source})"
 
-        level_school = f"*{self.spell.level} {self.spell.school}*"
-        casting_time = f"**Casting Time:** {self.spell.casting_time}"
-        spell_range = f"**Range:** {self.spell.spell_range}"
-        components = f"**Components:** {self.spell.components}"
-        duration = f"**Duration:** {self.spell.duration}"
-
+        level_school = f"{self.spell.level} {self.spell.school}"
         class_names = ", ".join(sorted(list(spell.classes)))
-        classes = f"**Classes:** {class_names}"
 
         super().__init__(title=title, type="rich", color=discord.Color.dark_green())
-        self.add_field(name="", value=level_school, inline=False)
-        self.add_field(name="", value=casting_time, inline=False)
-        self.add_field(name="", value=spell_range, inline=False)
-        self.add_field(name="", value=components, inline=False)
-        self.add_field(name="", value=duration, inline=False)
-        self.add_field(name="", value=classes, inline=False)
-        for description in self.spell.description:
+        self.add_field(name="Type", value=level_school, inline=True)
+        self.add_field(name="Casting Time", value=self.spell.casting_time, inline=True)
+        self.add_field(name="Range", value=self.spell.spell_range, inline=True)
+        self.add_field(name="Components", value=self.spell.components, inline=True)
+        self.add_field(name="Duration", value=self.spell.duration, inline=True)
+        self.add_field(name="Classes", value=class_names, inline=True)
+
+        if len(self.spell.description) > 0:
+            # Add horizontal line
             self.add_field(
-                name=description["name"], value=description["text"], inline=False
+                name="",
+                value="~~-------------------------------------------------------------------------------------~~",
+                inline=False,
             )
+            for description in self.spell.description:
+                self.add_field(
+                    name=description["name"], value=description["text"], inline=False
+                )
 
 
 class MultiSpellSelect(discord.ui.Select):
     """A class representing a Discord select menu for multiple spell selection."""
+
     query: str
     spells: list[Spell]
 
@@ -202,6 +211,7 @@ class MultiSpellSelect(discord.ui.Select):
 
 class NoSpellsFoundEmbed(discord.Embed):
     """A class representing a Discord embed for when no spells are found."""
+
     def __init__(self, query: str):
         super().__init__(
             color=discord.Color.dark_green(),
@@ -216,6 +226,7 @@ class NoSpellsFoundEmbed(discord.Embed):
 
 class MultiSpellSelectView(discord.ui.View):
     """A class representing a Discord view for multiple spell selection."""
+
     def __init__(self, query: str, spells: list[Spell]):
         super().__init__()
         self.add_item(MultiSpellSelect(query, spells))

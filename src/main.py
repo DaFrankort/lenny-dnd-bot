@@ -35,13 +35,19 @@ spells = SpellList()
 @cmd_tree.command(name="roll", description="Roll your d20s!")
 async def roll(ctx: discord.Interaction, diceroll: str, reason: str = None):
     logging.info(f"{ctx.user.name} => /roll {diceroll} {reason if reason else ''}")
-    expression = DiceExpression(diceroll)
-    if not expression.is_valid:
-        await ctx.response.send_message('⚠️ Format has to be NdN or NdN+N, ex: 2d6 / 1d4+1 ⚠️', ephemeral=True)
+    additional_message = ""
+
+    try:
+        expression = DiceExpression(diceroll)
+        if not expression.is_valid():
+            additional_message = expression.get_warnings_text()
+    except Exception as e:
+        await ctx.response.send_message('❌ Something went wrong, please make sure to use the NdN or NdN+N format, ex: 2d6 / 1d4+1 ❌', ephemeral=True)
+        logging.error(f"Error parsing dice expression: {e}")
         return
 
     embed = DiceEmbed(ctx=ctx, expressions=[expression], reason=reason).build()
-    await ctx.response.send_message(embed=embed)
+    await ctx.response.send_message(additional_message, embed=embed)
 
 @cmd_tree.command(name="d20", description="Just roll a clean d20")
 async def d20(ctx: discord.Interaction):
@@ -54,25 +60,37 @@ async def d20(ctx: discord.Interaction):
 @cmd_tree.command(name="advantage", description="Lucky you! Roll and take the best of two!")
 async def advantage(ctx: discord.Interaction, diceroll: str, reason: str = None):
     logging.info(f"{ctx.user.name} => /advantage {diceroll} {reason if reason else ''}")
-    expressions = [DiceExpression(diceroll), DiceExpression(diceroll)]
-    if not expressions[0].is_valid:
-        await ctx.response.send_message('⚠️ Format has to be NdN or NdN+N, ex: 2d6 / 1d4+1 ⚠️', ephemeral=True)
+    additional_message = ""
+
+    try:
+        expressions = [DiceExpression(diceroll), DiceExpression(diceroll)]
+        if not expressions[0].is_valid():
+            additional_message = expressions[0].get_warnings_text()
+    except Exception as e:
+        await ctx.response.send_message('❌ Something went wrong, please make sure to use the NdN or NdN+N format, ex: 2d6 / 1d4+1 ❌', ephemeral=True)
+        logging.error(f"Error parsing dice expression: {e}")
         return
 
     embed = DiceEmbed(ctx=ctx, expressions=expressions, reason=reason, mode=RollMode.ADVANTAGE).build()
-    await ctx.response.send_message(embed=embed)
+    await ctx.response.send_message(additional_message, embed=embed)
 
 
 @cmd_tree.command(name="disadvantage", description="Tough luck chump... Roll twice and suck it.")
 async def disadvantage(ctx: discord.Interaction, diceroll: str, reason: str = None):
     logging.info(f"{ctx.user.name} => /disadvantage {diceroll} {reason if reason else ''}")
-    expressions = [DiceExpression(diceroll), DiceExpression(diceroll)]
-    if not expressions[0].is_valid:
-        await ctx.response.send_message('⚠️ Format has to be NdN or NdN+N, ex: 2d6 / 1d4+1 ⚠️', ephemeral=True)
+    additional_message = ""
+
+    try:
+        expressions = [DiceExpression(diceroll), DiceExpression(diceroll)]
+        if not expressions[0].is_valid():
+            additional_message = expressions[0].get_warnings_text()
+    except Exception as e:
+        await ctx.response.send_message('❌ Something went wrong, please make sure to use the NdN or NdN+N format, ex: 2d6 / 1d4+1 ❌', ephemeral=True)
+        logging.error(f"Error parsing dice expression: {e}")
         return
     
     embed = DiceEmbed(ctx=ctx, expressions=expressions, reason=reason, mode=RollMode.DISADVANTAGE).build()
-    await ctx.response.send_message(embed=embed)
+    await ctx.response.send_message(additional_message, embed=embed)
 
 
 @cmd_tree.command(name="spell", description="Get the details for a spell.")

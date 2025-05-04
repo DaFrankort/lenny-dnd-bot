@@ -16,31 +16,38 @@ class _Die:
     Instances of this class are typically used as part of a DiceExpression object's steps
     to handle individual dice rolls.
     """
-    is_valid: bool
     is_positive: bool
 
     roll_amount: int
     sides: int
     rolls: list[int]
+    warnings: list[str]
     
     def __init__(self, die_notation: str, is_positive: bool = True):
         match = _Die.match(die_notation)
-        self.is_valid = True
         self.is_positive = is_positive
+        self.rolls = []
+        self.warnings = []
 
         if not match:
-            self.is_valid = False
-            logging.error("Invalid die notation. Use the format 'NdN' (e.g., '2d20').")
-            return
+            raise ValueError(f"Invalid die notation: \'{die_notation}\', should be in the format NdN (e.g., 2d6, 1d20).")
 
         roll_amount = int(match.group(1))
         sides = int(match.group(2))
         if sides == 0:
             sides = 1
 
-        self.roll_amount = min(roll_amount, 128)
-        self.sides = min(sides, 256)
-        self.rolls = []
+        roll_amount_limit = 128
+        if roll_amount > roll_amount_limit:
+            self.warnings.append(f"Roll amount in \'{die_notation}\' exceeds limit, altered from **{roll_amount}** to **{roll_amount_limit}**")
+            roll_amount = roll_amount_limit
+        self.roll_amount = roll_amount
+
+        sides_limit = 2048
+        if sides > sides_limit:
+            self.warnings.append(f"Side amount in \'{die_notation}\' exceeds limit, altered from **{sides}** to **{sides_limit}**")
+            sides = sides_limit
+        self.sides = sides
 
     def roll(self):
         """Generates random values for each die-roll, stores the results in the rolls list."""
@@ -50,19 +57,18 @@ class _Die:
     def get_total(self) -> int:
         """
         Calculates and returns the total of all dice rolls.
-        Returns:
-            int: The total of all dice rolls, capped at `sys.maxsize`.
         Raises:
             RuntimeError: If no rolls have been made (i.e., `rolls` is None).
         """
 
         if self.rolls == None:
             raise RuntimeError("No roll has been made yet! Call roll() before getting the total.")
-        return min(sum(self.rolls), sys.maxsize)
+        return sum(self.rolls)
     
     def __str__(self):
         operator = '+' if self.is_positive else '-'
-        return f"{operator} ({', '.join(map(str, self.rolls))})"
+        roll_list = ', '.join(map(str, self.rolls)) # Convert rolls to list of strings with comma separation
+        return f"{operator} ({roll_list})"
     
     @staticmethod
     def match(die_notation: str) -> (re.Match[str] | None):
@@ -86,15 +92,20 @@ class _Modifier:
     """Private class used to represent a modifier in a dice expression."""
     value: int
     is_positive: bool
+    warnings: list[str]
 
     def __init__(self, value: str, is_positive: bool = True):
         self.is_positive = is_positive
+        self.warnings = []
 
         if not value.isdigit():
-            logging.error("Invalid modifier notation. Use a number (e.g., '1', '2').")
-            return
+            raise ValueError(f"Invalid modifier notation: \'{value}\', should be a number.")
         
-        value = min(int(value), 8192) # Limit to 8192 to prevent overflow
+        value = int(value)
+        value_limit = 8192
+        if value > value_limit:
+            self.warnings.append(f"Modifier \'{value}\' exceeds limit, altered to **{value_limit}**")
+            value = value_limit
         self.value = value
 
     def __str__(self):
@@ -104,7 +115,6 @@ class _Modifier:
 class DiceExpression:
     """Represents a dice expression (e.g., '2d6+1') and provides functionality to parse, validate, roll, and calculate the total value of the expression."""
     notation: str
-    is_valid: bool # TODO Rework
 
     dice: list[_Die]
     modifiers: list[_Modifier]
@@ -113,9 +123,7 @@ class DiceExpression:
     def __init__(self, die_notation: str):
         die_notation = self._sanitize_die_notation(die_notation)
         self.notation = die_notation
-        self.is_valid = True
         self.dice, self.modifiers, self.steps = self._notation_to_steps(die_notation)
-
         self.roll()
 
     def _notation_to_steps(self, notation: str) -> tuple[list[_Die], list[_Modifier], list[_Die | _Modifier]]:
@@ -183,15 +191,8 @@ class DiceExpression:
         """Calculates and returns the total value of the dice expression."""
         total = 0
 
-        def is_over_value_threshold(value: int) -> bool:
-            """Checks if the value exceeds a certain threshold."""
-            return value > sys.maxsize / 2
-
         # Dice
         for die in self.dice:
-            if is_over_value_threshold(total):
-                break
-
             if die.is_positive:
                 total += die.get_total()
             else:
@@ -199,9 +200,6 @@ class DiceExpression:
         
         # Modifiers
         for mod in self.modifiers:
-            if is_over_value_threshold(total):
-                break
-
             if mod.is_positive:
                 total += mod.value
             else:
@@ -225,6 +223,26 @@ class DiceExpression:
         if len(self.dice) != 1 and len(self.modifiers) != 1:
             return False
         return self.get_total() == 20
+    
+    def get_warnings(self) -> list[str]:
+        warnings = []
+
+        for die in self.dice:
+            if len(die.warnings) > 0:
+                warnings.extend(die.warnings)
+
+        for mod in self.modifiers:
+            if len(mod.warnings) > 0:
+                warnings.extend(mod.warnings)
+
+        return list(dict.fromkeys(warnings)) # Remove duplicates by turning into a dict and back to a list
+    
+    def get_warnings_text(self) -> str:
+        return '\n'.join(f'⚠️ {w}' for w in self.get_warnings())
+    
+    def is_valid(self) -> bool:
+        """Checks if the dice expression is has no warnings."""
+        return len(self.get_warnings()) == 0
 
 class RollMode(Enum):
     """An enumeration representing the different modes of rolling dice in a Dungeons & Dragons context."""

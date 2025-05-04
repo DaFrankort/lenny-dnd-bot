@@ -55,14 +55,18 @@ class _Die:
     
     def get_total(self) -> int:
         """
-        Calculates and returns the total of all dice rolls.
+        Calculates and returns the total of all dice rolls, considering the sign of the die.
         Raises:
             RuntimeError: If no rolls have been made (i.e., `rolls` is None).
         """
 
         if self.rolls == None:
             raise RuntimeError("No roll has been made yet! Call roll() before getting the total.")
-        return sum(self.rolls)
+        
+        roll_sum = sum(self.rolls)
+        if self.is_positive:
+            return roll_sum
+        return -roll_sum
     
     def __str__(self):
         operator = '+' if self.is_positive else '-'
@@ -110,6 +114,12 @@ class _Modifier:
     def __str__(self):
         operator = '+' if self.is_positive else '-'
         return f"{operator} {self.value}"
+    
+    def get_value(self) -> int:
+        """Returns the value of the modifier, considering its sign."""
+        if self.is_positive:
+            return self.value
+        return -self.value
 
 class DiceExpression:
     """Represents a dice expression (e.g., '2d6+1') and provides functionality to parse, validate, roll, and calculate the total value of the expression."""
@@ -190,19 +200,11 @@ class DiceExpression:
         """Calculates and returns the total value of the dice expression."""
         total = 0
 
-        # Dice
         for die in self.dice:
-            if die.is_positive:
-                total += die.get_total()
-            else:
-                total -= die.get_total()
-        
-        # Modifiers
+            total += die.get_total()
+
         for mod in self.modifiers:
-            if mod.is_positive:
-                total += mod.value
-            else:
-                total -= mod.value
+            total += mod.get_value()
 
         return total
 

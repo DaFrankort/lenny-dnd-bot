@@ -231,8 +231,12 @@ class DiceExpression:
         return f"``{steps_text}`` -> {total_text}"
     
     def is_dirty_twenty(self) -> bool:
-        if len(self.dice) != 1 and len(self.modifiers) != 1:
-            return False
+        if len(self.dice) != 1:
+            return False # Only applies to single dice rolls (e.g., 1d20 / 1d20+1)
+        
+        if self.dice[0].sides != 20 or self.dice[0].roll_amount != 1:
+            return False # Only applies to 1d20 rolls
+        
         return self.get_total() == 20
     
     def get_warnings(self) -> list[str]:

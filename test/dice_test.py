@@ -110,3 +110,70 @@ class Test_Modifier:
 
         mod = _Modifier("3", is_positive=False)
         assert str(mod) == "-3", "String representation should be '-3'"
+
+class TestDiceExpression:
+    def test_init(self):
+        from dice import DiceExpression
+
+        # Test valid expression
+        expr = DiceExpression("1d20+5")
+        assert expr.is_valid() == True, "Expression should be valid"
+        assert expr.has_warnings() == False, "Should not have warnings"
+        assert len(expr.dice) == 1, "There should be one die"
+        assert len(expr.modifiers) == 1, "There should be one modifier"
+        assert len(expr.steps) == 2, "There should be two steps (one die, one mod)"
+
+        # Test invalid expression
+        expr = DiceExpression("INVALID")
+        assert expr.is_valid() == False, "Expression should be invalid"
+
+    def test_sanitize(self):
+        from dice import DiceExpression
+        
+        def assert_sanitized(notation, expected):
+            e = DiceExpression("")
+            result = e._sanitize_die_notation(notation)
+            assert result == expected, f"Expected {expected}, but got {result}"
+
+        good_notation = ['1d20', '2d6+3', '-4d8-2']
+        for notation in good_notation:
+            assert_sanitized(notation, notation)
+
+        assert_sanitized("1D20 + 5", "1d20+5") # Remove spaces and normalize case
+        assert_sanitized("WRONG", "") # Remove any invalid characters
+        assert_sanitized("1ddd20++5--10", "1d20+5-10") # Collapse any double signs and d's
+        assert_sanitized("d20+5", "1d20+5") # Default to 1 if no number before d
+
+    def test_get_total(self):
+        from dice import DiceExpression
+
+        expr = DiceExpression("1d20+5")
+        expr.dice[0].rolls = [20]
+        assert expr.get_total() == 25, "Total should be 25"
+
+    def test_str(self):
+        from dice import DiceExpression
+
+        expr = DiceExpression("1d20")
+        assert str(expr.get_total()) in str(expr), "String representation should include total"
+
+        expr = DiceExpression("4d6-3")
+        assert str(expr.get_total()) in str(expr), "String representation should include total"
+
+    def test_dirty_20(self):
+        from dice import DiceExpression
+
+        expr = DiceExpression("1d20+5")
+        expr.dice[0].rolls = [15]
+        assert expr.is_dirty_twenty() == True, "Expression should be dirty"
+        expr.dice[0].rolls = [1]
+        assert expr.is_dirty_twenty() == False, "Expression should not be dirty"
+
+        expr = DiceExpression("2d20+1")
+        expr.dice[0].rolls = [18, 1]
+        assert expr.is_dirty_twenty() == False, "Dirty twenty should only be for 1d20 dice"
+
+        expr = DiceExpression("1d20+1d20")
+        expr.dice[0].rolls = [20]
+        expr.dice[1].rolls = [0]
+        assert expr.is_dirty_twenty() == False, "Dirty twenty should only be for single dice expressions"

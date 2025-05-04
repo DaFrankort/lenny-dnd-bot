@@ -14,3 +14,4 @@ python-dotenv==1.0.1
 RapidFuzz==3.12.1
 rich==14.0.0
 yarl==1.18.3
+pytest==8.3.5

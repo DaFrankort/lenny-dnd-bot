@@ -1,7 +1,13 @@
-.env
-.vscode
+# Generated files/folders
 __pycache__
-/temp
+.pytest_cache
 *.log
+
+# IDE specific files/folders
+.vscode
 venv
 .idea
+
+# Private data
+/temp
+.env

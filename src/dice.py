@@ -71,7 +71,7 @@ class _Die:
     def __str__(self):
         operator = '+' if self.is_positive else '-'
         roll_list = ', '.join(map(str, self.rolls)) # Convert rolls to list of strings with comma separation
-        return f"{operator} ({roll_list})"
+        return f"{operator}({roll_list})"
     
     @staticmethod
     def match(die_notation: str) -> (re.Match[str] | None):
@@ -113,7 +113,7 @@ class _Modifier:
 
     def __str__(self):
         operator = '+' if self.is_positive else '-'
-        return f"{operator} {self.value}"
+        return f"{operator}{self.value}"
     
     def get_value(self) -> int:
         """Returns the value of the modifier, considering its sign."""
@@ -214,9 +214,9 @@ class DiceExpression:
         if self.has_only_one_die() and self.dice[0].is_single_roll() and len(self.modifiers) == 0: # Only show total if there's only 1 1-roll die without modifiers.
             return total_text
         
-        steps_text = ' '.join(str(step) for step in self.steps)
-        if steps_text.startswith('+ '):
-            steps_text = steps_text[2:] # Remove leading '+ '
+        steps_text = ''.join(str(step) for step in self.steps)
+        if steps_text.startswith('+'):
+            steps_text = steps_text[1:] # Remove leading '+'
 
         return f"``{steps_text}`` -> {total_text}"
     

@@ -63,8 +63,6 @@ class Test_Die:
 
 class Test_Modifier:
     def test_init(self):
-        from dice import _Modifier
-
         # Test positive modifier
         mod = _Modifier("5", is_positive=True)
         assert mod.is_valid == True, "Modifier should be valid"
@@ -94,7 +92,6 @@ class Test_Modifier:
         assert len(mod.warnings) > 0, "Warnings should not be empty"
 
     def test_str(self):
-        from dice import _Modifier
         mod = _Modifier("5", is_positive=True)
         assert str(mod) == "+5", "String representation should be '+5'"
 
@@ -103,8 +100,6 @@ class Test_Modifier:
 
 class TestDiceExpression:
     def test_init(self):
-        from dice import DiceExpression
-
         # Test valid expression
         expr = DiceExpression("1d20+5")
         assert expr.is_valid() == True, "Expression should be valid"
@@ -117,9 +112,7 @@ class TestDiceExpression:
         expr = DiceExpression("INVALID")
         assert expr.is_valid() == False, "Expression should be invalid"
 
-    def test_sanitize(self):
-        from dice import DiceExpression
-        
+    def test_sanitize(self):        
         def assert_sanitized(notation, expected):
             e = DiceExpression("")
             result = e._sanitize_die_notation(notation)
@@ -135,15 +128,11 @@ class TestDiceExpression:
         assert_sanitized("d20+5", "1d20+5") # Default to 1 if no number before d
 
     def test_get_total(self):
-        from dice import DiceExpression
-
         expr = DiceExpression("1d20+5")
         expr.dice[0].rolls = [20]
         assert expr.get_total() == 25, "Total should be 25"
 
     def test_str(self):
-        from dice import DiceExpression
-
         expr = DiceExpression("1d20")
         assert str(expr.get_total()) in str(expr), "String representation should include total"
 
@@ -151,8 +140,6 @@ class TestDiceExpression:
         assert str(expr.get_total()) in str(expr), "String representation should include total"
 
     def test_dirty_20(self):
-        from dice import DiceExpression
-
         expr = DiceExpression("1d20+5")
         expr.dice[0].rolls = [15]
         assert expr.is_dirty_twenty() == True, "Expression should be dirty"

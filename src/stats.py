@@ -1,32 +1,22 @@
 import random
 import discord
-
 from user_colors import UserColor
-
-class _StatRoll:
-    """Class for rolling a single stat in D&D 5e."""
-    rolls: list[int]
-    result: int
-
-    def __init__(self) -> None:
-        self.rolls, self.result = self.roll()
-
-    def roll(self) -> tuple[list[int], int]:
-        rolls = [random.randint(1, 6) for _ in range(4)]
-        rolls = sorted(rolls)
-        result = sum(rolls[1:])
-        return rolls, result
 
 class Stats:
     """Class for rolling character-stats in D&D 5e."""
-    stats: list[_StatRoll]
+    stats: list[tuple[list[int], int]]
     interaction: discord.Interaction
 
     def __init__(self, interaction: discord.Interaction) -> None:
         self.interaction = interaction
-        self.stats = []
-        for _ in range(6):
-            self.stats.append(_StatRoll())
+        self.stats = [self.roll_stat() for _ in range(6)]
+
+    def roll_stat(self) -> tuple[list[int], int]:
+        """Rolls a single stat in D&D 5e."""
+        rolls = [random.randint(1, 6) for _ in range(4)]
+        rolls = sorted(rolls)
+        result = sum(rolls[1:])
+        return rolls, result
 
     def get_embed_title(self) -> str:
         return f"Rolling stats for {self.interaction.user.display_name}"
@@ -35,13 +25,12 @@ class Stats:
         message = ""
         total = 0
 
-        for stat_roll in self.stats:
-            r0, r1, r2, r3 = stat_roll.rolls
-            result = stat_roll.result
+        for rolls, result in self.stats:
+            r0, r1, r2, r3 = rolls
             message += f"`({r0}, {r1}, {r2}, {r3})` => **{result}**\n"
             total += result
 
-        message += f"**Total**: {total}"
+        message += f"\n**Total**: {total}"
         return message
 
 class StatsEmbed(discord.Embed):

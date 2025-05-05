@@ -1,33 +1,47 @@
 import random
 import discord
-
 from user_colors import UserColor
 
+class Stats:
+    """Class for rolling character-stats in D&D 5e."""
+    stats: list[tuple[list[int], int]]
+    interaction: discord.Interaction
 
-class StatsEmbed(discord.Embed):
-    """Embed for rolling character-stats in D&D 5e."""
-    def _roll(self) -> tuple[list[int], int]:
+    def __init__(self, interaction: discord.Interaction) -> None:
+        self.interaction = interaction
+        self.stats = [self.roll_stat() for _ in range(6)]
+
+    def roll_stat(self) -> tuple[list[int], int]:
+        """Rolls a single stat in D&D 5e."""
         rolls = [random.randint(1, 6) for _ in range(4)]
         rolls = sorted(rolls)
         result = sum(rolls[1:])
         return rolls, result
 
-    def __init__(self, interaction: discord.Interaction) -> None:
+    def get_embed_title(self) -> str:
+        return f"Rolling stats for {self.interaction.user.display_name}"
+    
+    def get_embed_description(self) -> str:
+        message = ""
+        total = 0
+
+        for rolls, result in self.stats:
+            r0, r1, r2, r3 = rolls
+            message += f"`({r0}, {r1}, {r2}, {r3})` => **{result}**\n"
+            total += result
+
+        message += f"\n**Total**: {total}"
+        return message
+
+class StatsEmbed(discord.Embed):
+    """Embed for rolling character-stats in D&D 5e."""
+    def __init__(self, stats: Stats) -> None:
         super().__init__(
-            color=UserColor.get(interaction),
-            title=f"Rolling stats for {interaction.user.display_name}",
+            color=UserColor.get(stats.interaction),
+            title=stats.get_embed_title(),
             type="rich",
             url=None,
             description=None,
             timestamp=None,
         )
-
-        message = ""
-        total = 0
-        for _ in range(6):
-            [r0, r1, r2, r3], result = self._roll()
-            message += f"`({r0}, {r1}, {r2}, {r3})` => **{result}**\n"
-            total += result
-        message += f"**Total**: {total}"
-
-        self.add_field(name="", value=message)
+        self.add_field(name="", value=stats.get_embed_description())

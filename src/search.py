@@ -2,9 +2,10 @@ import logging
 import math
 import re
 import discord
-from items import Item, ItemEmbed, ItemList
-from spells import Spell, SpellEmbed, SpellList
 from rapidfuzz import fuzz
+
+from dnd import Item, ItemList, Spell, SpellList
+from embeds import ItemEmbed, SpellEmbed
 
 
 def __search_matches(query: str, name: str, threshold: float) -> bool:
@@ -14,29 +15,6 @@ def __search_matches(query: str, name: str, threshold: float) -> bool:
     return fuzz.partial_ratio(query, name) > threshold
 
 
-def search_from_query_try_exact(
-    query: str, options: list[Spell | Item], threshold=75.0, ignore_phb=False
-):
-    query = query.strip.lower()
-
-    exact = []
-    fuzzy = []
-
-    for option in options:
-        if ignore_phb and option.is_phb2014:
-            continue
-
-        name = option.name.strip().lower()
-        if name == query:
-            exact.append(option)
-        elif fuzz.ratio(query, name) > threshold:
-            fuzzy.append(option)
-
-    if len(exact) > 0:
-        return exact
-    return fuzzy
-
-
 def search_from_query(
     query: str,
     spell_list: SpellList,
@@ -44,17 +22,17 @@ def search_from_query(
     threshold=75.0,
     ignore_phb2014=False,
 ):
-    query = query.strip.lower()
+    query = query.strip().lower()
     spells: list[Spell] = []
     items: list[Item] = []
 
-    for spell in spell_list.spells:
+    for spell in spell_list.entries:
         if ignore_phb2014 and spell.is_phb2014:
             continue
         if __search_matches(query, spell.name, threshold):
             spells.append(spell)
 
-    for item in item_list.items:
+    for item in item_list.entries:
         if ignore_phb2014 and item.is_phb2014:
             continue
         if __search_matches(query, item.name, threshold):
@@ -289,16 +267,3 @@ class SearchEmbed(discord.Embed):
         return await self.rebuild(interaction)
 
 
-class NoSearchResultsFoundEmbed(discord.Embed):
-    """A class representing a Discord embed for when no results are found."""
-
-    def __init__(self, query: str):
-        super().__init__(
-            color=discord.Color.dark_green(),
-            title="No results found.",
-            type="rich",
-            url=None,
-            description=None,
-            timestamp=None,
-        )
-        self.add_field(name="", value=f"No results found for '{query}'.")

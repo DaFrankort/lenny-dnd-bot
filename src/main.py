@@ -4,6 +4,7 @@ import discord
 import os
 from dice import DiceExpression, DiceEmbed, RollMode
 from items import ItemEmbed, ItemList, MultiItemSelectView, NoItemsFoundEmbed
+from search import NoSearchResultsFoundEmbed, SearchEmbed, search_from_query
 from spells import MultiSpellSelectView, NoSpellsFoundEmbed, SpellEmbed, SpellList
 from discord import app_commands
 from dotenv import load_dotenv
@@ -118,14 +119,15 @@ async def item(ctx: discord.Interaction, name: str):
 @cmd_tree.command(name="search", description="Search for a spell.")
 async def search(ctx: discord.Interaction, query: str):
     logging.info(f"{ctx.user.name} => /search {query}")
-    found = spells.search(query)
+    found_spells, found_items = search_from_query(query, spells, items)
+    logging.debug(f"Found {len(found_spells)} spells and {len(found_items)} for '{query}'")
 
-    if len(found) == 0:
-        embed = NoSpellsFoundEmbed(query)
+    if len(found_spells) + len(found_items) == 0:
+        embed = NoSearchResultsFoundEmbed(query)
         await ctx.response.send_message(embed=embed)
     else:
-        view = MultiSpellSelectView(query, found)
-        await ctx.response.send_message(view=view, ephemeral=True)
+        embed = SearchEmbed(query, found_spells, found_items)
+        await ctx.response.send_message(embed=embed, view=embed.view)
 
 
 @cmd_tree.command(name="color", description="Set a preferred color using a hex-value. Leave hex_color empty to use auto-generated colors.")

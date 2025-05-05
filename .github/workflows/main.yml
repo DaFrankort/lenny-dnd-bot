@@ -1,0 +1,39 @@
+name: Python Unit Tests & Linting
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  flake8-lint:
+    runs-on: ubuntu-latest
+    name: Lint
+    steps:
+      - name: Check out source repository
+        uses: actions/checkout@v3
+      - name: Set up Python environment
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+      - name: flake8 Lint
+        uses: py-actions/flake8@v2
+        
+  unit-test:
+    runs-on: windows-latest
+    name: pytest tests
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11.5'
+      - name: Install dependencies
+        run: |
+          py -m pip install --upgrade pip
+          py -m pip install -r requirements.txt
+      - name: Run tests
+        run: py -m pytest

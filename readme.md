@@ -78,7 +78,7 @@ Once the bot is added to your server, you can use the following commands:
 ### Customize embed colors for users
 
 - `/color <hex-value>` - Provide a hex value for a color and anytime you roll dice it will label your rolls with that color.
-- `/color` - Using the command with a hex-value will clear the user's set color.
+- `/color` - Using the command without a hex-value will clear the user's set color.
 - If the user has no color set, a random one will be generated based on the user's display-name.
 
 ### Color Customization

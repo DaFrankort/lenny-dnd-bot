@@ -29,6 +29,9 @@ class TestUserColor:
         UserColor.FILE_PATH = ORIGINAL_FILE_PATH.replace(".json", "_test.json")
         if os.path.exists(UserColor.FILE_PATH):
             os.remove(UserColor.FILE_PATH)
+        else:
+            dirname = os.path.dirname(UserColor.FILE_PATH)
+            os.makedirs(dirname, exist_ok=True)
 
         assert not os.path.exists(UserColor.FILE_PATH), "Test file should not exist before the test."
 

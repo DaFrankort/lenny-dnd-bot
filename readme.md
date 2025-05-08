@@ -63,14 +63,23 @@ Once the bot is added to your server, you can use the following commands:
 - `/roll <dice>` – Roll a custom dice, e.g., `/roll 2d6` or `/roll 1d20+2`.
 - `/advantage <dice>` – Rolls twice, highlights the highest result, e.g., `/advantage  2d6` or `/advantage 1d20+2`.
 - `/disadvantage <dice>` – Rolls twice, highlights the lowest result, e.g., `/disadvantage 2d6` or `/disadvantage 1d20+2`.
+- `/d20` - Rolls a basic 1d20 without any modifiers.
 
-### Spell Lookup
+### D&D Data lookup
 
-- `/lospell <spell-name>` – Look up detailed information about a D&D spell.
+- `/spell <spell-name>` – Look up information about a D&D spell.
+- `/item <item-name>` - Look up information about a D&D item.
+- `/search <query>` - Look for many related results regarding spells & items, example: `/search fire` would return any item or spell with 'fire' in the name.
 
 ### Character Stat Roll
 
 - `/stats` – Automatically roll stats for a new character's skills.
+
+### Customize embed colors for users
+
+- `/color <hex-value>` - Provide a hex value for a color and anytime you roll dice it will label your rolls with that color.
+- `/color` - Using the command with a hex-value will clear the user's set color.
+- If the user has no color set, a random one will be generated based on the user's display-name.
 
 ### Color Customization
 

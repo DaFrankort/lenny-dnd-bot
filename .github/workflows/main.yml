@@ -21,8 +21,8 @@ jobs:
       - name: flake8 Lint
         uses: py-actions/flake8@v2
         with:
-          max-line-length: 999
-          path: src
+          ignore: W503 E501
+          path: src test
           plugins: "flake8-black"
 
   black-lints:

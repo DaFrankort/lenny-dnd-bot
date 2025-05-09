@@ -21,7 +21,7 @@ jobs:
       - name: flake8 Lint
         uses: py-actions/flake8@v2
         with:
-          ignore: W503 E501
+          ignore: "W503 E501"
           path: src test
           plugins: "flake8-black"
 

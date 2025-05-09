@@ -33,7 +33,7 @@ jobs:
         uses: psf/black@stable
         with:
           options: "--check --verbose"
-          src: "./src"
+          src: src
         
   unit-test:
     runs-on: windows-latest

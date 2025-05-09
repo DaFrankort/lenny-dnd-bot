@@ -65,13 +65,17 @@ class Bot(discord.Client):
 
             expression = DiceExpression(diceroll)
             if not expression.is_valid():
-                await ctx.response.send_message('❌ Something went wrong, please make sure to use the NdN or NdN+N format, ex: 2d6 / 1d4+1 ❌', ephemeral=True)
+                await ctx.response.send_message(
+                    "❌ Something went wrong, please make sure to use the NdN or NdN+N format, ex: 2d6 / 1d4+1 ❌",
+                    ephemeral=True,
+                )
                 return
             elif expression.has_warnings():
                 additional_message = expression.get_warnings_text()
 
             embed = DiceEmbed(ctx=ctx, expressions=[expression], reason=reason).build()
             await ctx.response.send_message(additional_message, embed=embed)
+
 
         @self.tree.command(name="d20", description="Just roll a clean d20")
         async def d20(ctx: discord.Interaction):
@@ -81,35 +85,52 @@ class Bot(discord.Client):
             embed = DiceEmbed(ctx=ctx, expressions=[expression]).build()
             await ctx.response.send_message(embed=embed)
 
-        @self.tree.command(name="advantage", description="Lucky you! Roll and take the best of two!")
+
+        @self.tree.command(
+            name="advantage", description="Lucky you! Roll and take the best of two!"
+        )
         async def advantage(ctx: discord.Interaction, diceroll: str, reason: str = None):
             logging.info(f"{ctx.user.name} => /advantage {diceroll} {reason if reason else ''}")
             additional_message = ""
-            
+
             expressions = [DiceExpression(diceroll), DiceExpression(diceroll)]
             if not expressions[0].is_valid():
-                await ctx.response.send_message('❌ Something went wrong, please make sure to use the NdN or NdN+N format, ex: 2d6 / 1d4+1 ❌', ephemeral=True)
+                await ctx.response.send_message(
+                    "❌ Something went wrong, please make sure to use the NdN or NdN+N format, ex: 2d6 / 1d4+1 ❌",
+                    ephemeral=True,
+                )
                 return
             elif expressions[0].has_warnings():
                 additional_message = expressions[0].get_warnings_text()
 
-            embed = DiceEmbed(ctx=ctx, expressions=expressions, reason=reason, mode=RollMode.ADVANTAGE).build()
+            embed = DiceEmbed(
+                ctx=ctx, expressions=expressions, reason=reason, mode=RollMode.ADVANTAGE
+            ).build()
             await ctx.response.send_message(additional_message, embed=embed)
 
 
-        @self.tree.command(name="disadvantage", description="Tough luck chump... Roll twice and suck it.")
+        @self.tree.command(
+            name="disadvantage", description="Tough luck chump... Roll twice and suck it."
+        )
         async def disadvantage(ctx: discord.Interaction, diceroll: str, reason: str = None):
-            logging.info(f"{ctx.user.name} => /disadvantage {diceroll} {reason if reason else ''}")
+            logging.info(
+                f"{ctx.user.name} => /disadvantage {diceroll} {reason if reason else ''}"
+            )
             additional_message = ""
 
             expressions = [DiceExpression(diceroll), DiceExpression(diceroll)]
             if not expressions[0].is_valid():
-                await ctx.response.send_message('❌ Something went wrong, please make sure to use the NdN or NdN+N format, ex: 2d6 / 1d4+1 ❌', ephemeral=True)
+                await ctx.response.send_message(
+                    "❌ Something went wrong, please make sure to use the NdN or NdN+N format, ex: 2d6 / 1d4+1 ❌",
+                    ephemeral=True,
+                )
                 return
             elif expressions[0].has_warnings():
                 additional_message = expressions[0].get_warnings_text()
-            
-            embed = DiceEmbed(ctx=ctx, expressions=expressions, reason=reason, mode=RollMode.DISADVANTAGE).build()
+
+            embed = DiceEmbed(
+                ctx=ctx, expressions=expressions, reason=reason, mode=RollMode.DISADVANTAGE
+            ).build()
             await ctx.response.send_message(additional_message, embed=embed)
 
 
@@ -122,7 +143,7 @@ class Bot(discord.Client):
             if len(found) == 0:
                 embed = NoSpellsFoundEmbed(name)
                 await ctx.response.send_message(embed=embed)
-            
+
             elif len(found) > 1:
                 view = MultiSpellSelectView(name, found)
                 await ctx.response.send_message(view=view, ephemeral=True)
@@ -141,7 +162,7 @@ class Bot(discord.Client):
             if len(found) == 0:
                 embed = NoItemsFoundEmbed(name)
                 await ctx.response.send_message(embed=embed)
-            
+
             elif len(found) > 1:
                 view = MultiItemSelectView(name, found)
                 await ctx.response.send_message(view=view, ephemeral=True)
@@ -149,13 +170,15 @@ class Bot(discord.Client):
             else:
                 embed = ItemEmbed(found[0])
                 await ctx.response.send_message(embed=embed)
-                    
+
 
         @self.tree.command(name="search", description="Search for a spell.")
         async def search(ctx: discord.Interaction, query: str):
             logging.info(f"{ctx.user.name} => /search {query}")
             found_spells, found_items = search_from_query(query, self.spells, self.items)
-            logging.debug(f"Found {len(found_spells)} spells and {len(found_items)} for '{query}'")
+            logging.debug(
+                f"Found {len(found_spells)} spells and {len(found_items)} for '{query}'"
+            )
 
             if len(found_spells) + len(found_items) == 0:
                 embed = NoSearchResultsFoundEmbed(query)
@@ -165,17 +188,27 @@ class Bot(discord.Client):
                 await ctx.response.send_message(embed=embed, view=embed.view)
 
 
-        @self.tree.command(name="color", description="Set a preferred color using a hex-value. Leave hex_color empty to use auto-generated colors.")
+        @self.tree.command(
+            name="color",
+            description="Set a preferred color using a hex-value. Leave hex_color empty to use auto-generated colors.",
+        )
         async def set_color(itr: discord.Interaction, hex_color: str = ""):
             logging.info(f"{itr.user.name} => /color {hex_color}")
-            if hex_color == '':
+            if hex_color == "":
                 removed = UserColor.remove(itr)
-                message = "❌ Cleared user-defined color. ❌" if removed else "⚠️ You have not yet set a color. ⚠️"
+                message = (
+                    "❌ Cleared user-defined color. ❌"
+                    if removed
+                    else "⚠️ You have not yet set a color. ⚠️"
+                )
                 await itr.response.send_message(message, ephemeral=True)
                 return
 
             if not UserColor.validate(hex_color):
-                await itr.response.send_message('⚠️ Invalid hex value: Must be 6 valid hexadecimal characters (0-9, A-F), optionally starting with a # symbol. (eg. ff00ff / #ff00ff) ⚠️', ephemeral=True)
+                await itr.response.send_message(
+                    "⚠️ Invalid hex value: Must be 6 valid hexadecimal characters (0-9, A-F), optionally starting with a # symbol. (eg. ff00ff / #ff00ff) ⚠️",
+                    ephemeral=True,
+                )
                 return
 
             color = UserColor.parse(hex_color)
@@ -184,7 +217,11 @@ class Bot(discord.Client):
             embed = ColorEmbed(itr=itr, hex_color=hex_color)
             await itr.response.send_message(embed=embed, ephemeral=True)
 
-        @self.tree.command(name="stats", description="Roll stats for a new character, using the 4d6 drop lowest method.")
+
+        @self.tree.command(
+            name="stats",
+            description="Roll stats for a new character, using the 4d6 drop lowest method.",
+        )
         async def stats(itr: discord.Interaction):
             logging.info(f"{itr.user.name} => /stats")
             stats = Stats(itr)

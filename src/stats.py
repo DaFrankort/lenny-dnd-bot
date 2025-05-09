@@ -2,8 +2,10 @@ import random
 import discord
 from user_colors import UserColor
 
+
 class Stats:
     """Class for rolling character-stats in D&D 5e."""
+
     stats: list[tuple[list[int], int]]
     interaction: discord.Interaction
 
@@ -20,7 +22,7 @@ class Stats:
 
     def get_embed_title(self) -> str:
         return f"Rolling stats for {self.interaction.user.display_name}"
-    
+
     def get_embed_description(self) -> str:
         message = ""
         total = 0
@@ -33,8 +35,10 @@ class Stats:
         message += f"\n**Total**: {total}"
         return message
 
+
 class StatsEmbed(discord.Embed):
     """Embed for rolling character-stats in D&D 5e."""
+
     def __init__(self, stats: Stats) -> None:
         super().__init__(
             color=UserColor.get(stats.interaction),

@@ -265,5 +265,3 @@ class SearchEmbed(discord.Embed):
     async def go_to_last_page(self, interaction: discord.Interaction):
         self.page = self.max_pages - 1
         return await self.rebuild(interaction)
-
-

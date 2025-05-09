@@ -1,4 +1,3 @@
-from abc import ABC
 import json
 
 from rapidfuzz import fuzz

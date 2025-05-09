@@ -5,6 +5,7 @@ import re
 
 class UserColor:
     """Class to handle user colors, which are used in embeds."""
+
     FILE_PATH = "./temp/user_colors.json"
 
     @staticmethod
@@ -20,7 +21,7 @@ class UserColor:
         try:
             with open(UserColor.FILE_PATH, "r") as file:
                 data = json.load(file)
-        except:
+        except FileNotFoundError:
             data = {}
 
         data[str(interaction.user.id)] = color
@@ -54,9 +55,10 @@ class UserColor:
                 alpha_value = get_alpha(
                     interaction.user.display_name[hex_place]
                 ) * get_alpha(interaction.user.display_name[hex_place + 1])
-            except:
+            except IndexError:
                 # When username is shorter than 6 characters, inserts replacement value.
-                alpha_value = 0  # Value can be changed to 255 for light and blue colors, 0 for dark and red colors.
+                # Value can be changed to 255 for light and blue colors, 0 for dark and red colors.
+                alpha_value = 0
 
             if alpha_value > 255:
                 alpha_value = alpha_value & 255
@@ -76,7 +78,7 @@ class UserColor:
             with open(UserColor.FILE_PATH, "r") as file:
                 data = json.load(file)
                 color = data.get(str(interaction.user.id))
-        except:
+        except FileNotFoundError:
             color = UserColor.generate(interaction)
 
         if color is None:
@@ -91,18 +93,19 @@ class UserColor:
             with open(UserColor.FILE_PATH, "r") as file:
                 data = json.load(file)
                 user_id = str(interaction.user.id)
-                if not user_id in data:
+                if user_id not in data:
                     return False
                 del data[user_id]
             with open(UserColor.FILE_PATH, "w") as file:
                 json.dump(data, file, indent=4)
             return True
-        except Exception as e:
+        except Exception:
             return False
 
 
 class ColorEmbed(discord.Embed):
     """Embed class for displaying user color changes."""
+
     def __init__(self, itr: discord.Interaction, hex_color: str) -> None:
         color = UserColor.parse(hex_color)
         super().__init__(type="rich", color=color)

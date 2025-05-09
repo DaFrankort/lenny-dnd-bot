@@ -7,9 +7,13 @@ from dotenv import load_dotenv
 from dice import DiceExpression, DiceEmbed, RollMode
 from dnd import SpellList, ItemList
 from embeds import (
-    ItemEmbed, MultiItemSelectView, MultiSpellSelectView,
-    NoItemsFoundEmbed, NoSpellsFoundEmbed,
-    NoSearchResultsFoundEmbed, SpellEmbed
+    ItemEmbed,
+    MultiItemSelectView,
+    MultiSpellSelectView,
+    NoItemsFoundEmbed,
+    NoSpellsFoundEmbed,
+    NoSearchResultsFoundEmbed,
+    SpellEmbed,
 )
 from search import SearchEmbed, search_from_query
 from stats import Stats, StatsEmbed
@@ -60,7 +64,9 @@ class Bot(discord.Client):
     def _register_commands(self):
         @self.tree.command(name="roll", description="Roll your d20s!")
         async def roll(ctx: discord.Interaction, diceroll: str, reason: str = None):
-            logging.info(f"{ctx.user.name} => /roll {diceroll} {reason if reason else ''}")
+            logging.info(
+                f"{ctx.user.name} => /roll {diceroll} {reason if reason else ''}"
+            )
             additional_message = ""
 
             expression = DiceExpression(diceroll)
@@ -87,8 +93,12 @@ class Bot(discord.Client):
         @self.tree.command(
             name="advantage", description="Lucky you! Roll and take the best of two!"
         )
-        async def advantage(ctx: discord.Interaction, diceroll: str, reason: str = None):
-            logging.info(f"{ctx.user.name} => /advantage {diceroll} {reason if reason else ''}")
+        async def advantage(
+            ctx: discord.Interaction, diceroll: str, reason: str = None
+        ):
+            logging.info(
+                f"{ctx.user.name} => /advantage {diceroll} {reason if reason else ''}"
+            )
             additional_message = ""
 
             expressions = [DiceExpression(diceroll), DiceExpression(diceroll)]
@@ -107,9 +117,12 @@ class Bot(discord.Client):
             await ctx.response.send_message(additional_message, embed=embed)
 
         @self.tree.command(
-            name="disadvantage", description="Tough luck chump... Roll twice and suck it."
+            name="disadvantage",
+            description="Tough luck chump... Roll twice and suck it.",
         )
-        async def disadvantage(ctx: discord.Interaction, diceroll: str, reason: str = None):
+        async def disadvantage(
+            ctx: discord.Interaction, diceroll: str, reason: str = None
+        ):
             logging.info(
                 f"{ctx.user.name} => /disadvantage {diceroll} {reason if reason else ''}"
             )
@@ -126,7 +139,10 @@ class Bot(discord.Client):
                 additional_message = expressions[0].get_warnings_text()
 
             embed = DiceEmbed(
-                ctx=ctx, expressions=expressions, reason=reason, mode=RollMode.DISADVANTAGE
+                ctx=ctx,
+                expressions=expressions,
+                reason=reason,
+                mode=RollMode.DISADVANTAGE,
             ).build()
             await ctx.response.send_message(additional_message, embed=embed)
 
@@ -169,7 +185,9 @@ class Bot(discord.Client):
         @self.tree.command(name="search", description="Search for a spell.")
         async def search(ctx: discord.Interaction, query: str):
             logging.info(f"{ctx.user.name} => /search {query}")
-            found_spells, found_items = search_from_query(query, self.spells, self.items)
+            found_spells, found_items = search_from_query(
+                query, self.spells, self.items
+            )
             logging.debug(
                 f"Found {len(found_spells)} spells and {len(found_items)} for '{query}'"
             )

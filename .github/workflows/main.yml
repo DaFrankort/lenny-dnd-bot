@@ -10,7 +10,7 @@ on:
 jobs:
   flake8-lint:
     runs-on: ubuntu-latest
-    name: Lint
+    name: flake8
     steps:
       - name: Check out source repository
         uses: actions/checkout@v3
@@ -20,6 +20,27 @@ jobs:
           python-version: "3.11"
       - name: flake8 Lint
         uses: py-actions/flake8@v2
+        with:
+          ignore: "W503"
+          max-line-length: 999
+          path: src test
+          plugins: "flake8-black"
+
+  black-lints:
+    runs-on: ubuntu-latest
+    name: black
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11.5'
+      - name: Black linter
+        uses: psf/black@stable
+        with:
+          options: "--check --verbose"
+          src: src
         
   unit-test:
     runs-on: windows-latest

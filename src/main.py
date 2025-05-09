@@ -10,6 +10,7 @@ logging.basicConfig(
     handlers=[logging.StreamHandler()],  # Output to console
 )
 
+
 def check_support(spells: SpellList):
     sorted_spells = sorted(spells.spells, key=lambda s: s.name)
     unsupported = False

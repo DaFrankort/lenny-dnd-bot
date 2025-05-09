@@ -34,7 +34,7 @@ class Bot(discord.Client):
         self.token = os.getenv("DISCORD_BOT_TOKEN")
         self.guild_id = int(os.getenv("GUILD_ID"))
 
-        self.spells= SpellList()
+        self.spells = SpellList()
         self.items = ItemList()
 
     def run_client(self):
@@ -76,7 +76,6 @@ class Bot(discord.Client):
             embed = DiceEmbed(ctx=ctx, expressions=[expression], reason=reason).build()
             await ctx.response.send_message(additional_message, embed=embed)
 
-
         @self.tree.command(name="d20", description="Just roll a clean d20")
         async def d20(ctx: discord.Interaction):
             logging.info(f"{ctx.user.name} => /d20")
@@ -84,7 +83,6 @@ class Bot(discord.Client):
 
             embed = DiceEmbed(ctx=ctx, expressions=[expression]).build()
             await ctx.response.send_message(embed=embed)
-
 
         @self.tree.command(
             name="advantage", description="Lucky you! Roll and take the best of two!"
@@ -107,7 +105,6 @@ class Bot(discord.Client):
                 ctx=ctx, expressions=expressions, reason=reason, mode=RollMode.ADVANTAGE
             ).build()
             await ctx.response.send_message(additional_message, embed=embed)
-
 
         @self.tree.command(
             name="disadvantage", description="Tough luck chump... Roll twice and suck it."
@@ -133,7 +130,6 @@ class Bot(discord.Client):
             ).build()
             await ctx.response.send_message(additional_message, embed=embed)
 
-
         @self.tree.command(name="spell", description="Get the details for a spell.")
         async def spell(ctx: discord.Interaction, name: str):
             logging.info(f"{ctx.user.name} => /spell {name}")
@@ -151,7 +147,6 @@ class Bot(discord.Client):
             else:
                 embed = SpellEmbed(found[0])
                 await ctx.response.send_message(embed=embed)
-
 
         @self.tree.command(name="item", description="Get the details for an item.")
         async def item(ctx: discord.Interaction, name: str):
@@ -171,7 +166,6 @@ class Bot(discord.Client):
                 embed = ItemEmbed(found[0])
                 await ctx.response.send_message(embed=embed)
 
-
         @self.tree.command(name="search", description="Search for a spell.")
         async def search(ctx: discord.Interaction, query: str):
             logging.info(f"{ctx.user.name} => /search {query}")
@@ -186,7 +180,6 @@ class Bot(discord.Client):
             else:
                 embed = SearchEmbed(query, found_spells, found_items)
                 await ctx.response.send_message(embed=embed, view=embed.view)
-
 
         @self.tree.command(
             name="color",
@@ -216,7 +209,6 @@ class Bot(discord.Client):
 
             embed = ColorEmbed(itr=itr, hex_color=hex_color)
             await itr.response.send_message(embed=embed, ephemeral=True)
-
 
         @self.tree.command(
             name="stats",

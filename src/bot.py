@@ -68,11 +68,16 @@ class Bot(discord.Client):
                 criteria = [f"[{k}={v}]" for k, v in vars(itr.namespace).items()]
             except Exception:
                 criteria = []
-            criteria_text = ' '.join(criteria)
+            criteria_text = " ".join(criteria)
 
             logging.info(f"{itr.user.name} => /{itr.command.name} {criteria_text}")
 
-        async def send_dice_message(itr: discord.Interaction, expressions: list[DiceExpression] | DiceExpression, reason: str | None = None, mode: RollMode = RollMode.NORMAL):
+        async def send_dice_message(
+            itr: discord.Interaction,
+            expressions: list[DiceExpression] | DiceExpression,
+            reason: str | None = None,
+            mode: RollMode = RollMode.NORMAL,
+        ):
             additional_message = ""
             if isinstance(expressions, DiceExpression):
                 expressions = [expressions]  # Code requires expression as a list
@@ -86,7 +91,9 @@ class Bot(discord.Client):
             elif expressions[0].has_warnings():
                 additional_message = expressions[0].get_warnings_text()
 
-            embed = DiceEmbed(ctx=itr, expressions=expressions, reason=reason, mode=mode).build()
+            embed = DiceEmbed(
+                ctx=itr, expressions=expressions, reason=reason, mode=mode
+            ).build()
             await itr.response.send_message(additional_message, embed=embed)
 
         @self.tree.command(name="roll", description="Roll your d20s!")

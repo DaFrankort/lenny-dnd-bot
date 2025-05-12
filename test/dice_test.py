@@ -123,6 +123,7 @@ class TestDiceExpression:
     def test_init_valid(self):
         # Test valid expression
         expr = DiceExpression("1d20+5")
+        assert expr._is_valid, "Expression should be valid"
         assert expr.is_valid(), "Expression should be valid"
         assert not expr.has_warnings(), "Should not have warnings"
         assert len(expr.dice) == 1, "There should be one die"
@@ -132,6 +133,7 @@ class TestDiceExpression:
     def test_init_invalid(self):
         expr = DiceExpression("MONKEY")
         assert expr._is_valid is False, "DiceExpression should be invalid"
+        assert expr.is_valid() is False, "DiceExpression should be invalid"
 
     def test_sanitize(self):
         def assert_sanitized(notation, expected):

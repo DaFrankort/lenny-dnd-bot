@@ -94,10 +94,12 @@ class Token(object):
 
 class ASTExpression(ABC):
     @abstractmethod
-    def roll(self) -> tuple[str, int]: ...
+    def roll(self) -> tuple[str, int]:
+        pass
 
     @abstractmethod
-    def __str__(self) -> str: ...
+    def __str__(self) -> str:
+        pass
 
 
 @dataclass
@@ -175,6 +177,10 @@ class ASTCompoundExpression(ASTExpression):
 
 
 def _tokenize(expression: str) -> tuple[list[Token], list[str]]:
+    expression = expression.lower().strip()
+    valid_symbols = "0123456789+-*/()d"
+    expression = "".join([c for c in expression if c in valid_symbols])
+
     tokens = []
     errors = []
 
@@ -210,7 +216,7 @@ def _tokenize(expression: str) -> tuple[list[Token], list[str]]:
                     tokens.append(Token(dice, TokenType.Dice))
                     expression = expression.lstrip(dice)
                 else:
-                    pattern = r"^(.*?)([\+\-\*\/\ \t].*$|$)"
+                    pattern = r"^(.*?)([\+\-\*\/\ \t\(\)].*$|$)"
                     matched = re.match(pattern, expression)
                     invalid = matched.group(1)
                     errors.append(f"Invalid symbol: '{invalid}'")

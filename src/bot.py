@@ -75,15 +75,14 @@ class Bot(discord.Client):
         @self.tree.command(name="roll", description="Roll your d20s!")
         async def roll(itr: discord.Interaction, diceroll: str, reason: str = None):
             log_cmd(itr)
-            # TODO reason
-            expression = DiceExpression(diceroll, DiceRollMode.Normal)
-            return await itr.response.send_message(embed=DiceEmbed(expression))
+            expression = DiceExpression(diceroll, mode=DiceRollMode.Normal, reason=reason)
+            return await itr.response.send_message(embed=DiceEmbed(itr, expression))
 
         @self.tree.command(name="d20", description="Just roll a clean d20")
         async def d20(itr: discord.Interaction):
             log_cmd(itr)
             expression = DiceExpression("1d20", DiceRollMode.Normal)
-            return await itr.response.send_message(embed=DiceEmbed(expression))
+            return await itr.response.send_message(embed=DiceEmbed(itr, expression))
 
         @self.tree.command(
             name="advantage", description="Lucky you! Roll and take the best of two!"
@@ -93,7 +92,7 @@ class Bot(discord.Client):
         ):
             log_cmd(itr)
             expression = DiceExpression(diceroll, DiceRollMode.Advantage)
-            return await itr.response.send_message(embed=DiceEmbed(expression))
+            return await itr.response.send_message(embed=DiceEmbed(itr, expression))
 
         @self.tree.command(
             name="disadvantage",
@@ -104,7 +103,7 @@ class Bot(discord.Client):
         ):
             log_cmd(itr)
             expression = DiceExpression(diceroll, DiceRollMode.Disadvantage)
-            return await itr.response.send_message(embed=DiceEmbed(expression))
+            return await itr.response.send_message(embed=DiceEmbed(itr, expression))
 
         @self.tree.command(name="spell", description="Get the details for a spell.")
         async def spell(itr: discord.Interaction, name: str):

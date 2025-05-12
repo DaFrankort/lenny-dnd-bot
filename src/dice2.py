@@ -7,6 +7,8 @@ from abc import ABC, abstractmethod
 
 import discord
 
+from user_colors import UserColor
+
 """
 Parses a dice expression and builds an Abstract Syntax Tree (AST) to roll for it.
 Based on the webpages:
@@ -33,9 +35,7 @@ Some notes:
 
 Current limitations:
 - Does not support expressions that start with '-', for example (-5) * (1d4) will crash
-- Unfinished expressions result in a crash, e.g. 1d20+
 - Does not have fancy messages yet 
-- Does not add reasons yet in title
 
 """
 
@@ -123,7 +123,8 @@ class ASTDiceExpression(ASTExpression):
             faces = int(params[1])
             rolls = [random.randint(1, faces) for _ in range(count)]
             roll = sum(rolls)
-            text = "[" + ", ".join(map(str, rolls)) + "]"
+            padding_numbers = len(str(faces))
+            text = "[" + ",".join(map(str, rolls)) + "]"
             return text, roll
         else:
             print("Invalid dice", self.dice.literal)
@@ -251,10 +252,16 @@ def _tokens_to_postfix(tokens: list[Token]) -> list[Token]:
 
 
 def _postfix_to_ast(postfix: list[Token]) -> tuple[ASTExpression, list[str]]:
+    if len(postfix) == 0:
+        return None, ["Expression is empty."]
+
     errors = []
 
     def get_next_node():
-        if postfix[-1].type == TokenType.Dice:
+        if len(postfix) == 0:
+            errors.append(f"Expected continuation but received nothing.")
+            return None
+        elif postfix[-1].type == TokenType.Dice:
             return ASTDiceExpression(postfix.pop())
         elif postfix[-1].is_operator:
             operator = postfix.pop()
@@ -320,20 +327,24 @@ class DiceExpression(object):
     errors: list[str]
     mode: DiceRollMode
     title: str
+    description: str
 
-    def __init__(self, expression: str, mode=DiceRollMode.Normal):
+    def __init__(self, expression: str, mode=DiceRollMode.Normal, reason: str = None):
         self.ast = None
         self.rolls = []
         self.result = 0
         self.errors = []
         self.mode = mode
         self.title = ""
+        self.description = ""
 
         ast, errors = _expression_to_ast(expression)
 
         if len(errors) > 0:
             self.errors = errors
-            self.title = f"Errors found for '{expression}'"
+            self.title = f"Errors found for '{expression}'!"
+            for error in errors:
+                self.description += f"⚠️ {error}\n"
             return
 
         self.ast = ast
@@ -360,24 +371,22 @@ class DiceExpression(object):
             self.result = min(roll1, roll2)
             self.title = f"Rolling {str(ast)} with disadvantage!"
 
+        for roll in self.rolls:
+            self.description += f"- `{roll.text}` -> {roll.value}\n"
+
+        if reason is None:
+            reason = "Result"
+
+        self.description += f"\n🎲 **{reason.capitalize()}: {self.result}**"
+
 
 class DiceEmbed(discord.Embed):
-    def __init__(self, expression: DiceExpression):
-        title = expression.title
+    def __init__(self, itr: discord.Interaction, expression: DiceExpression):
+        color = UserColor.get(itr)
+
         super().__init__(
-            colour=discord.Color.dark_blue(),
-            title=title,
+            colour=color,
             type="rich",
         )
-        # TODO move this logic to DiceExpression
-        description = ""
-
-        if len(expression.errors) > 0:
-            for error in expression.errors:
-                description += f"{error}\n"
-        else:
-            for roll in expression.rolls:
-                description += f"`{roll.text}` -> {roll.value}\n"
-            description += f"**Result: {expression.result}**"
-
-        self.add_field(name="", value=description)
+        self.set_author(name=expression.title, icon_url=itr.user.avatar.url)
+        self.add_field(name="", value=expression.description)

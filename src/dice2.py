@@ -16,7 +16,7 @@ Based on the webpages:
 - https://en.wikipedia.org/wiki/Abstract_syntax_tree
 
 This file functions through the DiceExpression class:
-- First, the input expression is tokenized. 
+- First, the input expression is tokenized.
   For example, the expression '3*(1d4+1)' gets split up into ['3', '*', '(', '1d4', '+', '1', ')']
 
 - Then, the tokenized list gets transformed from prefix notation (the math notation we normally use)
@@ -35,7 +35,7 @@ Some notes:
 
 Current limitations:
 - Does not support expressions that start with '-', for example (-5) * (1d4) will crash
-- Does not have fancy messages yet 
+- Does not have fancy messages yet
 
 """
 
@@ -258,7 +258,7 @@ def _postfix_to_ast(postfix: list[Token]) -> tuple[ASTExpression, list[str]]:
 
     def get_next_node():
         if len(postfix) == 0:
-            errors.append(f"Expected continuation but received nothing.")
+            errors.append("Expected continuation but received nothing.")
             return None
         elif postfix[-1].type == TokenType.Dice:
             return ASTDiceExpression(postfix.pop())

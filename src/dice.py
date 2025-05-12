@@ -164,6 +164,9 @@ class DiceExpression:
         self.dice, self.modifiers, self.steps = self._notation_to_steps(die_notation)
         self.roll()
 
+        if len(self.steps) == 0:  # DiceExpression without dice or mods is invalid
+            self._is_valid = False
+
     def _notation_to_steps(
         self, notation: str
     ) -> tuple[list[_Die], list[_Modifier], list[_Die | _Modifier]]:
@@ -180,7 +183,7 @@ class DiceExpression:
         steps = []
 
         # Split notation into parts, (e.g., '2d6', '+1', '-2d4')
-        parts = re.split(r"([+-]?\d+d\d+|[+-]?\d+)", notation)
+        parts = re.findall(r"([+-]?\d+d\d+|[+-]?\d+)", notation)
 
         for part in parts:
             part = part.strip()
@@ -233,8 +236,7 @@ class DiceExpression:
 
     def roll(self):
         for die in self.dice:
-            if isinstance(die, _Die):
-                die.roll()
+            die.roll()
 
     def get_total(self) -> int:
         """Calculates and returns the total value of the dice expression."""

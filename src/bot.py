@@ -62,48 +62,28 @@ class Bot(discord.Client):
             logging.info(f"Connected to guild: {guild.name} (ID: {guild.id})")
 
     def _register_commands(self):
-        @self.tree.command(name="roll", description="Roll your d20s!")
-        async def roll(ctx: discord.Interaction, diceroll: str, reason: str = None):
-            logging.info(
-                f"{ctx.user.name} => /roll {diceroll} {reason if reason else ''}"
-            )
-            additional_message = ""
+        def log_cmd(itr: discord.Interaction):
+            """Helper function to log user's command-usage in the terminal"""
+            try:
+                criteria = [f"[{k}={v}]" for k, v in vars(itr.namespace).items()]
+            except Exception:
+                criteria = []
+            criteria_text = " ".join(criteria)
 
-            expression = DiceExpression(diceroll)
-            if not expression.is_valid():
-                await ctx.response.send_message(
-                    "❌ Something went wrong, please make sure to use the NdN or NdN+N format, ex: 2d6 / 1d4+1 ❌",
-                    ephemeral=True,
-                )
-                return
-            elif expression.has_warnings():
-                additional_message = expression.get_warnings_text()
+            logging.info(f"{itr.user.name} => /{itr.command.name} {criteria_text}")
 
-            embed = DiceEmbed(ctx=ctx, expressions=[expression], reason=reason).build()
-            await ctx.response.send_message(additional_message, embed=embed)
-
-        @self.tree.command(name="d20", description="Just roll a clean d20")
-        async def d20(ctx: discord.Interaction):
-            logging.info(f"{ctx.user.name} => /d20")
-            expression = DiceExpression("1d20")
-
-            embed = DiceEmbed(ctx=ctx, expressions=[expression]).build()
-            await ctx.response.send_message(embed=embed)
-
-        @self.tree.command(
-            name="advantage", description="Lucky you! Roll and take the best of two!"
-        )
-        async def advantage(
-            ctx: discord.Interaction, diceroll: str, reason: str = None
+        async def send_dice_message(
+            itr: discord.Interaction,
+            expressions: list[DiceExpression] | DiceExpression,
+            reason: str | None = None,
+            mode: RollMode = RollMode.NORMAL,
         ):
-            logging.info(
-                f"{ctx.user.name} => /advantage {diceroll} {reason if reason else ''}"
-            )
             additional_message = ""
+            if isinstance(expressions, DiceExpression):
+                expressions = [expressions]  # Code requires expression as a list
 
-            expressions = [DiceExpression(diceroll), DiceExpression(diceroll)]
             if not expressions[0].is_valid():
-                await ctx.response.send_message(
+                await itr.response.send_message(
                     "❌ Something went wrong, please make sure to use the NdN or NdN+N format, ex: 2d6 / 1d4+1 ❌",
                     ephemeral=True,
                 )
@@ -112,79 +92,82 @@ class Bot(discord.Client):
                 additional_message = expressions[0].get_warnings_text()
 
             embed = DiceEmbed(
-                ctx=ctx, expressions=expressions, reason=reason, mode=RollMode.ADVANTAGE
+                ctx=itr, expressions=expressions, reason=reason, mode=mode
             ).build()
-            await ctx.response.send_message(additional_message, embed=embed)
+            await itr.response.send_message(additional_message, embed=embed)
+
+        @self.tree.command(name="roll", description="Roll your d20s!")
+        async def roll(itr: discord.Interaction, diceroll: str, reason: str = None):
+            log_cmd(itr)
+            expression = DiceExpression(diceroll)
+            await send_dice_message(itr, expression, reason)
+
+        @self.tree.command(name="d20", description="Just roll a clean d20")
+        async def d20(itr: discord.Interaction):
+            log_cmd(itr)
+            expression = DiceExpression("1d20")
+            await send_dice_message(itr, expression)
+
+        @self.tree.command(
+            name="advantage", description="Lucky you! Roll and take the best of two!"
+        )
+        async def advantage(
+            itr: discord.Interaction, diceroll: str, reason: str = None
+        ):
+            log_cmd(itr)
+            expressions = [DiceExpression(diceroll), DiceExpression(diceroll)]
+            await send_dice_message(itr, expressions, reason, RollMode.ADVANTAGE)
 
         @self.tree.command(
             name="disadvantage",
             description="Tough luck chump... Roll twice and suck it.",
         )
         async def disadvantage(
-            ctx: discord.Interaction, diceroll: str, reason: str = None
+            itr: discord.Interaction, diceroll: str, reason: str = None
         ):
-            logging.info(
-                f"{ctx.user.name} => /disadvantage {diceroll} {reason if reason else ''}"
-            )
-            additional_message = ""
-
+            log_cmd(itr)
             expressions = [DiceExpression(diceroll), DiceExpression(diceroll)]
-            if not expressions[0].is_valid():
-                await ctx.response.send_message(
-                    "❌ Something went wrong, please make sure to use the NdN or NdN+N format, ex: 2d6 / 1d4+1 ❌",
-                    ephemeral=True,
-                )
-                return
-            elif expressions[0].has_warnings():
-                additional_message = expressions[0].get_warnings_text()
-
-            embed = DiceEmbed(
-                ctx=ctx,
-                expressions=expressions,
-                reason=reason,
-                mode=RollMode.DISADVANTAGE,
-            ).build()
-            await ctx.response.send_message(additional_message, embed=embed)
+            await send_dice_message(itr, expressions, reason, RollMode.DISADVANTAGE)
 
         @self.tree.command(name="spell", description="Get the details for a spell.")
-        async def spell(ctx: discord.Interaction, name: str):
-            logging.info(f"{ctx.user.name} => /spell {name}")
+        async def spell(itr: discord.Interaction, name: str):
+            log_cmd(itr)
             found = self.spells.get(name)
             logging.debug(f"Found {len(found)} for '{name}'")
 
             if len(found) == 0:
                 embed = NoSpellsFoundEmbed(name)
-                await ctx.response.send_message(embed=embed)
+                await itr.response.send_message(embed=embed)
 
             elif len(found) > 1:
                 view = MultiSpellSelectView(name, found)
-                await ctx.response.send_message(view=view, ephemeral=True)
+                await itr.response.send_message(view=view, ephemeral=True)
 
             else:
                 embed = SpellEmbed(found[0])
-                await ctx.response.send_message(embed=embed)
+                await itr.response.send_message(embed=embed)
 
         @self.tree.command(name="item", description="Get the details for an item.")
-        async def item(ctx: discord.Interaction, name: str):
-            logging.info(f"{ctx.user.name} => /item {name}")
+        async def item(itr: discord.Interaction, name: str):
+            log_cmd(itr)
             found = self.items.get(name)
             logging.debug(f"Found {len(found)} for '{name}'")
 
             if len(found) == 0:
                 embed = NoItemsFoundEmbed(name)
-                await ctx.response.send_message(embed=embed)
+                await itr.response.send_message(embed=embed)
 
             elif len(found) > 1:
                 view = MultiItemSelectView(name, found)
-                await ctx.response.send_message(view=view, ephemeral=True)
+                await itr.response.send_message(view=view, ephemeral=True)
 
             else:
                 embed = ItemEmbed(found[0])
-                await ctx.response.send_message(embed=embed)
+                await itr.response.send_message(embed=embed)
 
         @self.tree.command(name="search", description="Search for a spell.")
-        async def search(ctx: discord.Interaction, query: str):
-            logging.info(f"{ctx.user.name} => /search {query}")
+        async def search(itr: discord.Interaction, query: str):
+            log_cmd(itr)
             found_spells, found_items = search_from_query(
                 query, self.spells, self.items
             )
@@ -194,17 +177,17 @@ class Bot(discord.Client):
 
             if len(found_spells) + len(found_items) == 0:
                 embed = NoSearchResultsFoundEmbed(query)
-                await ctx.response.send_message(embed=embed)
+                await itr.response.send_message(embed=embed)
             else:
                 embed = SearchEmbed(query, found_spells, found_items)
-                await ctx.response.send_message(embed=embed, view=embed.view)
+                await itr.response.send_message(embed=embed, view=embed.view)
 
         @self.tree.command(
             name="color",
             description="Set a preferred color using a hex-value. Leave hex_color empty to use auto-generated colors.",
         )
         async def set_color(itr: discord.Interaction, hex_color: str = ""):
-            logging.info(f"{itr.user.name} => /color {hex_color}")
+            log_cmd(itr)
             if hex_color == "":
                 removed = UserColor.remove(itr)
                 message = (
@@ -233,7 +216,7 @@ class Bot(discord.Client):
             description="Roll stats for a new character, using the 4d6 drop lowest method.",
         )
         async def stats(itr: discord.Interaction):
-            logging.info(f"{itr.user.name} => /stats")
+            log_cmd(itr)
             stats = Stats(itr)
             embed = StatsEmbed(stats)
             await itr.response.send_message(embed=embed)

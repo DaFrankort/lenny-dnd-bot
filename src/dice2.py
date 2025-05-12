@@ -123,7 +123,6 @@ class ASTDiceExpression(ASTExpression):
             faces = int(params[1])
             rolls = [random.randint(1, faces) for _ in range(count)]
             roll = sum(rolls)
-            padding_numbers = len(str(faces))
             text = "[" + ",".join(map(str, rolls)) + "]"
             return text, roll
         else:

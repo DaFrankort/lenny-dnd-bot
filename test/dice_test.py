@@ -120,18 +120,20 @@ class Test_Modifier:
 
 
 class TestDiceExpression:
-    def test_init(self):
+    def test_init_valid(self):
         # Test valid expression
         expr = DiceExpression("1d20+5")
+        assert expr._is_valid, "Expression should be valid"
         assert expr.is_valid(), "Expression should be valid"
         assert not expr.has_warnings(), "Should not have warnings"
         assert len(expr.dice) == 1, "There should be one die"
         assert len(expr.modifiers) == 1, "There should be one modifier"
         assert len(expr.steps) == 2, "There should be two steps (one die, one mod)"
 
-        # Test invalid expression
-        expr = DiceExpression("INVALID")
-        assert not expr.is_valid(), "Expression should be invalid"
+    def test_init_invalid(self):
+        expr = DiceExpression("MONKEY")
+        assert expr._is_valid is False, "DiceExpression should be invalid"
+        assert expr.is_valid() is False, "DiceExpression should be invalid"
 
     def test_sanitize(self):
         def assert_sanitized(notation, expected):

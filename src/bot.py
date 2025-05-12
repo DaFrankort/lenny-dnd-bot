@@ -62,11 +62,15 @@ class Bot(discord.Client):
             logging.info(f"Connected to guild: {guild.name} (ID: {guild.id})")
 
     def _register_commands(self):
+        def log_cmd(ctx: discord.Interaction, cmd: str, criteria: list = []):
+            if not isinstance(criteria, list):
+                criteria = [criteria]
+            criteria_text = ' '.join(str(c) if c is not None else '' for c in criteria)
+            logging.info(f"{ctx.user.name} => /{cmd} {criteria_text}")
+
         @self.tree.command(name="roll", description="Roll your d20s!")
         async def roll(ctx: discord.Interaction, diceroll: str, reason: str = None):
-            logging.info(
-                f"{ctx.user.name} => /roll {diceroll} {reason if reason else ''}"
-            )
+            log_cmd(ctx, "roll", [diceroll, reason])
             additional_message = ""
 
             expression = DiceExpression(diceroll)
@@ -84,7 +88,7 @@ class Bot(discord.Client):
 
         @self.tree.command(name="d20", description="Just roll a clean d20")
         async def d20(ctx: discord.Interaction):
-            logging.info(f"{ctx.user.name} => /d20")
+            log_cmd(ctx, "d20")
             expression = DiceExpression("1d20")
 
             embed = DiceEmbed(ctx=ctx, expressions=[expression]).build()
@@ -96,9 +100,7 @@ class Bot(discord.Client):
         async def advantage(
             ctx: discord.Interaction, diceroll: str, reason: str = None
         ):
-            logging.info(
-                f"{ctx.user.name} => /advantage {diceroll} {reason if reason else ''}"
-            )
+            log_cmd(ctx, "advantage", [diceroll, reason])
             additional_message = ""
 
             expressions = [DiceExpression(diceroll), DiceExpression(diceroll)]
@@ -123,9 +125,7 @@ class Bot(discord.Client):
         async def disadvantage(
             ctx: discord.Interaction, diceroll: str, reason: str = None
         ):
-            logging.info(
-                f"{ctx.user.name} => /disadvantage {diceroll} {reason if reason else ''}"
-            )
+            log_cmd(ctx, "disadvantage", [diceroll, reason])
             additional_message = ""
 
             expressions = [DiceExpression(diceroll), DiceExpression(diceroll)]
@@ -148,7 +148,7 @@ class Bot(discord.Client):
 
         @self.tree.command(name="spell", description="Get the details for a spell.")
         async def spell(ctx: discord.Interaction, name: str):
-            logging.info(f"{ctx.user.name} => /spell {name}")
+            log_cmd(ctx, "spell", name)
             found = self.spells.get(name)
             logging.debug(f"Found {len(found)} for '{name}'")
 
@@ -166,7 +166,7 @@ class Bot(discord.Client):
 
         @self.tree.command(name="item", description="Get the details for an item.")
         async def item(ctx: discord.Interaction, name: str):
-            logging.info(f"{ctx.user.name} => /item {name}")
+            log_cmd(ctx, "item", name)
             found = self.items.get(name)
             logging.debug(f"Found {len(found)} for '{name}'")
 
@@ -184,7 +184,7 @@ class Bot(discord.Client):
 
         @self.tree.command(name="search", description="Search for a spell.")
         async def search(ctx: discord.Interaction, query: str):
-            logging.info(f"{ctx.user.name} => /search {query}")
+            log_cmd(ctx, "search", query)
             found_spells, found_items = search_from_query(
                 query, self.spells, self.items
             )
@@ -204,7 +204,7 @@ class Bot(discord.Client):
             description="Set a preferred color using a hex-value. Leave hex_color empty to use auto-generated colors.",
         )
         async def set_color(itr: discord.Interaction, hex_color: str = ""):
-            logging.info(f"{itr.user.name} => /color {hex_color}")
+            log_cmd(itr, "color", hex_color)
             if hex_color == "":
                 removed = UserColor.remove(itr)
                 message = (
@@ -233,7 +233,7 @@ class Bot(discord.Client):
             description="Roll stats for a new character, using the 4d6 drop lowest method.",
         )
         async def stats(itr: discord.Interaction):
-            logging.info(f"{itr.user.name} => /stats")
+            log_cmd(itr, "stats")
             stats = Stats(itr)
             embed = StatsEmbed(stats)
             await itr.response.send_message(embed=embed)

@@ -72,42 +72,11 @@ class Bot(discord.Client):
 
             logging.info(f"{itr.user.name} => /{itr.command.name} {criteria_text}")
 
-        @self.tree.command(name="roll", description="Roll your d20s!")
-        async def roll(itr: discord.Interaction, diceroll: str, reason: str = None):
-            log_cmd(itr)
+        async def send_dice_message(itr: discord.Interaction, expressions: list[DiceExpression] | DiceExpression, reason: str | None = None, mode: RollMode = RollMode.NORMAL):
             additional_message = ""
+            if isinstance(expressions, DiceExpression):
+                expressions = [expressions]  # Code requires expression as a list
 
-            expression = DiceExpression(diceroll)
-            if not expression.is_valid():
-                await itr.response.send_message(
-                    "❌ Something went wrong, please make sure to use the NdN or NdN+N format, ex: 2d6 / 1d4+1 ❌",
-                    ephemeral=True,
-                )
-                return
-            elif expression.has_warnings():
-                additional_message = expression.get_warnings_text()
-
-            embed = DiceEmbed(ctx=itr, expressions=[expression], reason=reason).build()
-            await itr.response.send_message(additional_message, embed=embed)
-
-        @self.tree.command(name="d20", description="Just roll a clean d20")
-        async def d20(itr: discord.Interaction):
-            log_cmd(itr)
-            expression = DiceExpression("1d20")
-
-            embed = DiceEmbed(ctx=itr, expressions=[expression]).build()
-            await itr.response.send_message(embed=embed)
-
-        @self.tree.command(
-            name="advantage", description="Lucky you! Roll and take the best of two!"
-        )
-        async def advantage(
-            itr: discord.Interaction, diceroll: str, reason: str = None
-        ):
-            log_cmd(itr)
-            additional_message = ""
-
-            expressions = [DiceExpression(diceroll), DiceExpression(diceroll)]
             if not expressions[0].is_valid():
                 await itr.response.send_message(
                     "❌ Something went wrong, please make sure to use the NdN or NdN+N format, ex: 2d6 / 1d4+1 ❌",
@@ -117,10 +86,30 @@ class Bot(discord.Client):
             elif expressions[0].has_warnings():
                 additional_message = expressions[0].get_warnings_text()
 
-            embed = DiceEmbed(
-                ctx=itr, expressions=expressions, reason=reason, mode=RollMode.ADVANTAGE
-            ).build()
+            embed = DiceEmbed(ctx=itr, expressions=expressions, reason=reason, mode=mode).build()
             await itr.response.send_message(additional_message, embed=embed)
+
+        @self.tree.command(name="roll", description="Roll your d20s!")
+        async def roll(itr: discord.Interaction, diceroll: str, reason: str = None):
+            log_cmd(itr)
+            expression = DiceExpression(diceroll)
+            await send_dice_message(itr, expression, reason)
+
+        @self.tree.command(name="d20", description="Just roll a clean d20")
+        async def d20(itr: discord.Interaction):
+            log_cmd(itr)
+            expression = DiceExpression("1d20")
+            await send_dice_message(itr, expression)
+
+        @self.tree.command(
+            name="advantage", description="Lucky you! Roll and take the best of two!"
+        )
+        async def advantage(
+            itr: discord.Interaction, diceroll: str, reason: str = None
+        ):
+            log_cmd(itr)
+            expressions = [DiceExpression(diceroll), DiceExpression(diceroll)]
+            await send_dice_message(itr, expressions, reason, RollMode.ADVANTAGE)
 
         @self.tree.command(
             name="disadvantage",
@@ -130,25 +119,8 @@ class Bot(discord.Client):
             itr: discord.Interaction, diceroll: str, reason: str = None
         ):
             log_cmd(itr)
-            additional_message = ""
-
             expressions = [DiceExpression(diceroll), DiceExpression(diceroll)]
-            if not expressions[0].is_valid():
-                await itr.response.send_message(
-                    "❌ Something went wrong, please make sure to use the NdN or NdN+N format, ex: 2d6 / 1d4+1 ❌",
-                    ephemeral=True,
-                )
-                return
-            elif expressions[0].has_warnings():
-                additional_message = expressions[0].get_warnings_text()
-
-            embed = DiceEmbed(
-                ctx=itr,
-                expressions=expressions,
-                reason=reason,
-                mode=RollMode.DISADVANTAGE,
-            ).build()
-            await itr.response.send_message(additional_message, embed=embed)
+            await send_dice_message(itr, expressions, reason, RollMode.DISADVANTAGE)
 
         @self.tree.command(name="spell", description="Get the details for a spell.")
         async def spell(itr: discord.Interaction, name: str):

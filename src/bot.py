@@ -75,7 +75,9 @@ class Bot(discord.Client):
         @self.tree.command(name="roll", description="Roll your d20s!")
         async def roll(itr: discord.Interaction, diceroll: str, reason: str = None):
             log_cmd(itr)
-            expression = DiceExpression(diceroll, mode=DiceRollMode.Normal, reason=reason)
+            expression = DiceExpression(
+                diceroll, mode=DiceRollMode.Normal, reason=reason
+            )
             return await itr.response.send_message(embed=DiceEmbed(itr, expression))
 
         @self.tree.command(name="d20", description="Just roll a clean d20")

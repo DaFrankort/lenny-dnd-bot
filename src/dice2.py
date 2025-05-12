@@ -176,7 +176,7 @@ class ASTCompoundExpression(ASTExpression):
         return f"{str(self.left)} {self.operator.literal} {str(self.right)}"
 
 
-def _tokenize(expression: str) -> tuple[list[Token], list[str]]:
+def _expression_to_tokens(expression: str) -> tuple[list[Token], list[str]]:
     expression = expression.lower().strip()
     valid_symbols = "0123456789+-*/()d"
     expression = "".join([c for c in expression if c in valid_symbols])
@@ -250,7 +250,7 @@ def _tokens_to_postfix(tokens: list[Token]) -> list[Token]:
     return output
 
 
-def _build_ast(postfix: list[Token]) -> tuple[ASTExpression, list[str]]:
+def _postfix_to_ast(postfix: list[Token]) -> tuple[ASTExpression, list[str]]:
     errors = []
 
     def get_next_node():
@@ -286,6 +286,20 @@ def _build_ast(postfix: list[Token]) -> tuple[ASTExpression, list[str]]:
     return get_next_node(), errors
 
 
+def _expression_to_ast(expression: str) -> tuple[ASTExpression, list[str]]:
+    tokens, errors = _expression_to_tokens(expression)
+    if len(errors) > 0:
+        return None, errors
+
+    postfix = _tokens_to_postfix(tokens)
+    ast, errors = _postfix_to_ast(postfix)
+
+    if len(errors) > 0:
+        return None, errors
+
+    return ast, []
+
+
 class DiceRollMode(Enum):
     Normal = "normal"
     Advantage = "advantage"
@@ -315,14 +329,7 @@ class DiceExpression(object):
         self.mode = mode
         self.title = ""
 
-        tokens, errors = _tokenize(expression)
-        if len(errors) > 0:
-            self.errors = errors
-            self.title = f"Errors found for '{expression}'"
-            return
-
-        postfix = _tokens_to_postfix(tokens)
-        ast, errors = _build_ast(postfix)
+        ast, errors = _expression_to_ast(expression)
 
         if len(errors) > 0:
             self.errors = errors

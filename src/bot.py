@@ -4,7 +4,7 @@ import discord
 from discord import app_commands
 from dotenv import load_dotenv
 
-from dice import DiceExpression, DiceEmbed, RollMode
+from dice2 import DiceExpression, DiceEmbed, DiceRollMode
 from dnd import SpellList, ItemList
 from embeds import (
     ItemEmbed,
@@ -72,41 +72,18 @@ class Bot(discord.Client):
 
             logging.info(f"{itr.user.name} => /{itr.command.name} {criteria_text}")
 
-        async def send_dice_message(
-            itr: discord.Interaction,
-            expressions: list[DiceExpression] | DiceExpression,
-            reason: str | None = None,
-            mode: RollMode = RollMode.NORMAL,
-        ):
-            additional_message = ""
-            if isinstance(expressions, DiceExpression):
-                expressions = [expressions]  # Code requires expression as a list
-
-            if not expressions[0].is_valid():
-                await itr.response.send_message(
-                    "❌ Something went wrong, please make sure to use the NdN or NdN+N format, ex: 2d6 / 1d4+1 ❌",
-                    ephemeral=True,
-                )
-                return
-            elif expressions[0].has_warnings():
-                additional_message = expressions[0].get_warnings_text()
-
-            embed = DiceEmbed(
-                ctx=itr, expressions=expressions, reason=reason, mode=mode
-            ).build()
-            await itr.response.send_message(additional_message, embed=embed)
-
         @self.tree.command(name="roll", description="Roll your d20s!")
         async def roll(itr: discord.Interaction, diceroll: str, reason: str = None):
             log_cmd(itr)
-            expression = DiceExpression(diceroll)
-            await send_dice_message(itr, expression, reason)
+            # TODO reason
+            expression = DiceExpression(diceroll, DiceRollMode.Normal)
+            return await itr.response.send_message(embed=DiceEmbed(expression))
 
         @self.tree.command(name="d20", description="Just roll a clean d20")
         async def d20(itr: discord.Interaction):
             log_cmd(itr)
-            expression = DiceExpression("1d20")
-            await send_dice_message(itr, expression)
+            expression = DiceExpression("1d20", DiceRollMode.Normal)
+            return await itr.response.send_message(embed=DiceEmbed(expression))
 
         @self.tree.command(
             name="advantage", description="Lucky you! Roll and take the best of two!"
@@ -115,8 +92,8 @@ class Bot(discord.Client):
             itr: discord.Interaction, diceroll: str, reason: str = None
         ):
             log_cmd(itr)
-            expressions = [DiceExpression(diceroll), DiceExpression(diceroll)]
-            await send_dice_message(itr, expressions, reason, RollMode.ADVANTAGE)
+            expression = DiceExpression(diceroll, DiceRollMode.Advantage)
+            return await itr.response.send_message(embed=DiceEmbed(expression))
 
         @self.tree.command(
             name="disadvantage",
@@ -126,8 +103,8 @@ class Bot(discord.Client):
             itr: discord.Interaction, diceroll: str, reason: str = None
         ):
             log_cmd(itr)
-            expressions = [DiceExpression(diceroll), DiceExpression(diceroll)]
-            await send_dice_message(itr, expressions, reason, RollMode.DISADVANTAGE)
+            expression = DiceExpression(diceroll, DiceRollMode.Disadvantage)
+            return await itr.response.send_message(embed=DiceEmbed(expression))
 
         @self.tree.command(name="spell", description="Get the details for a spell.")
         async def spell(itr: discord.Interaction, name: str):

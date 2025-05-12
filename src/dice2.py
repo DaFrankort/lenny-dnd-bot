@@ -5,6 +5,8 @@ import random
 import re
 from abc import ABC, abstractmethod
 
+import discord
+
 """
 Parses a dice expression and builds an Abstract Syntax Tree (AST) to roll for it.
 Based on the webpages:
@@ -31,7 +33,9 @@ Some notes:
 
 Current limitations:
 - Does not support expressions that start with '-', for example (-5) * (1d4) will crash
+- Unfinished expressions result in a crash, e.g. 1d20+
 - Does not have fancy messages yet 
+- Does not add reasons yet in title
 
 """
 
@@ -170,7 +174,7 @@ class ASTCompoundExpression(ASTExpression):
         return f"{str(self.left)} {self.operator.literal} {str(self.right)}"
 
 
-def __tokenize(expression: str) -> tuple[list[Token], list[str]]:
+def _tokenize(expression: str) -> tuple[list[Token], list[str]]:
     tokens = []
     errors = []
 
@@ -215,7 +219,7 @@ def __tokenize(expression: str) -> tuple[list[Token], list[str]]:
     return tokens, errors
 
 
-def __tokens_to_postfix(tokens: list[Token]) -> list[Token]:
+def _tokens_to_postfix(tokens: list[Token]) -> list[Token]:
     output: list[Token] = []
     stack: list[Token] = []
 
@@ -240,7 +244,7 @@ def __tokens_to_postfix(tokens: list[Token]) -> list[Token]:
     return output
 
 
-def __build_ast(postfix: list[Token]) -> tuple[ASTExpression, list[str]]:
+def _build_ast(postfix: list[Token]) -> tuple[ASTExpression, list[str]]:
     errors = []
 
     def get_next_node():
@@ -305,14 +309,14 @@ class DiceExpression(object):
         self.mode = mode
         self.title = ""
 
-        tokens, errors = __tokenize(expression)
+        tokens, errors = _tokenize(expression)
         if len(errors) > 0:
             self.errors = errors
             self.title = f"Errors found for '{expression}'"
             return
 
-        postfix = __tokens_to_postfix(tokens)
-        ast, errors = __build_ast(postfix)
+        postfix = _tokens_to_postfix(tokens)
+        ast, errors = _build_ast(postfix)
 
         if len(errors) > 0:
             self.errors = errors
@@ -334,7 +338,7 @@ class DiceExpression(object):
             self.rolls.append(DiceRoll(expression, text2, roll2))
             self.result = max(roll1, roll2)
             self.title = f"Rolling {str(ast)} with advantage!"
-        
+
         if mode == DiceRollMode.Disadvantage:
             text1, roll1 = ast.roll()
             text2, roll2 = ast.roll()
@@ -343,36 +347,24 @@ class DiceExpression(object):
             self.result = min(roll1, roll2)
             self.title = f"Rolling {str(ast)} with disadvantage!"
 
-def dice_test():
-    expressions = [
-        "1d20+5*(3*4-5d9/2)",
-        "1d20+(3*4+5d9*2)*5",
-        "2d20+2d20+4",
-        "2d20+(1)",
-        "2d20+                     1",
-        "2d20+()",
-        "3*(1d4+1)",
-    ]
 
-    for expression in expressions:
-        print(expression)
-        tokens, errors = __tokenize(expression)
-        if len(errors) > 0:
-            for error in errors:
-                print(error)
-            continue
+class DiceEmbed(discord.Embed):
+    def __init__(self, expression: DiceExpression):
+        title = expression.title
+        super().__init__(
+            colour=discord.Color.dark_blue(),
+            title=title,
+            type="rich",
+        )
+        # TODO move this logic to DiceExpression
+        description = ""
 
-        postfix = __tokens_to_postfix(tokens)
-        for token in postfix:
-            print(str(token), end=" ")
-        print()
-        ast, errors = __build_ast(postfix)
-        if len(errors) > 0:
-            for error in errors:
-                print(error)
-            continue
-        roll, result = ast.roll()
-        print(str(ast))
-        print(roll)
-        print(result)
-        print()
+        if len(expression.errors) > 0:
+            for error in expression.errors:
+                description += f"{error}\n"
+        else:
+            for roll in expression.rolls:
+                description += f"`{roll.text}` -> {roll.value}\n"
+            description += f"**Result: {expression.result}**"
+
+        self.add_field(name="", value=description)

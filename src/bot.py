@@ -17,6 +17,7 @@ from embeds import (
     NoSearchResultsFoundEmbed,
     SpellEmbed,
 )
+from initiative import Initiative
 from search import SearchEmbed, search_from_query
 from stats import Stats, StatsEmbed
 from user_colors import UserColor, ColorEmbed
@@ -259,3 +260,8 @@ class Bot(discord.Client):
             await itr.response.send_message(embed=embed)
 
         logging.info("Registered slash-commands.")
+
+        # @self.tree.command(name="initiative", description="Roll initiative for yourself or a creature.")
+        # async def initiative(itr: Interaction, modifier: int, target: str | None = None):
+        #     log_cmd(itr)
+        #     initiative = Initiative(itr, modifier, target)

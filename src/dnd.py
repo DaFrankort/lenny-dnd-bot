@@ -49,25 +49,27 @@ class DNDObjectList(object):
             return exact
         return fuzzy
 
-    def get_autocomplete_suggestions(self, query: str = "", ignore_phb2014: bool = True, limit: int = 25) -> list[Choice[str]]:
+    def get_autocomplete_suggestions(self, query: str = "", ignore_phb2014: bool = True, fuzzy_threshold: float = 75, limit: int = 25) -> list[Choice[str]]:
         query = query.strip().lower()
-        names = []
 
         if query == '':  # Return random results
             samples = random.sample(self.entries, min(limit, len(self.entries)))
-            return [Choice(name=entry.name, value=entry.name) for entry in sorted(samples)]
+            samples = sorted(samples, key=lambda e: e.name)[:limit]
+            return [Choice(name=entry.name, value=entry.name) for entry in samples]
 
+        choices = []
         for entry in self.entries:
             if ignore_phb2014 and entry.is_phb2014:
                 continue
-            name = entry.name.strip()
-            if query in name.lower():
-                names.append(name)
 
-            if len(names) >= limit:
-                break
+            score = fuzz.partial_ratio(query, entry.name.lower())
+            if score > fuzzy_threshold:
+                choices.append((score, entry.name))
+                if len(choices) > limit * 2:
+                    break  # Stop iterating, for performance reasons
 
-        return [Choice(name=name, value=name) for name in sorted(names)[:limit]]
+        choices.sort(key=lambda x: (-x[0], x[1]))  # Sort by scores
+        return [Choice(name=name, value=name) for _, name in choices[:limit]]
 
     def search(
         self, query: str, ignore_phb2014: bool = True, fuzzy_threshold: float = 75

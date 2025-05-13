@@ -67,12 +67,13 @@ class DNDObjectList(object):
 
             score = fuzz.partial_ratio(query, e.name.lower())
             if score > fuzzy_threshold:
-                choices.append((score, Choice(name=e.name, value=e.name)))
+                starts_with_query = e.name.strip().lower().startswith(query)
+                choices.append((starts_with_query, score, Choice(name=e.name, value=e.name)))
 
         choices.sort(
-            key=lambda x: (-x[0], x[1].name)
+            key=lambda x: (-x[0], -x[1], x[2].name)
         )  # Sort by scores first, then alphabetically
-        return [choice for _, choice in choices[:limit]]
+        return [choice for _, _, choice in choices[:limit]]
 
     def search(
         self, query: str, ignore_phb2014: bool = True, fuzzy_threshold: float = 75

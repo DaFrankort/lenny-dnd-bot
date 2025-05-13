@@ -114,9 +114,7 @@ class Bot(discord.Client):
         @self.tree.command(
             name="advantage", description="Lucky you! Roll and take the best of two!"
         )
-        async def advantage(
-            itr: Interaction, diceroll: str, reason: str = None
-        ):
+        async def advantage(itr: Interaction, diceroll: str, reason: str = None):
             log_cmd(itr)
             expressions = [DiceExpression(diceroll), DiceExpression(diceroll)]
             await send_dice_message(itr, expressions, reason, RollMode.ADVANTAGE)
@@ -125,19 +123,44 @@ class Bot(discord.Client):
             name="disadvantage",
             description="Tough luck chump... Roll twice and suck it.",
         )
-        async def disadvantage(
-            itr: Interaction, diceroll: str, reason: str = None
-        ):
+        async def disadvantage(itr: Interaction, diceroll: str, reason: str = None):
             log_cmd(itr)
             expressions = [DiceExpression(diceroll), DiceExpression(diceroll)]
             await send_dice_message(itr, expressions, reason, RollMode.DISADVANTAGE)
 
-        @roll.autocomplete('reason')
-        @advantage.autocomplete('reason')
-        @disadvantage.autocomplete('reason')
-        async def autocomplete_roll_reason(itr: Interaction, current: str) -> List[app_commands.Choice[str]]:
-            reasons = ['Attack', 'Damage', 'Initiative', 'Saving Throw', 'Athletics', 'Acrobatics', 'Sleight of Hand', 'Stealth', 'Arcana', 'History', 'Investigation', 'Nature', 'Religion', 'Animal Handling', 'Insight', 'Medicine', 'Perception', 'Survival', 'Deception', 'Intimidation', 'Performance', 'Persuasion']
-            filtered_reasons = [reason for reason in reasons if current.lower() in reason.lower()]
+        @roll.autocomplete("reason")
+        @advantage.autocomplete("reason")
+        @disadvantage.autocomplete("reason")
+        async def autocomplete_roll_reason(
+            itr: Interaction, current: str
+        ) -> List[app_commands.Choice[str]]:
+            reasons = [
+                "Attack",
+                "Damage",
+                "Initiative",
+                "Saving Throw",
+                "Athletics",
+                "Acrobatics",
+                "Sleight of Hand",
+                "Stealth",
+                "Arcana",
+                "History",
+                "Investigation",
+                "Nature",
+                "Religion",
+                "Animal Handling",
+                "Insight",
+                "Medicine",
+                "Perception",
+                "Survival",
+                "Deception",
+                "Intimidation",
+                "Performance",
+                "Persuasion",
+            ]
+            filtered_reasons = [
+                reason for reason in reasons if current.lower() in reason.lower()
+            ]
             return [
                 app_commands.Choice(name=reason, value=reason)
                 for reason in filtered_reasons[:25]

@@ -47,6 +47,22 @@ class DNDObjectList(object):
             return exact
         return fuzzy
 
+    def get_entry_names(self, query: str = "", ignore_phb2014: bool = True, limit: int = 25) -> list[str]:
+        query = query.strip().lower()
+        names = []
+
+        for entry in self.entries:
+            if ignore_phb2014 and entry.is_phb2014:
+                continue
+            name = entry.name.strip()
+            if query in name.lower():
+                names.append(name)
+
+            if len(names) >= limit:
+                break
+
+        return sorted(names)[:limit]
+
     def search(
         self, query: str, ignore_phb2014: bool = True, fuzzy_threshold: float = 75
     ) -> list[DNDObject]:

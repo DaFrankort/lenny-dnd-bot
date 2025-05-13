@@ -184,6 +184,11 @@ class Bot(discord.Client):
                 embed = SpellEmbed(found[0])
                 await itr.response.send_message(embed=embed)
 
+        @spell.autocomplete('name')
+        async def spell_autocomplete(itr: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
+            spell_names = self.spells.get_entry_names(query=current)
+            return [app_commands.Choice(name=name, value=name) for name in spell_names]
+
         @self.tree.command(name="item", description="Get the details for an item.")
         async def item(itr: Interaction, name: str):
             log_cmd(itr)
@@ -201,6 +206,11 @@ class Bot(discord.Client):
             else:
                 embed = ItemEmbed(found[0])
                 await itr.response.send_message(embed=embed)
+
+        @item.autocomplete('name')
+        async def item_autocomplete(itr: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
+            item_names = self.items.get_entry_names(query=current)
+            return [app_commands.Choice(name=name, value=name) for name in item_names]
 
         @self.tree.command(name="search", description="Search for a spell.")
         async def search(itr: Interaction, query: str):

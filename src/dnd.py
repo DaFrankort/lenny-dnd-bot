@@ -55,7 +55,7 @@ class DNDObjectList(object):
         fuzzy_threshold: float = 75,
         limit: int = 25,
     ) -> list[Choice[str]]:
-        query = query.strip().lower()
+        query = query.strip().lower().replace(" ", "")
 
         if query == "":
             return []
@@ -65,9 +65,10 @@ class DNDObjectList(object):
             if ignore_phb2014 and e.is_phb2014:
                 continue
 
-            score = fuzz.partial_ratio(query, e.name.lower())
+            name_clean = e.name.strip().lower().replace(" ", "")
+            score = fuzz.partial_ratio(query, name_clean)
             if score > fuzzy_threshold:
-                starts_with_query = e.name.strip().lower().startswith(query)
+                starts_with_query = name_clean.startswith(query)
                 choices.append(
                     (starts_with_query, score, Choice(name=e.name, value=e.name))
                 )

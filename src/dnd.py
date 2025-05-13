@@ -68,7 +68,9 @@ class DNDObjectList(object):
             score = fuzz.partial_ratio(query, e.name.lower())
             if score > fuzzy_threshold:
                 starts_with_query = e.name.strip().lower().startswith(query)
-                choices.append((starts_with_query, score, Choice(name=e.name, value=e.name)))
+                choices.append(
+                    (starts_with_query, score, Choice(name=e.name, value=e.name))
+                )
 
         choices.sort(
             key=lambda x: (-x[0], -x[1], x[2].name)

@@ -1,5 +1,6 @@
 import logging
 import os
+from typing import List
 import discord
 from discord import app_commands
 from dotenv import load_dotenv
@@ -51,6 +52,7 @@ class Bot(discord.Client):
         logging.info(f"Logged in as {self.user} (ID: {self.user.id})")
         self._register_commands()
         await self._attempt_sync_guild()
+        await self.tree.sync()
         print("----- READY -----")
 
     async def _attempt_sync_guild(self):
@@ -128,6 +130,17 @@ class Bot(discord.Client):
             log_cmd(itr)
             expressions = [DiceExpression(diceroll), DiceExpression(diceroll)]
             await send_dice_message(itr, expressions, reason, RollMode.DISADVANTAGE)
+
+        @roll.autocomplete('reason')
+        @advantage.autocomplete('reason')
+        @disadvantage.autocomplete('reason')
+        async def autocomplete_roll_reason(itr: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
+            reasons = ['Attack', 'Damage', 'Initiative', 'Saving Throw', 'Athletics', 'Acrobatics', 'Sleight of Hand', 'Stealth', 'Arcana', 'History', 'Investigation', 'Nature', 'Religion', 'Animal Handling', 'Insight', 'Medicine', 'Perception', 'Survival', 'Deception', 'Intimidation', 'Performance', 'Persuasion']
+            filtered_reasons = [reason for reason in reasons if current.lower() in reason.lower()]
+            return [
+                app_commands.Choice(name=reason, value=reason)
+                for reason in filtered_reasons[:25]
+            ]
 
         @self.tree.command(name="spell", description="Get the details for a spell.")
         async def spell(itr: discord.Interaction, name: str):

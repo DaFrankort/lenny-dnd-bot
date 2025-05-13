@@ -1,4 +1,5 @@
 import json
+import random
 
 from rapidfuzz import fuzz
 from discord.app_commands import Choice
@@ -51,6 +52,10 @@ class DNDObjectList(object):
     def get_autocomplete_suggestions(self, query: str = "", ignore_phb2014: bool = True, limit: int = 25) -> list[Choice[str]]:
         query = query.strip().lower()
         names = []
+
+        if query == '':  # Return random results
+            samples = random.sample(self.entries, min(limit, len(self.entries)))
+            return [Choice(name=entry.name, value=entry.name) for entry in sorted(samples)]
 
         for entry in self.entries:
             if ignore_phb2014 and entry.is_phb2014:

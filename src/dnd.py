@@ -1,6 +1,7 @@
 import json
 
 from rapidfuzz import fuzz
+from discord.app_commands import Choice
 
 
 def is_source_phb2014(source: str) -> bool:
@@ -47,7 +48,7 @@ class DNDObjectList(object):
             return exact
         return fuzzy
 
-    def get_entry_names(self, query: str = "", ignore_phb2014: bool = True, limit: int = 25) -> list[str]:
+    def get_autocomplete_suggestions(self, query: str = "", ignore_phb2014: bool = True, limit: int = 25) -> list[Choice[str]]:
         query = query.strip().lower()
         names = []
 
@@ -61,7 +62,7 @@ class DNDObjectList(object):
             if len(names) >= limit:
                 break
 
-        return sorted(names)[:limit]
+        return [Choice(name=name, value=name) for name in sorted(names)[:limit]]
 
     def search(
         self, query: str, ignore_phb2014: bool = True, fuzzy_threshold: float = 75

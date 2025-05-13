@@ -1,6 +1,5 @@
 import logging
 import os
-from typing import List
 import discord
 from discord import app_commands
 from discord import Interaction
@@ -133,7 +132,7 @@ class Bot(discord.Client):
         @disadvantage.autocomplete("reason")
         async def autocomplete_roll_reason(
             itr: Interaction, current: str
-        ) -> List[app_commands.Choice[str]]:
+        ) -> list[app_commands.Choice[str]]:
             reasons = [
                 "Attack",
                 "Damage",
@@ -185,9 +184,8 @@ class Bot(discord.Client):
                 await itr.response.send_message(embed=embed)
 
         @spell.autocomplete('name')
-        async def spell_autocomplete(itr: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
-            spell_names = self.spells.get_entry_names(query=current)
-            return [app_commands.Choice(name=name, value=name) for name in spell_names]
+        async def spell_autocomplete(itr: discord.Interaction, current: str) -> list[app_commands.Choice[str]]:
+            return self.spells.get_autocomplete_suggestions(query=current)
 
         @self.tree.command(name="item", description="Get the details for an item.")
         async def item(itr: Interaction, name: str):
@@ -208,9 +206,8 @@ class Bot(discord.Client):
                 await itr.response.send_message(embed=embed)
 
         @item.autocomplete('name')
-        async def item_autocomplete(itr: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
-            item_names = self.items.get_entry_names(query=current)
-            return [app_commands.Choice(name=name, value=name) for name in item_names]
+        async def item_autocomplete(itr: discord.Interaction, current: str) -> list[app_commands.Choice[str]]:
+            return self.items.get_autocomplete_suggestions(query=current)
 
         @self.tree.command(name="search", description="Search for a spell.")
         async def search(itr: Interaction, query: str):

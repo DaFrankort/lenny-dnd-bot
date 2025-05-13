@@ -69,9 +69,6 @@ class DNDObjectList(object):
             if score > fuzzy_threshold:
                 choices.append((score, Choice(name=e.name, value=e.name)))
 
-                if len(choices) > limit * 2:
-                    break  # Performance safeguard
-
         choices.sort(
             key=lambda x: (-x[0], x[1].name)
         )  # Sort by scores first, then alphabetically

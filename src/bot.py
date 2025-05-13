@@ -3,6 +3,7 @@ import os
 from typing import List
 import discord
 from discord import app_commands
+from discord import Interaction
 from dotenv import load_dotenv
 
 from dice import DiceExpression, DiceEmbed, RollMode
@@ -64,7 +65,7 @@ class Bot(discord.Client):
             logging.info(f"Connected to guild: {guild.name} (ID: {guild.id})")
 
     def _register_commands(self):
-        def log_cmd(itr: discord.Interaction):
+        def log_cmd(itr: Interaction):
             """Helper function to log user's command-usage in the terminal"""
             try:
                 criteria = [f"[{k}={v}]" for k, v in vars(itr.namespace).items()]
@@ -75,7 +76,7 @@ class Bot(discord.Client):
             logging.info(f"{itr.user.name} => /{itr.command.name} {criteria_text}")
 
         async def send_dice_message(
-            itr: discord.Interaction,
+            itr: Interaction,
             expressions: list[DiceExpression] | DiceExpression,
             reason: str | None = None,
             mode: RollMode = RollMode.NORMAL,
@@ -99,13 +100,13 @@ class Bot(discord.Client):
             await itr.response.send_message(additional_message, embed=embed)
 
         @self.tree.command(name="roll", description="Roll your d20s!")
-        async def roll(itr: discord.Interaction, diceroll: str, reason: str = None):
+        async def roll(itr: Interaction, diceroll: str, reason: str = None):
             log_cmd(itr)
             expression = DiceExpression(diceroll)
             await send_dice_message(itr, expression, reason)
 
         @self.tree.command(name="d20", description="Just roll a clean d20")
-        async def d20(itr: discord.Interaction):
+        async def d20(itr: Interaction):
             log_cmd(itr)
             expression = DiceExpression("1d20")
             await send_dice_message(itr, expression)
@@ -114,7 +115,7 @@ class Bot(discord.Client):
             name="advantage", description="Lucky you! Roll and take the best of two!"
         )
         async def advantage(
-            itr: discord.Interaction, diceroll: str, reason: str = None
+            itr: Interaction, diceroll: str, reason: str = None
         ):
             log_cmd(itr)
             expressions = [DiceExpression(diceroll), DiceExpression(diceroll)]
@@ -125,7 +126,7 @@ class Bot(discord.Client):
             description="Tough luck chump... Roll twice and suck it.",
         )
         async def disadvantage(
-            itr: discord.Interaction, diceroll: str, reason: str = None
+            itr: Interaction, diceroll: str, reason: str = None
         ):
             log_cmd(itr)
             expressions = [DiceExpression(diceroll), DiceExpression(diceroll)]
@@ -134,7 +135,7 @@ class Bot(discord.Client):
         @roll.autocomplete('reason')
         @advantage.autocomplete('reason')
         @disadvantage.autocomplete('reason')
-        async def autocomplete_roll_reason(itr: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
+        async def autocomplete_roll_reason(itr: Interaction, current: str) -> List[app_commands.Choice[str]]:
             reasons = ['Attack', 'Damage', 'Initiative', 'Saving Throw', 'Athletics', 'Acrobatics', 'Sleight of Hand', 'Stealth', 'Arcana', 'History', 'Investigation', 'Nature', 'Religion', 'Animal Handling', 'Insight', 'Medicine', 'Perception', 'Survival', 'Deception', 'Intimidation', 'Performance', 'Persuasion']
             filtered_reasons = [reason for reason in reasons if current.lower() in reason.lower()]
             return [
@@ -143,7 +144,7 @@ class Bot(discord.Client):
             ]
 
         @self.tree.command(name="spell", description="Get the details for a spell.")
-        async def spell(itr: discord.Interaction, name: str):
+        async def spell(itr: Interaction, name: str):
             log_cmd(itr)
             found = self.spells.get(name)
             logging.debug(f"Found {len(found)} for '{name}'")
@@ -161,7 +162,7 @@ class Bot(discord.Client):
                 await itr.response.send_message(embed=embed)
 
         @self.tree.command(name="item", description="Get the details for an item.")
-        async def item(itr: discord.Interaction, name: str):
+        async def item(itr: Interaction, name: str):
             log_cmd(itr)
             found = self.items.get(name)
             logging.debug(f"Found {len(found)} for '{name}'")
@@ -179,7 +180,7 @@ class Bot(discord.Client):
                 await itr.response.send_message(embed=embed)
 
         @self.tree.command(name="search", description="Search for a spell.")
-        async def search(itr: discord.Interaction, query: str):
+        async def search(itr: Interaction, query: str):
             log_cmd(itr)
             found_spells, found_items = search_from_query(
                 query, self.spells, self.items
@@ -199,7 +200,7 @@ class Bot(discord.Client):
             name="color",
             description="Set a preferred color using a hex-value. Leave hex_color empty to use auto-generated colors.",
         )
-        async def set_color(itr: discord.Interaction, hex_color: str = ""):
+        async def set_color(itr: Interaction, hex_color: str = ""):
             log_cmd(itr)
             if hex_color == "":
                 removed = UserColor.remove(itr)
@@ -228,7 +229,7 @@ class Bot(discord.Client):
             name="stats",
             description="Roll stats for a new character, using the 4d6 drop lowest method.",
         )
-        async def stats(itr: discord.Interaction):
+        async def stats(itr: Interaction):
             log_cmd(itr)
             stats = Stats(itr)
             embed = StatsEmbed(stats)

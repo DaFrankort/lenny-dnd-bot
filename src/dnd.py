@@ -49,10 +49,16 @@ class DNDObjectList(object):
             return exact
         return fuzzy
 
-    def get_autocomplete_suggestions(self, query: str = "", ignore_phb2014: bool = True, fuzzy_threshold: float = 75, limit: int = 25) -> list[Choice[str]]:
+    def get_autocomplete_suggestions(
+        self,
+        query: str = "",
+        ignore_phb2014: bool = True,
+        fuzzy_threshold: float = 75,
+        limit: int = 25,
+    ) -> list[Choice[str]]:
         query = query.strip().lower()
 
-        if query == '':  # Return random results
+        if query == "":  # Return random results
             samples = random.sample(self.entries, min(limit, len(self.entries)))
             samples = sorted(samples, key=lambda e: e.name)[:limit]
             return [Choice(name=entry.name, value=entry.name) for entry in samples]
@@ -69,7 +75,9 @@ class DNDObjectList(object):
                 if len(choices) > limit * 2:
                     break  # Performance safeguard
 
-        choices.sort(key=lambda x: (-x[0], x[1].name))  # Sort by scores first, then alphabetically
+        choices.sort(
+            key=lambda x: (-x[0], x[1].name)
+        )  # Sort by scores first, then alphabetically
         return [choice for _, choice in choices[:limit]]
 
     def search(

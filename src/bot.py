@@ -1,6 +1,5 @@
 import logging
 import os
-from typing import List
 import discord
 from discord import app_commands
 from discord import Interaction
@@ -133,7 +132,7 @@ class Bot(discord.Client):
         @disadvantage.autocomplete("reason")
         async def autocomplete_roll_reason(
             itr: Interaction, current: str
-        ) -> List[app_commands.Choice[str]]:
+        ) -> list[app_commands.Choice[str]]:
             reasons = [
                 "Attack",
                 "Damage",
@@ -184,6 +183,12 @@ class Bot(discord.Client):
                 embed = SpellEmbed(found[0])
                 await itr.response.send_message(embed=embed)
 
+        @spell.autocomplete("name")
+        async def spell_autocomplete(
+            itr: discord.Interaction, current: str
+        ) -> list[app_commands.Choice[str]]:
+            return self.spells.get_autocomplete_suggestions(query=current)
+
         @self.tree.command(name="item", description="Get the details for an item.")
         async def item(itr: Interaction, name: str):
             log_cmd(itr)
@@ -201,6 +206,12 @@ class Bot(discord.Client):
             else:
                 embed = ItemEmbed(found[0])
                 await itr.response.send_message(embed=embed)
+
+        @item.autocomplete("name")
+        async def item_autocomplete(
+            itr: discord.Interaction, current: str
+        ) -> list[app_commands.Choice[str]]:
+            return self.items.get_autocomplete_suggestions(query=current)
 
         @self.tree.command(name="search", description="Search for a spell.")
         async def search(itr: Interaction, query: str):

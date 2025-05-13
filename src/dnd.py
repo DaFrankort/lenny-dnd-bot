@@ -58,18 +58,19 @@ class DNDObjectList(object):
             return [Choice(name=entry.name, value=entry.name) for entry in samples]
 
         choices = []
-        for entry in self.entries:
-            if ignore_phb2014 and entry.is_phb2014:
+        for e in self.entries:
+            if ignore_phb2014 and e.is_phb2014:
                 continue
 
-            score = fuzz.partial_ratio(query, entry.name.lower())
+            score = fuzz.partial_ratio(query, e.name.lower())
             if score > fuzzy_threshold:
-                choices.append((score, entry.name))
-                if len(choices) > limit * 2:
-                    break  # Stop iterating, for performance reasons
+                choices.append((score, Choice(name=e.name, value=e.name)))
 
-        choices.sort(key=lambda x: (-x[0], x[1]))  # Sort by scores
-        return [Choice(name=name, value=name) for _, name in choices[:limit]]
+                if len(choices) > limit * 2:
+                    break  # Performance safeguard
+
+        choices.sort(key=lambda x: (-x[0], x[1].name))  # Sort by scores first, then alphabetically
+        return [choice for _, choice in choices[:limit]]
 
     def search(
         self, query: str, ignore_phb2014: bool = True, fuzzy_threshold: float = 75

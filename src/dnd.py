@@ -74,7 +74,7 @@ class DNDObjectList(object):
 
         choices.sort(
             key=lambda x: (-x[0], -x[1], x[2].name)
-        )  # Sort by scores first, then alphabetically
+        )  # Sort by query match => fuzzy score => alphabetically
         return [choice for _, _, choice in choices[:limit]]
 
     def search(

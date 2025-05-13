@@ -1,5 +1,4 @@
 import json
-import random
 
 from rapidfuzz import fuzz
 from discord.app_commands import Choice
@@ -58,10 +57,8 @@ class DNDObjectList(object):
     ) -> list[Choice[str]]:
         query = query.strip().lower()
 
-        if query == "":  # Return random results
-            samples = random.sample(self.entries, min(limit, len(self.entries)))
-            samples = sorted(samples, key=lambda e: e.name)[:limit]
-            return [Choice(name=entry.name, value=entry.name) for entry in samples]
+        if query == "":
+            return []
 
         choices = []
         for e in self.entries:

@@ -11,7 +11,6 @@ class Initiative:
     is_npc: bool
 
     def __init__(self, itr: discord.Interaction, modifier: int, name: str | None):
-        self.is_valid = True
         self.modifier = modifier
         self.is_npc = name is not None
 

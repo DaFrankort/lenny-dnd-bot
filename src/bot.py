@@ -266,8 +266,6 @@ class Bot(discord.Client):
             embed = StatsEmbed(stats)
             await itr.response.send_message(embed=embed)
 
-        logging.info("Registered slash-commands.")
-
         @self.tree.command(
             name="initiative", description="Roll initiative for yourself or a creature."
         )
@@ -305,3 +303,5 @@ class Bot(discord.Client):
             await itr.response.send_message(
                 f"❌ {itr.user.display_name} cleared Initiatives. ❌"
             )
+
+        logging.info("Registered slash-commands.")

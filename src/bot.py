@@ -273,6 +273,11 @@ class Bot(discord.Client):
         @self.tree.command(name="showinitiative", description="Show an overview of all the rolled initiatives.")
         async def show_initiative(itr: Interaction):
             log_cmd(itr)
+
+            if self.initiatives.get(itr) == []:
+                await itr.response.send_message(f"❌ There are no initiatives for {itr.guild.name} ❌", ephemeral=True)
+                return
+
             embed = InitiativeTrackerEmbed(itr, self.initiatives)
             await itr.response.send_message(embed=embed)
 

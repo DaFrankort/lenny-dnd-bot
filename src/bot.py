@@ -275,3 +275,9 @@ class Bot(discord.Client):
             log_cmd(itr)
             embed = InitiativeTrackerEmbed(itr, self.initiatives)
             await itr.response.send_message(embed=embed)
+
+        @self.tree.command(name="clearinitiative", description="Clear all initiative rolls.")
+        async def clear_initiative(itr: Interaction):
+            log_cmd(itr)
+            self.initiatives.clear(itr)
+            await itr.response.send_message(f"❌ {itr.user.display_name} cleared Initiatives. ❌")

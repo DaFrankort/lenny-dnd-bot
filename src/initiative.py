@@ -60,6 +60,11 @@ class InitiativeTracker:
         else:
             self.server_initiatives[guild_id].append(initiative)
 
+    def clear(self, itr: discord.Interaction):
+        guild_id = int(itr.guild_id)
+        if guild_id in self.server_initiatives:
+            del self.server_initiatives[guild_id]
+
 
 class InitiativeEmbed(discord.Embed):
     def __init__(self, itr: discord.Interaction, initiative: Initiative):

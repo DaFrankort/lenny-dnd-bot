@@ -47,7 +47,9 @@ class InitiativeTracker:
         else:
             self.server_initiatives[guild_id].append(initiative)
 
-        self.server_initiatives[guild_id].sort(key=lambda i: i.get_total(), reverse=True)
+        self.server_initiatives[guild_id].sort(
+            key=lambda i: i.get_total(), reverse=True
+        )
 
     def _append_user_initiative(self, guild_id: int, initiative: Initiative):
         for i, server_initiative in enumerate(self.server_initiatives[guild_id]):
@@ -87,9 +89,7 @@ class InitiativeEmbed(discord.Embed):
         description += f"Initiative: **{total}**"
 
         super().__init__(
-            type="rich",
-            color=UserColor.get(itr),
-            description=description
+            type="rich", color=UserColor.get(itr), description=description
         ),
         self.set_author(name=title, icon_url=itr.user.avatar.url)
 
@@ -105,5 +105,5 @@ class InitiativeTrackerEmbed(discord.Embed):
             title="Initiatives",
             type="rich",
             color=discord.Color.dark_green(),
-            description=description
+            description=description,
         )

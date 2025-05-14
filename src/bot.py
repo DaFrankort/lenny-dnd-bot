@@ -17,7 +17,12 @@ from embeds import (
     NoSearchResultsFoundEmbed,
     SpellEmbed,
 )
-from initiative import Initiative, InitiativeEmbed, InitiativeTracker, InitiativeTrackerEmbed
+from initiative import (
+    Initiative,
+    InitiativeEmbed,
+    InitiativeTracker,
+    InitiativeTrackerEmbed,
+)
 from search import SearchEmbed, search_from_query
 from stats import Stats, StatsEmbed
 from user_colors import UserColor, ColorEmbed
@@ -263,26 +268,40 @@ class Bot(discord.Client):
 
         logging.info("Registered slash-commands.")
 
-        @self.tree.command(name="initiative", description="Roll initiative for yourself or a creature.")
-        async def initiative(itr: Interaction, modifier: int, target: str | None = None):
+        @self.tree.command(
+            name="initiative", description="Roll initiative for yourself or a creature."
+        )
+        async def initiative(
+            itr: Interaction, modifier: int, target: str | None = None
+        ):
             log_cmd(itr)
             initiative = Initiative(itr, modifier, target)
             self.initiatives.add(itr, initiative)
             await itr.response.send_message(embed=InitiativeEmbed(itr, initiative))
 
-        @self.tree.command(name="showinitiative", description="Show an overview of all the rolled initiatives.")
+        @self.tree.command(
+            name="showinitiative",
+            description="Show an overview of all the rolled initiatives.",
+        )
         async def show_initiative(itr: Interaction):
             log_cmd(itr)
 
             if self.initiatives.get(itr) == []:
-                await itr.response.send_message(f"❌ There are no initiatives for {itr.guild.name} ❌", ephemeral=True)
+                await itr.response.send_message(
+                    f"❌ There are no initiatives for {itr.guild.name} ❌",
+                    ephemeral=True,
+                )
                 return
 
             embed = InitiativeTrackerEmbed(itr, self.initiatives)
             await itr.response.send_message(embed=embed)
 
-        @self.tree.command(name="clearinitiative", description="Clear all initiative rolls.")
+        @self.tree.command(
+            name="clearinitiative", description="Clear all initiative rolls."
+        )
         async def clear_initiative(itr: Interaction):
             log_cmd(itr)
             self.initiatives.clear(itr)
-            await itr.response.send_message(f"❌ {itr.user.display_name} cleared Initiatives. ❌")
+            await itr.response.send_message(
+                f"❌ {itr.user.display_name} cleared Initiatives. ❌"
+            )

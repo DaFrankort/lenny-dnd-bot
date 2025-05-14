@@ -17,7 +17,7 @@ from embeds import (
     NoSearchResultsFoundEmbed,
     SpellEmbed,
 )
-from initiative import Initiative, InitiativeEmbed
+from initiative import Initiative, InitiativeEmbed, InitiativeTracker, InitiativeTrackerEmbed
 from search import SearchEmbed, search_from_query
 from stats import Stats, StatsEmbed
 from user_colors import UserColor, ColorEmbed
@@ -29,6 +29,7 @@ class Bot(discord.Client):
     guild_id: int
     spells: SpellList
     items: ItemList
+    initiatives: InitiativeTracker
 
     def __init__(self):
         load_dotenv()
@@ -43,6 +44,7 @@ class Bot(discord.Client):
 
         self.spells = SpellList()
         self.items = ItemList()
+        self.initiatives = InitiativeTracker()
 
     def run_client(self):
         """Starts the bot using the token stored in .env"""
@@ -265,4 +267,11 @@ class Bot(discord.Client):
         async def initiative(itr: Interaction, modifier: int, target: str | None = None):
             log_cmd(itr)
             initiative = Initiative(itr, modifier, target)
+            self.initiatives.add(itr, initiative)
             await itr.response.send_message(embed=InitiativeEmbed(itr, initiative))
+
+        @self.tree.command(name="showinitiative", description="Show an overview of all the rolled initiatives.")
+        async def show_initiative(itr: Interaction):
+            log_cmd(itr)
+            embed = InitiativeTrackerEmbed(itr, self.initiatives)
+            await itr.response.send_message(embed=embed)

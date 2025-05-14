@@ -40,27 +40,24 @@ class InitiativeTracker:
     def add(self, itr: discord.Interaction, initiative: Initiative):
         guild_id = int(itr.guild_id)
         if guild_id not in self.server_initiatives:
-            self.server_initiatives[guild_id] = []
+            self.server_initiatives[guild_id] = [initiative]
+            return
 
-        if not initiative.is_npc:
-            self._append_user_initiative(guild_id, initiative)
-        else:
+        self.server_initiatives[guild_id] = [  # Prevent duplicate users
+            s_initiative for s_initiative in self.server_initiatives[guild_id]
+            if not (s_initiative.name == initiative.name and not s_initiative.is_npc)
+        ]
+
+        insert_index = -1
+        for i, s_initiative in enumerate(self.server_initiatives[guild_id]):
+            if initiative.get_total() > s_initiative.get_total():
+                insert_index = i
+                break  # Insert user in correct place
+
+        if insert_index == -1:
             self.server_initiatives[guild_id].append(initiative)
-
-        self.server_initiatives[guild_id].sort(
-            key=lambda i: i.get_total(), reverse=True
-        )
-
-    def _append_user_initiative(self, guild_id: int, initiative: Initiative):
-        for i, server_initiative in enumerate(self.server_initiatives[guild_id]):
-            if (
-                server_initiative.name == initiative.name
-                and not server_initiative.is_npc
-            ):
-                self.server_initiatives[guild_id][i] = initiative
-                break
         else:
-            self.server_initiatives[guild_id].append(initiative)
+            self.server_initiatives[guild_id].insert(insert_index, initiative)
 
     def clear(self, itr: discord.Interaction):
         guild_id = int(itr.guild_id)

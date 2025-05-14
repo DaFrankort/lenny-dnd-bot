@@ -44,7 +44,8 @@ class InitiativeTracker:
             return
 
         self.server_initiatives[guild_id] = [  # Prevent duplicate users
-            s_initiative for s_initiative in self.server_initiatives[guild_id]
+            s_initiative
+            for s_initiative in self.server_initiatives[guild_id]
             if not (s_initiative.name == initiative.name and not s_initiative.is_npc)
         ]
 

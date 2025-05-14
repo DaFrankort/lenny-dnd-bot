@@ -138,3 +138,20 @@ class TestInitiativeTracker:
         assert (
             tracker.get(itr2)[0].name == initiative2.name
         ), f"Expected name '{initiative2.name}' for guild 2, got '{tracker.get(itr2)[0].name}'"
+
+    def test_sorting_order(self, tracker):
+        itr = MockInteraction()
+        for i in range(50):
+            initiative = Initiative(itr, 3, f"Goblin {i}")
+            tracker.add(itr, initiative)
+
+        sorted_initiatives = tracker.get(itr)
+
+        for i in range(1, len(sorted_initiatives)):
+            assert sorted_initiatives[i-1].get_total() >= sorted_initiatives[i].get_total(), "Initiatives are not sorted in descending order"
+
+        for i in range(1, len(sorted_initiatives)):
+            prev_initiative = sorted_initiatives[i-1]
+            curr_initiative = sorted_initiatives[i]
+            if prev_initiative.get_total() == curr_initiative.get_total():
+                assert sorted_initiatives.index(prev_initiative) < sorted_initiatives.index(curr_initiative), "Equal total initiatives are not in insertion order"

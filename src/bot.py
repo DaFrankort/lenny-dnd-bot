@@ -289,10 +289,13 @@ class Bot(discord.Client):
             log_cmd(itr)
             initiative = Initiative(itr, modifier, name)
             self.initiatives.add(itr, initiative)
-            await itr.response.send_message(embed=InitiativeEmbed(itr, initiative, True))
+            await itr.response.send_message(
+                embed=InitiativeEmbed(itr, initiative, True)
+            )
 
         @self.tree.command(
-            name="setinitiative", description="Set initiative for yourself or a creature."
+            name="setinitiative",
+            description="Set initiative for yourself or a creature.",
         )
         @app_commands.describe(
             value="The initiative value to use.",
@@ -303,7 +306,9 @@ class Bot(discord.Client):
             initiative = Initiative(itr, 0, name)
             initiative.set_value(value)
             self.initiatives.add(itr, initiative)
-            await itr.response.send_message(embed=InitiativeEmbed(itr, initiative, False))
+            await itr.response.send_message(
+                embed=InitiativeEmbed(itr, initiative, False)
+            )
 
         @set_initiative.autocomplete("name")
         async def set_initiative_autocomplete(

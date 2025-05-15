@@ -291,6 +291,27 @@ class Bot(discord.Client):
             await itr.response.send_message(embed=InitiativeEmbed(itr, initiative))
 
         @self.tree.command(
+            name="bulkinitiative", description="Roll initiative for a defined amount of creatures."
+        )
+        @app_commands.describe(
+            modifier="The initiative modifier to apply to the roll.",
+            name="The names to use for the creatures.",
+            amount="The amount of creatures to create. Must be positive number."
+        )
+        async def bulk_initiative(itr: Interaction, modifier: int, name: str, amount: int):
+            log_cmd(itr)
+
+            if amount < 0:
+                await itr.response.send_message("Amount must be a positive number larger than 0.", ephemeral=True)
+                return
+
+            for i in range(amount):
+                initiative = Initiative(itr, modifier, f"{name} {i+1}")
+                self.initiatives.add(itr, initiative)
+
+            await itr.response.send_message(embed=InitiativeEmbed(itr, initiative))
+
+        @self.tree.command(
             name="showinitiative",
             description="Show an overview of all the rolled initiatives.",
         )

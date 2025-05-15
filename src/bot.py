@@ -269,11 +269,15 @@ class Bot(discord.Client):
         @self.tree.command(
             name="initiative", description="Roll initiative for yourself or a creature."
         )
+        @app_commands.describe(
+            modifier="The initiative modifier to apply to the roll.",
+            name="The unique name of the creature you're rolling initiative for (leave blank to roll for yourself)."
+        )
         async def initiative(
-            itr: Interaction, modifier: int, target: str | None = None
+            itr: Interaction, modifier: int, name: str | None = None
         ):
             log_cmd(itr)
-            initiative = Initiative(itr, modifier, target)
+            initiative = Initiative(itr, modifier, name)
             self.initiatives.add(itr, initiative)
             await itr.response.send_message(embed=InitiativeEmbed(itr, initiative))
 

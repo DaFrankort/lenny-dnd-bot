@@ -297,14 +297,18 @@ class Bot(discord.Client):
         @app_commands.describe(
             modifier="The initiative modifier to apply to the roll.",
             name="The names to use for the creatures.",
-            amount="The amount of creatures to create."
+            amount="The amount of creatures to create.",
+            shared="Use the same initiative value for all creatures?"
         )
-        async def bulk_initiative(itr: Interaction, modifier: int, name: str, amount: app_commands.Range[int, 1]):
+        async def bulk_initiative(itr: Interaction, modifier: int, name: str, amount: app_commands.Range[int, 1], shared: bool = False):
             log_cmd(itr)
 
             initiatives = []
             for i in range(amount):
                 initiative = Initiative(itr, modifier, f"{name} {i+1}")
+                if shared and i != 0:
+                    initiative.d20 = initiatives[0].d20  # Use roll from first.
+
                 initiatives.append(initiative)
                 self.initiatives.add(itr, initiative)
 

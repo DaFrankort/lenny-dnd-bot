@@ -19,6 +19,10 @@ class Initiative:
     def get_total(self):
         return self.d20 + self.modifier
 
+    def set_value(self, value: int):
+        self.d20 = max(1, min(20, value))
+        self.modifier = value - self.d20
+
 
 class InitiativeTracker:
     server_initiatives: dict[int, list[Initiative]]
@@ -60,13 +64,14 @@ class InitiativeTracker:
 
 
 class InitiativeEmbed(discord.Embed):
-    def __init__(self, itr: discord.Interaction, initiative: Initiative):
+    def __init__(self, itr: discord.Interaction, initiative: Initiative, rolled: bool):
         username = itr.user.display_name
+        action_text = "rolled" if rolled else "set"
 
         if initiative.is_npc:
-            title = f"{username} rolled Initiative for {initiative.name}!"
+            title = f"{username} {action_text} Initiative for {initiative.name}!"
         else:
-            title = f"{username} rolled Initiative!"
+            title = f"{username} {action_text} Initiative!"
 
         mod = initiative.modifier
         d20 = initiative.d20

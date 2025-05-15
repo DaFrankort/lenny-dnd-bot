@@ -85,6 +85,25 @@ class InitiativeEmbed(discord.Embed):
         self.set_author(name=title, icon_url=itr.user.avatar.url)
 
 
+class BulkInitiativeEmbed(discord.Embed):
+    def __init__(
+        self, itr: discord.Interaction, initiatives: list[Initiative], name: str
+    ):
+        username = itr.user.display_name
+
+        title = f"{username} rolled Initiative for {len(initiatives)} {name}(s)!"
+
+        description = ""
+        for initiative in initiatives:
+            total = initiative.get_total()
+            description += f"- ``{total:>2}`` - {initiative.name}\n"
+
+        super().__init__(
+            type="rich", color=UserColor.get(itr), description=description
+        ),
+        self.set_author(name=title, icon_url=itr.user.avatar.url)
+
+
 class InitiativeTrackerEmbed(discord.Embed):
     def __init__(self, itr: discord.Interaction, tracker: InitiativeTracker):
         description = ""

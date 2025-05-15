@@ -62,6 +62,25 @@ class TestInitiative:
             initiative.get_total() == expected
         ), "Initiative total should equal random d20 value + modifier."
 
+    @pytest.mark.parametrize(
+        "val, expected_d20, expected_modifier",
+        [
+            (25, 20, 5),  # 25 -> d20=20, modifier=5
+            (-3, 1, -4),  # -3 -> d20=1, modifier=-2
+            (10, 10, 0),  # 10 -> d20=10, modifier=0
+        ],
+    )
+    def test_set_initiative(self, val, expected_d20, expected_modifier):
+        itr = MockInteraction()
+        initiative = Initiative(itr, 0, None)
+        initiative.set_value(val)
+        assert (
+            initiative.d20 == expected_d20
+        ), f"Expected d20={expected_d20}, got {initiative.d20}"
+        assert (
+            initiative.modifier == expected_modifier
+        ), f"Expected modifier={expected_modifier}, got {initiative.modifier}"
+
 
 class TestInitiativeTracker:
     @pytest.fixture

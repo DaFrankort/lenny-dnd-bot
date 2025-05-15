@@ -2,6 +2,8 @@ import random
 import discord
 
 from user_colors import UserColor
+from rapidfuzz import fuzz
+from discord.app_commands import Choice
 
 
 class Initiative:
@@ -61,6 +63,33 @@ class InitiativeTracker:
         guild_id = int(itr.guild_id)
         if guild_id in self.server_initiatives:
             del self.server_initiatives[guild_id]
+
+    def get_autocomplete_suggestions(
+        self,
+        itr: discord.Interaction,
+        query: str = "",
+        fuzzy_threshold: float = 75,
+        limit: int = 25,
+    ) -> list[Choice[str]]:
+        query = query.strip().lower().replace(" ", "")
+
+        if query == "":
+            return []
+
+        choices = []
+        for e in self.get(itr):
+            name_clean = e.name.strip().lower().replace(" ", "")
+            score = fuzz.partial_ratio(query, name_clean)
+            if score > fuzzy_threshold:
+                starts_with_query = name_clean.startswith(query)
+                choices.append(
+                    (starts_with_query, score, Choice(name=e.name, value=e.name))
+                )
+
+        choices.sort(
+            key=lambda x: (-x[0], -x[1], x[2].name)
+        )  # Sort by query match => fuzzy score => alphabetically
+        return [choice for _, _, choice in choices[:limit]]
 
 
 class InitiativeEmbed(discord.Embed):

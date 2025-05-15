@@ -305,6 +305,12 @@ class Bot(discord.Client):
             self.initiatives.add(itr, initiative)
             await itr.response.send_message(embed=InitiativeEmbed(itr, initiative, False))
 
+        @set_initiative.autocomplete("name")
+        async def set_initiative_autocomplete(
+            itr: discord.Interaction, current: str
+        ) -> list[app_commands.Choice[str]]:
+            return self.initiatives.get_autocomplete_suggestions(itr, current)
+
         @self.tree.command(
             name="bulkinitiative",
             description="Roll initiative for a defined amount of creatures.",

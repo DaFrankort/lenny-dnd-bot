@@ -174,4 +174,6 @@ class TestInitiativeTracker:
         add_initiative()
         length = len(tracker.get(itr))
         add_initiative()
-        assert length == len(tracker.get(itr)), f"Initiative names should be unique, not unique for {name or 'User'}"
+        assert length == len(
+            tracker.get(itr)
+        ), f"Initiative names should be unique, not unique for {name or 'User'}"

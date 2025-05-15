@@ -296,14 +296,10 @@ class Bot(discord.Client):
         @app_commands.describe(
             modifier="The initiative modifier to apply to the roll.",
             name="The names to use for the creatures.",
-            amount="The amount of creatures to create. Must be positive number."
+            amount="The amount of creatures to create."
         )
-        async def bulk_initiative(itr: Interaction, modifier: int, name: str, amount: int):
+        async def bulk_initiative(itr: Interaction, modifier: int, name: str, amount: app_commands.Range[int, 1]):
             log_cmd(itr)
-
-            if amount < 0:
-                await itr.response.send_message("Amount must be a positive number larger than 0.", ephemeral=True)
-                return
 
             for i in range(amount):
                 initiative = Initiative(itr, modifier, f"{name} {i+1}")

@@ -17,6 +17,7 @@ from embeds import (
     SpellEmbed,
 )
 from initiative import (
+    BulkInitiativeEmbed,
     Initiative,
     InitiativeEmbed,
     InitiativeTracker,
@@ -301,11 +302,13 @@ class Bot(discord.Client):
         async def bulk_initiative(itr: Interaction, modifier: int, name: str, amount: app_commands.Range[int, 1]):
             log_cmd(itr)
 
+            initiatives = []
             for i in range(amount):
                 initiative = Initiative(itr, modifier, f"{name} {i+1}")
+                initiatives.append(initiative)
                 self.initiatives.add(itr, initiative)
 
-            await itr.response.send_message(embed=InitiativeEmbed(itr, initiative))
+            await itr.response.send_message(embed=BulkInitiativeEmbed(itr, initiatives, name))
 
         @self.tree.command(
             name="showinitiative",

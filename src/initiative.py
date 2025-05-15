@@ -12,7 +12,7 @@ class Initiative:
 
     def __init__(self, itr: discord.Interaction, modifier: int, name: str | None):
         self.is_npc = name is not None
-        self.name = name if name else itr.user.display_name
+        self.name = name or itr.user.display_name
         self.d20 = random.randint(1, 20)
         self.modifier = modifier
 
@@ -76,7 +76,7 @@ class InitiativeEmbed(discord.Embed):
         if mod > 0:
             description = f"- ``[{d20}]+{mod}`` -> {total}\n"
         elif mod < 0:
-            description = f"- ``[{d20}]-{mod*-1}`` -> {total}\n"
+            description = f"- ``[{d20}]-{-mod}`` -> {total}\n"
         description += f"Initiative: **{total}**"
 
         super().__init__(

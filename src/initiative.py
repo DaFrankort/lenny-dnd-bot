@@ -2,6 +2,8 @@ import random
 import discord
 
 from user_colors import UserColor
+from rapidfuzz import fuzz
+from discord.app_commands import Choice
 
 
 class Initiative:
@@ -18,6 +20,10 @@ class Initiative:
 
     def get_total(self):
         return self.d20 + self.modifier
+
+    def set_value(self, value: int):
+        self.d20 = max(1, min(20, value))
+        self.modifier = value - self.d20
 
 
 class InitiativeTracker:
@@ -58,15 +64,43 @@ class InitiativeTracker:
         if guild_id in self.server_initiatives:
             del self.server_initiatives[guild_id]
 
+    def get_autocomplete_suggestions(
+        self,
+        itr: discord.Interaction,
+        query: str = "",
+        fuzzy_threshold: float = 75,
+        limit: int = 25,
+    ) -> list[Choice[str]]:
+        query = query.strip().lower().replace(" ", "")
+
+        if query == "":
+            return []
+
+        choices = []
+        for e in self.get(itr):
+            name_clean = e.name.strip().lower().replace(" ", "")
+            score = fuzz.partial_ratio(query, name_clean)
+            if score > fuzzy_threshold:
+                starts_with_query = name_clean.startswith(query)
+                choices.append(
+                    (starts_with_query, score, Choice(name=e.name, value=e.name))
+                )
+
+        choices.sort(
+            key=lambda x: (-x[0], -x[1], x[2].name)
+        )  # Sort by query match => fuzzy score => alphabetically
+        return [choice for _, _, choice in choices[:limit]]
+
 
 class InitiativeEmbed(discord.Embed):
-    def __init__(self, itr: discord.Interaction, initiative: Initiative):
+    def __init__(self, itr: discord.Interaction, initiative: Initiative, rolled: bool):
         username = itr.user.display_name
+        action_text = "rolled" if rolled else "set"
 
         if initiative.is_npc:
-            title = f"{username} rolled Initiative for {initiative.name}!"
+            title = f"{username} {action_text} Initiative for {initiative.name}!"
         else:
-            title = f"{username} rolled Initiative!"
+            title = f"{username} {action_text} Initiative!"
 
         mod = initiative.modifier
         d20 = initiative.d20

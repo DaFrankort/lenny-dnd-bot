@@ -271,11 +271,9 @@ class Bot(discord.Client):
         )
         @app_commands.describe(
             modifier="The initiative modifier to apply to the roll.",
-            name="The unique name of the creature you're rolling initiative for (leave blank to roll for yourself)."
+            name="The unique name of the creature you're rolling initiative for (leave blank to roll for yourself).",
         )
-        async def initiative(
-            itr: Interaction, modifier: int, name: str | None = None
-        ):
+        async def initiative(itr: Interaction, modifier: int, name: str | None = None):
             log_cmd(itr)
             initiative = Initiative(itr, modifier, name)
             self.initiatives.add(itr, initiative)

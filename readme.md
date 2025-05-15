@@ -85,3 +85,9 @@ Once the bot is added to your server, you can use the following commands:
 
 Your roll-embeds will be automatically given a unique colour dependant on your discord-username.
 If wanted you can give yourself a color by doing `/color <hex-value>`, you can clear this at any time by doing `/color`.
+
+### Track Initiative
+
+- `/initiative <modifier> <target>` - Roll for initiative, all rolls are stored per server. You can provide a 'target' to roll for NPC's / Creatures, if not specified roll will be done for user.
+- `/showinitiative` - Shows an embed with all the initiatives, used to track the order & who's turn it is.
+- `/clearinitiative` - Clears all stored initiatives in the server, used after a battle.

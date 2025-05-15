@@ -86,7 +86,9 @@ class InitiativeEmbed(discord.Embed):
 
 
 class BulkInitiativeEmbed(discord.Embed):
-    def __init__(self, itr: discord.Interaction, initiatives: list[Initiative], name: str):
+    def __init__(
+        self, itr: discord.Interaction, initiatives: list[Initiative], name: str
+    ):
         username = itr.user.display_name
 
         title = f"{username} rolled Initiative for {len(initiatives)} {name}(s)!"

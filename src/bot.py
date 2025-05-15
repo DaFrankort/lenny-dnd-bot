@@ -292,19 +292,28 @@ class Bot(discord.Client):
             await itr.response.send_message(embed=InitiativeEmbed(itr, initiative))
 
         @self.tree.command(
-            name="bulkinitiative", description="Roll initiative for a defined amount of creatures."
+            name="bulkinitiative",
+            description="Roll initiative for a defined amount of creatures.",
         )
         @app_commands.describe(
             modifier="The initiative modifier to apply to the roll.",
             name="The names to use for the creatures.",
             amount="The amount of creatures to create.",
-            shared="Use the same initiative value for all creatures?"
+            shared="Use the same initiative value for all creatures?",
         )
-        async def bulk_initiative(itr: Interaction, modifier: int, name: str, amount: app_commands.Range[int, 1], shared: bool = False):
+        async def bulk_initiative(
+            itr: Interaction,
+            modifier: int,
+            name: str,
+            amount: app_commands.Range[int, 1],
+            shared: bool = False,
+        ):
             log_cmd(itr)
 
             initiatives = []
-            for i in range(amount):
+            for i in range(
+                amount
+            ):  # TODO Move to BulkInitiative class, so it can be unit-tested.
                 initiative = Initiative(itr, modifier, f"{name} {i+1}")
                 if shared and i != 0:
                     initiative.d20 = initiatives[0].d20  # Use roll from first.
@@ -312,7 +321,9 @@ class Bot(discord.Client):
                 initiatives.append(initiative)
                 self.initiatives.add(itr, initiative)
 
-            await itr.response.send_message(embed=BulkInitiativeEmbed(itr, initiatives, name))
+            await itr.response.send_message(
+                embed=BulkInitiativeEmbed(itr, initiatives, name)
+            )
 
         @self.tree.command(
             name="showinitiative",

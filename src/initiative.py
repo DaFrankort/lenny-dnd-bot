@@ -12,9 +12,7 @@ class Initiative:
 
     def __init__(self, itr: discord.Interaction, modifier: int, name: str | None):
         self.is_npc = name is not None
-        if name is None:
-            name = itr.user.display_name  # Default to user's name
-        self.name = name
+        self.name = name if name else itr.user.display_name
         self.d20 = random.randint(1, 20)
         self.modifier = modifier
 
@@ -38,10 +36,10 @@ class InitiativeTracker:
             self.server_initiatives[guild_id] = [initiative]
             return
 
-        self.server_initiatives[guild_id] = [  # Prevent duplicate users
+        self.server_initiatives[guild_id] = [  # Enforce unique names
             s_initiative
             for s_initiative in self.server_initiatives[guild_id]
-            if not (s_initiative.name == initiative.name and not s_initiative.is_npc)
+            if not (s_initiative.name == initiative.name)
         ]
 
         insert_index = -1

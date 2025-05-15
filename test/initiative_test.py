@@ -162,3 +162,16 @@ class TestInitiativeTracker:
                 ) < sorted_initiatives.index(
                     curr_initiative
                 ), "Equal total initiatives are not in insertion order"
+
+    @pytest.mark.parametrize("name", [None, "NPC"])
+    def test_names_are_unique(self, name, tracker):
+        itr = MockInteraction()
+
+        def add_initiative():
+            initiative = Initiative(itr, 0, name)
+            tracker.add(itr, initiative)
+
+        add_initiative()
+        length = len(tracker.get(itr))
+        add_initiative()
+        assert length == len(tracker.get(itr)), f"Initiative names should be unique, not unique for {name or 'User'}"

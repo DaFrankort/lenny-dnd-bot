@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
+import logging
 import math
 import random
 import re
@@ -35,7 +36,6 @@ Some notes:
 
 Current limitations:
 - Does not support expressions that start with '-', for example (-5) * (1d4) will crash
-- Does not have fancy messages yet
 
 """
 
@@ -92,9 +92,62 @@ class Token(object):
         ]
 
 
+@dataclass
+class DiceRollDice(object):
+    roll: int
+    face: int
+
+    @property
+    def is_d20(self) -> bool:
+        return self.face == 20
+
+
+class DiceRoll(object):
+    text: str
+    value: int
+    dice_rolled: list[DiceRollDice]
+    is_only_dice_modifiers_and_additions: bool
+
+    def __init__(self):
+        self.text = ""
+        self.value = 0
+        self.dice_rolled = []
+        self.is_only_dice_modifiers_and_additions = True
+        pass
+
+    @property
+    def is_natural_one(self) -> bool:
+        if not self.is_only_dice_modifiers_and_additions:
+            return False
+        if len(self.dice_rolled) != 1:
+            return False
+
+        dice = self.dice_rolled[0]
+        return dice.is_d20 and dice.roll == 1
+
+    @property
+    def is_natural_twenty(self) -> bool:
+        if not self.is_only_dice_modifiers_and_additions:
+            return False
+        if len(self.dice_rolled) != 1:
+            return False
+
+        dice = self.dice_rolled[0]
+        return dice.is_d20 and dice.roll == 20
+
+    @property
+    def is_dirty_twenty(self) -> bool:
+        if not self.is_only_dice_modifiers_and_additions:
+            return False
+        if len(self.dice_rolled) != 1:
+            return False
+        dice = self.dice_rolled[0]
+        return dice.is_d20 and dice.roll != 20 and self.value == 20
+
+
 class ASTExpression(ABC):
     @abstractmethod
-    def roll(self) -> tuple[str, int]:
+    def roll(self) -> DiceRoll:
         pass
 
     @abstractmethod
@@ -106,28 +159,37 @@ class ASTExpression(ABC):
 class ASTDiceExpression(ASTExpression):
     dice: Token
 
-    def roll(self) -> tuple[str, int]:
-        # TODO clean this up
+    def roll(self) -> DiceRoll:
         dice = self.dice.literal
         if dice.startswith("d"):
             dice = f"1{dice}"
 
         params = dice.split("d")
 
-        # Single modifier, no d
+        # Modifier, no "d" found in dice
         if len(params) == 1:
             value = params[0]
-            return str(value), int(value)
+            roll = DiceRoll()
+            roll.text = str(value)
+            roll.value = int(value)
+            roll.is_only_dice_modifiers_and_additions = True
+            roll.dice_rolled = []
+            return roll
+        # Dice
         elif len(params) == 2:
             count = int(params[0])
             faces = int(params[1])
-            rolls = [random.randint(1, faces) for _ in range(count)]
-            roll = sum(rolls)
-            text = "[" + ",".join(map(str, rolls)) + "]"
-            return text, roll
+            values = [random.randint(1, faces) for _ in range(count)]
+
+            roll = DiceRoll()
+            roll.text = "[" + ",".join(map(str, values)) + "]"
+            roll.value = sum(values)
+            roll.is_only_dice_modifiers_and_additions = True
+            roll.dice_rolled = [DiceRollDice(value, faces) for value in values]
+            return roll
         else:
-            print("Invalid dice", self.dice.literal)
-            exit(1)
+            logging.error("Invalid dice", self.dice.literal)
+            exit(1)  # TODO don't exit
 
     def __str__(self) -> str:
         return self.dice.literal
@@ -142,9 +204,10 @@ class ASTGroupExpression(ASTExpression):
 
     expression: ASTExpression
 
-    def roll(self) -> tuple[str, int]:
-        text, roll = self.expression.roll()
-        return f"({text})", roll
+    def roll(self) -> DiceRoll:
+        roll = self.expression.roll()
+        roll.text = f"({roll.text})"
+        return roll
 
     def __str__(self) -> str:
         return f"({str(self.expression)})"
@@ -156,21 +219,30 @@ class ASTCompoundExpression(ASTExpression):
     left: ASTExpression
     right: ASTExpression
 
-    def roll(self) -> tuple[str, int]:
-        ltext, lroll = self.left.roll()
-        rtext, rroll = self.right.roll()
+    def roll(self) -> DiceRoll:
+        roll = DiceRoll()
+        lroll = self.left.roll()
+        rroll = self.right.roll()
 
-        text = f"{ltext} {self.operator.literal} {rtext}"
+        roll.text = f"{lroll.text} {self.operator.literal} {rroll.text}"
+        roll.is_only_dice_modifiers_and_additions = (
+            self.operator.type in [TokenType.Plus, TokenType.Minus]
+            and lroll.is_only_dice_modifiers_and_additions
+            and rroll.is_only_dice_modifiers_and_additions
+        )
+        roll.dice_rolled.extend(lroll.dice_rolled)
+        roll.dice_rolled.extend(rroll.dice_rolled)
+
         if self.operator.type == TokenType.Plus:
-            roll = lroll + rroll
+            roll.value = lroll.value + rroll.value
         elif self.operator.type == TokenType.Minus:
-            roll = lroll - rroll
+            roll.value = lroll.value - rroll.value
         elif self.operator.type == TokenType.Multiply:
-            roll = lroll * rroll
+            roll.value = lroll.value * rroll.value
         elif self.operator.type == TokenType.Divide:
-            roll = int(math.floor(lroll / rroll))
+            roll.value = int(math.floor(lroll.value / rroll.value))
 
-        return text, roll
+        return roll
 
     def __str__(self):
         return f"{str(self.left)} {self.operator.literal} {str(self.right)}"
@@ -312,17 +384,10 @@ class DiceRollMode(Enum):
     Disadvantage = "disadvantage"
 
 
-@dataclass
-class DiceRoll(object):
-    expression: str
-    text: str
-    value: int
-
-
 class DiceExpression(object):
     ast: ASTExpression
+    roll: DiceRoll
     rolls: list[DiceRoll]
-    result: int
     errors: list[str]
     mode: DiceRollMode
     title: str
@@ -349,25 +414,23 @@ class DiceExpression(object):
         self.ast = ast
 
         if mode == DiceRollMode.Normal:
-            text, roll = ast.roll()
-            self.rolls.append(DiceRoll(expression, text, roll))
-            self.result = roll
+            roll = ast.roll()
+            self.roll = roll
+            self.rolls = [roll]
             self.title = f"Rolling {str(ast)}!"
 
         if mode == DiceRollMode.Advantage:
-            text1, roll1 = ast.roll()
-            text2, roll2 = ast.roll()
-            self.rolls.append(DiceRoll(expression, text1, roll1))
-            self.rolls.append(DiceRoll(expression, text2, roll2))
-            self.result = max(roll1, roll2)
+            roll1 = ast.roll()
+            roll2 = ast.roll()
+            self.roll = roll1 if roll1.value >= roll2.value else roll2
+            self.rolls = [roll1, roll2]
             self.title = f"Rolling {str(ast)} with advantage!"
 
         if mode == DiceRollMode.Disadvantage:
-            text1, roll1 = ast.roll()
-            text2, roll2 = ast.roll()
-            self.rolls.append(DiceRoll(expression, text1, roll1))
-            self.rolls.append(DiceRoll(expression, text2, roll2))
-            self.result = min(roll1, roll2)
+            roll1 = ast.roll()
+            roll2 = ast.roll()
+            self.roll = roll1 if roll1.value <= roll2.value else roll2
+            self.rolls = [roll1, roll2]
             self.title = f"Rolling {str(ast)} with disadvantage!"
 
         for roll in self.rolls:
@@ -376,7 +439,18 @@ class DiceExpression(object):
         if reason is None:
             reason = "Result"
 
-        self.description += f"\n🎲 **{reason.capitalize()}: {self.result}**"
+        self.description += f"\n🎲 **{reason.capitalize()}: {self.roll.value}**"
+
+        extra_messages = []
+        if self.roll.is_natural_twenty:
+            extra_messages.append("🎯 **Critical Hit!**")
+        if self.roll.is_natural_one:
+            extra_messages.append("💀 **Critical Fail!**")
+        if self.roll.is_dirty_twenty:
+            extra_messages.append("⚔️  **Dirty 20!**")
+        
+        if len(extra_messages) > 0:
+            self.description += "\n" + "\n".join(extra_messages)
 
 
 class DiceEmbed(discord.Embed):

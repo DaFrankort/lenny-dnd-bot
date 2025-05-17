@@ -108,6 +108,7 @@ class DiceRoll(object):
     dice_rolled: list[DiceRollDice]
     is_only_dice_modifiers_and_additions: bool
     warnings: set[str]
+    errors: set[str]
 
     def __init__(self):
         self.text = ""
@@ -115,6 +116,7 @@ class DiceRoll(object):
         self.dice_rolled = []
         self.is_only_dice_modifiers_and_additions = True
         self.warnings = set()
+        self.errors = set()
         pass
 
     @property
@@ -243,6 +245,7 @@ class ASTCompoundExpression(ASTExpression):
         roll.dice_rolled.extend(lroll.dice_rolled)
         roll.dice_rolled.extend(rroll.dice_rolled)
         roll.warnings = lroll.warnings | rroll.warnings
+        roll.errors = lroll.errors | rroll.errors
 
         if self.operator.type == TokenType.Plus:
             roll.value = lroll.value + rroll.value
@@ -251,7 +254,11 @@ class ASTCompoundExpression(ASTExpression):
         elif self.operator.type == TokenType.Multiply:
             roll.value = lroll.value * rroll.value
         elif self.operator.type == TokenType.Divide:
-            roll.value = int(math.floor(lroll.value / rroll.value))
+            if rroll.value == 0:
+                roll.errors.add("Expression had a division by zero!")
+                roll.value = 0
+            else:
+                roll.value = int(math.floor(lroll.value / rroll.value))
 
         return roll
 
@@ -341,7 +348,7 @@ def _postfix_to_ast(postfix: list[Token]) -> tuple[ASTExpression, list[str]]:
 
     def get_next_node():
         if len(postfix) == 0:
-            errors.append("Expected continuation but received nothing.")
+            errors.append("Expected operand but received nothing!")
             return None
         elif postfix[-1].type == TokenType.Dice:
             return ASTDiceExpression(postfix.pop())
@@ -369,7 +376,7 @@ def _postfix_to_ast(postfix: list[Token]) -> tuple[ASTExpression, list[str]]:
             _ = postfix.pop()
             return ASTGroupExpression(group)
         else:
-            errors.append(f"Invalid expression: '{postfix[-1].literal}'")
+            errors.append(f"Invalid expression: '{postfix[-1].literal}'!")
             postfix.pop()
 
     return get_next_node(), errors
@@ -403,6 +410,7 @@ class DiceExpression(object):
     mode: DiceRollMode
     title: str
     description: str
+    ephemeral: bool # Ephemeral in case an error occurred
 
     def __init__(self, expression: str, mode=DiceRollMode.Normal, reason: str = None):
         self.ast = None
@@ -412,10 +420,12 @@ class DiceExpression(object):
         self.mode = mode
         self.title = ""
         self.description = ""
+        self.ephemeral = False
 
         ast, errors = _expression_to_ast(expression)
 
         if len(errors) > 0:
+            self.ephemeral = True
             self.errors = errors
             self.title = f"Errors found for '{expression}'!"
             for error in errors:
@@ -444,8 +454,14 @@ class DiceExpression(object):
             self.rolls = [roll1, roll2]
             self.title = f"Rolling {str(ast)} with disadvantage!"
 
+        if len(roll.errors) > 0:
+            self.ephemeral = True
+            for error in roll.errors:
+                self.description += f"❌ {error}"
+            return
+
         for warning in sorted(list(self.roll.warnings)):
-            self.description += f"⚠️ {warning}"
+            self.description += f"⚠️ {warning}\n"
 
         for roll in self.rolls:
             self.description += f"- `{roll.text}` -> {roll.value}\n"
@@ -467,7 +483,7 @@ class DiceExpression(object):
             self.description += "\n" + "\n".join(extra_messages)
 
         if len(self.description) > 1024:
-            self.description = "⚠️ Message too long, try sending a shorter expression."
+            self.description = "⚠️ Message too long, try sending a shorter expression!"
 
     @property
     def is_valid(self) -> bool:

@@ -469,6 +469,7 @@ class DiceExpression(object):
         if len(self.description) > 1024:
             self.description = "⚠️ Message too long, try sending a shorter expression."
 
+
 class DiceEmbed(discord.Embed):
     def __init__(self, itr: discord.Interaction, expression: DiceExpression):
         color = UserColor.get(itr)

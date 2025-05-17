@@ -448,7 +448,7 @@ class DiceExpression(object):
             extra_messages.append("💀 **Critical Fail!**")
         if self.roll.is_dirty_twenty:
             extra_messages.append("⚔️  **Dirty 20!**")
-        
+
         if len(extra_messages) > 0:
             self.description += "\n" + "\n".join(extra_messages)
 

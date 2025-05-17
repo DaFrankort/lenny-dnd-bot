@@ -107,12 +107,14 @@ class DiceRoll(object):
     value: int
     dice_rolled: list[DiceRollDice]
     is_only_dice_modifiers_and_additions: bool
+    warnings: set[str]
 
     def __init__(self):
         self.text = ""
         self.value = 0
         self.dice_rolled = []
         self.is_only_dice_modifiers_and_additions = True
+        self.warnings = set()
         pass
 
     @property
@@ -159,6 +161,8 @@ class ASTExpression(ABC):
 class ASTDiceExpression(ASTExpression):
     dice: Token
 
+    DICE_LIMIT = 8192
+
     def roll(self) -> DiceRoll:
         dice = self.dice.literal
         if dice.startswith("d"):
@@ -177,11 +181,17 @@ class ASTDiceExpression(ASTExpression):
             return roll
         # Dice
         elif len(params) == 2:
+            roll = DiceRoll()
+
             count = int(params[0])
+            if count > self.DICE_LIMIT:
+                roll.warnings.add(
+                    f"Dice count exceeded, limiting dice to {self.DICE_LIMIT}"
+                )
+                count = self.DICE_LIMIT
             faces = int(params[1])
             values = [random.randint(1, faces) for _ in range(count)]
 
-            roll = DiceRoll()
             roll.text = "[" + ",".join(map(str, values)) + "]"
             roll.value = sum(values)
             roll.is_only_dice_modifiers_and_additions = True
@@ -232,6 +242,7 @@ class ASTCompoundExpression(ASTExpression):
         )
         roll.dice_rolled.extend(lroll.dice_rolled)
         roll.dice_rolled.extend(rroll.dice_rolled)
+        roll.warnings = lroll.warnings | rroll.warnings
 
         if self.operator.type == TokenType.Plus:
             roll.value = lroll.value + rroll.value
@@ -433,6 +444,9 @@ class DiceExpression(object):
             self.rolls = [roll1, roll2]
             self.title = f"Rolling {str(ast)} with disadvantage!"
 
+        for warning in sorted(list(roll.warnings)):
+            self.description += f"⚠️ {warning}"
+
         for roll in self.rolls:
             self.description += f"- `{roll.text}` -> {roll.value}\n"
 
@@ -452,6 +466,8 @@ class DiceExpression(object):
         if len(extra_messages) > 0:
             self.description += "\n" + "\n".join(extra_messages)
 
+        if len(self.description) > 1024:
+            self.description = "⚠️ Message too long, try sending a shorter expression."
 
 class DiceEmbed(discord.Embed):
     def __init__(self, itr: discord.Interaction, expression: DiceExpression):

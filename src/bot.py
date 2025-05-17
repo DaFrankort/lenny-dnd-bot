@@ -89,21 +89,27 @@ class Bot(discord.Client):
             expression = DiceExpression(
                 diceroll, mode=DiceRollMode.Normal, reason=reason
             )
-            return await itr.response.send_message(embed=DiceEmbed(itr, expression))
+            return await itr.response.send_message(
+                embed=DiceEmbed(itr, expression), ephemeral=expression.ephemeral
+            )
 
         @self.tree.command(name="d20", description="Just roll a clean d20")
         async def d20(itr: Interaction):
             log_cmd(itr)
             expression = DiceExpression("1d20", DiceRollMode.Normal)
-            return await itr.response.send_message(embed=DiceEmbed(itr, expression))
+            return await itr.response.send_message(
+                embed=DiceEmbed(itr, expression), ephemeral=expression.ephemeral
+            )
 
         @self.tree.command(
             name="advantage", description="Lucky you! Roll and take the best of two!"
         )
         async def advantage(itr: Interaction, diceroll: str, reason: str = None):
             log_cmd(itr)
-            expression = DiceExpression(diceroll, DiceRollMode.Advantage)
-            return await itr.response.send_message(embed=DiceEmbed(itr, expression))
+            expression = DiceExpression(diceroll, DiceRollMode.Advantage, reason=reason)
+            return await itr.response.send_message(
+                embed=DiceEmbed(itr, expression), ephemeral=expression.ephemeral
+            )
 
         @self.tree.command(
             name="disadvantage",
@@ -111,8 +117,12 @@ class Bot(discord.Client):
         )
         async def disadvantage(itr: Interaction, diceroll: str, reason: str = None):
             log_cmd(itr)
-            expression = DiceExpression(diceroll, DiceRollMode.Disadvantage)
-            return await itr.response.send_message(embed=DiceEmbed(itr, expression))
+            expression = DiceExpression(
+                diceroll, DiceRollMode.Disadvantage, reason=reason
+            )
+            return await itr.response.send_message(
+                embed=DiceEmbed(itr, expression), ephemeral=expression.ephemeral
+            )
 
         @roll.autocomplete("reason")
         @advantage.autocomplete("reason")

@@ -454,9 +454,9 @@ class DiceExpression(object):
             self.rolls = [roll1, roll2]
             self.title = f"Rolling {str(ast)} with disadvantage!"
 
-        if len(roll.errors) > 0:
+        if len(self.roll.errors) > 0:
             self.ephemeral = True
-            for error in roll.errors:
+            for error in self.roll.errors:
                 self.description += f"❌ {error}"
             return
 

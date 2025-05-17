@@ -410,7 +410,7 @@ class DiceExpression(object):
     mode: DiceRollMode
     title: str
     description: str
-    ephemeral: bool # Ephemeral in case an error occurred
+    ephemeral: bool  # Ephemeral in case an error occurred
 
     def __init__(self, expression: str, mode=DiceRollMode.Normal, reason: str = None):
         self.ast = None

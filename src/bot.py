@@ -5,7 +5,7 @@ from discord import app_commands
 from discord import Interaction
 from dotenv import load_dotenv
 
-from dice2 import DiceExpression, DiceEmbed, DiceRollMode
+from dice import DiceExpression, DiceEmbed, DiceRollMode
 from dnd import SpellList, ItemList
 from embeds import (
     ItemEmbed,

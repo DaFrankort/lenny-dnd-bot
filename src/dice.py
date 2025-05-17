@@ -117,7 +117,6 @@ class DiceRoll(object):
         self.is_only_dice_modifiers_and_additions = True
         self.warnings = set()
         self.errors = set()
-        pass
 
     @property
     def is_natural_one(self) -> bool:

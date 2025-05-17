@@ -9,5 +9,6 @@ class MockUser:
 class MockInteraction:
     """Mock interaction class to simulate Discord interactions."""
 
-    def __init__(self, user: MockUser = MockUser()):
+    def __init__(self, user: MockUser = MockUser(), guild_id: int = 999):
         self.user = user
+        self.guild_id = guild_id

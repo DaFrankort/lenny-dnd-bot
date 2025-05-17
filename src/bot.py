@@ -2,6 +2,7 @@ import logging
 import os
 import discord
 from discord import app_commands
+from discord import Interaction
 from dotenv import load_dotenv
 
 from dice2 import DiceExpression, DiceEmbed, DiceRollMode
@@ -15,6 +16,13 @@ from embeds import (
     NoSearchResultsFoundEmbed,
     SpellEmbed,
 )
+from initiative import (
+    BulkInitiativeEmbed,
+    Initiative,
+    InitiativeEmbed,
+    InitiativeTracker,
+    InitiativeTrackerEmbed,
+)
 from search import SearchEmbed, search_from_query
 from stats import Stats, StatsEmbed
 from user_colors import UserColor, ColorEmbed
@@ -26,6 +34,7 @@ class Bot(discord.Client):
     guild_id: int
     spells: SpellList
     items: ItemList
+    initiatives: InitiativeTracker
 
     def __init__(self):
         load_dotenv()
@@ -40,6 +49,7 @@ class Bot(discord.Client):
 
         self.spells = SpellList()
         self.items = ItemList()
+        self.initiatives = InitiativeTracker()
 
     def run_client(self):
         """Starts the bot using the token stored in .env"""
@@ -51,6 +61,7 @@ class Bot(discord.Client):
         logging.info(f"Logged in as {self.user} (ID: {self.user.id})")
         self._register_commands()
         await self._attempt_sync_guild()
+        await self.tree.sync()
         print("----- READY -----")
 
     async def _attempt_sync_guild(self):
@@ -62,7 +73,7 @@ class Bot(discord.Client):
             logging.info(f"Connected to guild: {guild.name} (ID: {guild.id})")
 
     def _register_commands(self):
-        def log_cmd(itr: discord.Interaction):
+        def log_cmd(itr: Interaction):
             """Helper function to log user's command-usage in the terminal"""
             try:
                 criteria = [f"[{k}={v}]" for k, v in vars(itr.namespace).items()]
@@ -73,7 +84,7 @@ class Bot(discord.Client):
             logging.info(f"{itr.user.name} => /{itr.command.name} {criteria_text}")
 
         @self.tree.command(name="roll", description="Roll your d20s!")
-        async def roll(itr: discord.Interaction, diceroll: str, reason: str = None):
+        async def roll(itr: Interaction, diceroll: str, reason: str = None):
             log_cmd(itr)
             expression = DiceExpression(
                 diceroll, mode=DiceRollMode.Normal, reason=reason
@@ -81,7 +92,7 @@ class Bot(discord.Client):
             return await itr.response.send_message(embed=DiceEmbed(itr, expression))
 
         @self.tree.command(name="d20", description="Just roll a clean d20")
-        async def d20(itr: discord.Interaction):
+        async def d20(itr: Interaction):
             log_cmd(itr)
             expression = DiceExpression("1d20", DiceRollMode.Normal)
             return await itr.response.send_message(embed=DiceEmbed(itr, expression))
@@ -89,9 +100,7 @@ class Bot(discord.Client):
         @self.tree.command(
             name="advantage", description="Lucky you! Roll and take the best of two!"
         )
-        async def advantage(
-            itr: discord.Interaction, diceroll: str, reason: str = None
-        ):
+        async def advantage(itr: Interaction, diceroll: str, reason: str = None):
             log_cmd(itr)
             expression = DiceExpression(diceroll, DiceRollMode.Advantage)
             return await itr.response.send_message(embed=DiceEmbed(itr, expression))
@@ -100,15 +109,51 @@ class Bot(discord.Client):
             name="disadvantage",
             description="Tough luck chump... Roll twice and suck it.",
         )
-        async def disadvantage(
-            itr: discord.Interaction, diceroll: str, reason: str = None
-        ):
+        async def disadvantage(itr: Interaction, diceroll: str, reason: str = None):
             log_cmd(itr)
             expression = DiceExpression(diceroll, DiceRollMode.Disadvantage)
             return await itr.response.send_message(embed=DiceEmbed(itr, expression))
 
+        @roll.autocomplete("reason")
+        @advantage.autocomplete("reason")
+        @disadvantage.autocomplete("reason")
+        async def autocomplete_roll_reason(
+            itr: Interaction, current: str
+        ) -> list[app_commands.Choice[str]]:
+            reasons = [
+                "Attack",
+                "Damage",
+                "Initiative",
+                "Saving Throw",
+                "Athletics",
+                "Acrobatics",
+                "Sleight of Hand",
+                "Stealth",
+                "Arcana",
+                "History",
+                "Investigation",
+                "Nature",
+                "Religion",
+                "Animal Handling",
+                "Insight",
+                "Medicine",
+                "Perception",
+                "Survival",
+                "Deception",
+                "Intimidation",
+                "Performance",
+                "Persuasion",
+            ]
+            filtered_reasons = [
+                reason for reason in reasons if current.lower() in reason.lower()
+            ]
+            return [
+                app_commands.Choice(name=reason, value=reason)
+                for reason in filtered_reasons[:25]
+            ]
+
         @self.tree.command(name="spell", description="Get the details for a spell.")
-        async def spell(itr: discord.Interaction, name: str):
+        async def spell(itr: Interaction, name: str):
             log_cmd(itr)
             found = self.spells.get(name)
             logging.debug(f"Found {len(found)} for '{name}'")
@@ -125,8 +170,14 @@ class Bot(discord.Client):
                 embed = SpellEmbed(found[0])
                 await itr.response.send_message(embed=embed)
 
+        @spell.autocomplete("name")
+        async def spell_autocomplete(
+            itr: discord.Interaction, current: str
+        ) -> list[app_commands.Choice[str]]:
+            return self.spells.get_autocomplete_suggestions(query=current)
+
         @self.tree.command(name="item", description="Get the details for an item.")
-        async def item(itr: discord.Interaction, name: str):
+        async def item(itr: Interaction, name: str):
             log_cmd(itr)
             found = self.items.get(name)
             logging.debug(f"Found {len(found)} for '{name}'")
@@ -143,8 +194,14 @@ class Bot(discord.Client):
                 embed = ItemEmbed(found[0])
                 await itr.response.send_message(embed=embed)
 
+        @item.autocomplete("name")
+        async def item_autocomplete(
+            itr: discord.Interaction, current: str
+        ) -> list[app_commands.Choice[str]]:
+            return self.items.get_autocomplete_suggestions(query=current)
+
         @self.tree.command(name="search", description="Search for a spell.")
-        async def search(itr: discord.Interaction, query: str):
+        async def search(itr: Interaction, query: str):
             log_cmd(itr)
             found_spells, found_items = search_from_query(
                 query, self.spells, self.items
@@ -164,7 +221,7 @@ class Bot(discord.Client):
             name="color",
             description="Set a preferred color using a hex-value. Leave hex_color empty to use auto-generated colors.",
         )
-        async def set_color(itr: discord.Interaction, hex_color: str = ""):
+        async def set_color(itr: Interaction, hex_color: str = ""):
             log_cmd(itr)
             if hex_color == "":
                 removed = UserColor.remove(itr)
@@ -193,10 +250,109 @@ class Bot(discord.Client):
             name="stats",
             description="Roll stats for a new character, using the 4d6 drop lowest method.",
         )
-        async def stats(itr: discord.Interaction):
+        async def stats(itr: Interaction):
             log_cmd(itr)
             stats = Stats(itr)
             embed = StatsEmbed(stats)
             await itr.response.send_message(embed=embed)
+
+        @self.tree.command(
+            name="initiative", description="Roll initiative for yourself or a creature."
+        )
+        @app_commands.describe(
+            modifier="The initiative modifier to apply to the roll.",
+            name="The unique name of the creature you're rolling initiative for (leave blank to roll for yourself).",
+        )
+        async def initiative(itr: Interaction, modifier: int, name: str | None = None):
+            log_cmd(itr)
+            initiative = Initiative(itr, modifier, name)
+            self.initiatives.add(itr, initiative)
+            await itr.response.send_message(
+                embed=InitiativeEmbed(itr, initiative, True)
+            )
+
+        @self.tree.command(
+            name="setinitiative",
+            description="Set initiative for yourself or a creature.",
+        )
+        @app_commands.describe(
+            value="The initiative value to use.",
+            name="The unique name of the creature you're rolling initiative for (leave blank to roll for yourself).",
+        )
+        async def set_initiative(itr: Interaction, value: int, name: str | None = None):
+            log_cmd(itr)
+            initiative = Initiative(itr, 0, name)
+            initiative.set_value(value)
+            self.initiatives.add(itr, initiative)
+            await itr.response.send_message(
+                embed=InitiativeEmbed(itr, initiative, False)
+            )
+
+        @set_initiative.autocomplete("name")
+        async def set_initiative_autocomplete(
+            itr: discord.Interaction, current: str
+        ) -> list[app_commands.Choice[str]]:
+            return self.initiatives.get_autocomplete_suggestions(itr, current)
+
+        @self.tree.command(
+            name="bulkinitiative",
+            description="Roll initiative for a defined amount of creatures.",
+        )
+        @app_commands.describe(
+            modifier="The initiative modifier to apply to the roll.",
+            name="The names to use for the creatures.",
+            amount="The amount of creatures to create.",
+            shared="Use the same initiative value for all creatures?",
+        )
+        async def bulk_initiative(
+            itr: Interaction,
+            modifier: int,
+            name: str,
+            amount: app_commands.Range[int, 1],
+            shared: bool = False,
+        ):
+            log_cmd(itr)
+
+            initiatives = []
+            for i in range(
+                amount
+            ):  # TODO Move to BulkInitiative class, so it can be unit-tested.
+                initiative = Initiative(itr, modifier, f"{name} {i+1}")
+                if shared and i != 0:
+                    initiative.d20 = initiatives[0].d20  # Use roll from first.
+
+                initiatives.append(initiative)
+                self.initiatives.add(itr, initiative)
+
+            await itr.response.send_message(
+                embed=BulkInitiativeEmbed(itr, initiatives, name)
+            )
+
+        @self.tree.command(
+            name="showinitiative",
+            description="Show an overview of all the rolled initiatives.",
+        )
+        async def show_initiative(itr: Interaction):
+            log_cmd(itr)
+
+            if self.initiatives.get(itr) == []:
+                await itr.response.send_message(
+                    f"❌ There are no initiatives for {itr.guild.name} ❌",
+                    ephemeral=True,
+                )
+                return
+
+            embed = InitiativeTrackerEmbed(itr, self.initiatives)
+            await itr.response.send_message(embed=embed)
+
+        @self.tree.command(
+            name="clearinitiative", description="Clear all initiative rolls."
+        )
+        async def clear_initiative(itr: Interaction):
+            log_cmd(itr)
+            self.initiatives.clear(itr)
+            await itr.response.send_message(
+                f"❌ {itr.user.display_name} cleared Initiatives. ❌"
+            )
 
         logging.info("Registered slash-commands.")

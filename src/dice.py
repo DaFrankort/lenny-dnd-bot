@@ -292,7 +292,7 @@ def _expression_to_tokens(expression: str) -> tuple[list[Token], list[str]]:
                 expression = expression[1:]
             case _:
                 # Check if it starts with a valid dice expression
-                pattern = r"^(([0-9]*d[0-9]+)|([0-9]+)).*$"
+                pattern = r"^(([0-9]*d[0-9]+)|([0-9]+))([\+\-\*\/\ \t\(\)].*$|$)"
                 matched = re.match(pattern, expression)
                 if matched is not None:
                     dice = matched.group(1)
@@ -444,7 +444,7 @@ class DiceExpression(object):
             self.rolls = [roll1, roll2]
             self.title = f"Rolling {str(ast)} with disadvantage!"
 
-        for warning in sorted(list(roll.warnings)):
+        for warning in sorted(list(self.roll.warnings)):
             self.description += f"⚠️ {warning}"
 
         for roll in self.rolls:
@@ -468,6 +468,10 @@ class DiceExpression(object):
 
         if len(self.description) > 1024:
             self.description = "⚠️ Message too long, try sending a shorter expression."
+
+    @property
+    def is_valid(self) -> bool:
+        return self.ast is not None
 
 
 class DiceEmbed(discord.Embed):

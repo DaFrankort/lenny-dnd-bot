@@ -1,422 +1,501 @@
+from dataclasses import dataclass
+from enum import Enum
 import logging
+import math
 import random
 import re
+from abc import ABC, abstractmethod
+
 import discord
-from enum import Enum
+
 from user_colors import UserColor
 
+"""
+Parses a dice expression and builds an Abstract Syntax Tree (AST) to roll for it.
+Based on the webpages:
+- https://fenga.medium.com/how-to-build-a-calculator-bf558e6bd8eb
+- https://en.wikipedia.org/wiki/Abstract_syntax_tree
 
-class _Die:
-    """
-    Private class used to represent and manipulate dice rolls in the NdN format.
+This file functions through the DiceExpression class:
+- First, the input expression is tokenized.
+  For example, the expression '3*(1d4+1)' gets split up into ['3', '*', '(', '1d4', '+', '1', ')']
 
-    This class encapsulates the logic for parsing, validating, and rolling dice
-    based on the NdN notation (e.g., '2d6', '1d20'). It provides methods to roll
-    the dice, calculate the total of the rolls, and represent the results as a string.
-    Instances of this class are typically used as part of a DiceExpression object's steps
-    to handle individual dice rolls.
-    """
+- Then, the tokenized list gets transformed from prefix notation (the math notation we normally use)
+  to postfix notation. Postfix notation is useful for building the abstract syntax tree later. Note
+  that postfix notation reads from *right* to *left*.
+  For example, the previous tokenized list gets transformed to ['3', '(', '1d4', '1', +, ')', '*']
 
-    is_positive: bool
-    is_valid: bool
+- Based on the postfix list, the abstract syntax tree is built. We won't go into to detail about them,
+  but a nice visualization can be found here https://keleshev.com/abstract-syntax-tree-an-example-in-c/
 
-    roll_amount: int
-    sides: int
-    rolls: list[int]
-    warnings: list[str]
+- Finally, now that the abstract syntax tree is built, we can recursively iterate through it to get
+  our roll result.
 
-    def __init__(self, die_notation: str, is_positive: bool = True):
-        match = _Die.match(die_notation)
-        self.is_valid = True
-        self.is_positive = is_positive
-        self.rolls = []
-        self.warnings = []
+Some notes:
+- The ASTDiceExpression class sees both dice (e.g. 1d4) and constants (e.g. 5) as dice.
 
-        if not match:
-            logging.error(
-                f"Invalid die notation: '{die_notation}', should be in the format NdN (e.g., 2d6, 1d20)."
-            )
-            self.is_valid = False
-            return
+Current limitations:
+- Does not support expressions that start with '-', for example (-5) * (1d4) will crash
 
-        roll_amount = int(match.group(1))
-        sides = int(match.group(2))
-        if sides == 0:
-            sides = 1
+"""
 
-        roll_amount_limit = 128
-        if roll_amount > roll_amount_limit:
-            self.warnings.append(
-                f"Roll amount in '{die_notation}' exceeds limit, altered from **{roll_amount}** to **{roll_amount_limit}**"
-            )
-            roll_amount = roll_amount_limit
-        self.roll_amount = roll_amount
 
-        sides_limit = 2048
-        if sides > sides_limit:
-            self.warnings.append(
-                f"Side amount in '{die_notation}' exceeds limit, altered from **{sides}** to **{sides_limit}**"
-            )
-            sides = sides_limit
-        self.sides = sides
+class TokenType(Enum):
+    Dice = 0
+    Plus = 2
+    Minus = 3
+    Divide = 4
+    Multiply = 5
+    LParenthesis = 6
+    RParenthesis = 7
 
-    def roll(self):
-        """Generates random values for each die-roll, stores the results in the rolls list."""
-        self.rolls = [random.randint(1, self.sides) for _ in range(self.roll_amount)]
-        logging.debug(
-            f"Rolled {self.roll_amount}d{self.sides} with result: {self.__str__}"
-        )
 
-    def get_total(self) -> int:
-        """Calculates and returns the total of all dice rolls, considering the sign of the die."""
-
-        if self.rolls is None:
-            raise RuntimeError(
-                "No roll has been made yet! Call roll() before getting the total."
-            )  # TODO will be refactored => Dice rolls will be automatically rolled when creating a DiceExpression
-
-        roll_sum = sum(self.rolls)
-        if self.is_positive:
-            return roll_sum
-        return -roll_sum
+@dataclass
+class Token(object):
+    literal: str
+    type: TokenType
 
     def __str__(self):
-        operator = "+" if self.is_positive else "-"
-        roll_list = ", ".join(
-            map(str, self.rolls)
-        )  # Convert rolls to list of strings with comma separation
-        return f"{operator}({roll_list})"
+        match self.type:
+            case TokenType.Dice:
+                return f"DICE({self.literal})"
+            case TokenType.Plus:
+                return "PLUS"
+            case TokenType.Minus:
+                return "MINUS"
+            case TokenType.Divide:
+                return "DIVIDE"
+            case TokenType.Multiply:
+                return "MULTIPLY"
+            case TokenType.LParenthesis:
+                return "LPARENTHESIS"
+            case TokenType.RParenthesis:
+                return "RPARENTHESIS"
+            case TokenType.Invalid:
+                return f"INVALID({self.literal})"
 
-    @staticmethod
-    def match(die_notation: str) -> re.Match[str] | None:
-        """Matches a dice notation string to the format 'NdN' (e.g., '2d6', '1d20')."""
-        return re.fullmatch(r"(\d+)d(\d+)", die_notation.lower())
+    @property
+    def precedence(self) -> int:
+        if self.type in [TokenType.Plus, TokenType.Minus]:
+            return 1
+        if self.type in [TokenType.Multiply, TokenType.Divide]:
+            return 2
+        return 0
 
-    def is_single_roll(self) -> bool:
-        return self.roll_amount == 1
-
-    def is_natural_twenty(self) -> bool:
-        if not self.is_single_roll():
-            return False
-        return self.sides == 20 and self.rolls[0] == 20
-
-    def is_natural_one(self) -> bool:
-        if not self.is_single_roll():
-            return False
-        return self.sides == 20 and self.rolls[0] == 1
+    @property
+    def is_operator(self) -> bool:
+        return self.type in [
+            TokenType.Plus,
+            TokenType.Minus,
+            TokenType.Multiply,
+            TokenType.Divide,
+        ]
 
 
-class _Modifier:
-    """Private class used to represent a modifier in a dice expression."""
+@dataclass
+class DiceRollDice(object):
+    roll: int
+    face: int
 
-    is_positive: bool
-    is_valid: bool
+    @property
+    def is_d20(self) -> bool:
+        return self.face == 20
 
+
+class DiceRoll(object):
+    text: str
     value: int
-    warnings: list[str]
+    dice_rolled: list[DiceRollDice]
+    is_only_dice_modifiers_and_additions: bool
+    warnings: set[str]
+    errors: set[str]
 
-    def __init__(self, value: str, is_positive: bool = True):
-        self.is_valid = True
-        self.is_positive = is_positive
-        self.warnings = []
+    def __init__(self):
+        self.text = ""
+        self.value = 0
+        self.dice_rolled = []
+        self.is_only_dice_modifiers_and_additions = True
+        self.warnings = set()
+        self.errors = set()
 
-        if not value.isdigit():
-            logging.error(f"Invalid modifier notation: '{value}', should be a number.")
-            self.is_valid = False
+    @property
+    def is_natural_one(self) -> bool:
+        if not self.is_only_dice_modifiers_and_additions:
+            return False
+        if len(self.dice_rolled) != 1:
+            return False
+
+        dice = self.dice_rolled[0]
+        return dice.is_d20 and dice.roll == 1
+
+    @property
+    def is_natural_twenty(self) -> bool:
+        if not self.is_only_dice_modifiers_and_additions:
+            return False
+        if len(self.dice_rolled) != 1:
+            return False
+
+        dice = self.dice_rolled[0]
+        return dice.is_d20 and dice.roll == 20
+
+    @property
+    def is_dirty_twenty(self) -> bool:
+        if not self.is_only_dice_modifiers_and_additions:
+            return False
+        if len(self.dice_rolled) != 1:
+            return False
+        dice = self.dice_rolled[0]
+        return dice.is_d20 and dice.roll != 20 and self.value == 20
+
+
+class ASTExpression(ABC):
+    @abstractmethod
+    def roll(self) -> DiceRoll:
+        pass
+
+    @abstractmethod
+    def __str__(self) -> str:
+        pass
+
+
+@dataclass
+class ASTDiceExpression(ASTExpression):
+    dice: Token
+
+    DICE_LIMIT = 8192
+
+    def roll(self) -> DiceRoll:
+        dice = self.dice.literal
+        if dice.startswith("d"):
+            dice = f"1{dice}"
+
+        params = dice.split("d")
+
+        # Modifier, no "d" found in dice
+        if len(params) == 1:
+            value = params[0]
+            roll = DiceRoll()
+            roll.text = str(value)
+            roll.value = int(value)
+            roll.is_only_dice_modifiers_and_additions = True
+            roll.dice_rolled = []
+            return roll
+        # Dice
+        elif len(params) == 2:
+            roll = DiceRoll()
+
+            count = int(params[0])
+            if count > self.DICE_LIMIT:
+                roll.warnings.add(
+                    f"Dice count exceeded, limiting dice to {self.DICE_LIMIT}"
+                )
+                count = self.DICE_LIMIT
+            faces = int(params[1])
+            values = [random.randint(1, faces) for _ in range(count)]
+
+            roll.text = "[" + ",".join(map(str, values)) + "]"
+            roll.value = sum(values)
+            roll.is_only_dice_modifiers_and_additions = True
+            roll.dice_rolled = [DiceRollDice(value, faces) for value in values]
+            return roll
+        else:
+            logging.error("Invalid dice", self.dice.literal)
+            exit(1)  # TODO don't exit
+
+    def __str__(self) -> str:
+        return self.dice.literal
+
+
+@dataclass
+class ASTGroupExpression(ASTExpression):
+    """
+    An ASTGroupExpression is an wrapper around an ASTExpression that preserves
+    parentheses. This is useful to maintain formatting.
+    """
+
+    expression: ASTExpression
+
+    def roll(self) -> DiceRoll:
+        roll = self.expression.roll()
+        roll.text = f"({roll.text})"
+        return roll
+
+    def __str__(self) -> str:
+        return f"({str(self.expression)})"
+
+
+@dataclass
+class ASTCompoundExpression(ASTExpression):
+    operator: Token
+    left: ASTExpression
+    right: ASTExpression
+
+    def roll(self) -> DiceRoll:
+        roll = DiceRoll()
+        lroll = self.left.roll()
+        rroll = self.right.roll()
+
+        roll.text = f"{lroll.text} {self.operator.literal} {rroll.text}"
+        roll.is_only_dice_modifiers_and_additions = (
+            self.operator.type in [TokenType.Plus, TokenType.Minus]
+            and lroll.is_only_dice_modifiers_and_additions
+            and rroll.is_only_dice_modifiers_and_additions
+        )
+        roll.dice_rolled.extend(lroll.dice_rolled)
+        roll.dice_rolled.extend(rroll.dice_rolled)
+        roll.warnings = lroll.warnings | rroll.warnings
+        roll.errors = lroll.errors | rroll.errors
+
+        if self.operator.type == TokenType.Plus:
+            roll.value = lroll.value + rroll.value
+        elif self.operator.type == TokenType.Minus:
+            roll.value = lroll.value - rroll.value
+        elif self.operator.type == TokenType.Multiply:
+            roll.value = lroll.value * rroll.value
+        elif self.operator.type == TokenType.Divide:
+            if rroll.value == 0:
+                roll.errors.add("Expression had a division by zero!")
+                roll.value = 0
+            else:
+                roll.value = int(math.floor(lroll.value / rroll.value))
+
+        return roll
+
+    def __str__(self):
+        return f"{str(self.left)} {self.operator.literal} {str(self.right)}"
+
+
+def _expression_to_tokens(expression: str) -> tuple[list[Token], list[str]]:
+    expression = expression.lower().strip()
+    valid_symbols = "0123456789+-*/()d"
+    expression = "".join([c for c in expression if c in valid_symbols])
+
+    tokens = []
+    errors = []
+
+    while len(expression) > 0:
+        match expression[0]:
+            case "(":
+                tokens.append(Token("(", TokenType.LParenthesis))
+                expression = expression[1:]
+            case ")":
+                tokens.append(Token(")", TokenType.RParenthesis))
+                expression = expression[1:]
+            case "+":
+                tokens.append(Token("+", TokenType.Plus))
+                expression = expression[1:]
+            case "-":
+                tokens.append(Token("-", TokenType.Minus))
+                expression = expression[1:]
+            case "*":
+                tokens.append(Token("*", TokenType.Multiply))
+                expression = expression[1:]
+            case "/":
+                tokens.append(Token("/", TokenType.Divide))
+                expression = expression[1:]
+            # Ignore whitespace
+            case " " | "\t":
+                expression = expression[1:]
+            case _:
+                # Check if it starts with a valid dice expression
+                pattern = r"^(([0-9]*d[0-9]+)|([0-9]+))([\+\-\*\/\ \t\(\)].*$|$)"
+                matched = re.match(pattern, expression)
+                if matched is not None:
+                    dice = matched.group(1)
+                    tokens.append(Token(dice, TokenType.Dice))
+                    expression = expression.lstrip(dice)
+                else:
+                    pattern = r"^(.*?)([\+\-\*\/\ \t\(\)].*$|$)"
+                    matched = re.match(pattern, expression)
+                    invalid = matched.group(1)
+                    errors.append(f"Invalid symbol: '{invalid}'")
+                    expression = expression.lstrip(invalid)
+
+    return tokens, errors
+
+
+def _tokens_to_postfix(tokens: list[Token]) -> list[Token]:
+    output: list[Token] = []
+    stack: list[Token] = []
+
+    for token in tokens:
+        if token.type == TokenType.Dice:
+            output.append(token)
+        elif token.is_operator:
+            while stack and token.precedence <= stack[-1].precedence:
+                output.append(stack.pop())
+            stack.append(token)
+        elif token.type == TokenType.LParenthesis:
+            stack.append(token)
+            output.append(token)
+        elif token.type == TokenType.RParenthesis:
+            while stack and stack[-1].type != TokenType.LParenthesis:
+                output.append(stack.pop())
+            if stack and stack[-1].type == TokenType.LParenthesis:
+                stack.pop()  # Remove '('
+            output.append(token)
+    while stack:
+        output.append(stack.pop())
+    return output
+
+
+def _postfix_to_ast(postfix: list[Token]) -> tuple[ASTExpression, list[str]]:
+    if len(postfix) == 0:
+        return None, ["Expression is empty."]
+
+    errors = []
+
+    def get_next_node():
+        if len(postfix) == 0:
+            errors.append("Expected operand but received nothing!")
+            return None
+        elif postfix[-1].type == TokenType.Dice:
+            return ASTDiceExpression(postfix.pop())
+        elif postfix[-1].is_operator:
+            operator = postfix.pop()
+            right = get_next_node()
+            left = get_next_node()
+            return ASTCompoundExpression(operator, left, right)
+
+        # Specific situation: ()
+        # This gets interpreted as (0)
+        elif (
+            len(postfix) >= 2
+            and postfix[-1].type == TokenType.RParenthesis
+            and postfix[-2].type == TokenType.LParenthesis
+        ):
+            postfix.pop()
+            postfix.pop()
+            return ASTGroupExpression(ASTDiceExpression(Token("0", TokenType.Dice)))
+
+        elif postfix[-1].type == TokenType.RParenthesis:
+            _ = postfix.pop()
+            group = get_next_node()
+            assert postfix[-1].type == TokenType.LParenthesis
+            _ = postfix.pop()
+            return ASTGroupExpression(group)
+        else:
+            errors.append(f"Invalid expression: '{postfix[-1].literal}'!")
+            postfix.pop()
+
+    return get_next_node(), errors
+
+
+def _expression_to_ast(expression: str) -> tuple[ASTExpression, list[str]]:
+    tokens, errors = _expression_to_tokens(expression)
+    if len(errors) > 0:
+        return None, errors
+
+    postfix = _tokens_to_postfix(tokens)
+    ast, errors = _postfix_to_ast(postfix)
+
+    if len(errors) > 0:
+        return None, errors
+
+    return ast, []
+
+
+class DiceRollMode(Enum):
+    Normal = "normal"
+    Advantage = "advantage"
+    Disadvantage = "disadvantage"
+
+
+class DiceExpression(object):
+    ast: ASTExpression
+    roll: DiceRoll
+    rolls: list[DiceRoll]
+    errors: list[str]
+    mode: DiceRollMode
+    title: str
+    description: str
+    ephemeral: bool  # Ephemeral in case an error occurred
+
+    def __init__(self, expression: str, mode=DiceRollMode.Normal, reason: str = None):
+        self.ast = None
+        self.rolls = []
+        self.result = 0
+        self.errors = []
+        self.mode = mode
+        self.title = ""
+        self.description = ""
+        self.ephemeral = False
+
+        ast, errors = _expression_to_ast(expression)
+
+        if len(errors) > 0:
+            self.ephemeral = True
+            self.errors = errors
+            self.title = f"Errors found for '{expression}'!"
+            for error in errors:
+                self.description += f"⚠️ {error}\n"
             return
 
-        value = int(value)
-        value_limit = 8192
-        if value > value_limit:
-            self.warnings.append(
-                f"Modifier '{value}' exceeds limit, altered to **{value_limit}**"
-            )
-            value = value_limit
-        self.value = value
+        self.ast = ast
 
-    def __str__(self):
-        operator = "+" if self.is_positive else "-"
-        return f"{operator}{self.value}"
+        if mode == DiceRollMode.Normal:
+            roll = ast.roll()
+            self.roll = roll
+            self.rolls = [roll]
+            self.title = f"Rolling {str(ast)}!"
 
-    def get_value(self) -> int:
-        """Returns the value of the modifier, considering its sign."""
-        if self.is_positive:
-            return self.value
-        return -self.value
+        if mode == DiceRollMode.Advantage:
+            roll1 = ast.roll()
+            roll2 = ast.roll()
+            self.roll = roll1 if roll1.value >= roll2.value else roll2
+            self.rolls = [roll1, roll2]
+            self.title = f"Rolling {str(ast)} with advantage!"
 
+        if mode == DiceRollMode.Disadvantage:
+            roll1 = ast.roll()
+            roll2 = ast.roll()
+            self.roll = roll1 if roll1.value <= roll2.value else roll2
+            self.rolls = [roll1, roll2]
+            self.title = f"Rolling {str(ast)} with disadvantage!"
 
-class DiceExpression:
-    """Represents a dice expression (e.g., '2d6+1') and provides functionality to parse, validate, roll, and calculate the total value of the expression."""
+        if len(self.roll.errors) > 0:
+            self.ephemeral = True
+            for error in self.roll.errors:
+                self.description += f"❌ {error}"
+            return
 
-    notation: str
-    _is_valid: bool
+        for warning in sorted(list(self.roll.warnings)):
+            self.description += f"⚠️ {warning}\n"
 
-    dice: list[_Die]
-    modifiers: list[_Modifier]
-    steps: list[
-        _Die | _Modifier
-    ]  # In some cases we need to keep track of the order of operations, so we keep a general list of steps.
+        for roll in self.rolls:
+            self.description += f"- `{roll.text}` -> {roll.value}\n"
 
-    def __init__(self, die_notation: str):
-        die_notation = self._sanitize_die_notation(die_notation)
-        self.notation = die_notation
-        self._is_valid = True
-        self.dice, self.modifiers, self.steps = self._notation_to_steps(die_notation)
-        self.roll()
+        if reason is None:
+            reason = "Result"
 
-        if len(self.steps) == 0:  # DiceExpression without dice or mods is invalid
-            self._is_valid = False
+        self.description += f"\n🎲 **{reason.capitalize()}: {self.roll.value}**"
 
-    def _notation_to_steps(
-        self, notation: str
-    ) -> tuple[list[_Die], list[_Modifier], list[_Die | _Modifier]]:
-        """
-        Converts a dice notation string into a list of dice, modifiers, and steps.
-        Returns:
-            tuple: A tuple containing three lists:
-            - dice (list[_Die]): List of _Die objects parsed from the notation.
-            - modifiers (list[_Modifier]): List of _Modifier objects parsed from the notation.
-            - steps (list[_Die | _Modifier]): Ordered list of steps (dice and modifiers) for the expression.
-        """
-        dice = []
-        modifiers = []
-        steps = []
+        extra_messages = []
+        if self.roll.is_natural_twenty:
+            extra_messages.append("🎯 **Critical Hit!**")
+        if self.roll.is_natural_one:
+            extra_messages.append("💀 **Critical Fail!**")
+        if self.roll.is_dirty_twenty:
+            extra_messages.append("⚔️  **Dirty 20!**")
 
-        # Split notation into parts, (e.g., '2d6', '+1', '-2d4')
-        parts = re.findall(r"([+-]?\d+d\d+|[+-]?\d+)", notation)
+        if len(extra_messages) > 0:
+            self.description += "\n" + "\n".join(extra_messages)
 
-        for part in parts:
-            part = part.strip()
-            if not part:
-                continue  # Skip empty parts
+        if len(self.description) > 1024:
+            self.description = "⚠️ Message too long, try sending a shorter expression!"
 
-            is_positive = not part.startswith("-")
-            part = part.lstrip("+-")
-
-            if _Die.match(part):
-                die = _Die(part, is_positive)
-                dice.append(die)
-                steps.append(die)
-
-            elif part.isdigit():
-                mod = _Modifier(part, is_positive)
-                modifiers.append(mod)
-                steps.append(mod)
-
-            else:
-                logging.error(f"Invalid part in dice notation: {part}")
-                print(f"Invalid part in dice notation: {part}")
-                self._is_valid = False
-                break
-
-        return dice, modifiers, steps
-
-    def _sanitize_die_notation(self, notation: str) -> str:
-        """Sanitizes the dice notation by removing spaces and irrelevant characters."""
-        notation = notation.lower().replace(
-            " ", ""
-        )  # force to lowercas & remove spaces
-        notation = re.sub(
-            r"[^0-9d+\-]", "", notation
-        )  # remove irrelevant character (anything not 1d20+1 related)
-
-        # Collapse repeated characters into 1
-        notation = re.sub(r"\++", "+", notation)
-        notation = re.sub(r"\-+", "-", notation)
-        notation = re.sub(r"d+", "d", notation)
-
-        notation = re.sub(
-            r"(?<!\d)d", "1d", notation
-        )  # add 1 before standalone 'd' (Convert d20 => 1d20)
-        return notation
-
-    def has_only_one_die(self) -> bool:
-        """Checks if the expression contains only one die."""
-        return len(self.dice) == 1
-
-    def roll(self):
-        for die in self.dice:
-            die.roll()
-
-    def get_total(self) -> int:
-        """Calculates and returns the total value of the dice expression."""
-        total = 0
-
-        for die in self.dice:
-            total += die.get_total()
-
-        for mod in self.modifiers:
-            total += mod.get_value()
-
-        return total
-
-    def __str__(self):
-        """Generates and returns a formatted string representation of the dice roll result."""
-        total_text = f"**{self.get_total()}**"
-        if (
-            self.has_only_one_die()
-            and self.dice[0].is_single_roll()
-            and len(self.modifiers) == 0
-        ):  # Only show total if there's only 1 1-roll die without modifiers.
-            return total_text
-
-        steps_text = "".join(str(step) for step in self.steps)
-        if steps_text.startswith("+"):
-            steps_text = steps_text[1:]  # Remove leading '+'
-
-        return f"``{steps_text}`` -> {total_text}"
-
-    def is_dirty_twenty(self) -> bool:
-        if len(self.dice) != 1:
-            # Only applies to single dice rolls (e.g., 1d20 / 1d20+1)
-            return False
-
-        if self.dice[0].sides != 20 or self.dice[0].roll_amount != 1:
-            return False  # Only applies to 1d20 rolls
-
-        return self.get_total() == 20
-
-    def get_warnings(self) -> list[str]:
-        warnings = []
-
-        for die in self.dice:
-            if len(die.warnings) > 0:
-                warnings.extend(die.warnings)
-
-        for mod in self.modifiers:
-            if len(mod.warnings) > 0:
-                warnings.extend(mod.warnings)
-
-        return list(
-            dict.fromkeys(warnings)
-        )  # Remove duplicates by turning into a dict and back to a list
-
-    def get_warnings_text(self) -> str:
-        return "\n".join(f"⚠️ {w}" for w in self.get_warnings())
-
-    def has_warnings(self) -> bool:
-        return len(self.get_warnings()) != 0
-
+    @property
     def is_valid(self) -> bool:
-        for die in self.dice:
-            if not die.is_valid:
-                return False
-
-        for mod in self.modifiers:
-            if not mod.is_valid:
-                return False
-
-        return self._is_valid
+        return self.ast is not None
 
 
-class RollMode(Enum):
-    """An enumeration representing the different modes of rolling dice in a Dungeons & Dragons context."""
+class DiceEmbed(discord.Embed):
+    def __init__(self, itr: discord.Interaction, expression: DiceExpression):
+        color = UserColor.get(itr)
 
-    NORMAL = "normal"
-    ADVANTAGE = "advantage"
-    DISADVANTAGE = "disadvantage"
-
-
-class DiceEmbed:
-    """A class to create and manage Discord embed messages for dice roll results."""
-
-    username: str
-    avatar_url: str
-    user_id: str
-    expressions: list[DiceExpression]
-    reason: str
-    mode: RollMode
-
-    def __init__(
-        self,
-        ctx: discord.Interaction,
-        expressions: list[DiceExpression],
-        reason: str | None = None,
-        mode: RollMode = RollMode.NORMAL,
-    ):
-        self.username = ctx.user.display_name
-        self.avatar_url = ctx.user.avatar.url
-        self.user_id = str(ctx.user.id)
-        self.expressions = expressions
-        self.reason = reason if reason is not None else "Result"
-        self.mode = mode
-        self.color = UserColor.get(ctx)
-
-    def _should_only_show_results(self) -> bool:
-        """Returns True if the embed should only display the roll result (e.g., a single clean 1d20)."""
-        if len(self.expressions) != 1:
-            return False  # Don't show for cases like advantage/disadvantage
-        if len(self.expressions[0].steps) != 1:
-            return False
-        if len(self.expressions[0].dice) != 1:
-            return False
-        if not self.expressions[0].dice[0].is_single_roll():
-            return False
-
-        return True
-
-    def _get_title(self) -> str:
-        """Generates a title string based on the current roll mode and dice notation."""
-
-        match self.mode:
-            case RollMode.NORMAL:
-                return f"Rolled {self.expressions[0].notation}!"
-
-            case RollMode.ADVANTAGE:
-                return f"Rolled {self.expressions[0].notation} with advantage!"
-
-            case RollMode.DISADVANTAGE:
-                return f"Rolled {self.expressions[0].notation} with disadvantage!"
-
-    def _get_description(self) -> str:
-        description = ""
-        extra_message = ""
-
-        # Always build the description if multiple dice, or more than 1 DiceExpression
-        if not self._should_only_show_results():
-            for expression in self.expressions:
-                description += f"- {expression}\n"
-
-        # Always evaluate dice for critical outcomes
-        for expression in self.expressions:
-            if not expression.has_only_one_die():
-                # Only applies to single dice rolls (e.g., 1d20 / 1d20+1)
-                continue
-            if not expression.dice[0].is_single_roll():
-                continue  # Only applies to single rolls
-            if expression.dice[0].sides != 20:
-                continue  # Only applies to 1d20 rolls
-
-            if expression.dice[0].is_natural_twenty():
-                extra_message = "🎯 **Critical Hit!**"
-            elif expression.dice[0].is_natural_one():
-                extra_message = "💀 **Critical Fail!**"
-            elif expression.is_dirty_twenty():
-                extra_message = "⚔️ **Dirty 20!**"
-
-        match self.mode:
-            case RollMode.NORMAL:
-                total = f"**{self.expressions[0].get_total()}**"
-                return (
-                    description
-                    + f"🎲 **{self.reason}:** {total}"
-                    + (f"\n{extra_message}" if extra_message else "")
-                )
-
-            case RollMode.ADVANTAGE:
-                largest_value = max(
-                    self.expressions[0].get_total(), self.expressions[1].get_total()
-                )
-                return description + f"🎲 **{self.reason}: {largest_value}**"
-
-            case RollMode.DISADVANTAGE:
-                smallest_value = min(
-                    self.expressions[0].get_total(), self.expressions[1].get_total()
-                )
-                return description + f"🎲 **{self.reason}: {smallest_value}**"
-
-    def build(self) -> discord.Embed:
-        embed = discord.Embed(type="rich", description=self._get_description())
-        embed.set_author(name=self._get_title(), icon_url=self.avatar_url)
-        embed.color = self.color
-        return embed
+        super().__init__(
+            colour=color,
+            type="rich",
+        )
+        self.set_author(name=expression.title, icon_url=itr.user.avatar.url)
+        self.add_field(name="", value=expression.description)

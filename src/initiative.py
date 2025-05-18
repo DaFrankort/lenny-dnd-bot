@@ -15,7 +15,7 @@ class Initiative:
     def __init__(self, itr: discord.Interaction, modifier: int, name: str | None):
         self.is_npc = name is not None
         self.name = name or itr.user.display_name
-        self.name = self.name.title().split()
+        self.name = self.name.title().strip()
         self.d20 = random.randint(1, 20)
         self.modifier = modifier
 

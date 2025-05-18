@@ -2,9 +2,9 @@ name: Python Unit Tests & Linting
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -35,13 +35,13 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11.5'
+          python-version: "3.11.5"
       - name: Black linter
         uses: psf/black@stable
         with:
           options: "--check --verbose"
           src: src
-        
+
   unit-test:
     runs-on: ubuntu-latest
     name: pytest tests
@@ -51,10 +51,10 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11.5'
+          python-version: "3.11.5"
       - name: Install dependencies
         run: |
-          py -m pip install --upgrade pip
-          py -m pip install -r requirements.txt
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
       - name: Run tests
-        run: py -m pytest
+        run: python -m pytest

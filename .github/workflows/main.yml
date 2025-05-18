@@ -43,7 +43,7 @@ jobs:
           src: src
         
   unit-test:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     name: pytest tests
     steps:
       - name: Checkout code

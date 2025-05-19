@@ -1,4 +1,3 @@
-import logging
 import random
 import discord
 
@@ -98,7 +97,7 @@ class InitiativeTracker:
         target_b = target_b.lower().strip()
 
         if target_a == target_b:
-            return f"Specified same target. ``{target_a}`` = ``{target_b}``"
+            return f"Same target specified: ``{target_a}`` = ``{target_b}``"
 
         index_a = -1
         index_b = -1
@@ -112,8 +111,8 @@ class InitiativeTracker:
                 break
 
         if index_a == -1 or index_b == -1:
-            logging.error(f"Could not find initiative(s) to swap: '{target_a}' or '{target_b}' not found in the current initiative list.")
-            return f"``{target_a}`` not found." if index_a == -1 else f"``{target_b}`` not found."
+            missing = target_a if index_a == -1 else target_b
+            return f"No initiatives found matching ``{missing}``."
 
         initiatives = self.get(itr)
         initiative_a = initiatives[index_a]
@@ -126,7 +125,7 @@ class InitiativeTracker:
         guild_id = itr.guild_id  # Swap initiatives
         self.server_initiatives[guild_id][index_a] = initiative_b
         self.server_initiatives[guild_id][index_b] = initiative_a
-        return f"Swapped ``{initiative_a.name}`` and ``{initiative_b.name}``'s initiatives."
+        return f"``{initiative_a.name}`` <=> ``{initiative_b.name}``\n**Swapped succesfully!**"
 
 
 class InitiativeEmbed(discord.Embed):

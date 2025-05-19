@@ -14,6 +14,7 @@ from embeds import (
     NoItemsFoundEmbed,
     NoSpellsFoundEmbed,
     NoSearchResultsFoundEmbed,
+    SimpleEmbed,
     SpellEmbed,
 )
 from initiative import (
@@ -367,12 +368,12 @@ class Bot(discord.Client):
         async def swap_initiative(itr: Interaction, target_a: str, target_b: str):
             log_cmd(itr)
             text = self.initiatives.swap(itr, target_a, target_b)
-            await itr.response.send_message(text)
+            await itr.response.send_message(embed=SimpleEmbed("Initiative Swap", text))
 
         @swap_initiative.autocomplete("target_a")
         @swap_initiative.autocomplete("target_b")
         @set_initiative.autocomplete("name")
-        async def set_initiative_autocomplete(
+        async def initiative_name_autocomplete(
             itr: discord.Interaction, current: str
         ) -> list[app_commands.Choice[str]]:
             return self.initiatives.get_autocomplete_suggestions(itr, current)

@@ -372,8 +372,11 @@ class Bot(discord.Client):
         )
         async def swap_initiative(itr: Interaction, target_a: str, target_b: str):
             log_cmd(itr)
-            text = self.initiatives.swap(itr, target_a, target_b)
-            await itr.response.send_message(embed=SimpleEmbed("Initiative Swap", text))
+            text, success = self.initiatives.swap(itr, target_a, target_b)
+            color = None if success else discord.Color.red()
+            await itr.response.send_message(
+                embed=SimpleEmbed("Initiative Swap", text, color)
+            )
 
         @swap_initiative.autocomplete("target_a")
         async def swap_target_a_autocomplete(

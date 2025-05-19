@@ -92,12 +92,22 @@ class InitiativeTracker:
         )  # Sort by query match => fuzzy score => alphabetically
         return [choice for _, _, choice in choices[:limit]]
 
-    def swap(self, itr: discord.Interaction, target_a: str, target_b: str):
+    def swap(
+        self, itr: discord.Interaction, target_a: str, target_b: str
+    ) -> tuple[str, bool]:
+        """
+        Swaps the initiative values between two initiatives identified by their names.
+        Returns a tuple containing a message string explaining the result of the swap and a boolean indicating whether the swap was successful.
+        """
+
         target_a = target_a.lower().strip()
         target_b = target_b.lower().strip()
 
         if target_a == target_b:
-            return f"Cannot swap:\n both targets refer to the same initiative (``{target_a}``)."
+            return (
+                f"Cannot swap:\n both targets refer to the same initiative (``{target_a}``).",
+                False,
+            )
 
         index_a = -1
         index_b = -1
@@ -109,11 +119,20 @@ class InitiativeTracker:
                 index_b = i
 
         if index_a == -1 and index_b == -1:
-            return f"No initiatives found matching ``{target_a}`` or ``{target_b}``.\n Make sure targets are exact name-matches."
+            return (
+                f"No initiatives found matching ``{target_a}`` or ``{target_b}``.\n Make sure targets are exact name-matches.",
+                False,
+            )
         elif index_a == -1:
-            return f"No initiatives found matching ``{target_a}``.\n Make sure targets are exact name-matches."
+            return (
+                f"No initiatives found matching ``{target_a}``.\n Make sure targets are exact name-matches.",
+                False,
+            )
         elif index_b == -1:
-            return f"No initiatives found matching ``{target_b}``.\n Make sure targets are exact name-matches."
+            return (
+                f"No initiatives found matching ``{target_b}``.\n Make sure targets are exact name-matches.",
+                False,
+            )
 
         initiatives = self.get(itr)
         initiative_a = initiatives[index_a]
@@ -126,7 +145,10 @@ class InitiativeTracker:
         guild_id = itr.guild_id  # Swap initiatives
         self.server_initiatives[guild_id][index_a] = initiative_b
         self.server_initiatives[guild_id][index_b] = initiative_a
-        return f"``{initiative_a.name}`` <=> ``{initiative_b.name}``\n**Swapped succesfully!**"
+        return (
+            f"``{initiative_a.name}`` <=> ``{initiative_b.name}``\n**Swapped succesfully!**",
+            True,
+        )
 
 
 class InitiativeEmbed(discord.Embed):

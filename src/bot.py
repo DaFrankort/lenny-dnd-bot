@@ -301,6 +301,12 @@ class Bot(discord.Client):
                 embed=InitiativeEmbed(itr, initiative, False)
             )
 
+        @set_initiative.autocomplete("name")
+        async def set_initiative_autocomplete(
+            itr: discord.Interaction, current: str
+        ) -> list[app_commands.Choice[str]]:
+            return self.initiatives.get_autocomplete_suggestions(itr, current)
+
         @self.tree.command(
             name="bulkinitiative",
             description="Roll initiative for a defined amount of creatures.",
@@ -370,9 +376,13 @@ class Bot(discord.Client):
             await itr.response.send_message(embed=SimpleEmbed("Initiative Swap", text))
 
         @swap_initiative.autocomplete("target_a")
+        async def swap_target_a_autocomplete(
+            itr: discord.Interaction, current: str
+        ) -> list[app_commands.Choice[str]]:
+            return self.initiatives.get_autocomplete_suggestions(itr, current)
+
         @swap_initiative.autocomplete("target_b")
-        @set_initiative.autocomplete("name")
-        async def initiative_name_autocomplete(
+        async def swap_target_b_autocomplete(
             itr: discord.Interaction, current: str
         ) -> list[app_commands.Choice[str]]:
             return self.initiatives.get_autocomplete_suggestions(itr, current)

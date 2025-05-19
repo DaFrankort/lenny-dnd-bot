@@ -96,7 +96,7 @@ class InitiativeTracker:
         target_a = target_a.lower().strip()
         target_b = target_b.lower().strip()
 
-        if target_a == target_a:
+        if target_a == target_b:
             return f"Cannot swap:\n both targets refer to the same initiative (``{target_a}``)."
 
         index_a = -1

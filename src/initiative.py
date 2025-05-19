@@ -1,3 +1,4 @@
+import logging
 import random
 import discord
 
@@ -91,6 +92,40 @@ class InitiativeTracker:
             key=lambda x: (-x[0], -x[1], x[2].name)
         )  # Sort by query match => fuzzy score => alphabetically
         return [choice for _, _, choice in choices[:limit]]
+
+    def swap(self, itr: discord.Interaction, target_a: str, target_b: str):
+        target_a = target_a.lower().strip()
+        target_b = target_b.lower().strip()
+
+        if target_a == target_b:
+            return
+
+        index_a = -1
+        index_b = -1
+        for i, initiative in enumerate(self.get(itr)):
+            name = initiative.name.lower().strip()
+            if target_a in name and index_a == -1:
+                index_a = i
+            if target_b in name and index_b == -1:
+                index_b = i
+            if index_a != -1 and index_b != -1:
+                break
+
+        if index_a == -1 or index_b == -1:
+            logging.error(f"Could not find initiative(s) to swap: '{target_a}' or '{target_b}' not found in the current initiative list.")
+            return
+
+        initiatives = self.get(itr)
+        initiative_a = initiatives[index_a]
+        initiative_b = initiatives[index_b]
+
+        prev_total_a = initiative_a.get_total()  # pre-swap values
+        initiative_a.set_value(initiative_b.get_total())
+        initiative_b.set_value(prev_total_a)
+
+        guild_id = itr.guild_id  # Swap initiatives
+        self.server_initiatives[guild_id][index_a] = initiative_b
+        self.server_initiatives[guild_id][index_b] = initiative_a
 
 
 class InitiativeEmbed(discord.Embed):

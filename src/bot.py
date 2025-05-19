@@ -298,12 +298,6 @@ class Bot(discord.Client):
                 embed=InitiativeEmbed(itr, initiative, False)
             )
 
-        @set_initiative.autocomplete("name")
-        async def set_initiative_autocomplete(
-            itr: discord.Interaction, current: str
-        ) -> list[app_commands.Choice[str]]:
-            return self.initiatives.get_autocomplete_suggestions(itr, current)
-
         @self.tree.command(
             name="bulkinitiative",
             description="Roll initiative for a defined amount of creatures.",
@@ -366,3 +360,19 @@ class Bot(discord.Client):
             )
 
         logging.info("Registered slash-commands.")
+
+        @self.tree.command(
+            name="swapinitiative", description="Swap two initiatives, mainly for characters with the Alert feat."
+        )
+        async def swap_initiative(itr: Interaction, target_a: str, target_b: str):
+            log_cmd(itr)
+            self.initiatives.swap(itr, target_a, target_b)
+            await itr.response.send_message("Swippy swap!")
+
+        @swap_initiative.autocomplete("target_a")
+        @swap_initiative.autocomplete("target_b")
+        @set_initiative.autocomplete("name")
+        async def set_initiative_autocomplete(
+            itr: discord.Interaction, current: str
+        ) -> list[app_commands.Choice[str]]:
+            return self.initiatives.get_autocomplete_suggestions(itr, current)

@@ -108,9 +108,12 @@ class InitiativeTracker:
             if name == target_b:
                 index_b = i
 
-        if index_a == -1 or index_b == -1:
-            missing = target_a if index_a == -1 else target_b
-            return f"No initiatives found matching ``{missing}``.\n Make sure targets are exact name-matches."
+        if index_a == -1 and index_b == -1:
+            return f"No initiatives found matching ``{target_a}`` or ``{target_b}``.\n Make sure targets are exact name-matches."
+        elif index_a == -1:
+            return f"No initiatives found matching ``{target_a}``.\n Make sure targets are exact name-matches."
+        elif index_b == -1:
+            return f"No initiatives found matching ``{target_b}``.\n Make sure targets are exact name-matches."
 
         initiatives = self.get(itr)
         initiative_a = initiatives[index_a]

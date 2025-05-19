@@ -73,6 +73,8 @@ class Bot(discord.Client):
             logging.info(f"Connected to guild: {guild.name} (ID: {guild.id})")
 
     def _register_commands(self):
+        logging.info("Registered slash-commands.")
+
         def log_cmd(itr: Interaction):
             """Helper function to log user's command-usage in the terminal"""
             try:
@@ -320,7 +322,7 @@ class Bot(discord.Client):
             initiatives = []
             for i in range(
                 amount
-            ):  # TODO Move to BulkInitiative class, so it can be unit-tested.
+            ):
                 initiative = Initiative(itr, modifier, f"{name} {i+1}")
                 if shared and i != 0:
                     initiative.d20 = initiatives[0].d20  # Use roll from first.
@@ -359,15 +361,13 @@ class Bot(discord.Client):
                 f"❌ {itr.user.display_name} cleared Initiatives. ❌"
             )
 
-        logging.info("Registered slash-commands.")
-
         @self.tree.command(
             name="swapinitiative", description="Swap two initiatives, mainly for characters with the Alert feat."
         )
         async def swap_initiative(itr: Interaction, target_a: str, target_b: str):
             log_cmd(itr)
-            self.initiatives.swap(itr, target_a, target_b)
-            await itr.response.send_message("Swippy swap!")
+            text = self.initiatives.swap(itr, target_a, target_b)
+            await itr.response.send_message(text)
 
         @swap_initiative.autocomplete("target_a")
         @swap_initiative.autocomplete("target_b")

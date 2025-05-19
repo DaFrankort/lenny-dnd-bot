@@ -96,9 +96,6 @@ class InitiativeTracker:
         target_a = target_a.lower().strip()
         target_b = target_b.lower().strip()
 
-        if target_a == target_b:
-            return f"Same target specified: ``{target_a}`` = ``{target_b}``"
-
         index_a = -1
         index_b = -1
         for i, initiative in enumerate(self.get(itr)):
@@ -117,6 +114,9 @@ class InitiativeTracker:
         initiatives = self.get(itr)
         initiative_a = initiatives[index_a]
         initiative_b = initiatives[index_b]
+
+        if index_a == index_b:
+            return f"Cannot swap:\n both targets refer to the same initiative (``{initiative_a.name}``)."
 
         prev_total_a = initiative_a.get_total()  # pre-swap values
         initiative_a.set_value(initiative_b.get_total())

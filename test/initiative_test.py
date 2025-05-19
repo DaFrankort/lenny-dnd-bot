@@ -202,16 +202,23 @@ class TestInitiativeTracker:
         name_1, name_2 = "Goblin", "Orc"
         high, low = 20, 1
 
-        initiative_1, initiative_2 = Initiative(itr, 0, name_1), Initiative(itr, 0, name_2)
+        initiative_1 = Initiative(itr, 0, name_1)
+        initiative_2 = Initiative(itr, 0, name_2)
         initiative_1.d20 = high
         initiative_2.d20 = low
         tracker.add(itr, initiative_1)
         tracker.add(itr, initiative_2)
 
         initiatives = tracker.get(itr)
-        assert [(i.name, i.get_total()) for i in initiatives] == [(name_1, high), (name_2, low)]
+        assert [(i.name, i.get_total()) for i in initiatives] == [
+            (name_1, high),
+            (name_2, low),
+        ]
 
         tracker.swap(itr, name_1, name_2)
 
         initiatives = tracker.get(itr)
-        assert [(i.name, i.get_total()) for i in initiatives] == [(name_2, high), (name_1, low)]
+        assert [(i.name, i.get_total()) for i in initiatives] == [
+            (name_2, high),
+            (name_1, low),
+        ]

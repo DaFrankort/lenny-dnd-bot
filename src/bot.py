@@ -321,9 +321,7 @@ class Bot(discord.Client):
             log_cmd(itr)
 
             initiatives = []
-            for i in range(
-                amount
-            ):
+            for i in range(amount):
                 initiative = Initiative(itr, modifier, f"{name} {i+1}")
                 if shared and i != 0:
                     initiative.d20 = initiatives[0].d20  # Use roll from first.
@@ -363,7 +361,8 @@ class Bot(discord.Client):
             )
 
         @self.tree.command(
-            name="swapinitiative", description="Swap two initiatives, mainly for characters with the Alert feat."
+            name="swapinitiative",
+            description="Swap two initiatives, mainly for characters with the Alert feat.",
         )
         async def swap_initiative(itr: Interaction, target_a: str, target_b: str):
             log_cmd(itr)

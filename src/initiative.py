@@ -100,12 +100,10 @@ class InitiativeTracker:
         index_b = -1
         for i, initiative in enumerate(self.get(itr)):
             name = initiative.name.lower().strip()
-            if target_a == name and index_a == -1:
+            if name == target_a:
                 index_a = i
-            if target_b == name and index_b == -1:
+            if name == target_b:
                 index_b = i
-            if index_a != -1 and index_b != -1:
-                break
 
         if index_a == -1 or index_b == -1:
             missing = target_a if index_a == -1 else target_b

@@ -375,8 +375,7 @@ class Bot(discord.Client):
             text, success = self.initiatives.swap(itr, target_a, target_b)
             color = None if success else discord.Color.red()
             await itr.response.send_message(
-                embed=SimpleEmbed("Initiative Swap", text, color),
-                ephemeral=not success
+                embed=SimpleEmbed("Initiative Swap", text, color), ephemeral=not success
             )
 
         @swap_initiative.autocomplete("target_a")

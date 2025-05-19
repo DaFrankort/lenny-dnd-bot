@@ -362,7 +362,7 @@ class Bot(discord.Client):
 
         @self.tree.command(
             name="swapinitiative",
-            description="Swap two initiatives, mainly for characters with the Alert feat.",
+            description="Swap the initiative order of two creatures or players (useful for feats like Alert).",
         )
         async def swap_initiative(itr: Interaction, target_a: str, target_b: str):
             log_cmd(itr)

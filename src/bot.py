@@ -14,6 +14,7 @@ from embeds import (
     NoItemsFoundEmbed,
     NoSpellsFoundEmbed,
     NoSearchResultsFoundEmbed,
+    SimpleEmbed,
     SpellEmbed,
 )
 from initiative import (
@@ -73,6 +74,8 @@ class Bot(discord.Client):
             logging.info(f"Connected to guild: {guild.name} (ID: {guild.id})")
 
     def _register_commands(self):
+        logging.info("Registered slash-commands.")
+
         def log_cmd(itr: Interaction):
             """Helper function to log user's command-usage in the terminal"""
             try:
@@ -324,9 +327,7 @@ class Bot(discord.Client):
             log_cmd(itr)
 
             initiatives = []
-            for i in range(
-                amount
-            ):  # TODO Move to BulkInitiative class, so it can be unit-tested.
+            for i in range(amount):
                 initiative = Initiative(itr, modifier, f"{name} {i+1}")
                 if shared and i != 0:
                     initiative.d20 = initiatives[0].d20  # Use roll from first.
@@ -365,4 +366,26 @@ class Bot(discord.Client):
                 f"❌ {itr.user.display_name} cleared Initiatives. ❌"
             )
 
-        logging.info("Registered slash-commands.")
+        @self.tree.command(
+            name="swapinitiative",
+            description="Swap the initiative order of two creatures or players (useful for feats like Alert).",
+        )
+        async def swap_initiative(itr: Interaction, target_a: str, target_b: str):
+            log_cmd(itr)
+            text, success = self.initiatives.swap(itr, target_a, target_b)
+            color = None if success else discord.Color.red()
+            await itr.response.send_message(
+                embed=SimpleEmbed("Initiative Swap", text, color), ephemeral=not success
+            )
+
+        @swap_initiative.autocomplete("target_a")
+        async def swap_target_a_autocomplete(
+            itr: discord.Interaction, current: str
+        ) -> list[app_commands.Choice[str]]:
+            return self.initiatives.get_autocomplete_suggestions(itr, current)
+
+        @swap_initiative.autocomplete("target_b")
+        async def swap_target_b_autocomplete(
+            itr: discord.Interaction, current: str
+        ) -> list[app_commands.Choice[str]]:
+            return self.initiatives.get_autocomplete_suggestions(itr, current)

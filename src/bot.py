@@ -30,7 +30,7 @@ from initiative import (
     InitiativeTrackerEmbed,
 )
 from search import SearchEmbed, search_from_query
-from stats import Stats, StatsEmbed
+from stats import Stats
 from user_colors import UserColor
 
 
@@ -96,7 +96,11 @@ class Bot(discord.Client):
                 diceroll, mode=DiceRollMode.Normal, reason=reason
             )
             return await itr.response.send_message(
-                embed=UserActionEmbed(itr, expression.title, expression.description),
+                embed=UserActionEmbed(
+                    itr=itr,
+                    title=expression.title,
+                    description=expression.description,
+                ),
                 ephemeral=expression.ephemeral,
             )
 
@@ -105,7 +109,11 @@ class Bot(discord.Client):
             log_cmd(itr)
             expression = DiceExpression("1d20", DiceRollMode.Normal)
             return await itr.response.send_message(
-                embed=UserActionEmbed(itr, expression.title, expression.description),
+                embed=UserActionEmbed(
+                    itr=itr,
+                    title=expression.title,
+                    description=expression.description,
+                ),
                 ephemeral=expression.ephemeral,
             )
 
@@ -116,7 +124,11 @@ class Bot(discord.Client):
             log_cmd(itr)
             expression = DiceExpression(diceroll, DiceRollMode.Advantage, reason=reason)
             return await itr.response.send_message(
-                embed=UserActionEmbed(itr, expression.title, expression.description),
+                embed=UserActionEmbed(
+                    itr=itr,
+                    title=expression.title,
+                    description=expression.description,
+                ),
                 ephemeral=expression.ephemeral,
             )
 
@@ -130,7 +142,11 @@ class Bot(discord.Client):
                 diceroll, DiceRollMode.Disadvantage, reason=reason
             )
             return await itr.response.send_message(
-                embed=UserActionEmbed(itr, expression.title, expression.description),
+                embed=UserActionEmbed(
+                    itr=itr,
+                    title=expression.title,
+                    description=expression.description,
+                ),
                 ephemeral=expression.ephemeral,
             )
 
@@ -287,9 +303,9 @@ class Bot(discord.Client):
             UserColor.save(itr, color)
             await itr.response.send_message(
                 embed=UserActionEmbed(
-                    itr,
-                    f"{itr.user.display_name} set a new color!",
-                    f"``{old_color.upper()}`` => ``#{hex_color.upper()}``",
+                    itr=itr,
+                    title=f"{itr.user.display_name} set a new color!",
+                    description=f"``{old_color.upper()}`` => ``#{hex_color.upper()}``",
                 ),
                 ephemeral=True,
             )
@@ -301,8 +317,13 @@ class Bot(discord.Client):
         async def stats(itr: Interaction):
             log_cmd(itr)
             stats = Stats(itr)
-            embed = StatsEmbed(stats)
-            await itr.response.send_message(embed=embed)
+            await itr.response.send_message(
+                embed=UserActionEmbed(
+                    itr=itr,
+                    title=stats.get_embed_title(),
+                    description=stats.get_embed_description(),
+                ),
+            )
 
         @self.tree.command(
             name="initiative", description="Roll initiative for yourself or a creature."

@@ -184,9 +184,14 @@ class MultiItemSelectView(discord.ui.View):
 
 
 class SimpleEmbed(discord.Embed):
-    def __init__(self, title: str, description: str) -> None:
+    def __init__(
+        self, title: str, description: str, color: discord.Color = None
+    ) -> None:
+        if not color:
+            color = discord.Color.dark_green()
+
         super().__init__(
-            color=discord.Color.dark_green(),
+            color=color,
             title=title,
             type="rich",
             url=None,

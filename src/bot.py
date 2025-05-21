@@ -6,7 +6,7 @@ from discord import Interaction
 from dotenv import load_dotenv
 
 from dice import DiceExpression, DiceEmbed, DiceRollMode
-from dnd import ConditionList, SpellList, ItemList
+from dnd import DNDData
 from embeds import (
     ConditionEmbed,
     ItemEmbed,
@@ -35,9 +35,7 @@ class Bot(discord.Client):
     tree: app_commands.CommandTree
     token: str
     guild_id: int
-    spells: SpellList
-    items: ItemList
-    conditions: ConditionList
+    data: DNDData
     initiatives: InitiativeTracker
 
     def __init__(self):
@@ -51,9 +49,7 @@ class Bot(discord.Client):
         self.token = os.getenv("DISCORD_BOT_TOKEN")
         self.guild_id = int(os.getenv("GUILD_ID"))
 
-        self.spells = SpellList()
-        self.items = ItemList()
-        self.conditions = ConditionList()
+        self.data = DNDData()
         self.initiatives = InitiativeTracker()
 
     def run_client(self):
@@ -170,7 +166,7 @@ class Bot(discord.Client):
         @self.tree.command(name="spell", description="Get the details for a spell.")
         async def spell(itr: Interaction, name: str):
             log_cmd(itr)
-            found = self.spells.get(name)
+            found = self.data.spells.get(name)
             logging.debug(f"Found {len(found)} for '{name}'")
 
             if len(found) == 0:
@@ -189,7 +185,7 @@ class Bot(discord.Client):
         async def spell_autocomplete(
             itr: discord.Interaction, current: str
         ) -> list[app_commands.Choice[str]]:
-            return self.spells.get_autocomplete_suggestions(query=current)
+            return self.data.spells.get_autocomplete_suggestions(query=current)
 
         @self.tree.command(name="item", description="Get the details for an item.")
         async def item(itr: Interaction, name: str):
@@ -244,18 +240,14 @@ class Bot(discord.Client):
         @self.tree.command(name="search", description="Search for a spell.")
         async def search(itr: Interaction, query: str):
             log_cmd(itr)
-            found_spells, found_items = search_from_query(
-                query, self.spells, self.items
-            )
-            logging.debug(
-                f"Found {len(found_spells)} spells and {len(found_items)} for '{query}'"
-            )
+            results = search_from_query(query, self.data)
+            logging.debug(f"Found {len(results.get_all())} results for '{query}'")
 
-            if len(found_spells) + len(found_items) == 0:
+            if len(results.get_all()) == 0:
                 embed = NoSearchResultsFoundEmbed(query)
                 await itr.response.send_message(embed=embed)
             else:
-                embed = SearchEmbed(query, found_spells, found_items)
+                embed = SearchEmbed(query, results)
                 await itr.response.send_message(embed=embed, view=embed.view)
 
         @self.tree.command(

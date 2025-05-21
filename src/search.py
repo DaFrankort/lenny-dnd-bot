@@ -4,8 +4,15 @@ import re
 import discord
 from rapidfuzz import fuzz
 
-from dnd import Item, ItemList, Spell, SpellList
-from embeds import ItemEmbed, SpellEmbed
+from dnd import (
+    Condition,
+    DNDData,
+    DNDSearchResults,
+    DNDObject,
+    Item,
+    Spell,
+)
+from embeds import ConditionEmbed, ItemEmbed, SpellEmbed
 
 
 def __search_matches(query: str, name: str, threshold: float) -> bool:
@@ -17,37 +24,42 @@ def __search_matches(query: str, name: str, threshold: float) -> bool:
 
 def search_from_query(
     query: str,
-    spell_list: SpellList,
-    item_list: ItemList,
+    data: DNDData,
     threshold=75.0,
     ignore_phb2014=False,
 ):
     query = query.strip().lower()
-    spells: list[Spell] = []
-    items: list[Item] = []
+    results = DNDSearchResults()
 
-    for spell in spell_list.entries:
+    for spell in data.spells.entries:
         if ignore_phb2014 and spell.is_phb2014:
             continue
         if __search_matches(query, spell.name, threshold):
-            spells.append(spell)
+            results.spells.append(spell)
 
-    for item in item_list.entries:
+    for item in data.items.entries:
         if ignore_phb2014 and item.is_phb2014:
             continue
         if __search_matches(query, item.name, threshold):
-            items.append(item)
+            results.items.append(item)
 
-    return spells, items
+    for condition in data.conditions.entries:
+        if ignore_phb2014 and item.is_phb2014:
+            continue
+        if __search_matches(query, condition.name, threshold):
+            results.conditions.append(condition)
+
+    return results
 
 
 class Emoji:
     fire = "🔥"
     dagger = "🗡️"
+    skull = "💀"
 
 
 class SearchSelectOption(discord.SelectOption):
-    def __init__(self, data: Item | Spell):
+    def __init__(self, data: DNDObject):
         label = ""
         description = None
         if isinstance(data, Spell):
@@ -57,23 +69,25 @@ class SearchSelectOption(discord.SelectOption):
         elif isinstance(data, Item):
             label = f"{Emoji.dagger} {data.name} ({data.source})"
 
+        elif isinstance(data, Condition):
+            label = f"{Emoji.skull} {data.name} ({data.source})"
+
         super().__init__(label=label, description=description)
 
 
 class SearchSelect(discord.ui.Select):
-    spells: list[Spell]
-    items: list[Item]
+    results: list[DNDObject]
 
-    def __init__(self, query: str, spells: list[Spell], items: list[Item]) -> None:
-        self.spells = spells
-        self.items = items
+    def __init__(
+        self,
+        query: str,
+        results: list[DNDObject],
+    ) -> None:
+        self.results = results
 
         options = []
-        for spell in spells:
-            options.append(SearchSelectOption(spell))
-
-        for item in items:
-            options.append(SearchSelectOption(item))
+        for entry in self.results:
+            options.append(SearchSelectOption(entry))
 
         options = sorted(options, key=lambda o: o.label)
         super().__init__(
@@ -95,29 +109,16 @@ class SearchSelect(discord.ui.Select):
         user_name = interaction.user.display_name
         logging.debug(f"SearchEmbed: user {user_name} selected '{name}")
 
+        embed_type = None
         if type == Emoji.fire:
-            spell = [
-                spell
-                for spell in self.spells
-                if spell.name == name and spell.source == source
-            ][0]
-            await interaction.response.send_message(embed=SpellEmbed(spell))
+            embed_type = SpellEmbed
+        if type == Emoji.dagger:
+            embed_type = ItemEmbed
+        if type == Emoji.skull:
+            embed_type = ConditionEmbed
 
-        elif type == Emoji.dagger:
-            item = [
-                item
-                for item in self.items
-                if item.name == name and item.source == source
-            ][0]
-            await interaction.response.send_message(embed=ItemEmbed(item))
-
-
-class SearchSelectView(discord.ui.View):
-    """A class representing a Discord view for multiple spell selection."""
-
-    def __init__(self, query: str, spells: list[Spell], items: list[Item]):
-        super().__init__()
-        self.add_item(SearchSelect(query, spells, items))
+        result = [r for r in self.results if r.name == name and r.source == source][0]
+        await interaction.response.send_message(embed=embed_type(result))
 
 
 class SearchActionView(discord.ui.View):
@@ -161,13 +162,16 @@ class SearchActionView(discord.ui.View):
         self.select = None
 
     def update(
-        self, page: int, max_pages: int, spells: list[Spell], items: list[Item]
+        self,
+        page: int,
+        max_pages: int,
+        results: list[DNDObject],
     ) -> None:
         if len(self.buttons) == 0:
             return
 
         self.remove_item(self.select)
-        self.select = SearchSelect(self.query, spells, items)
+        self.select = SearchSelect(self.query, results)
         self.add_item(self.select)
 
         # Disable buttons based on which page we are on
@@ -185,15 +189,13 @@ class SearchEmbed(discord.Embed):
     per_page: int = 10
 
     page: int
-    items: list[Item]
-    spells: list[Spell]
+    results: DNDSearchResults
 
     view: SearchActionView
 
-    def __init__(self, query: str, spells: list[Spell], items: list[Item]) -> None:
+    def __init__(self, query: str, results: DNDSearchResults) -> None:
         self.page = 0
-        self.items = sorted(items, key=lambda i: (i.name, i.source))
-        self.spells = sorted(spells, key=lambda s: (s.name, s.source))
+        self.results = results
 
         title = f"Results for '{query}'"
         url = f"https://5e.tools/search.html?q={query}"
@@ -213,29 +215,21 @@ class SearchEmbed(discord.Embed):
 
     @property
     def max_pages(self) -> int:
-        return int(math.ceil((len(self.spells) + len(self.items)) / self.per_page))
+        return int(math.ceil(len(self.results) / self.per_page))
 
-    def get_current_options(self) -> tuple[list[Item], list[Spell]]:
-        # Could be cleaner
-        options = self.items + self.spells
+    def get_current_options(self):
         start = self.page * self.per_page
         end = (self.page + 1) * self.per_page
-        options = options[start:end]
-        items = [i for i in options if isinstance(i, Item)]
-        spells = [s for s in options if isinstance(s, Spell)]
-        return items, spells
+        return self.results.get_all_sorted()[start:end]
 
     def build(self):
         self.clear_fields()
-        items, spells = self.get_current_options()
 
-        for item in items:
-            option = SearchSelectOption(item)
-            self.add_field(name="", value=option.label, inline=False)
-
-        for spell in spells:
-            option = SearchSelectOption(spell)
-            self.add_field(name="", value=option.label, inline=False)
+        options = self.get_current_options()
+        for option in options:
+            self.add_field(
+                name="", value=SearchSelectOption(option).label, inline=False
+            )
 
         self.add_field(
             name="",
@@ -244,7 +238,7 @@ class SearchEmbed(discord.Embed):
         )
 
         self.set_footer(text=f"Page {self.page + 1}/{self.max_pages}")
-        self.view.update(self.page, self.max_pages, spells, items)
+        self.view.update(self.page, self.max_pages, options)
 
     async def rebuild(self, interaction: discord.Interaction):
         self.build()

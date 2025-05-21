@@ -9,6 +9,7 @@ def is_source_phb2014(source: str) -> bool:
 
 
 class DNDObject(object):
+    object_type: str
     name: str
     source: str
     url: str | None
@@ -109,6 +110,7 @@ class Spell(DNDObject):
     classes: list
 
     def __init__(self, json: any):
+        self.object_type = "spell"
         self.name = json["name"]
         self.source = json["source"]
         self.url = json["url"]
@@ -161,6 +163,7 @@ class Item(DNDObject):
     description: list[tuple[str, str]]
 
     def __init__(self, json: any):
+        self.object_type = "item"
         self.name = json["name"]
         self.source = json["source"]
         self.url = json["url"]
@@ -211,10 +214,12 @@ class Condition(DNDObject):
     image: str | None
 
     def __init__(self, json: any):
+        self.object_type = "condition"
         self.name = json["name"]
         self.source = json["source"]
         self.url = json["url"]
         self.description = json["description"]
+        self.image = json["image"]
 
 
 class ConditionList(DNDObjectList):
@@ -229,3 +234,24 @@ class ConditionList(DNDObjectList):
                 data = json.load(file)
                 for condition in data:
                     self.entries.append(Condition(condition))
+
+
+class DNDData(object):
+    spells = SpellList()
+    items = ItemList()
+    conditions = ConditionList()
+
+
+class DNDSearchResults(object):
+    spells: list[Spell] = []
+    items: list[Item] = []
+    conditions: list[Condition] = []
+
+    def get_all(self) -> list[DNDObject]:
+        return self.spells + self.items + self.conditions
+
+    def get_all_sorted(self) -> list[DNDObject]:
+        return sorted(self.get_all(), key=lambda r: (r.object_type, r.name, r.source))
+
+    def __len__(self) -> int:
+        return len(self.get_all())

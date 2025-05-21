@@ -168,10 +168,17 @@ class ConditionEmbed(discord.Embed):
             color=discord.Color.dark_green(),
             url=condition.url,
         )
-        for description in condition.description:
+        if len(condition.description) == 0:
+            return
+
+        self.description = condition.description[0]["text"]
+        for description in condition.description[1:]:
             self.add_field(
                 name=description["name"], value=description["text"], inline=False
             )
+
+        if condition.image:
+            self.set_thumbnail(url=condition.image)
 
 
 class MultiConditionSelect(MultiDNDSelect):

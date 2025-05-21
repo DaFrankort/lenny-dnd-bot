@@ -237,7 +237,7 @@ class UserActionEmbed(SimpleEmbed):
             description,
             color=UserColor.get(itr),
         ),
-        super().set_author(
+        self.set_author(
             name=title,
             icon_url=itr.user.display_avatar.url,
         )

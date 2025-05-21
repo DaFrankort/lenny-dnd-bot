@@ -223,23 +223,25 @@ class InitiativeTracker:
             True,
         ),
 
-    def add_bulk(self, itr: discord.Interaction, modifier: int, name: str, amount: int, shared: bool):
+    def add_bulk(self, itr: discord.Interaction, modifier: int, name: str, amount: int, shared: bool) -> tuple[str, str]:
+        """Adds many initiatives to a server. Returns a title and description for the embed."""
         title = f"{itr.user.display_name} rolled Initiative for {amount} {name.strip().title()}(s)!"
-        description = ""
 
-        shared_d20 = -1
+        initiatives = []
         for i in range(amount):
-            initiative = Initiative(itr, modifier, f"{name} {i+1}")
-
+            initiative = Initiative(itr, modifier, f"{name}")
             if shared and i != 0:
-                initiative.d20 = shared_d20
-            if shared and shared_d20 == -1:
-                shared_d20 = initiative.d20
+                initiative.d20 = initiatives[0].d20
+            initiatives.append(initiative)
 
+        initiatives.sort(key=lambda x: x.get_total(), reverse=True)
+        description = ""
+        for i, initiative in enumerate(initiatives):
+            initiative.name += f" {i+1}"
             total = initiative.get_total()
             description += f"- ``{total:>2}`` - {initiative.name}\n"
-
             self.add(itr, initiative)
+
         return title, description
 
 
@@ -252,6 +254,5 @@ class InitiativeTrackerEmbed(SimpleEmbed):
 
         super().__init__(
             title="Initiatives",
-            type="rich",
             description=description,
-        )
+        ),

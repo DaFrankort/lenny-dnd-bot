@@ -377,9 +377,8 @@ class Bot(discord.Client):
         async def remove_initiative(itr: Interaction, target: str | None = None):
             log_cmd(itr)
             text, success = self.initiatives.remove(itr, target)
-            title = "Removed initiative" if success else "Failed to remove initiative"
             await itr.response.send_message(
-                embed=SuccessEmbed(title, text, success),
+                embed=SuccessEmbed(title_success="Removed initiative", title_fail="Failed to remove initiative", description=text, success=success),
                 ephemeral=not success,
             )
 
@@ -396,9 +395,8 @@ class Bot(discord.Client):
         async def swap_initiative(itr: Interaction, target_a: str, target_b: str):
             log_cmd(itr)
             text, success = self.initiatives.swap(itr, target_a, target_b)
-            title = "Swapped initiative" if success else "Failed to swap initiative"
             await itr.response.send_message(
-                embed=SuccessEmbed(title, text, success),
+                embed=SuccessEmbed(title_success="Swapped initiative", title_fail="Failed to swap initiative", description=text, success=success),
                 ephemeral=not success,
             )
 

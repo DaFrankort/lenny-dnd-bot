@@ -221,10 +221,8 @@ class InitiativeTracker:
         if sanitized_name == self._sanitize_name(itr.user.display_name):
             return f"{itr.user.display_name} removed their own Initiative.", True
         return (
-            (
-                f"{itr.user.display_name} removed Initiative for ``{name.title()}``.",
-                True,
-            ),
+            f"{itr.user.display_name} removed Initiative for ``{name.title()}``.",
+            True,
         )
 
     def add_bulk(

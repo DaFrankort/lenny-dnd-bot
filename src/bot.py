@@ -365,7 +365,7 @@ class Bot(discord.Client):
             self.initiatives.clear(itr)
             await itr.response.send_message(
                 embed=SimpleEmbed(
-                    f"❌ {itr.user.display_name} cleared Initiatives. ❌", None
+                    f"{itr.user.display_name} cleared all Initiatives.", None
                 )
             )
 

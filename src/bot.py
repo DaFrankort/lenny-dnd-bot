@@ -23,7 +23,6 @@ from embeds import (
     UserActionEmbed,
 )
 from initiative import (
-    BulkInitiativeEmbed,
     Initiative,
     InitiativeTracker,
     InitiativeTrackerEmbed,
@@ -388,19 +387,8 @@ class Bot(discord.Client):
             shared: bool = False,
         ):
             log_cmd(itr)
-
-            initiatives = []
-            for i in range(amount):
-                initiative = Initiative(itr, modifier, f"{name} {i+1}")
-                if shared and i != 0:
-                    initiative.d20 = initiatives[0].d20  # Use roll from first.
-
-                initiatives.append(initiative)
-                self.initiatives.add(itr, initiative)
-
-            await itr.response.send_message(
-                embed=BulkInitiativeEmbed(itr, initiatives, name)
-            )
+            title, description = self.initiatives.add_bulk(itr=itr, modifier=modifier, name=name, amount=amount, shared=shared)
+            await itr.response.send_message(embed=UserActionEmbed(itr=itr, title=title, description=description))
 
         @self.tree.command(
             name="showinitiative",

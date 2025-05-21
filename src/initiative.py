@@ -1,7 +1,7 @@
 import random
 import discord
 
-from embeds import SimpleEmbed, UserActionEmbed
+from embeds import SimpleEmbed
 from rapidfuzz import fuzz
 from discord.app_commands import Choice
 
@@ -223,25 +223,24 @@ class InitiativeTracker:
             True,
         ),
 
-
-class BulkInitiativeEmbed(UserActionEmbed):
-    def __init__(
-        self, itr: discord.Interaction, initiatives: list[Initiative], name: str
-    ):
-        username = itr.user.display_name
-
-        title = f"{username} rolled Initiative for {len(initiatives)} {name}(s)!"
-
+    def add_bulk(self, itr: discord.Interaction, modifier: int, name: str, amount: int, shared: bool):
+        title = f"{itr.user.display_name} rolled Initiative for {amount} {name.strip().title()}(s)!"
         description = ""
-        for initiative in initiatives:
+
+        shared_d20 = -1
+        for i in range(amount):
+            initiative = Initiative(itr, modifier, f"{name} {i+1}")
+
+            if shared and i != 0:
+                initiative.d20 = shared_d20
+            if shared and shared_d20 == -1:
+                shared_d20 = initiative.d20
+
             total = initiative.get_total()
             description += f"- ``{total:>2}`` - {initiative.name}\n"
 
-        super().__init__(
-            itr,
-            title,
-            description,
-        ),
+            self.add(itr, initiative)
+        return title, description
 
 
 class InitiativeTrackerEmbed(SimpleEmbed):

@@ -5,7 +5,7 @@ from discord import app_commands
 from discord import Interaction
 from dotenv import load_dotenv
 
-from dice import DiceExpression, DiceEmbed, DiceRollMode
+from dice import DiceExpression, DiceRollMode
 from dnd import DNDData
 from embeds import (
     ConditionEmbed,
@@ -20,6 +20,7 @@ from embeds import (
     SimpleEmbed,
     SpellEmbed,
     SuccessEmbed,
+    UserActionEmbed,
 )
 from initiative import (
     BulkInitiativeEmbed,
@@ -95,7 +96,7 @@ class Bot(discord.Client):
                 diceroll, mode=DiceRollMode.Normal, reason=reason
             )
             return await itr.response.send_message(
-                embed=DiceEmbed(itr, expression), ephemeral=expression.ephemeral
+                embed=UserActionEmbed(itr, expression.title, expression.description), ephemeral=expression.ephemeral
             )
 
         @self.tree.command(name="d20", description="Just roll a clean d20")
@@ -103,7 +104,7 @@ class Bot(discord.Client):
             log_cmd(itr)
             expression = DiceExpression("1d20", DiceRollMode.Normal)
             return await itr.response.send_message(
-                embed=DiceEmbed(itr, expression), ephemeral=expression.ephemeral
+                embed=UserActionEmbed(itr, expression.title, expression.description), ephemeral=expression.ephemeral
             )
 
         @self.tree.command(
@@ -113,7 +114,7 @@ class Bot(discord.Client):
             log_cmd(itr)
             expression = DiceExpression(diceroll, DiceRollMode.Advantage, reason=reason)
             return await itr.response.send_message(
-                embed=DiceEmbed(itr, expression), ephemeral=expression.ephemeral
+                embed=UserActionEmbed(itr, expression.title, expression.description), ephemeral=expression.ephemeral
             )
 
         @self.tree.command(
@@ -126,7 +127,7 @@ class Bot(discord.Client):
                 diceroll, DiceRollMode.Disadvantage, reason=reason
             )
             return await itr.response.send_message(
-                embed=DiceEmbed(itr, expression), ephemeral=expression.ephemeral
+                embed=UserActionEmbed(itr, expression.title, expression.description), ephemeral=expression.ephemeral
             )
 
         @roll.autocomplete("reason")

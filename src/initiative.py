@@ -1,7 +1,7 @@
 import random
 import discord
 
-from user_colors import UserColor
+from embeds import SimpleEmbed, UserActionEmbed
 from rapidfuzz import fuzz
 from discord.app_commands import Choice
 
@@ -191,7 +191,7 @@ class InitiativeTracker:
         )
 
 
-class InitiativeEmbed(discord.Embed):
+class InitiativeEmbed(UserActionEmbed):
     def __init__(self, itr: discord.Interaction, initiative: Initiative, rolled: bool):
         username = itr.user.display_name
         action_text = "rolled" if rolled else "set"
@@ -213,12 +213,13 @@ class InitiativeEmbed(discord.Embed):
         description += f"Initiative: **{total}**"
 
         super().__init__(
-            type="rich", color=UserColor.get(itr), description=description
-        ),
-        self.set_author(name=title, icon_url=itr.user.avatar.url)
+            itr,
+            title,
+            description,
+        )
 
 
-class BulkInitiativeEmbed(discord.Embed):
+class BulkInitiativeEmbed(UserActionEmbed):
     def __init__(
         self, itr: discord.Interaction, initiatives: list[Initiative], name: str
     ):
@@ -232,12 +233,13 @@ class BulkInitiativeEmbed(discord.Embed):
             description += f"- ``{total:>2}`` - {initiative.name}\n"
 
         super().__init__(
-            type="rich", color=UserColor.get(itr), description=description
+            itr,
+            title,
+            description,
         ),
-        self.set_author(name=title, icon_url=itr.user.avatar.url)
 
 
-class InitiativeTrackerEmbed(discord.Embed):
+class InitiativeTrackerEmbed(SimpleEmbed):
     def __init__(self, itr: discord.Interaction, tracker: InitiativeTracker):
         description = ""
         for initiative in tracker.get(itr):
@@ -247,6 +249,5 @@ class InitiativeTrackerEmbed(discord.Embed):
         super().__init__(
             title="Initiatives",
             type="rich",
-            color=discord.Color.dark_green(),
             description=description,
         )

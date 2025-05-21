@@ -194,7 +194,7 @@ class MultiConditionSelectView(discord.ui.View):
 
 class SimpleEmbed(discord.Embed):
     def __init__(
-        self, title: str | None, description: str | None, color: discord.Color = None
+        self, title: str, description: str, color: discord.Color = None
     ) -> None:
         if not color:
             color = discord.Color.dark_green()
@@ -218,11 +218,10 @@ class SuccessEmbed(SimpleEmbed):
     def __init__(
         self,
         title_success: str,
-        title_fail: str | None,
+        title_fail: str,
         description: str | None,
         success: bool,
     ):
-        title_fail = title_fail or title_success
         title = title_success if success else title_fail
         color = discord.Color.dark_green() if success else discord.Color.red()
         super().__init__(title, description, color)

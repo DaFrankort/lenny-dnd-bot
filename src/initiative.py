@@ -76,14 +76,14 @@ class InitiativeTracker:
         fuzzy_threshold: float = 75,
         limit: int = 25,
     ) -> list[Choice[str]]:
-        query = self._sanitize_name(query).replace(" ", "")
+        query = self._sanitize_name(query)
 
         if query == "":
             return []
 
         choices = []
         for e in self.get(itr):
-            name_clean = self._sanitize_name(e.name).replace(" ", "")
+            name_clean = self._sanitize_name(e.name)
             score = fuzz.partial_ratio(query, name_clean)
             if score > fuzzy_threshold:
                 starts_with_query = name_clean.startswith(query)

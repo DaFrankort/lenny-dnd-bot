@@ -109,7 +109,7 @@ class InitiativeTracker:
 
         if target_a == target_b:
             return (
-                f"Cannot swap:\n both targets refer to the same initiative (``{target_a}``).",
+                f"Cannot swap target with itself!\n``{target_a}`` was specified twice.",
                 False,
             )
 
@@ -124,17 +124,17 @@ class InitiativeTracker:
 
         if index_a == -1 and index_b == -1:
             return (
-                f"No initiatives found matching ``{target_a}`` or ``{target_b}``.\n Make sure targets are exact name-matches.",
+                f"No initiatives found matching ``{target_a}`` or ``{target_b}``.\nMake sure targets are exact name-matches.",
                 False,
             )
         elif index_a == -1:
             return (
-                f"No initiatives found matching ``{target_a}``.\n Make sure targets are exact name-matches.",
+                f"No initiatives found matching ``{target_a}``.\nMake sure targets are exact name-matches.",
                 False,
             )
         elif index_b == -1:
             return (
-                f"No initiatives found matching ``{target_b}``.\n Make sure targets are exact name-matches.",
+                f"No initiatives found matching ``{target_b}``.\nMake sure targets are exact name-matches.",
                 False,
             )
 
@@ -150,7 +150,7 @@ class InitiativeTracker:
         self.server_initiatives[guild_id][index_a] = initiative_b
         self.server_initiatives[guild_id][index_b] = initiative_a
         return (
-            f"``{initiative_a.name}`` <=> ``{initiative_b.name}``\n**Swapped succesfully!**",
+            f"``{initiative_a.name}`` <=> ``{initiative_b.name}``",
             True,
         )
 
@@ -158,7 +158,7 @@ class InitiativeTracker:
         """Remove an initiative from the list. Returns a message and a success flag."""
         guild_id = int(itr.guild_id)
         if guild_id not in self.server_initiatives:
-            return f"No initiatives to remove in {itr.guild.name.title()}", False
+            return f"No initiatives to remove in {itr.guild.name.title()}.", False
 
         if name is None:
             name = itr.user.display_name
@@ -181,7 +181,7 @@ class InitiativeTracker:
             del self.server_initiatives[guild_id]
 
         if sanitized_name == self._sanitize_name(itr.user.display_name):
-            return f"{itr.user.display_name} removed their own Initiative.\n", True
+            return f"{itr.user.display_name} removed their own Initiative.", True
         return f"{itr.user.display_name} removed Initiative for ``{name.title()}``.", True
 
 

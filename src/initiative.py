@@ -31,7 +31,9 @@ class Initiative:
         action_text = "rolled" if rolled else "set"
 
         if self.is_npc:
-            self.title = f"{self.owner.display_name} {action_text} Initiative for {self.name}!"
+            self.title = (
+                f"{self.owner.display_name} {action_text} Initiative for {self.name}!"
+            )
             return
 
         self.title = f"{self.owner.display_name} {action_text} Initiative!"
@@ -219,11 +221,20 @@ class InitiativeTracker:
         if sanitized_name == self._sanitize_name(itr.user.display_name):
             return f"{itr.user.display_name} removed their own Initiative.", True
         return (
-            f"{itr.user.display_name} removed Initiative for ``{name.title()}``.",
-            True,
-        ),
+            (
+                f"{itr.user.display_name} removed Initiative for ``{name.title()}``.",
+                True,
+            ),
+        )
 
-    def add_bulk(self, itr: discord.Interaction, modifier: int, name: str, amount: int, shared: bool) -> tuple[str, str]:
+    def add_bulk(
+        self,
+        itr: discord.Interaction,
+        modifier: int,
+        name: str,
+        amount: int,
+        shared: bool,
+    ) -> tuple[str, str]:
         """Adds many initiatives to a server. Returns a title and description for the embed."""
         title = f"{itr.user.display_name} rolled Initiative for {amount} {name.strip().title()}(s)!"
 

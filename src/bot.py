@@ -336,9 +336,7 @@ class Bot(discord.Client):
             self.initiatives.add(itr, initiative)
             await itr.response.send_message(
                 embed=UserActionEmbed(
-                    itr=itr,
-                    title=initiative.title,
-                    description=initiative.description
+                    itr=itr, title=initiative.title, description=initiative.description
                 )
             )
 
@@ -357,9 +355,7 @@ class Bot(discord.Client):
             self.initiatives.add(itr, initiative)
             await itr.response.send_message(
                 embed=UserActionEmbed(
-                    itr=itr,
-                    title=initiative.title,
-                    description=initiative.description
+                    itr=itr, title=initiative.title, description=initiative.description
                 )
             )
 
@@ -387,8 +383,12 @@ class Bot(discord.Client):
             shared: bool = False,
         ):
             log_cmd(itr)
-            title, description = self.initiatives.add_bulk(itr=itr, modifier=modifier, name=name, amount=amount, shared=shared)
-            await itr.response.send_message(embed=UserActionEmbed(itr=itr, title=title, description=description))
+            title, description = self.initiatives.add_bulk(
+                itr=itr, modifier=modifier, name=name, amount=amount, shared=shared
+            )
+            await itr.response.send_message(
+                embed=UserActionEmbed(itr=itr, title=title, description=description)
+            )
 
         @self.tree.command(
             name="showinitiative",

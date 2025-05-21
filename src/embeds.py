@@ -2,9 +2,56 @@ import logging
 import re
 import discord
 
-from dnd import Item, Spell
+from dnd import DNDObject, Item, Spell, Condition
 
 HORIZONTAL_LINE = "~~-------------------------------------------------------------------------------------~~"
+
+
+class MultiDNDSelect(discord.ui.Select):
+    name: str
+    query: str
+    entries: list[DNDObject]
+    embed: any
+
+    def __init__(self, query: str, entries: list[DNDObject], name: str, embed: any):
+        self.name = name
+        self.query = query
+        self.entries = entries
+        self.embed = embed
+
+        options = []
+        for entry in entries:
+            options.append(self.select_option(entry))
+
+        super().__init__(
+            placeholder=f"Results for '{query}'",
+            options=options,
+            min_values=1,
+            max_values=1,
+        )
+
+        logging.debug(f"{name}: found {len(entries)} spells for '{query}'")
+
+    def select_option(self, entry: DNDObject) -> discord.SelectOption:
+        return discord.SelectOption(label=f"{entry.name} ({entry.source})")
+
+    async def callback(self, interaction: discord.Interaction):
+        """Handles the selection of a spell from the select menu."""
+        full_name = self.values[0]
+        name_pattern = r"^(.+) \(([^\)]+)\)"  # "Name (Source)"
+        name_match = re.match(name_pattern, full_name)
+        name = name_match.group(1)
+        source = name_match.group(2)
+
+        entry = [
+            entry
+            for entry in self.entries
+            if entry.name == name and entry.source == source
+        ][0]
+        logging.debug(
+            f"{self.name}: user {interaction.user.display_name} selected '{name}"
+        )
+        await interaction.response.send_message(embed=self.embed(entry))
 
 
 class SpellEmbed(discord.Embed):
@@ -40,51 +87,20 @@ class SpellEmbed(discord.Embed):
                 )
 
 
-class MultiSpellSelect(discord.ui.Select):
+class MultiSpellSelect(MultiDNDSelect):
     """A class representing a Discord select menu for multiple spell selection."""
 
     query: str
     spells: list[Spell]
 
     def __init__(self, query: str, spells: list[Spell]):
-        self.query = query
-        self.spells = spells
+        super().__init__(query, spells, "MultiSpellSelect", SpellEmbed)
 
-        options = []
-        for spell in spells:
-            options.append(
-                discord.SelectOption(
-                    label=f"{spell.name} ({spell.source})",
-                    description=f"{spell.level} {spell.school}",
-                )
-            )
-
-        super().__init__(
-            placeholder=f"Results for '{query}'",
-            options=options,
-            min_values=1,
-            max_values=1,
+    def select_option(self, entry: Spell) -> discord.SelectOption:
+        return discord.SelectOption(
+            label=f"{entry.name} ({entry.source})",
+            description=f"{entry.level} {entry.school}",
         )
-
-        logging.debug(f"MultiSpellSelect: found {len(spells)} spells for '{query}'")
-
-    async def callback(self, interaction: discord.Interaction):
-        """Handles the selection of a spell from the select menu."""
-        full_name = self.values[0]
-        name_pattern = r"^(.+) \(([^\)]+)\)"  # "Name (Source)"
-        name_match = re.match(name_pattern, full_name)
-        name = name_match.group(1)
-        source = name_match.group(2)
-
-        spell = [
-            spell
-            for spell in self.spells
-            if spell.name == name and spell.source == source
-        ][0]
-        logging.debug(
-            f"MultiSpellSelect: user {interaction.user.display_name} selected '{name}"
-        )
-        await interaction.response.send_message(embed=SpellEmbed(spell))
 
 
 class MultiSpellSelectView(discord.ui.View):
@@ -131,56 +147,49 @@ class ItemEmbed(discord.Embed):
                 self.add_field(name=desc["name"], value=desc["text"], inline=False)
 
 
-class MultiItemSelect(discord.ui.Select):
-    """A class representing a Discord select menu for multiple item selection."""
-
-    query: str
-    items: list[Item]
-
-    def __init__(self, query: str, items: list[Item]):
-        self.query = query
-        self.items = items
-
-        options = []
-        for item in items:
-            options.append(
-                discord.SelectOption(
-                    label=f"{item.name} ({item.source})",
-                )
-            )
-
-        super().__init__(
-            placeholder=f"Results for '{query}'",
-            options=options,
-            min_values=1,
-            max_values=1,
-        )
-
-        logging.debug(f"MultiItemSelect: found {len(items)} items for '{query}'")
-
-    async def callback(self, interaction: discord.Interaction):
-        """Handles the selection of a item from the select menu."""
-        full_name = self.values[0]
-        name_pattern = r"^(.+) \(([^\)]+)\)"  # "Name (Source)"
-        name_match = re.match(name_pattern, full_name)
-        name = name_match.group(1)
-        source = name_match.group(2)
-
-        item = [
-            item for item in self.items if item.name == name and item.source == source
-        ][0]
-        logging.debug(
-            f"MultiItemSelect: user {interaction.user.display_name} selected '{name}"
-        )
-        await interaction.response.send_message(embed=ItemEmbed(item))
+class MultiItemSelect(MultiDNDSelect):
+    def __init__(self, query: str, entries: list[Item]):
+        super().__init__(query, entries, "MultiItemSelect", ItemEmbed)
 
 
 class MultiItemSelectView(discord.ui.View):
-    """A class representing a Discord view for multiple item selection."""
-
     def __init__(self, query: str, items: list[Item]):
         super().__init__()
         self.add_item(MultiItemSelect(query, items))
+
+
+class ConditionEmbed(discord.Embed):
+    def __init__(self, condition: Condition):
+        title = f"{condition.name} ({condition.source})"
+
+        super().__init__(
+            title=title,
+            type="rich",
+            color=discord.Color.dark_green(),
+            url=condition.url,
+        )
+        if len(condition.description) == 0:
+            return
+
+        self.description = condition.description[0]["text"]
+        for description in condition.description[1:]:
+            self.add_field(
+                name=description["name"], value=description["text"], inline=False
+            )
+
+        if condition.image:
+            self.set_thumbnail(url=condition.image)
+
+
+class MultiConditionSelect(MultiDNDSelect):
+    def __init__(self, query: str, entries: list[Condition]):
+        super().__init__(query, entries, "MultiConditionSelect", ConditionEmbed)
+
+
+class MultiConditionSelectView(discord.ui.View):
+    def __init__(self, query: str, conditions: list[Condition]):
+        super().__init__()
+        self.add_item(MultiConditionSelect(query, conditions))
 
 
 class SimpleEmbed(discord.Embed):
@@ -232,3 +241,8 @@ class NoSpellsFoundEmbed(SimpleEmbed):
 class NoItemsFoundEmbed(SimpleEmbed):
     def __init__(self, query: str):
         super().__init__("No items found.", f"No items found for '{query}'.")
+
+
+class NoConditionsFoundEmbed(SimpleEmbed):
+    def __init__(self, query: str):
+        super().__init__("No conditions found.", f"No conditions found for '{query}'.")

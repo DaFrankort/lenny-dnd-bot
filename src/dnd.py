@@ -218,10 +218,14 @@ class Condition(DNDObject):
 
 
 class ConditionList(DNDObjectList):
-    path = "./submodules/lenny-dnd-data/generated/conditions.json"
+    paths = [
+        "./submodules/lenny-dnd-data/generated/conditions.json",
+        "./submodules/lenny-dnd-data/generated/diseases.json",
+    ]
 
     def __init__(self):
-        with open(self.path, "r") as file:
-            data = json.load(file)
-            for condition in data:
-                self.entries.append(Condition(condition))
+        for path in self.paths:
+            with open(path, "r") as file:
+                data = json.load(file)
+                for condition in data:
+                    self.entries.append(Condition(condition))

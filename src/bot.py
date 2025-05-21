@@ -31,7 +31,7 @@ from initiative import (
 )
 from search import SearchEmbed, search_from_query
 from stats import Stats, StatsEmbed
-from user_colors import UserColor, ColorEmbed
+from user_colors import UserColor
 
 
 class Bot(discord.Client):
@@ -278,11 +278,16 @@ class Bot(discord.Client):
                 )
                 return
 
+            old_color = f"#{UserColor.get(itr):06X}"
             color = UserColor.parse(hex_color)
             UserColor.save(itr, color)
-
-            embed = ColorEmbed(itr=itr, hex_color=hex_color)
-            await itr.response.send_message(embed=embed, ephemeral=True)
+            await itr.response.send_message(
+                embed=UserActionEmbed(
+                    itr,
+                    f"{itr.user.display_name} set a new color!",
+                    f"``{old_color.upper()}`` => ``#{hex_color.upper()}``",
+                ),
+                ephemeral=True)
 
         @self.tree.command(
             name="stats",

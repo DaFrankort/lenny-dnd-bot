@@ -25,7 +25,6 @@ from embeds import (
 from initiative import (
     BulkInitiativeEmbed,
     Initiative,
-    InitiativeEmbed,
     InitiativeTracker,
     InitiativeTrackerEmbed,
 )
@@ -337,7 +336,11 @@ class Bot(discord.Client):
             initiative = Initiative(itr, modifier, name)
             self.initiatives.add(itr, initiative)
             await itr.response.send_message(
-                embed=InitiativeEmbed(itr, initiative, True)
+                embed=UserActionEmbed(
+                    itr=itr,
+                    title=initiative.title,
+                    description=initiative.description
+                )
             )
 
         @self.tree.command(
@@ -354,7 +357,11 @@ class Bot(discord.Client):
             initiative.set_value(value)
             self.initiatives.add(itr, initiative)
             await itr.response.send_message(
-                embed=InitiativeEmbed(itr, initiative, False)
+                embed=UserActionEmbed(
+                    itr=itr,
+                    title=initiative.title,
+                    description=initiative.description
+                )
             )
 
         @set_initiative.autocomplete("name")

@@ -11,6 +11,10 @@ class Initiative:
     d20: int
     modifier: int
     is_npc: bool
+    owner: discord.User
+
+    title: str
+    description: str
 
     def __init__(self, itr: discord.Interaction, modifier: int, name: str | None):
         self.is_npc = name is not None
@@ -18,6 +22,33 @@ class Initiative:
         self.name = self.name.title().strip()
         self.d20 = random.randint(1, 20)
         self.modifier = modifier
+        self.owner = itr.user
+
+        self._set_title(True)
+        self._set_description()
+
+    def _set_title(self, rolled: bool) -> str:
+        action_text = "rolled" if rolled else "set"
+
+        if self.is_npc:
+            self.title = f"{self.owner.display_name} {action_text} Initiative for {self.name}!"
+            return
+
+        self.title = f"{self.owner.display_name} {action_text} Initiative!"
+
+    def _set_description(self):
+        mod = self.modifier
+        d20 = self.d20
+        total = self.get_total()
+
+        description = ""
+        if mod > 0:
+            description = f"- ``[{d20}]+{mod}`` -> {total}\n"
+        elif mod < 0:
+            description = f"- ``[{d20}]-{-mod}`` -> {total}\n"
+        description += f"Initiative: **{total}**"
+
+        self.description = description
 
     def get_total(self):
         return self.d20 + self.modifier
@@ -25,6 +56,8 @@ class Initiative:
     def set_value(self, value: int):
         self.d20 = max(1, min(20, value))
         self.modifier = value - self.d20
+        self._set_title(False)
+        self._set_description()
 
 
 class InitiativeTracker:
@@ -188,35 +221,7 @@ class InitiativeTracker:
         return (
             f"{itr.user.display_name} removed Initiative for ``{name.title()}``.",
             True,
-        )
-
-
-class InitiativeEmbed(UserActionEmbed):
-    def __init__(self, itr: discord.Interaction, initiative: Initiative, rolled: bool):
-        username = itr.user.display_name
-        action_text = "rolled" if rolled else "set"
-
-        if initiative.is_npc:
-            title = f"{username} {action_text} Initiative for {initiative.name}!"
-        else:
-            title = f"{username} {action_text} Initiative!"
-
-        mod = initiative.modifier
-        d20 = initiative.d20
-        total = initiative.get_total()
-
-        description = ""
-        if mod > 0:
-            description = f"- ``[{d20}]+{mod}`` -> {total}\n"
-        elif mod < 0:
-            description = f"- ``[{d20}]-{-mod}`` -> {total}\n"
-        description += f"Initiative: **{total}**"
-
-        super().__init__(
-            itr,
-            title,
-            description,
-        )
+        ),
 
 
 class BulkInitiativeEmbed(UserActionEmbed):

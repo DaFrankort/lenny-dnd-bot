@@ -6,9 +6,6 @@ import random
 import re
 from abc import ABC, abstractmethod
 
-import discord
-
-from user_colors import UserColor
 
 """
 Parses a dice expression and builds an Abstract Syntax Tree (AST) to roll for it.
@@ -487,15 +484,3 @@ class DiceExpression(object):
     @property
     def is_valid(self) -> bool:
         return self.ast is not None
-
-
-class DiceEmbed(discord.Embed):
-    def __init__(self, itr: discord.Interaction, expression: DiceExpression):
-        color = UserColor.get(itr)
-
-        super().__init__(
-            colour=color,
-            type="rich",
-        )
-        self.set_author(name=expression.title, icon_url=itr.user.avatar.url)
-        self.add_field(name="", value=expression.description)

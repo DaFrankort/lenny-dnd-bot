@@ -101,15 +101,3 @@ class UserColor:
             return True
         except Exception:
             return False
-
-
-class ColorEmbed(discord.Embed):
-    """Embed class for displaying user color changes."""
-
-    def __init__(self, itr: discord.Interaction, hex_color: str) -> None:
-        color = UserColor.parse(hex_color)
-        super().__init__(type="rich", color=color)
-        self.set_author(
-            name=f"{itr.user.display_name} set their color to #{hex_color.upper()}",
-            icon_url=itr.user.avatar.url,
-        )

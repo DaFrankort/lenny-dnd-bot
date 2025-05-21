@@ -5,7 +5,7 @@ from discord import app_commands
 from discord import Interaction
 from dotenv import load_dotenv
 
-from dice import DiceExpression, DiceEmbed, DiceRollMode
+from dice import DiceExpression, DiceRollMode
 from dnd import DNDData
 from embeds import (
     ConditionEmbed,
@@ -20,17 +20,16 @@ from embeds import (
     SimpleEmbed,
     SpellEmbed,
     SuccessEmbed,
+    UserActionEmbed,
 )
 from initiative import (
-    BulkInitiativeEmbed,
     Initiative,
-    InitiativeEmbed,
     InitiativeTracker,
     InitiativeTrackerEmbed,
 )
 from search import SearchEmbed, search_from_query
-from stats import Stats, StatsEmbed
-from user_colors import UserColor, ColorEmbed
+from stats import Stats
+from user_colors import UserColor
 
 
 class Bot(discord.Client):
@@ -95,7 +94,12 @@ class Bot(discord.Client):
                 diceroll, mode=DiceRollMode.Normal, reason=reason
             )
             return await itr.response.send_message(
-                embed=DiceEmbed(itr, expression), ephemeral=expression.ephemeral
+                embed=UserActionEmbed(
+                    itr=itr,
+                    title=expression.title,
+                    description=expression.description,
+                ),
+                ephemeral=expression.ephemeral,
             )
 
         @self.tree.command(name="d20", description="Just roll a clean d20")
@@ -103,7 +107,12 @@ class Bot(discord.Client):
             log_cmd(itr)
             expression = DiceExpression("1d20", DiceRollMode.Normal)
             return await itr.response.send_message(
-                embed=DiceEmbed(itr, expression), ephemeral=expression.ephemeral
+                embed=UserActionEmbed(
+                    itr=itr,
+                    title=expression.title,
+                    description=expression.description,
+                ),
+                ephemeral=expression.ephemeral,
             )
 
         @self.tree.command(
@@ -113,7 +122,12 @@ class Bot(discord.Client):
             log_cmd(itr)
             expression = DiceExpression(diceroll, DiceRollMode.Advantage, reason=reason)
             return await itr.response.send_message(
-                embed=DiceEmbed(itr, expression), ephemeral=expression.ephemeral
+                embed=UserActionEmbed(
+                    itr=itr,
+                    title=expression.title,
+                    description=expression.description,
+                ),
+                ephemeral=expression.ephemeral,
             )
 
         @self.tree.command(
@@ -126,7 +140,12 @@ class Bot(discord.Client):
                 diceroll, DiceRollMode.Disadvantage, reason=reason
             )
             return await itr.response.send_message(
-                embed=DiceEmbed(itr, expression), ephemeral=expression.ephemeral
+                embed=UserActionEmbed(
+                    itr=itr,
+                    title=expression.title,
+                    description=expression.description,
+                ),
+                ephemeral=expression.ephemeral,
             )
 
         @roll.autocomplete("reason")
@@ -277,11 +296,17 @@ class Bot(discord.Client):
                 )
                 return
 
+            old_color = f"#{UserColor.get(itr):06X}"
             color = UserColor.parse(hex_color)
             UserColor.save(itr, color)
-
-            embed = ColorEmbed(itr=itr, hex_color=hex_color)
-            await itr.response.send_message(embed=embed, ephemeral=True)
+            await itr.response.send_message(
+                embed=UserActionEmbed(
+                    itr=itr,
+                    title=f"{itr.user.display_name} set a new color!",
+                    description=f"``{old_color.upper()}`` => ``#{hex_color.upper()}``",
+                ),
+                ephemeral=True,
+            )
 
         @self.tree.command(
             name="stats",
@@ -290,8 +315,13 @@ class Bot(discord.Client):
         async def stats(itr: Interaction):
             log_cmd(itr)
             stats = Stats(itr)
-            embed = StatsEmbed(stats)
-            await itr.response.send_message(embed=embed)
+            await itr.response.send_message(
+                embed=UserActionEmbed(
+                    itr=itr,
+                    title=stats.get_embed_title(),
+                    description=stats.get_embed_description(),
+                ),
+            )
 
         @self.tree.command(
             name="initiative", description="Roll initiative for yourself or a creature."
@@ -305,7 +335,9 @@ class Bot(discord.Client):
             initiative = Initiative(itr, modifier, name)
             self.initiatives.add(itr, initiative)
             await itr.response.send_message(
-                embed=InitiativeEmbed(itr, initiative, True)
+                embed=UserActionEmbed(
+                    itr=itr, title=initiative.title, description=initiative.description
+                )
             )
 
         @self.tree.command(
@@ -322,7 +354,9 @@ class Bot(discord.Client):
             initiative.set_value(value)
             self.initiatives.add(itr, initiative)
             await itr.response.send_message(
-                embed=InitiativeEmbed(itr, initiative, False)
+                embed=UserActionEmbed(
+                    itr=itr, title=initiative.title, description=initiative.description
+                )
             )
 
         @set_initiative.autocomplete("name")
@@ -349,18 +383,11 @@ class Bot(discord.Client):
             shared: bool = False,
         ):
             log_cmd(itr)
-
-            initiatives = []
-            for i in range(amount):
-                initiative = Initiative(itr, modifier, f"{name} {i+1}")
-                if shared and i != 0:
-                    initiative.d20 = initiatives[0].d20  # Use roll from first.
-
-                initiatives.append(initiative)
-                self.initiatives.add(itr, initiative)
-
+            title, description = self.initiatives.add_bulk(
+                itr=itr, modifier=modifier, name=name, amount=amount, shared=shared
+            )
             await itr.response.send_message(
-                embed=BulkInitiativeEmbed(itr, initiatives, name)
+                embed=UserActionEmbed(itr=itr, title=title, description=description)
             )
 
         @self.tree.command(

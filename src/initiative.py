@@ -1,7 +1,7 @@
 import random
 import discord
 
-from user_colors import UserColor
+from embeds import SimpleEmbed
 from rapidfuzz import fuzz
 from discord.app_commands import Choice
 
@@ -11,6 +11,10 @@ class Initiative:
     d20: int
     modifier: int
     is_npc: bool
+    owner: discord.User
+
+    title: str
+    description: str
 
     def __init__(self, itr: discord.Interaction, modifier: int, name: str | None):
         self.is_npc = name is not None
@@ -18,6 +22,35 @@ class Initiative:
         self.name = self.name.title().strip()
         self.d20 = random.randint(1, 20)
         self.modifier = modifier
+        self.owner = itr.user
+
+        self._set_title(True)
+        self._set_description()
+
+    def _set_title(self, rolled: bool) -> str:
+        action_text = "rolled" if rolled else "set"
+
+        if self.is_npc:
+            self.title = (
+                f"{self.owner.display_name} {action_text} Initiative for {self.name}!"
+            )
+            return
+
+        self.title = f"{self.owner.display_name} {action_text} Initiative!"
+
+    def _set_description(self):
+        mod = self.modifier
+        d20 = self.d20
+        total = self.get_total()
+
+        description = ""
+        if mod > 0:
+            description = f"- ``[{d20}]+{mod}`` -> {total}\n"
+        elif mod < 0:
+            description = f"- ``[{d20}]-{-mod}`` -> {total}\n"
+        description += f"Initiative: **{total}**"
+
+        self.description = description
 
     def get_total(self):
         return self.d20 + self.modifier
@@ -25,6 +58,8 @@ class Initiative:
     def set_value(self, value: int):
         self.d20 = max(1, min(20, value))
         self.modifier = value - self.d20
+        self._set_title(False)
+        self._set_description()
 
 
 class InitiativeTracker:
@@ -190,54 +225,36 @@ class InitiativeTracker:
             True,
         )
 
+    def add_bulk(
+        self,
+        itr: discord.Interaction,
+        modifier: int,
+        name: str,
+        amount: int,
+        shared: bool,
+    ) -> tuple[str, str]:
+        """Adds many initiatives to a server. Returns a title and description for the embed."""
+        title = f"{itr.user.display_name} rolled Initiative for {amount} {name.strip().title()}(s)!"
 
-class InitiativeEmbed(discord.Embed):
-    def __init__(self, itr: discord.Interaction, initiative: Initiative, rolled: bool):
-        username = itr.user.display_name
-        action_text = "rolled" if rolled else "set"
+        initiatives = []
+        for i in range(amount):
+            initiative = Initiative(itr, modifier, f"{name}")
+            if shared and i != 0:
+                initiative.d20 = initiatives[0].d20
+            initiatives.append(initiative)
 
-        if initiative.is_npc:
-            title = f"{username} {action_text} Initiative for {initiative.name}!"
-        else:
-            title = f"{username} {action_text} Initiative!"
-
-        mod = initiative.modifier
-        d20 = initiative.d20
-        total = initiative.get_total()
-
+        initiatives.sort(key=lambda x: x.get_total(), reverse=True)
         description = ""
-        if mod > 0:
-            description = f"- ``[{d20}]+{mod}`` -> {total}\n"
-        elif mod < 0:
-            description = f"- ``[{d20}]-{-mod}`` -> {total}\n"
-        description += f"Initiative: **{total}**"
-
-        super().__init__(
-            type="rich", color=UserColor.get(itr), description=description
-        ),
-        self.set_author(name=title, icon_url=itr.user.avatar.url)
-
-
-class BulkInitiativeEmbed(discord.Embed):
-    def __init__(
-        self, itr: discord.Interaction, initiatives: list[Initiative], name: str
-    ):
-        username = itr.user.display_name
-
-        title = f"{username} rolled Initiative for {len(initiatives)} {name}(s)!"
-
-        description = ""
-        for initiative in initiatives:
+        for i, initiative in enumerate(initiatives):
+            initiative.name += f" {i+1}"
             total = initiative.get_total()
             description += f"- ``{total:>2}`` - {initiative.name}\n"
+            self.add(itr, initiative)
 
-        super().__init__(
-            type="rich", color=UserColor.get(itr), description=description
-        ),
-        self.set_author(name=title, icon_url=itr.user.avatar.url)
+        return title, description
 
 
-class InitiativeTrackerEmbed(discord.Embed):
+class InitiativeTrackerEmbed(SimpleEmbed):
     def __init__(self, itr: discord.Interaction, tracker: InitiativeTracker):
         description = ""
         for initiative in tracker.get(itr):
@@ -246,7 +263,5 @@ class InitiativeTrackerEmbed(discord.Embed):
 
         super().__init__(
             title="Initiatives",
-            type="rich",
-            color=discord.Color.dark_green(),
             description=description,
-        )
+        ),

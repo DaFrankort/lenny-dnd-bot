@@ -3,6 +3,7 @@ import re
 import discord
 
 from dnd import DNDObject, Item, Spell, Condition
+from user_colors import UserColor
 
 HORIZONTAL_LINE = "~~-------------------------------------------------------------------------------------~~"
 
@@ -225,6 +226,21 @@ class SuccessEmbed(SimpleEmbed):
         title = title_success if success else title_fail
         color = discord.Color.dark_green() if success else discord.Color.red()
         super().__init__(title, description, color)
+
+
+class UserActionEmbed(SimpleEmbed):
+    """A class based on SimpleEmbed which sets the author to the user who triggered the action."""
+
+    def __init__(self, itr: discord.Interaction, title: str, description: str):
+        super().__init__(
+            "",
+            description,
+            color=UserColor.get(itr),
+        ),
+        self.set_author(
+            name=title,
+            icon_url=itr.user.display_avatar.url,
+        )
 
 
 class NoSearchResultsFoundEmbed(SimpleEmbed):

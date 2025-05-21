@@ -1,6 +1,5 @@
 import random
 import discord
-from user_colors import UserColor
 
 
 class Stats:
@@ -34,18 +33,3 @@ class Stats:
 
         message += f"\n**Total**: {total}"
         return message
-
-
-class StatsEmbed(discord.Embed):
-    """Embed for rolling character-stats in D&D 5e."""
-
-    def __init__(self, stats: Stats) -> None:
-        super().__init__(
-            color=UserColor.get(stats.interaction),
-            title=stats.get_embed_title(),
-            type="rich",
-            url=None,
-            description=None,
-            timestamp=None,
-        )
-        self.add_field(name="", value=stats.get_embed_description())

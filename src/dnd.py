@@ -204,3 +204,24 @@ class ItemList(DNDObjectList):
             data = json.load(file)
             for item in data:
                 self.entries.append(Item(item))
+
+
+class Condition(DNDObject):
+    description: list[tuple[str, str]]
+    image: str | None
+
+    def __init__(self, json: any):
+        self.name = json["name"]
+        self.source = json["source"]
+        self.url = json["url"]
+        self.description = json["description"]
+
+
+class ConditionList(DNDObjectList):
+    path = "./submodules/lenny-dnd-data/generated/conditions.json"
+
+    def __init__(self):
+        with open(self.path, "r") as file:
+            data = json.load(file)
+            for condition in data:
+                self.entries.append(Condition(condition))

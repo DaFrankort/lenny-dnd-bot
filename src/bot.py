@@ -6,11 +6,14 @@ from discord import Interaction
 from dotenv import load_dotenv
 
 from dice import DiceExpression, DiceEmbed, DiceRollMode
-from dnd import SpellList, ItemList
+from dnd import ConditionList, SpellList, ItemList
 from embeds import (
+    ConditionEmbed,
     ItemEmbed,
+    MultiConditionSelectView,
     MultiItemSelectView,
     MultiSpellSelectView,
+    NoConditionsFoundEmbed,
     NoItemsFoundEmbed,
     NoSpellsFoundEmbed,
     NoSearchResultsFoundEmbed,
@@ -34,6 +37,7 @@ class Bot(discord.Client):
     guild_id: int
     spells: SpellList
     items: ItemList
+    conditions: ConditionList
     initiatives: InitiativeTracker
 
     def __init__(self):
@@ -49,6 +53,7 @@ class Bot(discord.Client):
 
         self.spells = SpellList()
         self.items = ItemList()
+        self.conditions = ConditionList()
         self.initiatives = InitiativeTracker()
 
     def run_client(self):
@@ -209,6 +214,32 @@ class Bot(discord.Client):
             itr: discord.Interaction, current: str
         ) -> list[app_commands.Choice[str]]:
             return self.items.get_autocomplete_suggestions(query=current)
+
+        @self.tree.command(
+            name="condition", description="Get the details for a condition."
+        )
+        async def condition(itr: Interaction, name: str):
+            log_cmd(itr)
+            found = self.conditions.get(name)
+            logging.debug(f"Found {len(found)} for '{name}'")
+
+            if len(found) == 0:
+                embed = NoConditionsFoundEmbed(name)
+                await itr.response.send_message(embed=embed)
+
+            elif len(found) > 1:
+                view = MultiConditionSelectView(name, found)
+                await itr.response.send_message(view=view, ephemeral=True)
+
+            else:
+                embed = ConditionEmbed(found[0])
+                await itr.response.send_message(embed=embed)
+
+        @condition.autocomplete("name")
+        async def condition_autocomplete(
+            itr: discord.Interaction, current: str
+        ) -> list[app_commands.Choice[str]]:
+            return self.conditions.get_autocomplete_suggestions(query=current)
 
         @self.tree.command(name="search", description="Search for a spell.")
         async def search(itr: Interaction, query: str):

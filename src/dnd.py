@@ -20,7 +20,7 @@ class DNDObject(object):
 
 
 class DNDObjectList(object):
-    entries: list[DNDObject] = []
+    entries: list[DNDObject]
 
     def __init__(self):
         self.entries = []
@@ -248,9 +248,14 @@ class DNDData(object):
 
 
 class DNDSearchResults(object):
-    spells: list[Spell] = []
-    items: list[Item] = []
-    conditions: list[Condition] = []
+    spells: list[Spell]
+    items: list[Item]
+    conditions: list[Condition]
+
+    def __init__(self):
+        self.spells = []
+        self.items = []
+        self.conditions = []
 
     def get_all(self) -> list[DNDObject]:
         return self.spells + self.items + self.conditions

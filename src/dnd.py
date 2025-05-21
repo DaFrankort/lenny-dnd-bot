@@ -237,9 +237,14 @@ class ConditionList(DNDObjectList):
 
 
 class DNDData(object):
-    spells = SpellList()
-    items = ItemList()
-    conditions = ConditionList()
+    spells: SpellList
+    items: ItemList
+    conditions: ConditionList
+
+    def __init__(self):
+        self.spells = SpellList()
+        self.items = ItemList()
+        self.conditions = ConditionList()
 
 
 class DNDSearchResults(object):

@@ -185,7 +185,7 @@ class MultiItemSelectView(discord.ui.View):
 
 class SimpleEmbed(discord.Embed):
     def __init__(
-        self, title: str, description: str, color: discord.Color = None
+        self, title: str | None, description: str | None, color: discord.Color = None
     ) -> None:
         if not color:
             color = discord.Color.dark_green()
@@ -197,14 +197,16 @@ class SimpleEmbed(discord.Embed):
             url=None,
             description=None,
             timestamp=None,
-        )
-        self.add_field(name="", value=description)
+        ),
+
+        if description:
+            self.add_field(name="", value=description)
 
 
 class SuccessEmbed(SimpleEmbed):
     """A class based on SimpleEmbed which easily toggles the color from green to red."""
 
-    def __init__(self, title: str, description: str, success: bool = True):
+    def __init__(self, title: str | None, description: str | None, success: bool):
         color = discord.Color.dark_green() if success else discord.Color.red()
         super().__init__(title, description, color)
 

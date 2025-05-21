@@ -108,9 +108,7 @@ class TestInitiativeTracker:
         ), f"Expected initiative name '{npc_initiative.name}', got '{result[0].name}'"
         assert result[0].is_npc is True, "Expected initiative to be NPC (is_npc=True)"
 
-    def test_add_pc_initiative_replaces_existing(
-        self, tracker, itr, pc_initiative
-    ):
+    def test_add_pc_initiative_replaces_existing(self, tracker, itr, pc_initiative):
         tracker.add(itr, pc_initiative)
 
         new_pc = Initiative(itr, modifier=5, name=None)
@@ -127,9 +125,7 @@ class TestInitiativeTracker:
     def test_clear_initiatives(self, tracker, itr, npc_initiative):
         tracker.add(itr, npc_initiative)
         tracker.clear(itr)
-        assert (
-            tracker.get(itr) == []
-        ), "Expected initiatives to be cleared (empty list)"
+        assert tracker.get(itr) == [], "Expected initiatives to be cleared (empty list)"
 
     def test_get_returns_empty_for_new_guild(self, tracker):
         fresh_interaction = MockInteraction(guild_id=555)
@@ -196,14 +192,10 @@ class TestInitiativeTracker:
 
     def test_remove_initiative(self, tracker, itr, npc_initiative):
         tracker.add(itr, npc_initiative)
-        assert (
-            len(tracker.get(itr)) == 1
-        ), "Expected 1 initiative before removal"
+        assert len(tracker.get(itr)) == 1, "Expected 1 initiative before removal"
 
         _, success = tracker.remove(itr, npc_initiative.name)
-        assert (
-            len(tracker.get(itr)) == 0
-        ), "Expected 0 initiatives after removal"
+        assert len(tracker.get(itr)) == 0, "Expected 0 initiatives after removal"
         assert (
             itr.guild_id not in tracker.server_initiatives
         ), "Expected guild entry to be removed after last initiative is removed"
@@ -213,7 +205,5 @@ class TestInitiativeTracker:
         tracker.add(itr, npc_initiative)
 
         _, success = tracker.remove(itr, pc_initiative.name)  # Remove wrong name
-        assert (
-            len(tracker.get(itr)) == 1
-        ), "Expected 1 initiative after failed removal"
+        assert len(tracker.get(itr)) == 1, "Expected 1 initiative after failed removal"
         assert success is False, "Expected unsuccessful removal of initiative"

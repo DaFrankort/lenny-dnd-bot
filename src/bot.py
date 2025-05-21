@@ -366,7 +366,8 @@ class Bot(discord.Client):
             )
 
         @self.tree.command(
-            name="removeinitiative", description="Remove a single initiative roll from the list."
+            name="removeinitiative",
+            description="Remove a single initiative roll from the list.",
         )
         async def remove_initiative(itr: Interaction, target: str | None = None):
             log_cmd(itr)

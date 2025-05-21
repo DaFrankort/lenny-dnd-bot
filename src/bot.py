@@ -365,8 +365,7 @@ class Bot(discord.Client):
             self.initiatives.clear(itr)
             await itr.response.send_message(
                 embed=SimpleEmbed(
-                    "Cleared all initiatives!",
-                    f"Cleared by {itr.user.display_name}."
+                    "Cleared all initiatives!", f"Cleared by {itr.user.display_name}."
                 )
             )
 
@@ -378,7 +377,12 @@ class Bot(discord.Client):
             log_cmd(itr)
             text, success = self.initiatives.remove(itr, target)
             await itr.response.send_message(
-                embed=SuccessEmbed(title_success="Removed initiative", title_fail="Failed to remove initiative", description=text, success=success),
+                embed=SuccessEmbed(
+                    title_success="Removed initiative",
+                    title_fail="Failed to remove initiative",
+                    description=text,
+                    success=success,
+                ),
                 ephemeral=not success,
             )
 
@@ -396,7 +400,12 @@ class Bot(discord.Client):
             log_cmd(itr)
             text, success = self.initiatives.swap(itr, target_a, target_b)
             await itr.response.send_message(
-                embed=SuccessEmbed(title_success="Swapped initiative", title_fail="Failed to swap initiative", description=text, success=success),
+                embed=SuccessEmbed(
+                    title_success="Swapped initiative",
+                    title_fail="Failed to swap initiative",
+                    description=text,
+                    success=success,
+                ),
                 ephemeral=not success,
             )
 

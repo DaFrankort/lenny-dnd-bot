@@ -206,7 +206,13 @@ class SimpleEmbed(discord.Embed):
 class SuccessEmbed(SimpleEmbed):
     """A class based on SimpleEmbed which easily toggles the color from green to red."""
 
-    def __init__(self, title_success: str, title_fail: str | None, description: str | None, success: bool):
+    def __init__(
+        self,
+        title_success: str,
+        title_fail: str | None,
+        description: str | None,
+        success: bool,
+    ):
         title_fail = title_fail or title_success
         title = title_success if success else title_fail
         color = discord.Color.dark_green() if success else discord.Color.red()

@@ -172,7 +172,10 @@ class InitiativeTracker:
                 break
 
         if removal_index == -1:
-            return f"No initiatives found matching ``{name}``.\n Make sure targets are exact name-matches.", False
+            return (
+                f"No initiatives found matching ``{name}``.\n Make sure targets are exact name-matches.",
+                False,
+            )
 
         if removal_index != -1:
             del self.server_initiatives[guild_id][removal_index]
@@ -182,7 +185,10 @@ class InitiativeTracker:
 
         if sanitized_name == self._sanitize_name(itr.user.display_name):
             return f"{itr.user.display_name} removed their own Initiative.", True
-        return f"{itr.user.display_name} removed Initiative for ``{name.title()}``.", True
+        return (
+            f"{itr.user.display_name} removed Initiative for ``{name.title()}``.",
+            True,
+        )
 
 
 class InitiativeEmbed(discord.Embed):

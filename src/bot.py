@@ -16,6 +16,7 @@ from embeds import (
     NoSearchResultsFoundEmbed,
     SimpleEmbed,
     SpellEmbed,
+    SuccessEmbed,
 )
 from initiative import (
     BulkInitiativeEmbed,
@@ -363,7 +364,9 @@ class Bot(discord.Client):
             log_cmd(itr)
             self.initiatives.clear(itr)
             await itr.response.send_message(
-                f"❌ {itr.user.display_name} cleared Initiatives. ❌"
+                embed=SimpleEmbed(
+                    f"❌ {itr.user.display_name} cleared Initiatives. ❌", None
+                )
             )
 
         @self.tree.command(
@@ -374,7 +377,7 @@ class Bot(discord.Client):
             log_cmd(itr)
             text, success = self.initiatives.remove(itr, target)
             await itr.response.send_message(
-                text,
+                embed=SuccessEmbed("Initiative Removal", text, success),
                 ephemeral=not success,
             )
 
@@ -391,9 +394,9 @@ class Bot(discord.Client):
         async def swap_initiative(itr: Interaction, target_a: str, target_b: str):
             log_cmd(itr)
             text, success = self.initiatives.swap(itr, target_a, target_b)
-            color = None if success else discord.Color.red()
             await itr.response.send_message(
-                embed=SimpleEmbed("Initiative Swap", text, color), ephemeral=not success
+                embed=SuccessEmbed("Initiative Swap", text, success),
+                ephemeral=not success,
             )
 
         @swap_initiative.autocomplete("target_a")

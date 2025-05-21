@@ -201,6 +201,14 @@ class SimpleEmbed(discord.Embed):
         self.add_field(name="", value=description)
 
 
+class SuccessEmbed(SimpleEmbed):
+    """A class based on SimpleEmbed which easily toggles the color from green to red."""
+
+    def __init__(self, title: str, description: str, success: bool = True):
+        color = discord.Color.dark_green() if success else discord.Color.red()
+        super().__init__(title, description, color)
+
+
 class NoSearchResultsFoundEmbed(SimpleEmbed):
     def __init__(self, query: str):
         super().__init__("No results found.", f"No results found for '{query}'.")

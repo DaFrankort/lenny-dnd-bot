@@ -33,6 +33,10 @@ class InitiativeTracker:
     def __init__(self):
         self.server_initiatives = {}
 
+    def _sanitize_name(self, name: str) -> str:
+        """Used to make name-comparisons less strict. (Case insensitive, no spaces)"""
+        return name.strip().lower()
+
     def get(self, itr: discord.Interaction) -> list[Initiative]:
         guild_id = int(itr.guild_id)
         return self.server_initiatives.get(guild_id, [])
@@ -72,14 +76,14 @@ class InitiativeTracker:
         fuzzy_threshold: float = 75,
         limit: int = 25,
     ) -> list[Choice[str]]:
-        query = query.strip().lower().replace(" ", "")
+        query = self._sanitize_name(query)
 
         if query == "":
             return []
 
         choices = []
         for e in self.get(itr):
-            name_clean = e.name.strip().lower().replace(" ", "")
+            name_clean = self._sanitize_name(e.name)
             score = fuzz.partial_ratio(query, name_clean)
             if score > fuzzy_threshold:
                 starts_with_query = name_clean.startswith(query)
@@ -100,19 +104,19 @@ class InitiativeTracker:
         Returns a tuple containing a message string explaining the result of the swap and a boolean indicating whether the swap was successful.
         """
 
-        target_a = target_a.lower().strip()
-        target_b = target_b.lower().strip()
+        target_a = self._sanitize_name(target_a)
+        target_b = self._sanitize_name(target_b)
 
         if target_a == target_b:
             return (
-                f"Cannot swap:\n both targets refer to the same initiative (``{target_a}``).",
+                f"Cannot swap target with itself!\n``{target_a}`` was specified twice.",
                 False,
             )
 
         index_a = -1
         index_b = -1
         for i, initiative in enumerate(self.get(itr)):
-            name = initiative.name.lower().strip()
+            name = self._sanitize_name(initiative.name)
             if name == target_a:
                 index_a = i
             if name == target_b:
@@ -120,17 +124,17 @@ class InitiativeTracker:
 
         if index_a == -1 and index_b == -1:
             return (
-                f"No initiatives found matching ``{target_a}`` or ``{target_b}``.\n Make sure targets are exact name-matches.",
+                f"No initiatives found matching ``{target_a}`` or ``{target_b}``.\nMake sure targets are exact name-matches.",
                 False,
             )
         elif index_a == -1:
             return (
-                f"No initiatives found matching ``{target_a}``.\n Make sure targets are exact name-matches.",
+                f"No initiatives found matching ``{target_a}``.\nMake sure targets are exact name-matches.",
                 False,
             )
         elif index_b == -1:
             return (
-                f"No initiatives found matching ``{target_b}``.\n Make sure targets are exact name-matches.",
+                f"No initiatives found matching ``{target_b}``.\nMake sure targets are exact name-matches.",
                 False,
             )
 
@@ -146,7 +150,43 @@ class InitiativeTracker:
         self.server_initiatives[guild_id][index_a] = initiative_b
         self.server_initiatives[guild_id][index_b] = initiative_a
         return (
-            f"``{initiative_a.name}`` <=> ``{initiative_b.name}``\n**Swapped succesfully!**",
+            f"``{initiative_a.name}`` <=> ``{initiative_b.name}``",
+            True,
+        )
+
+    def remove(self, itr: discord.Interaction, name: str | None) -> tuple[str, bool]:
+        """Remove an initiative from the list. Returns a message and a success flag."""
+        guild_id = int(itr.guild_id)
+        if guild_id not in self.server_initiatives:
+            return f"No initiatives to remove in {itr.guild.name.title()}.", False
+
+        if name is None:
+            name = itr.user.display_name
+
+        sanitized_name = self._sanitize_name(name)
+
+        removal_index = -1
+        for i, e in enumerate(self.get(itr)):
+            if self._sanitize_name(e.name) == sanitized_name:
+                removal_index = i
+                break
+
+        if removal_index == -1:
+            return (
+                f"No initiatives found matching ``{name}``.\n Make sure targets are exact name-matches.",
+                False,
+            )
+
+        if removal_index != -1:
+            del self.server_initiatives[guild_id][removal_index]
+
+        if len(self.server_initiatives[guild_id]) == 0:
+            del self.server_initiatives[guild_id]
+
+        if sanitized_name == self._sanitize_name(itr.user.display_name):
+            return f"{itr.user.display_name} removed their own Initiative.", True
+        return (
+            f"{itr.user.display_name} removed Initiative for ``{name.title()}``.",
             True,
         )
 

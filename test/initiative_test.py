@@ -88,48 +88,44 @@ class TestInitiativeTracker:
         return InitiativeTracker()
 
     @pytest.fixture
-    def interaction(self):
+    def itr(self):
         return MockInteraction()
 
     @pytest.fixture
-    def npc_initiative(self, interaction):
-        return Initiative(interaction, modifier=2, name="Goblin")
+    def npc_initiative(self, itr):
+        return Initiative(itr, modifier=2, name="Goblin")
 
     @pytest.fixture
-    def pc_initiative(self, interaction):
-        return Initiative(interaction, modifier=1, name=None)
+    def pc_initiative(self, itr):
+        return Initiative(itr, modifier=1, name=None)
 
-    def test_add_npc_initiative(self, tracker, interaction, npc_initiative):
-        tracker.add(interaction, npc_initiative)
-        result = tracker.get(interaction)
+    def test_add_npc_initiative(self, tracker, itr, npc_initiative):
+        tracker.add(itr, npc_initiative)
+        result = tracker.get(itr)
         assert len(result) == 1, f"Expected 1 initiative, got {len(result)}"
         assert (
             result[0].name == npc_initiative.name
         ), f"Expected initiative name '{npc_initiative.name}', got '{result[0].name}'"
         assert result[0].is_npc is True, "Expected initiative to be NPC (is_npc=True)"
 
-    def test_add_pc_initiative_replaces_existing(
-        self, tracker, interaction, pc_initiative
-    ):
-        tracker.add(interaction, pc_initiative)
+    def test_add_pc_initiative_replaces_existing(self, tracker, itr, pc_initiative):
+        tracker.add(itr, pc_initiative)
 
-        new_pc = Initiative(interaction, modifier=5, name=None)
+        new_pc = Initiative(itr, modifier=5, name=None)
         new_pc.d20 = 20
-        tracker.add(interaction, new_pc)
+        tracker.add(itr, new_pc)
 
-        result = tracker.get(interaction)
+        result = tracker.get(itr)
         assert (
             len(result) == 1
         ), f"Expected 1 initiative after replacement, got {len(result)}"
         assert result[0].modifier == 5, f"Expected modifier 5, got {result[0].modifier}"
         assert result[0].d20 == 20, f"Expected d20 value 20, got {result[0].d20}"
 
-    def test_clear_initiatives(self, tracker, interaction, npc_initiative):
-        tracker.add(interaction, npc_initiative)
-        tracker.clear(interaction)
-        assert (
-            tracker.get(interaction) == []
-        ), "Expected initiatives to be cleared (empty list)"
+    def test_clear_initiatives(self, tracker, itr, npc_initiative):
+        tracker.add(itr, npc_initiative)
+        tracker.clear(itr)
+        assert tracker.get(itr) == [], "Expected initiatives to be cleared (empty list)"
 
     def test_get_returns_empty_for_new_guild(self, tracker):
         fresh_interaction = MockInteraction(guild_id=555)
@@ -158,8 +154,7 @@ class TestInitiativeTracker:
             tracker.get(itr2)[0].name == initiative2.name
         ), f"Expected name '{initiative2.name}' for guild 2, got '{tracker.get(itr2)[0].name}'"
 
-    def test_sorting_order(self, tracker):
-        itr = MockInteraction()
+    def test_sorting_order(self, tracker, itr):
         for i in range(50):
             initiative = Initiative(itr, 3, f"Goblin {i}")
             tracker.add(itr, initiative)
@@ -183,9 +178,7 @@ class TestInitiativeTracker:
                 ), "Equal total initiatives are not in insertion order"
 
     @pytest.mark.parametrize("name", [None, "NPC"])
-    def test_names_are_unique(self, name, tracker):
-        itr = MockInteraction()
-
+    def test_names_are_unique(self, name, tracker, itr):
         def add_initiative():
             initiative = Initiative(itr, 0, name)
             tracker.add(itr, initiative)
@@ -222,3 +215,21 @@ class TestInitiativeTracker:
             (name_2, high),
             (name_1, low),
         ]
+
+    def test_remove_initiative(self, tracker, itr, npc_initiative):
+        tracker.add(itr, npc_initiative)
+        assert len(tracker.get(itr)) == 1, "Expected 1 initiative before removal"
+
+        _, success = tracker.remove(itr, npc_initiative.name)
+        assert len(tracker.get(itr)) == 0, "Expected 0 initiatives after removal"
+        assert (
+            itr.guild_id not in tracker.server_initiatives
+        ), "Expected guild entry to be removed after last initiative is removed"
+        assert success, "Expected successful removal of initiative"
+
+    def test_remove_initiative_fail(self, tracker, itr, npc_initiative, pc_initiative):
+        tracker.add(itr, npc_initiative)
+
+        _, success = tracker.remove(itr, pc_initiative.name)  # Remove wrong name
+        assert len(tracker.get(itr)) == 1, "Expected 1 initiative after failed removal"
+        assert success is False, "Expected unsuccessful removal of initiative"

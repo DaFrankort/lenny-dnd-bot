@@ -33,6 +33,10 @@ class InitiativeTracker:
     def __init__(self):
         self.server_initiatives = {}
 
+    def _sanitize_name(self, name: str) -> str:
+        """Used to make name-comparisons less strict. (Case insensitive, no spaces)"""
+        return name.strip().lower().replace(" ", "")
+
     def get(self, itr: discord.Interaction) -> list[Initiative]:
         guild_id = int(itr.guild_id)
         return self.server_initiatives.get(guild_id, [])
@@ -72,14 +76,14 @@ class InitiativeTracker:
         fuzzy_threshold: float = 75,
         limit: int = 25,
     ) -> list[Choice[str]]:
-        query = query.strip().lower().replace(" ", "")
+        query = self._sanitize_name(query)
 
         if query == "":
             return []
 
         choices = []
         for e in self.get(itr):
-            name_clean = e.name.strip().lower().replace(" ", "")
+            name_clean = self._sanitize_name(e.name)
             score = fuzz.partial_ratio(query, name_clean)
             if score > fuzzy_threshold:
                 starts_with_query = name_clean.startswith(query)
@@ -91,6 +95,36 @@ class InitiativeTracker:
             key=lambda x: (-x[0], -x[1], x[2].name)
         )  # Sort by query match => fuzzy score => alphabetically
         return [choice for _, _, choice in choices[:limit]]
+
+    def remove(self, itr: discord.Interaction, name: str | None) -> tuple[str, bool]:
+        """Remove an initiative from the list. Returns a message and a success flag."""
+        guild_id = int(itr.guild_id)
+        if guild_id not in self.server_initiatives:
+            return f"No initiatives to remove in {itr.guild.name.title()}", False
+
+        if name is None:
+            name = itr.user.display_name
+
+        sanitized_name = self._sanitize_name(name)
+
+        removal_index = -1
+        for i, e in enumerate(self.get(itr)):
+            if self._sanitize_name(e.name) == sanitized_name:
+                removal_index = i
+                break
+
+        if removal_index == -1:
+            return f"No initiatives found with name: ``{name.strip().title()}``?", False
+
+        if removal_index != -1:
+            del self.server_initiatives[guild_id][removal_index]
+
+        if len(self.server_initiatives[guild_id]) == 0:
+            del self.server_initiatives[guild_id]
+
+        if sanitized_name == self._sanitize_name(itr.user.display_name):
+            return f"❌ {itr.user.display_name} removed their own Initiative. ❌", True
+        return f"❌ {itr.user.display_name} removed Initiative for {name}. ❌", True
 
 
 class InitiativeEmbed(discord.Embed):

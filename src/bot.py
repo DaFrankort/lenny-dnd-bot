@@ -365,4 +365,21 @@ class Bot(discord.Client):
                 f"❌ {itr.user.display_name} cleared Initiatives. ❌"
             )
 
+        @self.tree.command(
+            name="removeinitiative", description="Remove a single initiative roll from the list."
+        )
+        async def remove_initiative(itr: Interaction, target: str | None = None):
+            log_cmd(itr)
+            text, success = self.initiatives.remove(itr, target)
+            await itr.response.send_message(
+                text,
+                ephemeral=not success,
+            )
+
+        @remove_initiative.autocomplete("target")
+        async def remove_initiative_autocomplete(
+            itr: discord.Interaction, current: str
+        ) -> list[app_commands.Choice[str]]:
+            return self.initiatives.get_autocomplete_suggestions(itr, current)
+
         logging.info("Registered slash-commands.")

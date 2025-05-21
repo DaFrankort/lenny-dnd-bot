@@ -35,7 +35,7 @@ class InitiativeTracker:
 
     def _sanitize_name(self, name: str) -> str:
         """Used to make name-comparisons less strict. (Case insensitive, no spaces)"""
-        return name.strip().lower().replace(" ", "")
+        return name.strip().lower()
 
     def get(self, itr: discord.Interaction) -> list[Initiative]:
         guild_id = int(itr.guild_id)
@@ -76,14 +76,14 @@ class InitiativeTracker:
         fuzzy_threshold: float = 75,
         limit: int = 25,
     ) -> list[Choice[str]]:
-        query = self._sanitize_name(query)
+        query = self._sanitize_name(query).replace(" ", "")
 
         if query == "":
             return []
 
         choices = []
         for e in self.get(itr):
-            name_clean = self._sanitize_name(e.name)
+            name_clean = self._sanitize_name(e.name).replace(" ", "")
             score = fuzz.partial_ratio(query, name_clean)
             if score > fuzzy_threshold:
                 starts_with_query = name_clean.startswith(query)
@@ -104,8 +104,8 @@ class InitiativeTracker:
         Returns a tuple containing a message string explaining the result of the swap and a boolean indicating whether the swap was successful.
         """
 
-        target_a = target_a.lower().strip()
-        target_b = target_b.lower().strip()
+        target_a = self._sanitize_name(target_a)
+        target_b = self._sanitize_name(target_b)
 
         if target_a == target_b:
             return (
@@ -116,7 +116,7 @@ class InitiativeTracker:
         index_a = -1
         index_b = -1
         for i, initiative in enumerate(self.get(itr)):
-            name = initiative.name.lower().strip()
+            name = self._sanitize_name(initiative.name)
             if name == target_a:
                 index_a = i
             if name == target_b:

@@ -96,7 +96,8 @@ class Bot(discord.Client):
                 diceroll, mode=DiceRollMode.Normal, reason=reason
             )
             return await itr.response.send_message(
-                embed=UserActionEmbed(itr, expression.title, expression.description), ephemeral=expression.ephemeral
+                embed=UserActionEmbed(itr, expression.title, expression.description),
+                ephemeral=expression.ephemeral,
             )
 
         @self.tree.command(name="d20", description="Just roll a clean d20")
@@ -104,7 +105,8 @@ class Bot(discord.Client):
             log_cmd(itr)
             expression = DiceExpression("1d20", DiceRollMode.Normal)
             return await itr.response.send_message(
-                embed=UserActionEmbed(itr, expression.title, expression.description), ephemeral=expression.ephemeral
+                embed=UserActionEmbed(itr, expression.title, expression.description),
+                ephemeral=expression.ephemeral,
             )
 
         @self.tree.command(
@@ -114,7 +116,8 @@ class Bot(discord.Client):
             log_cmd(itr)
             expression = DiceExpression(diceroll, DiceRollMode.Advantage, reason=reason)
             return await itr.response.send_message(
-                embed=UserActionEmbed(itr, expression.title, expression.description), ephemeral=expression.ephemeral
+                embed=UserActionEmbed(itr, expression.title, expression.description),
+                ephemeral=expression.ephemeral,
             )
 
         @self.tree.command(
@@ -127,7 +130,8 @@ class Bot(discord.Client):
                 diceroll, DiceRollMode.Disadvantage, reason=reason
             )
             return await itr.response.send_message(
-                embed=UserActionEmbed(itr, expression.title, expression.description), ephemeral=expression.ephemeral
+                embed=UserActionEmbed(itr, expression.title, expression.description),
+                ephemeral=expression.ephemeral,
             )
 
         @roll.autocomplete("reason")
@@ -287,7 +291,8 @@ class Bot(discord.Client):
                     f"{itr.user.display_name} set a new color!",
                     f"``{old_color.upper()}`` => ``#{hex_color.upper()}``",
                 ),
-                ephemeral=True)
+                ephemeral=True,
+            )
 
         @self.tree.command(
             name="stats",

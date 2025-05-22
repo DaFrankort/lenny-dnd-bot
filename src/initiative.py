@@ -1,7 +1,6 @@
 import random
 import discord
 
-from embeds import SimpleEmbed
 from rapidfuzz import fuzz
 from discord.app_commands import Choice
 
@@ -256,24 +255,80 @@ class InitiativeTracker:
         return title, description
 
 
-class InitiativeTrackerEmbed(SimpleEmbed):
+class InitiativeTrackerView(discord.ui.View):
+    embed: any
+    buttons: list[discord.ui.Button]
+
+    def __init__(self, embed: any, *, timeout=300):
+        super().__init__(timeout=None)
+        self.embed = embed
+        self.buttons = []
+        style = discord.ButtonStyle.primary
+
+        # Previous turn button
+        button = discord.ui.Button(label="←", style=style)
+        button.callback = lambda i: self.embed.previous_turn(i)
+        self.buttons.append(button)
+        self.add_item(button)
+
+        # Next turn button
+        button = discord.ui.Button(label="→", style=style)
+        button.callback = lambda i: self.embed.next_turn(i)
+        self.buttons.append(button)
+        self.add_item(button)
+
+
+class InitiativeTrackerEmbed(discord.Embed):
     active: int
+    initiatives: list[Initiative]
+
+    view: InitiativeTrackerView
 
     def __init__(self, itr: discord.Interaction, tracker: InitiativeTracker):
         self.active = 0
-        active_initiative = tracker.get(itr)[self.active]
+        self.initiatives = tracker.get(itr)
+
+        super().__init__(
+            title="Initiative Tracker",
+            type="rich",
+            description=None,
+            color=UserColor.get(itr)  # UserColor needs to be re-written to allow for setting to owner-color
+        ),
+
+        self.view = InitiativeTrackerView(self)
+        self.build()
+
+    def build(self):
+        self.clear_fields()
+
+        active_initiative = self.initiatives[self.active]
 
         description = ""
-        for i, initiative in enumerate(tracker.get(itr)):
+        for i, initiative in enumerate(self.initiatives):
             total = initiative.get_total()
             is_active = i == self.active
             name = f"**__{initiative.name}__**" if is_active else initiative.name
             description += f"- ``{total:>2}`` - {name}\n"
 
-        super().__init__(
-            title=f"Current turn: {active_initiative.name}",
-            description=description,
-            color=UserColor.get(itr)  # UserColor needs to be re-written to allow for setting to owner-color
-        ),
-
         self.set_thumbnail(url=active_initiative.owner.display_avatar.url)
+        self.add_field(
+            name="",
+            value=description,
+            inline=False,
+        )
+
+    async def rebuild(self, itr: discord.Interaction):
+        self.build()
+        await itr.response.edit_message(embed=self, view=self.view)
+
+    async def next_turn(self, itr: discord.Interaction):
+        self.active += 1
+        if self.active >= len(self.initiatives):
+            self.active = 0
+        return await self.rebuild(itr)
+
+    async def previous_turn(self, itr: discord.Interaction):
+        self.active -= 1
+        if self.active < 0:
+            self.active = len(self.initiatives) - 1
+        return await self.rebuild(itr)

@@ -405,7 +405,7 @@ class Bot(discord.Client):
                 return
 
             embed = InitiativeTrackerEmbed(itr, self.initiatives)
-            await itr.response.send_message(embed=embed)
+            await itr.response.send_message(embed=embed, view=embed.view)
 
         @self.tree.command(
             name="clearinitiative", description="Clear all initiative rolls."

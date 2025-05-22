@@ -8,7 +8,6 @@ logging.basicConfig(
     level=logging.INFO,  # Set to DEBUG to see all messages, normal is INFO
     format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[logging.StreamHandler()],  # Output to console
-    datefmt="%YYYY-%MM-%DD %HH:%M%ss",
 )
 
 

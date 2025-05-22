@@ -2,6 +2,7 @@ class MockUser:
     """Mock user class to simulate Discord users."""
 
     def __init__(self, user_id: int = 123, display_name: str = "Foo"):
+        super().__init__()
         self.id = user_id
         self.display_name = display_name
 
@@ -12,3 +13,5 @@ class MockInteraction:
     def __init__(self, user: MockUser = MockUser(), guild_id: int = 999):
         self.user = user
         self.guild_id = guild_id
+        self.id = user.id
+        self.name = user.display_name

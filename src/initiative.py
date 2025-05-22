@@ -257,22 +257,21 @@ class InitiativeTracker:
 
 
 class InitiativeTrackerEmbed(SimpleEmbed):
-    active_index: int
+    active: int
 
     def __init__(self, itr: discord.Interaction, tracker: InitiativeTracker):
         self.active = 0
-        active_initiative = tracker.get(itr)[self.active_index]
+        active_initiative = tracker.get(itr)[self.active]
 
         description = ""
         for i, initiative in enumerate(tracker.get(itr)):
             total = initiative.get_total()
-            text = f"- ``{total:>2}`` - {initiative.name}"
-            if i == self.active:
-                text = f"**{text}**"
-            description += text + "\n"
+            is_active = i == self.active
+            name = f"**__{initiative.name}__**" if is_active else initiative.name
+            description += f"- ``{total:>2}`` - {name}\n"
 
         super().__init__(
-            title="Initiatives",
+            title=f"Current turn: {active_initiative.name}",
             description=description,
             color=UserColor.get(itr)  # UserColor needs to be re-written to allow for setting to owner-color
         ),

@@ -26,7 +26,7 @@ class TestUserColor:
 
     def test_generate(self):
         interaction = MockInteraction()
-        generated_color = UserColor.generate(interaction)
+        generated_color = UserColor.generate(interaction.user.display_name)
         assert isinstance(generated_color, int), "Generated color is not an integer."
         assert UserColor.validate(
             hex(generated_color)[2:]

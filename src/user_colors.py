@@ -72,17 +72,25 @@ class UserColor:
         return UserColor.parse(hex_value)
 
     @staticmethod
-    def get(interaction: discord.Interaction) -> int:
+    def get(interaction: discord.Interaction | discord.User | discord.Member) -> int:
         """Retrieves a user's saved color from the file, or generates one if it does not exist."""
+        if isinstance(interaction, discord.Interaction):
+            user = interaction.user
+        else:
+            user = interaction
+
+        user_id = str(user.id)
+        name = user.display_name if isinstance(user, discord.Member) else user.name
+
         try:
             with open(UserColor.FILE_PATH, "r") as file:
                 data = json.load(file)
-                color = data.get(str(interaction.user.id))
+                color = data.get(str(user_id))
         except FileNotFoundError:
-            color = UserColor.generate(interaction.user.display_name)
+            color = UserColor.generate(name)
 
         if color is None:
-            color = UserColor.generate(interaction.user.display_name)
+            color = UserColor.generate(name)
 
         return color
 

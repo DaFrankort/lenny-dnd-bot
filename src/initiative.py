@@ -292,8 +292,7 @@ class InitiativeTrackerEmbed(discord.Embed):
             title="Initiative Tracker",
             type="rich",
             description=None,
-            color=UserColor.get(itr)  # UserColor needs to be re-written to allow for setting to owner-color
-        ),
+        )
 
         self.view = InitiativeTrackerView(self)
         self.build()
@@ -316,6 +315,7 @@ class InitiativeTrackerEmbed(discord.Embed):
             value=description,
             inline=False,
         )
+        self.color = UserColor.get(active_initiative.owner)
 
     async def rebuild(self, itr: discord.Interaction):
         self.build()

@@ -1,4 +1,5 @@
 import json
+import logging
 import os.path
 
 from rapidfuzz import fuzz
@@ -11,8 +12,10 @@ def is_source_phb2014(source: str) -> bool:
 
 def _read_dnd_data(path: str) -> list[dict]:
     if not os.path.exists(path):
+        logging.warning(f"D&D data file not found: '{path}'")
         return []
     if not os.path.isfile(path):
+        logging.warning(f"D&D data file is not a file: '{path}'")
         return []
     with open(path, "r") as file:
         return json.load(file)

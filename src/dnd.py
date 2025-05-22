@@ -229,6 +229,7 @@ class ConditionList(DNDObjectList):
     ]
 
     def __init__(self):
+        super().__init__()
         for path in self.paths:
             with open(path, "r") as file:
                 data = json.load(file)

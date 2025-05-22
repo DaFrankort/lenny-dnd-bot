@@ -1,8 +1,6 @@
-import argparse
 import logging
 import os
 from bot import Bot
-from dnd import SpellList
 
 logging.basicConfig(
     level=logging.INFO,  # Set to DEBUG to see all messages, normal is INFO

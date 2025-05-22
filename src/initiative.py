@@ -5,6 +5,8 @@ from embeds import SimpleEmbed
 from rapidfuzz import fuzz
 from discord.app_commands import Choice
 
+from user_colors import UserColor
+
 
 class Initiative:
     name: str
@@ -255,13 +257,24 @@ class InitiativeTracker:
 
 
 class InitiativeTrackerEmbed(SimpleEmbed):
+    active_index: int
+
     def __init__(self, itr: discord.Interaction, tracker: InitiativeTracker):
+        self.active = 0
+        active_initiative = tracker.get(itr)[self.active_index]
+
         description = ""
-        for initiative in tracker.get(itr):
+        for i, initiative in enumerate(tracker.get(itr)):
             total = initiative.get_total()
-            description += f"- ``{total:>2}`` - {initiative.name}\n"
+            text = f"- ``{total:>2}`` - {initiative.name}"
+            if i == self.active:
+                text = f"**{text}**"
+            description += text + "\n"
 
         super().__init__(
             title="Initiatives",
             description=description,
+            color=UserColor.get(itr)  # UserColor needs to be re-written to allow for setting to owner-color
         ),
+
+        self.set_thumbnail(url=active_initiative.owner.display_avatar.url)

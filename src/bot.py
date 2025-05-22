@@ -55,16 +55,17 @@ class Bot(discord.Client):
 
     def run_client(self):
         """Starts the bot using the token stored in .env"""
-        super().run(self.token)
+        # log_handler set to None, as a handler is already added in main.py
+        super().run(self.token, log_handler=None)
 
     async def on_ready(self):
         """Runs automatically when the bot is online"""
-        print("----- INIT -----")
+        logging.info("Initializing")
         logging.info(f"Logged in as {self.user} (ID: {self.user.id})")
         self._register_commands()
         await self._attempt_sync_guild()
         await self.tree.sync()
-        print("----- READY -----")
+        logging.info("Finished initialization")
 
     async def _attempt_sync_guild(self):
         guild = discord.utils.get(self.guilds, id=self.guild_id)
@@ -75,7 +76,7 @@ class Bot(discord.Client):
             logging.info(f"Connected to guild: {guild.name} (ID: {guild.id})")
 
     def _register_commands(self):
-        logging.info("Registered slash-commands.")
+        logging.info("Registered slash-commands")
 
         def log_cmd(itr: Interaction):
             """Helper function to log user's command-usage in the terminal"""

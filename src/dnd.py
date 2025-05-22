@@ -1,4 +1,6 @@
 import json
+import logging
+import os.path
 
 from rapidfuzz import fuzz
 from discord.app_commands import Choice
@@ -6,6 +8,17 @@ from discord.app_commands import Choice
 
 def is_source_phb2014(source: str) -> bool:
     return source == "PHB" or source == "DMG"
+
+
+def _read_dnd_data(path: str) -> list[dict]:
+    if not os.path.exists(path):
+        logging.warning(f"D&D data file not found: '{path}'")
+        return []
+    if not os.path.isfile(path):
+        logging.warning(f"D&D data file is not a file: '{path}'")
+        return []
+    with open(path, "r") as file:
+        return json.load(file)
 
 
 class DNDObject(object):
@@ -149,10 +162,9 @@ class SpellList(DNDObjectList):
 
     def __init__(self):
         super().__init__()
-        with open(self.path, "r") as file:
-            data = json.load(file)
-            for spell in data:
-                self.entries.append(Spell(spell))
+        data = _read_dnd_data(self.path)
+        for spell in data:
+            self.entries.append(Spell(spell))
 
 
 class Item(DNDObject):
@@ -203,10 +215,9 @@ class ItemList(DNDObjectList):
 
     def __init__(self):
         super().__init__()
-        with open(self.path, "r") as file:
-            data = json.load(file)
-            for item in data:
-                self.entries.append(Item(item))
+        data = _read_dnd_data(self.path)
+        for item in data:
+            self.entries.append(Item(item))
 
 
 class Condition(DNDObject):
@@ -231,10 +242,9 @@ class ConditionList(DNDObjectList):
     def __init__(self):
         super().__init__()
         for path in self.paths:
-            with open(path, "r") as file:
-                data = json.load(file)
-                for condition in data:
-                    self.entries.append(Condition(condition))
+            data = _read_dnd_data(path)
+            for condition in data:
+                self.entries.append(Condition(condition))
 
 
 class DNDData(object):

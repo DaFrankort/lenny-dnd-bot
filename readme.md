@@ -62,9 +62,9 @@ Once the bot is added to your server, you can use the following commands:
 ### Dice Rolls
 
 Roll D&D dice using dice-expressions (e.g. `2d6` / `1d20+2`).
-- `/roll <dice> <reason>` – Roll a single dice expression, optionally specify a reason for the roll (e.g. Acrobatics)
-- `/advantage <dice> <reason>` – Rolls twice, highlights the highest result.
-- `/disadvantage <dice> <reason>` – Rolls twice, highlights the lowest result.
+- `/roll <dice> [reason]` – Roll a single dice expression, optionally specify a reason for the roll (e.g. Acrobatics)
+- `/advantage <dice> [reason]` – Rolls twice, highlights the highest result.
+- `/disadvantage <dice> [reason]` – Rolls twice, highlights the lowest result.
 - `/d20` - Rolls a basic 1d20 without any modifiers.
 
 ### D&D Data lookup
@@ -83,17 +83,17 @@ Look up various D&D data from [5e.tools](https://5e.tools/).
 
 Commands that signify user-actions are highlighted with colors that are unique per user, this makes it easy to discern different user's actions.
 By default the user's color is automatically generated based on their display-name, however they can adjust their colors using following commands:
-- `/color <hex-value>` - Provide a hex value for a color to be used in embeds related to you.
+- `/color [hex-value]` - Provide a hex value for a color to be used in embeds related to you.
 - `/color` - Using the command without a hex-value defaults the user's color back to an auto-generated one.
 
 ### Track Initiative
 
 Commands to help track initiatives for combat. Names are enforced to be unique and will overwrite eachother if specified twice.
-- `/initiative <modifier> <target>` - Roll for initiative while keeping it in memory. Optionally provide a 'target' to roll for creatures. Rolls for user by default.
-- `/bulkinitiative <modifier> <name> <amount> <shared>` - Adds creature initiatives in bulk, making it easy for a DM to add a group of creatures at once. These are numbered automatically for easy tracking.
-- `/setinitiative <value> <name>` - Set an initiative to a specific value, handy to rectify mistakes or if you want precise control over certain initiatives.
+- `/initiative <modifier> [target]` - Roll for initiative while keeping it in memory. Rolls for user by default.
+- `/bulkinitiative <modifier> <name> <amount> [shared]` - Adds creature initiatives in bulk, making it easy for a DM to add a group of creatures at once. These are numbered automatically for easy tracking.
+- `/setinitiative <value> [name]` - Set an initiative to a specific value, handy to rectify mistakes or if you want precise control over certain initiatives.
 - `/swapinitiative <target a> <target b>` - Swap initiative between two users or creatures, handy for users with the Alert feat.
-- `/removeinitiative <target>` - Remove a single user or creature from the initiative tracker. Removes user's initiative by default.
+- `/removeinitiative [target]` - Remove a single user or creature from the initiative tracker. Removes user's initiative by default.
 - `/showinitiative` - Shows an embed with all the initiatives, used to track the order & who's turn it is.
 - `/clearinitiative` - Clears all stored initiatives in the server, used after a battle.
 

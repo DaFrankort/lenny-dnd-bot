@@ -6,11 +6,13 @@ import random
 import subprocess
 import discord
 
+
 class SoundType(Enum):
     ROLL = "roll"
     NAT_20 = "nat_20"
     NAT_1 = "nat_1"
     DIRTY_20 = "dirty_20"
+
 
 class VC:
     client: discord.VoiceClient
@@ -53,13 +55,13 @@ class VC:
             return
 
         if not ctx.guild or not ctx.user.voice:
-            return # User in DMs or not in voice chat
-        
+            return  # User in DMs or not in voice chat
+
         await VC.join(ctx)
 
         retries = 0
         while VC.client.is_playing():
-            if retries >= 20: # 10s
+            if retries >= 20:  # 10s
                 VC.client.stop()  # Stop playback, makes bot not play sounds for long periods of time
                 break
             await asyncio.sleep(0.5)
@@ -70,6 +72,7 @@ class VC:
         except Exception as e:
             logging.error(f"Error playing audio: {e}")
             VC.check_ffmpeg()
+
 
 class Sound:
     BASE_PATH = Path("./sounds/")

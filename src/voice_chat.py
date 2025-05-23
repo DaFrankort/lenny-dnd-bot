@@ -6,6 +6,8 @@ import random
 import subprocess
 import discord
 
+from dice import DiceExpression
+
 
 class SoundType(Enum):
     ROLL = "roll"
@@ -27,37 +29,36 @@ class VC:
             VC.ffmpeg_available = True
         except (subprocess.CalledProcessError, FileNotFoundError):
             logging.warning("FFmpeg is not installed or not found in PATH, voice chat functionality will be disabled.")
+            VC.ffmpeg_available = False
 
     @staticmethod
-    async def join(ctx: discord.Interaction):
+    async def join(itr: discord.Interaction):
         """Join the voice channel of the user who invoked the command."""
-        if ctx.user.voice:
-            channel = ctx.user.voice.channel
-            if ctx.guild.voice_client is None:
-                VC.client = await channel.connect()
-            else:
-                VC.client = ctx.guild.voice_client
+        if not VC.ffmpeg_available:
+            return
 
-            logging.info(f"Joined VC: {VC.client.channel.name}")
+        if itr.guild.voice_client is None and itr.user.voice:
+            VC.client = await itr.user.voice.channel.connect()
+            logging.info(f"Joined voice channel: {VC.client.channel.name} (ID: {VC.client.channel.id})")
 
     @staticmethod
     async def leave():
         """Leave the voice channel."""
         if VC.client:
-            VC.client.disconnect()
-            logging.info("Left the voice channel.")
-        VC.client = None
+            logging.info(f"Left voice channel: {VC.client.channel.name} (ID: {VC.client.channel.id})")
+            await VC.client.disconnect()
+            VC.client = None
 
     @staticmethod
-    async def play(ctx: discord.Interaction, sound_type: SoundType):
+    async def play(itr: discord.Interaction, sound_type: SoundType):
         """Play an audio file in the voice channel."""
         if not VC.ffmpeg_available:
             return
 
-        if not ctx.guild or not ctx.user.voice:
+        if not itr.guild or not itr.user.voice:
             return  # User in DMs or not in voice chat
 
-        await VC.join(ctx)
+        await VC.join(itr)
 
         retries = 0
         while VC.client.is_playing():
@@ -72,6 +73,20 @@ class VC:
         except Exception as e:
             logging.error(f"Error playing audio: {e}")
             VC.check_ffmpeg()
+
+    @staticmethod
+    async def play_dice_roll(itr: discord.Interaction, expression: DiceExpression):
+        sound_type = SoundType.ROLL
+        if expression.roll.is_natural_twenty:
+            sound_type = SoundType.NAT_20
+
+        elif expression.roll.is_natural_one:
+            sound_type = SoundType.NAT_1
+
+        elif expression.roll.is_dirty_twenty:
+            sound_type = SoundType.DIRTY_20
+
+        await VC.play(itr, sound_type)
 
 
 class Sound:
@@ -90,11 +105,15 @@ class Sound:
             return None
 
         src = str(random.choice(sound_files))
+
+        def option(volume: float = 0.5) -> str:
+            return f"-filter:a 'volume={volume}'"
+
         options = {
-            SoundType.ROLL: "-filter:a 'volume=0.1'",
-            SoundType.NAT_20: "-filter:a 'volume=0.5'",
-            SoundType.NAT_1: "-filter:a 'volume=0.5'",
-            SoundType.DIRTY_20: "-filter:a 'volume=0.5'"
-        }.get(sound_type, "-filter:a 'volume=0.1'")
+            SoundType.ROLL: option(),
+            SoundType.NAT_20: option(),
+            SoundType.NAT_1: option(),
+            SoundType.DIRTY_20: option()
+        }.get(sound_type, option())
 
         return discord.FFmpegPCMAudio(source=src, options=options)

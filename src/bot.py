@@ -30,6 +30,7 @@ from initiative import (
 from search import SearchEmbed, search_from_query
 from stats import Stats
 from user_colors import UserColor
+from voice_chat import VC
 
 
 class Bot(discord.Client):
@@ -65,6 +66,7 @@ class Bot(discord.Client):
         self._register_commands()
         await self._attempt_sync_guild()
         await self.tree.sync()
+        VC.check_ffmpeg()
         logging.info("Finished initialization")
 
     async def _attempt_sync_guild(self):
@@ -94,7 +96,7 @@ class Bot(discord.Client):
             expression = DiceExpression(
                 diceroll, mode=DiceRollMode.Normal, reason=reason
             )
-            return await itr.response.send_message(
+            await itr.response.send_message(
                 embed=UserActionEmbed(
                     itr=itr,
                     title=expression.title,
@@ -102,12 +104,13 @@ class Bot(discord.Client):
                 ),
                 ephemeral=expression.ephemeral,
             )
+            await VC.play_dice_roll(itr, expression)
 
         @self.tree.command(name="d20", description="Just roll a clean d20")
         async def d20(itr: Interaction):
             log_cmd(itr)
             expression = DiceExpression("1d20", DiceRollMode.Normal)
-            return await itr.response.send_message(
+            await itr.response.send_message(
                 embed=UserActionEmbed(
                     itr=itr,
                     title=expression.title,
@@ -115,6 +118,7 @@ class Bot(discord.Client):
                 ),
                 ephemeral=expression.ephemeral,
             )
+            await VC.play_dice_roll(itr, expression)
 
         @self.tree.command(
             name="advantage", description="Lucky you! Roll and take the best of two!"
@@ -122,7 +126,7 @@ class Bot(discord.Client):
         async def advantage(itr: Interaction, diceroll: str, reason: str = None):
             log_cmd(itr)
             expression = DiceExpression(diceroll, DiceRollMode.Advantage, reason=reason)
-            return await itr.response.send_message(
+            await itr.response.send_message(
                 embed=UserActionEmbed(
                     itr=itr,
                     title=expression.title,
@@ -130,6 +134,7 @@ class Bot(discord.Client):
                 ),
                 ephemeral=expression.ephemeral,
             )
+            await VC.play_dice_roll(itr, expression)
 
         @self.tree.command(
             name="disadvantage",
@@ -140,7 +145,7 @@ class Bot(discord.Client):
             expression = DiceExpression(
                 diceroll, DiceRollMode.Disadvantage, reason=reason
             )
-            return await itr.response.send_message(
+            await itr.response.send_message(
                 embed=UserActionEmbed(
                     itr=itr,
                     title=expression.title,
@@ -148,6 +153,7 @@ class Bot(discord.Client):
                 ),
                 ephemeral=expression.ephemeral,
             )
+            await VC.play_dice_roll(itr, expression)
 
         @roll.autocomplete("reason")
         @advantage.autocomplete("reason")

@@ -99,7 +99,9 @@ class VC:
             client.play(sound)
 
     @staticmethod
-    async def play_dice_roll(itr: discord.Interaction, expression: DiceExpression, reason: str = None):
+    async def play_dice_roll(
+        itr: discord.Interaction, expression: DiceExpression, reason: str = None
+    ):
         roll = expression.roll
         sound_type = SoundType.ROLL
 

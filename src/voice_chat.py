@@ -17,7 +17,7 @@ class SoundType(Enum):
 
 
 class VC:
-    client: discord.VoiceClient
+    client: discord.VoiceClient = None
     ffmpeg_available: bool = False
 
     @staticmethod
@@ -37,9 +37,16 @@ class VC:
         if not VC.ffmpeg_available:
             return
 
-        if itr.guild.voice_client is None and itr.user.voice:
-            VC.client = await itr.user.voice.channel.connect()
-            logging.info(f"Joined voice channel: {VC.client.channel.name} (ID: {VC.client.channel.id})")
+        if not itr.user.voice:
+            return  # User not in voice chat
+
+        if VC.client:
+            if VC.client.channel.id == itr.user.voice.channel.id:
+                return  # Already in the same voice channel
+            await VC.leave()
+
+        VC.client = await itr.user.voice.channel.connect()
+        logging.info(f"Joined voice channel: {VC.client.channel.name} (ID: {VC.client.channel.id})")
 
     @staticmethod
     async def leave():

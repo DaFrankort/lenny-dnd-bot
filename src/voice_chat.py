@@ -113,11 +113,15 @@ class Sound:
 
         src = str(random.choice(sound_files))
 
-        def option(volume: float = 0.5) -> str:
-            return f"-filter:a 'volume={volume}'"
+        def option(volume: float = 0.5, speed_deviation: float = 0) -> str:
+            speed_max = min(1 + speed_deviation, 2)
+            speed_min = max(1 - speed_deviation, 0.1)
+            speed = round(random.uniform(speed_min, speed_max), 2)
+
+            return f"-filter:a 'dynaudnorm,volume={volume},atempo={speed}'"
 
         options = {
-            SoundType.ROLL: option(),
+            SoundType.ROLL: option(volume=0.4, speed_deviation=0.3),
             SoundType.NAT_20: option(),
             SoundType.NAT_1: option(),
             SoundType.DIRTY_20: option()

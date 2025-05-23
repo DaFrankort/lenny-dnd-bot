@@ -46,6 +46,7 @@ class VC:
         logging.info(
             f"Joined voice channel: {VC.client.channel.name} (ID: {VC.client.channel.id})"
         )
+        asyncio.create_task(VC.monitor_vc())
 
     @staticmethod
     async def leave():
@@ -94,6 +95,21 @@ class VC:
             sound_type = SoundType.DIRTY_20
 
         await VC.play(itr, sound_type)
+
+    @staticmethod
+    async def monitor_vc():
+        """Periodically checks if the bot is alone in a voice channel and disconnects if so."""
+        while VC.client:
+            channel = VC.client.channel
+            members = channel.members if channel else []
+            non_bot_members = [m for m in members if not m.bot]
+
+            if not non_bot_members:
+                logging.info("Bot is alone in voice channel, disconnecting.")
+                await VC.leave()
+                break
+
+            await asyncio.sleep(60)
 
 
 class Sound:

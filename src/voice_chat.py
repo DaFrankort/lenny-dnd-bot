@@ -118,13 +118,14 @@ class Sound:
             speed_min = max(1 - speed_deviation, 0.1)
             speed = round(random.uniform(speed_min, speed_max), 2)
 
-            return f"-filter:a 'dynaudnorm,volume={volume},atempo={speed}'"
+            filters = ["dynaudnorm"]  # Always normalize audio first, to ensure consistent volume.
+            filters.append(f"volume={volume}")
+            filters.append(f"atempo={speed}")
+
+            return f"-filter:a '{','.join(filters)}'"
 
         options = {
-            SoundType.ROLL: option(volume=0.4, speed_deviation=0.3),
-            SoundType.NAT_20: option(),
-            SoundType.NAT_1: option(),
-            SoundType.DIRTY_20: option()
+            SoundType.ROLL: option(volume=0.4, speed_deviation=0.3, reverb=True),
         }.get(sound_type, option())
 
         return discord.FFmpegPCMAudio(source=src, options=options)

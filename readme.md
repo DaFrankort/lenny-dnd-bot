@@ -1,8 +1,8 @@
 # DnD Discord Bot
 
-A Discord bot for Dungeons & Dragons players that makes it easy to roll dice, look up D&D spells, generate color-customized embeds, and roll character stats.
+A Discord bot for Dungeons & Dragons players which aims to provide commands using modern Discord features.
 
-This bot aims to make it easier to see who rolled what, using new Discord features to provide a better experience for players.
+Powered by [5e.tools](https://5e.tools/) for up-to-date 5e data.
 
 ## Features
 
@@ -10,6 +10,7 @@ This bot aims to make it easier to see who rolled what, using new Discord featur
 - **D&D Spell Lookup**: Look up spells and get detailed information about them directly in Discord using `/spell`.
 - **Customizable Color Embeds**: Customize the colors of your dice roll embeds for better visual appeal and easy identification, auto-generated if not specified.
 - **Character Stat Rolling**: Automatically roll and generate character stats for D&D characters.
+- **Initiative tracking**: Let players roll initiative and roll initiative for creatures and track it easily.
 
 ## Installation
 
@@ -67,13 +68,14 @@ Once the bot is added to your server, you can use the following commands:
 
 ### D&D Data lookup
 
-- `/spell <spell-name>` – Look up information about a D&D spell.
-- `/item <item-name>` - Look up information about a D&D item.
-- `/search <query>` - Look for many related results regarding spells & items, example: `/search fire` would return any item or spell with 'fire' in the name.
+- `/spell <spell-name>` – Look up information about a D&D spell (e.g. Fireball).
+- `/item <item-name>` - Look up information about a D&D item (e.g. Dagger).
+- `/condition <condition-name>` - Look up information about a D&D condition (e.g. Blinded).
+- `/search <query>` - Look for many related results regarding spells, items or conditions, example: `/search fire` would return any data with 'fire' in the name.
 
 ### Character Stat Roll
 
-- `/stats` – Automatically roll stats for a new character's skills.
+- `/stats` – Automatically roll stats for a new character's skills, using the 4d6 drop lowest method.
 
 ### Customize embed colors for users
 
@@ -81,13 +83,13 @@ Once the bot is added to your server, you can use the following commands:
 - `/color` - Using the command without a hex-value will clear the user's set color.
 - If the user has no color set, a random one will be generated based on the user's display-name.
 
-### Color Customization
-
-Your roll-embeds will be automatically given a unique colour dependant on your discord-username.
-If wanted you can give yourself a color by doing `/color <hex-value>`, you can clear this at any time by doing `/color`.
-
 ### Track Initiative
 
-- `/initiative <modifier> <target>` - Roll for initiative, all rolls are stored per server. You can provide a 'target' to roll for NPC's / Creatures, if not specified roll will be done for user.
+- `/initiative <modifier> <target>` - Roll for initiative, all rolls are stored per server. You can provide a 'target' to roll for NPC's / Creatures, rolls for user by default.
+- `/bulkinitiative <modifier> <name> <amount> <shared>` - Adds creature initiatives in bulk, making it easy for a DM to add a group of creatures at once. These are numbered automatically for easy tracking.
+- `/setinitiative <value> <name>` - Set an initiative to a specific value, handy to rectify mistakes or if you want precise control over certain initiatives.
+- `/swapinitiative <target a> <target b>` - Swap initiative between two users or creatures, handy for users with the Alert feat.
+- `/removeinitiative <target>` - Remove a single user or creature from the initiative tracker, removes user's initiative by default.
 - `/showinitiative` - Shows an embed with all the initiatives, used to track the order & who's turn it is.
 - `/clearinitiative` - Clears all stored initiatives in the server, used after a battle.
+

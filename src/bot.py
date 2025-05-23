@@ -104,7 +104,7 @@ class Bot(discord.Client):
                 ),
                 ephemeral=expression.ephemeral,
             )
-            await VC.play_dice_roll(itr, expression)
+            await VC.play_dice_roll(itr, expression, reason)
 
         @self.tree.command(name="d20", description="Just roll a clean d20")
         async def d20(itr: Interaction):
@@ -134,7 +134,7 @@ class Bot(discord.Client):
                 ),
                 ephemeral=expression.ephemeral,
             )
-            await VC.play_dice_roll(itr, expression)
+            await VC.play_dice_roll(itr, expression, reason)
 
         @self.tree.command(
             name="disadvantage",
@@ -153,7 +153,7 @@ class Bot(discord.Client):
                 ),
                 ephemeral=expression.ephemeral,
             )
-            await VC.play_dice_roll(itr, expression)
+            await VC.play_dice_roll(itr, expression, reason)
 
         @roll.autocomplete("reason")
         @advantage.autocomplete("reason")

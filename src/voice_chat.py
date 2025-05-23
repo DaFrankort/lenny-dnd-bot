@@ -99,17 +99,17 @@ class VC:
             client.play(sound)
 
     @staticmethod
-    async def play_dice_roll(itr: discord.Interaction, expression: DiceExpression):
+    async def play_dice_roll(itr: discord.Interaction, expression: DiceExpression, reason: str = ""):
         roll = expression.roll
         sound_type = SoundType.ROLL
 
-        match expression.description.lower():
-            case "attack":
-                sound_type = SoundType.ATTACK
-            case "damage":
-                sound_type = SoundType.DAMAGE
-            case "fire":
-                sound_type = SoundType.FIRE
+        reason = reason.lower().strip()
+        if "attack" == reason:
+            sound_type = SoundType.ATTACK
+        elif "damage" == reason:
+            sound_type = SoundType.DAMAGE
+        elif "fire" == reason:
+            sound_type = SoundType.FIRE
 
         if roll.is_natural_twenty:
             sound_type = SoundType.NAT_20
@@ -161,10 +161,10 @@ class Sound:
             return f"-filter:a '{','.join(filters)}'"
 
         options_map = {
-            SoundType.ROLL: option(volume=0.4, speed_deviation=0.3),
+            SoundType.ROLL: option(volume=0.3, speed_deviation=0.3),
             SoundType.ATTACK: option(speed_deviation=0.3),
-            SoundType.DAMAGE: option(speed_deviation=0.1),
-            SoundType.FIRE: option(volume=0.2, speed_deviation=0.1),
+            SoundType.DAMAGE: option(speed_deviation=0.2),
+            SoundType.FIRE: option(speed_deviation=0.1),
             # Add sound types and specific options here
         }
 

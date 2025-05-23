@@ -17,7 +17,7 @@ class SoundType(Enum):
 
 
 class VC:
-    client: discord.VoiceClient = None
+    clients: dict[int, discord.VoiceClient] = {}
     ffmpeg_available: bool = False
 
     @staticmethod
@@ -37,26 +37,32 @@ class VC:
         if not VC.ffmpeg_available:
             return
 
-        if VC.client:
-            if VC.client.channel.id == itr.user.voice.channel.id:
-                return
-            await VC.leave()  # Need to leave current channel to switch.
+        if not itr.guild or not itr.user.voice:
+            return  # User in DMs or not in voice chat
 
-        VC.client = await itr.user.voice.channel.connect()
+        guild_id = itr.guild_id
+        voice_channel = itr.user.voice.channel
+
+        old_client = VC.clients.get(guild_id)
+        if old_client:
+            if old_client.channel.id == voice_channel.id:
+                return
+            await VC.leave(guild_id)  # Need to leave current channel to switch.
+
+        client = await voice_channel.connect()
+        VC.clients[guild_id] = client
         logging.info(
-            f"Joined voice channel: {VC.client.channel.name} (ID: {VC.client.channel.id})"
+            f"Joined voice channel '{client.channel.name}' in '{client.guild.name}'"
         )
-        asyncio.create_task(VC.monitor_vc())
+        asyncio.create_task(VC.monitor_vc(guild_id))
 
     @staticmethod
-    async def leave():
-        """Leave the voice channel."""
-        if VC.client:
-            logging.info(
-                f"Left voice channel: {VC.client.channel.name} (ID: {VC.client.channel.id})"
-            )
-            await VC.client.disconnect()
-            VC.client = None
+    async def leave(guild_id: int):
+        client = VC.clients.get(guild_id)
+        if client:
+            logging.info(f"Left voice channel '{client.channel.name}' in '{client.guild.name}'")
+            await client.disconnect()
+            del VC.clients[guild_id]
 
     @staticmethod
     async def play(itr: discord.Interaction, sound_type: SoundType):
@@ -66,21 +72,22 @@ class VC:
 
         await VC.join(itr)
 
-        if not VC.client:
+        client = VC.clients.get(itr.guild_id)
+        if not client:
             return
 
         retries = 0
-        while VC.client.is_playing():
+        while client.is_playing():
             # We queue sounds for 5 seconds, to prevent abrubt sound cuts
             if retries >= 50:
-                VC.client.stop()
+                client.stop()
                 break
             await asyncio.sleep(0.1)
             retries += 1
 
         sound = Sound.get(sound_type)
         if sound:
-            VC.client.play(sound)
+            client.play(sound)
 
     @staticmethod
     async def play_dice_roll(itr: discord.Interaction, expression: DiceExpression):
@@ -97,16 +104,20 @@ class VC:
         await VC.play(itr, sound_type)
 
     @staticmethod
-    async def monitor_vc():
+    async def monitor_vc(guild_id: int):
         """Periodically checks if the bot is alone in a voice channel and disconnects if so."""
-        while VC.client:
-            channel = VC.client.channel
+        while True:
+            client = VC.clients.get(guild_id)
+            if not client:
+                break
+
+            channel = client.channel
             members = channel.members if channel else []
             non_bot_members = [m for m in members if not m.bot]
 
             if not non_bot_members:
                 logging.info("Bot is alone in voice channel, disconnecting.")
-                await VC.leave()
+                await VC.leave(guild_id)
                 break
 
             await asyncio.sleep(60)

@@ -3,7 +3,7 @@ from enum import Enum
 import logging
 from pathlib import Path
 import random
-import subprocess
+import shutil
 import discord
 
 from dice import DiceExpression
@@ -23,22 +23,13 @@ class VC:
     @staticmethod
     def check_ffmpeg():
         """Check if FFmpeg is installed and available in PATH. If not installed, disable voice chat functionality."""
-        try:
-            subprocess.run(
-                ["ffmpeg", "-version"],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-                check=True,
-            )
-            logging.info(
-                "FFmpeg installed and available, using voice chat functionality."
-            )
-            VC.ffmpeg_available = True
-        except (subprocess.CalledProcessError, FileNotFoundError):
-            logging.warning(
-                "FFmpeg is not installed or not found in PATH, voice chat functionality will be disabled."
-            )
+        if shutil.which("ffmpeg") is None:
+            logging.warning("FFmpeg not installed or found in PATH, voice chat features are disabled.")
             VC.ffmpeg_available = False
+            return
+
+        logging.info("FFmpeg available, voice chat features are enabled.")
+        VC.ffmpeg_available = True
 
     @staticmethod
     async def join(itr: discord.Interaction):
@@ -88,11 +79,9 @@ class VC:
             await asyncio.sleep(0.5)
             retries += 1
 
-        try:
-            VC.client.play(Sound.get(sound_type))
-        except Exception as e:
-            logging.error(f"Error playing audio: {e}")
-            VC.check_ffmpeg()
+        sound = Sound.get(sound_type)
+        if sound:
+            VC.client.play(sound)
 
     @staticmethod
     async def play_dice_roll(itr: discord.Interaction, expression: DiceExpression):

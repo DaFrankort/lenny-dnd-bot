@@ -99,17 +99,18 @@ class VC:
             client.play(sound)
 
     @staticmethod
-    async def play_dice_roll(itr: discord.Interaction, expression: DiceExpression, reason: str = ""):
+    async def play_dice_roll(itr: discord.Interaction, expression: DiceExpression, reason: str = None):
         roll = expression.roll
         sound_type = SoundType.ROLL
 
-        reason = reason.lower().strip()
-        if "attack" == reason:
-            sound_type = SoundType.ATTACK
-        elif "damage" == reason:
-            sound_type = SoundType.DAMAGE
-        elif "fire" == reason:
-            sound_type = SoundType.FIRE
+        reason = "" if not reason else reason.lower().strip()
+        match reason:
+            case "attack":
+                sound_type = SoundType.ATTACK
+            case "damage":
+                sound_type = SoundType.DAMAGE
+            case "fire":
+                sound_type = SoundType.FIRE
 
         if roll.is_natural_twenty:
             sound_type = SoundType.NAT_20

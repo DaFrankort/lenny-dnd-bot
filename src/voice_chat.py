@@ -34,12 +34,6 @@ class VC:
     @staticmethod
     async def join(itr: discord.Interaction):
         """Join the voice channel of the user who invoked the command."""
-        if not VC.ffmpeg_available:
-            return
-
-        if not itr.guild or not itr.user.voice:
-            return  # User in DMs or not in voice chat
-
         if VC.client:
             if VC.client.channel.id == itr.user.voice.channel.id:
                 return
@@ -63,6 +57,12 @@ class VC:
     @staticmethod
     async def play(itr: discord.Interaction, sound_type: SoundType):
         """Play an audio file in the voice channel."""
+        if not VC.ffmpeg_available:
+            return
+
+        if not itr.guild or not itr.user.voice:
+            return  # User in DMs or not in voice chat
+
         await VC.join(itr)
 
         if not VC.client:

@@ -24,11 +24,20 @@ class VC:
     def check_ffmpeg():
         """Check if FFmpeg is installed and available in PATH. If not installed, disable voice chat functionality."""
         try:
-            subprocess.run(["ffmpeg", "-version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
-            logging.info("FFmpeg installed and available, using voice chat functionality.")
+            subprocess.run(
+                ["ffmpeg", "-version"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                check=True,
+            )
+            logging.info(
+                "FFmpeg installed and available, using voice chat functionality."
+            )
             VC.ffmpeg_available = True
         except (subprocess.CalledProcessError, FileNotFoundError):
-            logging.warning("FFmpeg is not installed or not found in PATH, voice chat functionality will be disabled.")
+            logging.warning(
+                "FFmpeg is not installed or not found in PATH, voice chat functionality will be disabled."
+            )
             VC.ffmpeg_available = False
 
     @staticmethod
@@ -46,13 +55,17 @@ class VC:
             await VC.leave()
 
         VC.client = await itr.user.voice.channel.connect()
-        logging.info(f"Joined voice channel: {VC.client.channel.name} (ID: {VC.client.channel.id})")
+        logging.info(
+            f"Joined voice channel: {VC.client.channel.name} (ID: {VC.client.channel.id})"
+        )
 
     @staticmethod
     async def leave():
         """Leave the voice channel."""
         if VC.client:
-            logging.info(f"Left voice channel: {VC.client.channel.name} (ID: {VC.client.channel.id})")
+            logging.info(
+                f"Left voice channel: {VC.client.channel.name} (ID: {VC.client.channel.id})"
+            )
             await VC.client.disconnect()
             VC.client = None
 
@@ -118,7 +131,9 @@ class Sound:
             speed_min = max(1 - speed_deviation, 0.1)
             speed = round(random.uniform(speed_min, speed_max), 2)
 
-            filters = ["dynaudnorm"]  # Always normalize audio first, to ensure consistent volume.
+            filters = [
+                "dynaudnorm"
+            ]  # Always normalize audio first, to ensure consistent volume.
             filters.append(f"volume={volume}")
             filters.append(f"atempo={speed}")
 

@@ -24,7 +24,9 @@ class VC:
     def check_ffmpeg():
         """Check if FFmpeg is installed and available in PATH. If not installed, disable voice chat functionality."""
         if shutil.which("ffmpeg") is None:
-            logging.warning("FFmpeg not installed or found in PATH, voice chat features are disabled.")
+            logging.warning(
+                "FFmpeg not installed or found in PATH, voice chat features are disabled."
+            )
             VC.ffmpeg_available = False
             return
 
@@ -60,7 +62,9 @@ class VC:
     async def leave(guild_id: int):
         client = VC.clients.get(guild_id)
         if client:
-            logging.info(f"Left voice channel '{client.channel.name}' in '{client.guild.name}'")
+            logging.info(
+                f"Left voice channel '{client.channel.name}' in '{client.guild.name}'"
+            )
             await client.disconnect()
             del VC.clients[guild_id]
 
@@ -129,6 +133,7 @@ class Sound:
     @staticmethod
     def _get_options(sound_type: SoundType) -> str:
         """Get the FFmpeg options for the sound type."""
+
         def option(volume: float = 0.5, speed_deviation: float = 0) -> str:
             speed_max = min(1 + speed_deviation, 2)
             speed_min = max(1 - speed_deviation, 0.1)
@@ -137,7 +142,7 @@ class Sound:
             filters = [
                 "dynaudnorm",  # Always normalize first, for stable volumes
                 f"volume={volume}",
-                f"atempo={speed}"
+                f"atempo={speed}",
             ]
 
             return f"-filter:a '{','.join(filters)}'"

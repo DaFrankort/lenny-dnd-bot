@@ -37,13 +37,13 @@ class VC:
         if not VC.ffmpeg_available:
             return
 
-        if not itr.user.voice:
-            return  # User not in voice chat
+        if not itr.guild or not itr.user.voice:
+            return  # User in DMs or not in voice chat
 
         if VC.client:
             if VC.client.channel.id == itr.user.voice.channel.id:
-                return  # Already in the same voice channel
-            await VC.leave()
+                return
+            await VC.leave()  # Need to leave current channel to switch.
 
         VC.client = await itr.user.voice.channel.connect()
         logging.info(
@@ -63,18 +63,16 @@ class VC:
     @staticmethod
     async def play(itr: discord.Interaction, sound_type: SoundType):
         """Play an audio file in the voice channel."""
-        if not VC.ffmpeg_available:
-            return
-
-        if not itr.guild or not itr.user.voice:
-            return  # User in DMs or not in voice chat
-
         await VC.join(itr)
+
+        if not VC.client:
+            return
 
         retries = 0
         while VC.client.is_playing():
-            if retries >= 20:  # 10s
-                VC.client.stop()  # Stop playback, makes bot not play sounds for long periods of time
+            # We queue sounds for 10 seconds, to prevent abrubt sound cuts
+            if retries >= 20:
+                VC.client.stop()
                 break
             await asyncio.sleep(0.5)
             retries += 1
@@ -85,14 +83,14 @@ class VC:
 
     @staticmethod
     async def play_dice_roll(itr: discord.Interaction, expression: DiceExpression):
+        roll = expression.roll
         sound_type = SoundType.ROLL
-        if expression.roll.is_natural_twenty:
+
+        if roll.is_natural_twenty:
             sound_type = SoundType.NAT_20
-
-        elif expression.roll.is_natural_one:
+        elif roll.is_natural_one:
             sound_type = SoundType.NAT_1
-
-        elif expression.roll.is_dirty_twenty:
+        elif roll.is_dirty_twenty:
             sound_type = SoundType.DIRTY_20
 
         await VC.play(itr, sound_type)
@@ -102,34 +100,40 @@ class Sound:
     BASE_PATH = Path("./sounds/")
 
     @staticmethod
-    def get(sound_type: SoundType) -> discord.FFmpegPCMAudio:
-        """Get the path to the sound file based on the sound type."""
-        folder = Sound.BASE_PATH / sound_type.value
-        if not folder.exists() or not folder.is_dir():
-            folder.mkdir(parents=True, exist_ok=True)
-
-        sound_files = list(folder.glob("*.mp3"))
-        if not sound_files:
-            logging.warning(f"No sound files found in {folder}.")
-            return None
-
-        src = str(random.choice(sound_files))
-
+    def _get_options(sound_type: SoundType) -> str:
+        """Get the FFmpeg options for the sound type."""
         def option(volume: float = 0.5, speed_deviation: float = 0) -> str:
             speed_max = min(1 + speed_deviation, 2)
             speed_min = max(1 - speed_deviation, 0.1)
             speed = round(random.uniform(speed_min, speed_max), 2)
 
             filters = [
-                "dynaudnorm"
-            ]  # Always normalize audio first, to ensure consistent volume.
-            filters.append(f"volume={volume}")
-            filters.append(f"atempo={speed}")
+                "dynaudnorm",  # Always normalize first, for stable volumes
+                f"volume={volume}",
+                f"atempo={speed}"
+            ]
 
             return f"-filter:a '{','.join(filters)}'"
 
-        options = {
-            SoundType.ROLL: option(volume=0.4, speed_deviation=0.3, reverb=True),
-        }.get(sound_type, option())
+        options_map = {
+            SoundType.ROLL: option(volume=0.4, speed_deviation=0.3)
+            # Add sound types and specific options here
+        }
 
+        return options_map.get(sound_type, option())
+
+    @staticmethod
+    def get(sound_type: SoundType) -> discord.FFmpegPCMAudio:
+        """Get a random sound file for the given sound type."""
+        folder = Sound.BASE_PATH / sound_type.value
+        if not folder.exists() or not folder.is_dir():
+            folder.mkdir(parents=True, exist_ok=True)
+
+        sound_files = list(folder.glob("*.mp3"))
+        if not sound_files:
+            logging.warning(f"No .mp3 files found in {folder}.")
+            return None
+
+        src = str(random.choice(sound_files))
+        options = Sound._get_options(sound_type)
         return discord.FFmpegPCMAudio(source=src, options=options)

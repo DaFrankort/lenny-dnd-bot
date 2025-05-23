@@ -164,7 +164,6 @@ class Bot(discord.Client):
             reasons = [
                 "Attack",
                 "Damage",
-                "Initiative",
                 "Saving Throw",
                 "Athletics",
                 "Acrobatics",
@@ -184,6 +183,7 @@ class Bot(discord.Client):
                 "Intimidation",
                 "Performance",
                 "Persuasion",
+                "Fire",
             ]
             filtered_reasons = [
                 reason for reason in reasons if current.lower() in reason.lower()

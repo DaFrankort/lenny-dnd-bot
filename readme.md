@@ -89,7 +89,7 @@ By default the user's color is automatically generated based on their display-na
 ### Track Initiative
 
 Commands to help track initiatives for combat. Names are enforced to be unique and will overwrite eachother if specified twice.
-- `/initiative <modifier> <target>` - Roll for initiative, all rolls are stored per server. You can provide a 'target' to roll for creatures. Rolls for user by default.
+- `/initiative <modifier> <target>` - Roll for initiative while keeping it in memory. Optionally provide a 'target' to roll for creatures. Rolls for user by default.
 - `/bulkinitiative <modifier> <name> <amount> <shared>` - Adds creature initiatives in bulk, making it easy for a DM to add a group of creatures at once. These are numbered automatically for easy tracking.
 - `/setinitiative <value> <name>` - Set an initiative to a specific value, handy to rectify mistakes or if you want precise control over certain initiatives.
 - `/swapinitiative <target a> <target b>` - Swap initiative between two users or creatures, handy for users with the Alert feat.

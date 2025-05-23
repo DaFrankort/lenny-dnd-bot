@@ -70,11 +70,11 @@ class VC:
 
         retries = 0
         while VC.client.is_playing():
-            # We queue sounds for 10 seconds, to prevent abrubt sound cuts
-            if retries >= 20:
+            # We queue sounds for 5 seconds, to prevent abrubt sound cuts
+            if retries >= 50:
                 VC.client.stop()
                 break
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(0.1)
             retries += 1
 
         sound = Sound.get(sound_type)

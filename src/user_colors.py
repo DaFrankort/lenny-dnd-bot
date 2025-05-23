@@ -4,10 +4,13 @@ import re
 
 
 class UserColor:
-    FILE_PATH = "temp/user_colors.json"
+    """Class to handle user colors, which are used in embeds."""
+
+    FILE_PATH = "./temp/user_colors.json"
 
     @staticmethod
     def validate(hex_color: str) -> bool:
+        """Validates if the given hex color is in the correct format."""
         hex_color = hex_color.strip("#")
         pattern = re.compile(r"^[0-9a-fA-F]{6}$")
         return pattern.match(hex_color)
@@ -18,7 +21,7 @@ class UserColor:
         try:
             with open(UserColor.FILE_PATH, "r") as file:
                 data = json.load(file)
-        except:
+        except FileNotFoundError:
             data = {}
 
         data[str(interaction.user.id)] = color
@@ -28,14 +31,16 @@ class UserColor:
 
     @staticmethod
     def parse(hex_color: str) -> int:
+        """Parses a hex color string and returns its integer value."""
         if not hex_color.startswith("#"):
             hex_color = f"#{hex_color}"
         return discord.Color.from_str(hex_color).value
 
     @staticmethod
     def generate(interaction: discord.Interaction) -> int:
-        """Coding master Tomlolo's AMAZING code to get a hex value from a username.\n
-        Turns the first 6 letters of a user's username into a hex-value for color.\n
+        """
+        Generates a hex value from a username.
+        Converts the first 6 characters of a user's display name into a hex value for color.
         """
         hex_value = ""
         hex_place = 0
@@ -50,9 +55,10 @@ class UserColor:
                 alpha_value = get_alpha(
                     interaction.user.display_name[hex_place]
                 ) * get_alpha(interaction.user.display_name[hex_place + 1])
-            except:
+            except IndexError:
                 # When username is shorter than 6 characters, inserts replacement value.
-                alpha_value = 0  # Value can be changed to 255 for light and blue colors, 0 for dark and red colors.
+                # Value can be changed to 255 for light and blue colors, 0 for dark and red colors.
+                alpha_value = 0
 
             if alpha_value > 255:
                 alpha_value = alpha_value & 255
@@ -72,7 +78,7 @@ class UserColor:
             with open(UserColor.FILE_PATH, "r") as file:
                 data = json.load(file)
                 color = data.get(str(interaction.user.id))
-        except:
+        except FileNotFoundError:
             color = UserColor.generate(interaction)
 
         if color is None:
@@ -87,21 +93,11 @@ class UserColor:
             with open(UserColor.FILE_PATH, "r") as file:
                 data = json.load(file)
                 user_id = str(interaction.user.id)
-                if not user_id in data:
+                if user_id not in data:
                     return False
                 del data[user_id]
             with open(UserColor.FILE_PATH, "w") as file:
                 json.dump(data, file, indent=4)
             return True
-        except Exception as e:
+        except Exception:
             return False
-
-
-class ColorEmbed(discord.Embed):
-    def __init__(self, itr: discord.Interaction, hex_color: str) -> None:
-        color = UserColor.parse(hex_color)
-        super().__init__(type="rich", color=color)
-        self.set_author(
-            name=f"{itr.user.display_name} set their color to #{hex_color.upper()}",
-            icon_url=itr.user.avatar.url,
-        )

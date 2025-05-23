@@ -1,32 +1,35 @@
 import random
 import discord
 
-from user_colors import UserColor
 
+class Stats:
+    """Class for rolling character-stats in D&D 5e."""
 
-class StatsEmbed(discord.Embed):
-    def _roll(self) -> tuple[list[int], int]:
+    stats: list[tuple[list[int], int]]
+    interaction: discord.Interaction
+
+    def __init__(self, interaction: discord.Interaction) -> None:
+        self.interaction = interaction
+        self.stats = [self.roll_stat() for _ in range(6)]
+
+    def roll_stat(self) -> tuple[list[int], int]:
+        """Rolls a single stat in D&D 5e."""
         rolls = [random.randint(1, 6) for _ in range(4)]
         rolls = sorted(rolls)
         result = sum(rolls[1:])
         return rolls, result
 
-    def __init__(self, interaction: discord.Interaction) -> None:
-        super().__init__(
-            color=UserColor.get(interaction),
-            title=f"Rolling stats for {interaction.user.display_name}",
-            type="rich",
-            url=None,
-            description=None,
-            timestamp=None,
-        )
+    def get_embed_title(self) -> str:
+        return f"Rolling stats for {self.interaction.user.display_name}"
 
+    def get_embed_description(self) -> str:
         message = ""
         total = 0
-        for _ in range(6):
-            [r0, r1, r2, r3], result = self._roll()
+
+        for rolls, result in self.stats:
+            r0, r1, r2, r3 = rolls
             message += f"`({r0}, {r1}, {r2}, {r3})` => **{result}**\n"
             total += result
-        message += f"**Total**: {total}"
 
-        self.add_field(name="", value=message)
+        message += f"\n**Total**: {total}"
+        return message

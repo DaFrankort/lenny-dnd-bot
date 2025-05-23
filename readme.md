@@ -7,10 +7,10 @@ Powered by [5e.tools](https://5e.tools/) for up-to-date 5e data.
 ## Features
 
 - **Dice Roll Commands**: Roll dice with custom parameters (e.g., `/roll 2d6`, `/advantage 1d20+1` or `/disadvantage 3d20+4`).
-- **D&D Spell Lookup**: Look up spells and get detailed information about them directly in Discord using `/spell`.
+- **D&D Data Lookup**: Look up D&D data and get detailed information about them directly in Discord, powered by [5e.tools](https://5e.tools/).
 - **Customizable Color Embeds**: Customize the colors of your dice roll embeds for better visual appeal and easy identification, auto-generated if not specified.
-- **Character Stat Rolling**: Automatically roll and generate character stats for D&D characters.
-- **Initiative tracking**: Let players roll initiative and roll initiative for creatures and track it easily.
+- **Character Stat Rolling**: Automatically roll and generate D&D character stats.
+- **Initiative tracking**: Roll initiatives for players & creatures and track them easily.
 
 ## Installation
 
@@ -61,13 +61,15 @@ Once the bot is added to your server, you can use the following commands:
 
 ### Dice Rolls
 
-- `/roll <dice>` – Roll a custom dice, e.g., `/roll 2d6` or `/roll 1d20+2`.
-- `/advantage <dice>` – Rolls twice, highlights the highest result, e.g., `/advantage  2d6` or `/advantage 1d20+2`.
-- `/disadvantage <dice>` – Rolls twice, highlights the lowest result, e.g., `/disadvantage 2d6` or `/disadvantage 1d20+2`.
+Roll D&D dice using dice-expressions (e.g. `2d6` / `1d20+2`).
+- `/roll <dice> <reason>` – Roll a single dice expression, optionally specify a reason for the roll (e.g. Acrobatics)
+- `/advantage <dice> <reason>` – Rolls twice, highlights the highest result.
+- `/disadvantage <dice> <reason>` – Rolls twice, highlights the lowest result.
 - `/d20` - Rolls a basic 1d20 without any modifiers.
 
 ### D&D Data lookup
 
+Look up various D&D data from [5e.tools](https://5e.tools/).
 - `/spell <spell-name>` – Look up information about a D&D spell (e.g. Fireball).
 - `/item <item-name>` - Look up information about a D&D item (e.g. Dagger).
 - `/condition <condition-name>` - Look up information about a D&D condition (e.g. Blinded).
@@ -79,17 +81,19 @@ Once the bot is added to your server, you can use the following commands:
 
 ### Customize embed colors for users
 
-- `/color <hex-value>` - Provide a hex value for a color and anytime you roll dice it will label your rolls with that color.
-- `/color` - Using the command without a hex-value will clear the user's set color.
-- If the user has no color set, a random one will be generated based on the user's display-name.
+Some commands are shown as "user-actions", in this case the embed will be highlighted with a color unique for a user.
+This makes it easier to discern who did which action at a simple glance.
+- `/color <hex-value>` - Provide a hex value for a color to be used in embeds related to you.
+- `/color` - Using the command without a hex-value will clear the user's set color, defaulting to a color generated based on the user's displayname.
 
 ### Track Initiative
 
-- `/initiative <modifier> <target>` - Roll for initiative, all rolls are stored per server. You can provide a 'target' to roll for NPC's / Creatures, rolls for user by default.
+Commands to help track initiatives for combat, names are enforced to be unique and will overwrite eachother if specified twice.
+- `/initiative <modifier> <target>` - Roll for initiative, all rolls are stored per server. You can provide a 'target' to roll for creatures. Rolls for user by default.
 - `/bulkinitiative <modifier> <name> <amount> <shared>` - Adds creature initiatives in bulk, making it easy for a DM to add a group of creatures at once. These are numbered automatically for easy tracking.
 - `/setinitiative <value> <name>` - Set an initiative to a specific value, handy to rectify mistakes or if you want precise control over certain initiatives.
 - `/swapinitiative <target a> <target b>` - Swap initiative between two users or creatures, handy for users with the Alert feat.
-- `/removeinitiative <target>` - Remove a single user or creature from the initiative tracker, removes user's initiative by default.
+- `/removeinitiative <target>` - Remove a single user or creature from the initiative tracker. Removes user's initiative by default.
 - `/showinitiative` - Shows an embed with all the initiatives, used to track the order & who's turn it is.
 - `/clearinitiative` - Clears all stored initiatives in the server, used after a battle.
 

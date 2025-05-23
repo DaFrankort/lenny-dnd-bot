@@ -103,13 +103,13 @@ class VC:
         roll = expression.roll
         sound_type = SoundType.ROLL
 
-        description = expression.description.lower()
-        if "attack" in description:
-            sound_type = SoundType.ATTACK
-        elif "damage" in description:
-            sound_type = SoundType.DAMAGE
-        elif "fire" in description:
-            sound_type = SoundType.FIRE
+        match expression.description.lower():
+            case "attack":
+                sound_type = SoundType.ATTACK
+            case "damage":
+                sound_type = SoundType.DAMAGE
+            case "fire":
+                sound_type = SoundType.FIRE
 
         if roll.is_natural_twenty:
             sound_type = SoundType.NAT_20

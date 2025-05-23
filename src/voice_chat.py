@@ -10,10 +10,13 @@ from dice import DiceExpression
 
 
 class SoundType(Enum):
-    ROLL = "roll"
-    NAT_20 = "nat_20"
-    NAT_1 = "nat_1"
-    DIRTY_20 = "dirty_20"
+    ROLL = "dice/roll"
+    NAT_20 = "dice/nat_20"
+    NAT_1 = "dice/nat_1"
+    DIRTY_20 = "dice/dirty_20"
+    ATTACK = "combat/attack"
+    DAMAGE = "combat/damage"
+    FIRE = "combat/fire"
 
 
 class VC:
@@ -32,6 +35,8 @@ class VC:
 
         logging.info("FFmpeg available, voice chat features are enabled.")
         VC.ffmpeg_available = True
+
+        Sound.init_folders()
 
     @staticmethod
     async def join(itr: discord.Interaction):
@@ -98,6 +103,14 @@ class VC:
         roll = expression.roll
         sound_type = SoundType.ROLL
 
+        description = expression.description.lower()
+        if "attack" in description:
+            sound_type = SoundType.ATTACK
+        elif "damage" in description:
+            sound_type = SoundType.DAMAGE
+        elif "fire" in description:
+            sound_type = SoundType.FIRE
+
         if roll.is_natural_twenty:
             sound_type = SoundType.NAT_20
         elif roll.is_natural_one:
@@ -148,7 +161,10 @@ class Sound:
             return f"-filter:a '{','.join(filters)}'"
 
         options_map = {
-            SoundType.ROLL: option(volume=0.4, speed_deviation=0.3)
+            SoundType.ROLL: option(volume=0.4, speed_deviation=0.3),
+            SoundType.ATTACK: option(speed_deviation=0.3),
+            SoundType.DAMAGE: option(speed_deviation=0.1),
+            SoundType.FIRE: option(volume=0.2, speed_deviation=0.1),
             # Add sound types and specific options here
         }
 
@@ -169,3 +185,9 @@ class Sound:
         src = str(random.choice(sound_files))
         options = Sound._get_options(sound_type)
         return discord.FFmpegPCMAudio(source=src, options=options)
+
+    @classmethod
+    def init_folders(cls):
+        for sound_type in SoundType:
+            folder = cls.BASE_PATH / sound_type.value
+            folder.mkdir(parents=True, exist_ok=True)

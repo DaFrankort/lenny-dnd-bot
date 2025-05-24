@@ -180,7 +180,11 @@ class Sound:
         if not folder.exists() or not folder.is_dir():
             folder.mkdir(parents=True, exist_ok=True)
 
-        sound_files = list(folder.glob("*.mp3"))
+        supported_extensions = ["*.mp3", "*.ogg", "*.wav"]
+        sound_files = []
+        for ext in supported_extensions:
+            sound_files.extend(folder.glob(ext))
+
         if not sound_files:
             logging.warning(f"No .mp3 files found in {folder}.")
             return None

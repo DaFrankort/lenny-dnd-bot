@@ -12,5 +12,7 @@ venv
 /temp
 .env
 .flake8
-/sounds/**/*.mp3
-!/sounds/**/*_default.mp3
+
+# Audio files
+/sounds/**/*
+!/sounds/**/*_default.*

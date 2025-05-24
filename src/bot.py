@@ -341,6 +341,13 @@ class Bot(discord.Client):
                 )
             )
 
+        @initiative.autocomplete("name")
+        async def initiative_autocomplete(
+            itr: Interaction, current: str
+        ) -> list[app_commands.Choice[str]]:
+            print("Hi!")
+            return self.data.creatures.get_autocomplete_suggestions(current)
+
         @self.tree.command(
             name="setinitiative",
             description="Set initiative for yourself or a creature.",

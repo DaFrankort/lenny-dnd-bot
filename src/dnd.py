@@ -247,29 +247,67 @@ class ConditionList(DNDObjectList):
                 self.entries.append(Condition(condition))
 
 
+class Creature(DNDObject):
+    name: str
+    source: str
+    size: str
+    type: str
+    summon_spell: str | None
+    summon_spell_lvl: int | None
+    url: str
+    token_url: str
+    description: list[tuple[str, str]]
+
+    def __init__(self, json: any):
+        self.object_type = "creature"
+        self.name = json['name']
+        self.source = json['source']
+        self.size = json['size']
+        self.type = json['type']
+        self.summon_spell = json['summoned_by_spell']
+        self.summon_spell_lvl = json['summoned_by_spell_level']
+        self.url = json['url']
+        self.token_url = json['token_url']
+        self.description = json["description"]
+
+
+class CreatureList(DNDObjectList):
+    path = "./submodules/lenny-dnd-data/generated/creatures.json"
+
+    def __init__(self):
+        super().__init__()
+        data = _read_dnd_data(self.path)
+        for creature in data:
+            self.entries.append(Creature(creature))
+
+
 class DNDData(object):
     spells: SpellList
     items: ItemList
     conditions: ConditionList
+    creatures: CreatureList
 
     def __init__(self):
         self.spells = SpellList()
         self.items = ItemList()
         self.conditions = ConditionList()
+        self.creatures = CreatureList()
 
 
 class DNDSearchResults(object):
     spells: list[Spell]
     items: list[Item]
     conditions: list[Condition]
+    creatures: list[Creature]
 
     def __init__(self):
         self.spells = []
         self.items = []
         self.conditions = []
+        self.creatures = []
 
     def get_all(self) -> list[DNDObject]:
-        return self.spells + self.items + self.conditions
+        return self.spells + self.items + self.conditions + self.creatures
 
     def get_all_sorted(self) -> list[DNDObject]:
         return sorted(self.get_all(), key=lambda r: (r.object_type, r.name, r.source))

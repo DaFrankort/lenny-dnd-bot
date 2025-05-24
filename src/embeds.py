@@ -2,7 +2,7 @@ import logging
 import re
 import discord
 
-from dnd import DNDObject, Item, Spell, Condition
+from dnd import Creature, DNDObject, Item, Spell, Condition
 from user_colors import UserColor
 
 HORIZONTAL_LINE = "~~-------------------------------------------------------------------------------------~~"
@@ -193,6 +193,40 @@ class MultiConditionSelectView(discord.ui.View):
         self.add_item(MultiConditionSelect(query, conditions))
 
 
+class CreatureEmbed(discord.Embed):
+    def __init__(self, creature: Creature):
+        title = f"{creature.name} ({creature.source})"
+
+        super().__init__(
+            title=title,
+            type="rich",
+            color=discord.Color.dark_green(),
+            url=creature.url,
+        )
+        if len(creature.description) == 0:
+            return
+
+        self.description = creature.description[0]["text"]
+        for description in creature.description[1:]:
+            self.add_field(
+                name=description["name"], value=description["text"], inline=False
+            )
+
+        if creature.token_url:
+            self.set_thumbnail(url=creature.token_url)
+
+
+class MultiCreatureSelect(MultiDNDSelect):
+    def __init__(self, query: str, entries: list[Creature]):
+        super().__init__(query, entries, "MultiCreatureSelect", CreatureEmbed)
+
+
+class MultiCreatureSelectView(discord.ui.View):
+    def __init__(self, query: str, creatures: list[Creature]):
+        super().__init__()
+        self.add_item(MultiCreatureSelect(query, creatures))
+
+
 class SimpleEmbed(discord.Embed):
     def __init__(
         self, title: str, description: str, color: discord.Color = None
@@ -261,3 +295,8 @@ class NoItemsFoundEmbed(SimpleEmbed):
 class NoConditionsFoundEmbed(SimpleEmbed):
     def __init__(self, query: str):
         super().__init__("No conditions found.", f"No conditions found for '{query}'.")
+
+
+class NoCreaturesFoundEmbed(SimpleEmbed):
+    def __init__(self, query: str):
+        super().__init__("No creatures found.", f"No creatures found for '{query}'.")

@@ -9,11 +9,14 @@ from dice import DiceExpression, DiceRollMode
 from dnd import DNDData
 from embeds import (
     ConditionEmbed,
+    CreatureEmbed,
     ItemEmbed,
     MultiConditionSelectView,
+    MultiCreatureSelectView,
     MultiItemSelectView,
     MultiSpellSelectView,
     NoConditionsFoundEmbed,
+    NoCreaturesFoundEmbed,
     NoItemsFoundEmbed,
     NoSpellsFoundEmbed,
     NoSearchResultsFoundEmbed,
@@ -214,7 +217,7 @@ class Bot(discord.Client):
         @self.tree.command(name="item", description="Get the details for an item.")
         async def item(itr: Interaction, name: str):
             log_cmd(itr)
-            found = self.items.get(name)
+            found = self.data.items.get(name)
             logging.debug(f"Found {len(found)} for '{name}'")
 
             if len(found) == 0:
@@ -233,14 +236,14 @@ class Bot(discord.Client):
         async def item_autocomplete(
             itr: discord.Interaction, current: str
         ) -> list[app_commands.Choice[str]]:
-            return self.items.get_autocomplete_suggestions(query=current)
+            return self.data.items.get_autocomplete_suggestions(query=current)
 
         @self.tree.command(
             name="condition", description="Get the details for a condition."
         )
         async def condition(itr: Interaction, name: str):
             log_cmd(itr)
-            found = self.conditions.get(name)
+            found = self.data.conditions.get(name)
             logging.debug(f"Found {len(found)} for '{name}'")
 
             if len(found) == 0:
@@ -259,7 +262,31 @@ class Bot(discord.Client):
         async def condition_autocomplete(
             itr: discord.Interaction, current: str
         ) -> list[app_commands.Choice[str]]:
-            return self.conditions.get_autocomplete_suggestions(query=current)
+            return self.data.conditions.get_autocomplete_suggestions(query=current)
+
+        @self.tree.command(name="creature", description="Get the details for a creature.")
+        async def creature(itr: Interaction, name: str):
+            log_cmd(itr)
+            found = self.data.creatures.get(name)
+            logging.debug(f"Found {len(found)} for '{name}'")
+
+            if len(found) == 0:
+                embed = NoCreaturesFoundEmbed(name)
+                await itr.response.send_message(embed=embed)
+
+            elif len(found) > 1:
+                view = MultiCreatureSelectView(name, found)
+                await itr.response.send_message(view=view, ephemeral=True)
+
+            else:
+                embed = CreatureEmbed(found[0])
+                await itr.response.send_message(embed=embed)
+
+        @creature.autocomplete("name")
+        async def creature_autocomplete(
+            itr: Interaction, current: str
+        ) -> list[app_commands.Choice[str]]:
+            return self.data.creatures.get_autocomplete_suggestions(current)
 
         @self.tree.command(name="search", description="Search for a spell.")
         async def search(itr: Interaction, query: str):
@@ -345,7 +372,6 @@ class Bot(discord.Client):
         async def initiative_autocomplete(
             itr: Interaction, current: str
         ) -> list[app_commands.Choice[str]]:
-            print("Hi!")
             return self.data.creatures.get_autocomplete_suggestions(current)
 
         @self.tree.command(

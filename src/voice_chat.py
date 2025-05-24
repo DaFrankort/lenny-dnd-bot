@@ -165,9 +165,9 @@ class Sound:
 
         options_map = {
             SoundType.ROLL: option(volume=0.3, speed_deviation=0.3),
-            SoundType.ATTACK: option(speed_deviation=0.3),
-            SoundType.DAMAGE: option(speed_deviation=0.2),
-            SoundType.FIRE: option(speed_deviation=0.1),
+            SoundType.ATTACK: option(speed_deviation=0.4),
+            SoundType.DAMAGE: option(speed_deviation=0.5),
+            SoundType.FIRE: option(speed_deviation=0.3),
             # Add sound types and specific options here
         }
 

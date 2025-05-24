@@ -222,6 +222,12 @@ class CreatureEmbed(discord.Embed):
                 name="", value=description[0]["text"], inline=False
             )
 
+        spell = creature.summon_spell
+        if spell:
+            self.add_field(
+                name="Related to spell:", value=spell
+            )
+
 
 class MultiCreatureSelect(MultiDNDSelect):
     def __init__(self, query: str, entries: list[Creature]):

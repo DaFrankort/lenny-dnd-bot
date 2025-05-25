@@ -44,7 +44,7 @@ def search_from_query(
             results.items.append(item)
 
     for condition in data.conditions.entries:
-        if ignore_phb2014 and item.is_phb2014:
+        if ignore_phb2014 and condition.is_phb2014:
             continue
         if __search_matches(query, condition.name, threshold):
             results.conditions.append(condition)
@@ -56,6 +56,7 @@ class Emoji:
     fire = "🔥"
     dagger = "🗡️"
     skull = "💀"
+    dragon = "🐉"
 
 
 class SearchSelectOption(discord.SelectOption):

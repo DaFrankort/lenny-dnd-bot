@@ -6,13 +6,14 @@ from rapidfuzz import fuzz
 
 from dnd import (
     Condition,
+    Creature,
     DNDData,
     DNDSearchResults,
     DNDObject,
     Item,
     Spell,
 )
-from embeds import ConditionEmbed, ItemEmbed, SpellEmbed
+from embeds import ConditionEmbed, CreatureEmbed, ItemEmbed, SpellEmbed
 
 
 def __search_matches(query: str, name: str, threshold: float) -> bool:
@@ -49,6 +50,12 @@ def search_from_query(
         if __search_matches(query, condition.name, threshold):
             results.conditions.append(condition)
 
+    for creature in data.creatures.entries:
+        if ignore_phb2014 and creature.is_phb2014:
+            continue
+        if __search_matches(query, creature.name, threshold):
+            results.creatures.append(creature)
+
     return results
 
 
@@ -72,6 +79,9 @@ class SearchSelectOption(discord.SelectOption):
 
         elif isinstance(data, Condition):
             label = f"{Emoji.skull} {data.name} ({data.source})"
+
+        elif isinstance(data, Creature):
+            label = f"{Emoji.dragon} {data.name} ({data.source})"
 
         super().__init__(label=label, description=description)
 
@@ -117,6 +127,8 @@ class SearchSelect(discord.ui.Select):
             embed_type = ItemEmbed
         if type == Emoji.skull:
             embed_type = ConditionEmbed
+        if type == Emoji.dragon:
+            embed_type = CreatureEmbed
 
         result = [r for r in self.results if r.name == name and r.source == source][0]
         await interaction.response.send_message(embed=embed_type(result))

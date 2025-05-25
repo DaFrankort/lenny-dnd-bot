@@ -370,12 +370,6 @@ class Bot(discord.Client):
                 )
             )
 
-        @initiative.autocomplete("name")
-        async def initiative_autocomplete(
-            itr: Interaction, current: str
-        ) -> list[app_commands.Choice[str]]:
-            return self.data.creatures.get_autocomplete_suggestions(current)
-
         @self.tree.command(
             name="setinitiative",
             description="Set initiative for yourself or a creature.",
@@ -425,6 +419,13 @@ class Bot(discord.Client):
             await itr.response.send_message(
                 embed=UserActionEmbed(itr=itr, title=title, description=description)
             )
+
+        @initiative.autocomplete("name")
+        @bulk_initiative.autocomplete("name")
+        async def initiative_autocomplete(
+            itr: Interaction, current: str
+        ) -> list[app_commands.Choice[str]]:
+            return self.data.creatures.get_autocomplete_suggestions(current)
 
         @self.tree.command(
             name="showinitiative",

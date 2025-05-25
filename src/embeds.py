@@ -206,12 +206,38 @@ class CreatureEmbed(discord.Embed):
 
         if creature.token_url:
             self.set_thumbnail(url=creature.token_url)
+            # self.set_author(name=title, icon_url=creature.token_url)
 
         if creature.subtitle:
-            self.add_field(name="", value=f"*{creature.subtitle}*", inline=False)
+            self.description = f"*{creature.subtitle}*"
 
         if creature.description:
-            self.add_field(name="", value=creature.description, inline=False)
+            char_count = 0
+            for description in creature.description:  # TODO: Simplify data in lenny-dnd-data
+                name = description["name"]
+                text = description["text"]
+
+                if name != "":
+                    continue
+
+                if "stat blocks" in text.lower():
+                    continue
+
+                max_length = 1024 // 2
+                if len(text) > max_length:
+                    truncation_notice = "*"
+                    cutoff = text.rfind(".", 0, max_length - len(truncation_notice))
+                    if cutoff == -1:
+                        cutoff = max_length - len(truncation_notice)
+                    text = text[:cutoff + 1].strip() + truncation_notice
+
+                char_count += len(text) + len(name)
+                if char_count > max_length:
+                    break  # Keep embeds short
+
+                self.add_field(
+                    name=name, value=text, inline=False
+                )
 
         spell = creature.summon_spell
         if spell:

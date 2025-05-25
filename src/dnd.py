@@ -258,7 +258,7 @@ class Creature(DNDObject):
     summon_spell_lvl: int | None
     url: str
     token_url: str | None
-    description: str
+    description: list[tuple[str, str]] | None
 
     def __init__(self, json: any):
         self.object_type = "creature"

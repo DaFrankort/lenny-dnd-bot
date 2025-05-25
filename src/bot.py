@@ -264,7 +264,9 @@ class Bot(discord.Client):
         ) -> list[app_commands.Choice[str]]:
             return self.data.conditions.get_autocomplete_suggestions(query=current)
 
-        @self.tree.command(name="creature", description="Get the details for a creature.")
+        @self.tree.command(
+            name="creature", description="Get the details for a creature."
+        )
         async def creature(itr: Interaction, name: str):
             log_cmd(itr)
             found = self.data.creatures.get(name)

@@ -259,13 +259,13 @@ class Creature(DNDObject):
 
     def __init__(self, json: any):
         self.object_type = "creature"
-        self.name = json['name']
-        self.source = json['source']
-        self.subtitle = json['subtitle']
-        self.summon_spell = json['summoned_by_spell']
-        self.summon_spell_lvl = json['summoned_by_spell_level']
-        self.url = json['url']
-        self.token_url = json['token_url']
+        self.name = json["name"]
+        self.source = json["source"]
+        self.subtitle = json["subtitle"]
+        self.summon_spell = json["summoned_by_spell"]
+        self.summon_spell_lvl = json["summoned_by_spell_level"]
+        self.url = json["url"]
+        self.token_url = json["token_url"]
         self.description = json["description"]
 
 

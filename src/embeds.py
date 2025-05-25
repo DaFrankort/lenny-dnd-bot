@@ -211,15 +211,11 @@ class CreatureEmbed(discord.Embed):
             self.add_field(name="", value=f"*{creature.subtitle}*", inline=False)
 
         if creature.description:
-            self.add_field(
-                name="", value=creature.description, inline=False
-            )
+            self.add_field(name="", value=creature.description, inline=False)
 
         spell = creature.summon_spell
         if spell:
-            self.add_field(
-                name="Related to spell:", value=spell
-            )
+            self.add_field(name="Related to spell:", value=spell)
 
 
 class MultiCreatureSelect(MultiDNDSelect):

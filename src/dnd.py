@@ -75,17 +75,20 @@ class DNDObjectList(object):
             return []
 
         choices = []
+        seen_names = set()
+
         for e in self.entries:
             if ignore_phb2014 and e.is_phb2014:
                 continue
 
             name_clean = e.name.strip().lower().replace(" ", "")
             score = fuzz.partial_ratio(query, name_clean)
-            if score > fuzzy_threshold:
+            if score > fuzzy_threshold and e.name not in seen_names:
                 starts_with_query = name_clean.startswith(query)
                 choices.append(
                     (starts_with_query, score, Choice(name=e.name, value=e.name))
                 )
+                seen_names.add(e.name)
 
         choices.sort(
             key=lambda x: (-x[0], -x[1], x[2].name)

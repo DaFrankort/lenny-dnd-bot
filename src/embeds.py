@@ -207,19 +207,12 @@ class CreatureEmbed(discord.Embed):
         if creature.token_url:
             self.set_thumbnail(url=creature.token_url)
 
-        subtitle = ""
-        if creature.size is not None:
-            subtitle += f"{creature.size}"
-        if creature.type is not None:
-            subtitle += f" {creature.type}"
+        if creature.subtitle:
+            self.add_field(name="", value=f"*{creature.subtitle}*", inline=False)
 
-        if subtitle != "":
-            self.add_field(name="", value=f"*{subtitle.strip()}*", inline=False)
-
-        description = creature.description
-        if description:
+        if creature.description:
             self.add_field(
-                name="", value=description[0]["text"], inline=False
+                name="", value=creature.description, inline=False
             )
 
         spell = creature.summon_spell

@@ -250,20 +250,18 @@ class ConditionList(DNDObjectList):
 class Creature(DNDObject):
     name: str
     source: str
-    size: str
-    type: str
+    subtitle: str | None
     summon_spell: str | None
     summon_spell_lvl: int | None
     url: str
-    token_url: str
-    description: list[tuple[str, str]]
+    token_url: str | None
+    description: str
 
     def __init__(self, json: any):
         self.object_type = "creature"
         self.name = json['name']
         self.source = json['source']
-        self.size = json['size']
-        self.type = json['type']
+        self.subtitle = json['subtitle']
         self.summon_spell = json['summoned_by_spell']
         self.summon_spell_lvl = json['summoned_by_spell_level']
         self.url = json['url']

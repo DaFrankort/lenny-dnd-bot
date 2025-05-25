@@ -206,7 +206,6 @@ class CreatureEmbed(discord.Embed):
 
         if creature.token_url:
             self.set_thumbnail(url=creature.token_url)
-            # self.set_author(name=title, icon_url=creature.token_url)
 
         if creature.subtitle:
             self.description = f"*{creature.subtitle}*"

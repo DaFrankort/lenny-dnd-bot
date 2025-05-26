@@ -123,9 +123,7 @@ class VC:
         await VC.play(itr, sound_type)
 
     @staticmethod
-    async def play_initiative_roll(
-        itr: discord.Interaction, initiative: Initiative
-    ):
+    async def play_initiative_roll(itr: discord.Interaction, initiative: Initiative):
         sound_type = SoundType.ROLL
 
         if initiative.d20 == 20:

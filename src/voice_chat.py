@@ -36,8 +36,6 @@ class VC:
         logging.info("FFmpeg available, voice chat features are enabled.")
         VC.ffmpeg_available = True
 
-        Sound.init_folders()
-
     @staticmethod
     async def join(itr: discord.Interaction):
         """Join the voice channel of the user who invoked the command."""

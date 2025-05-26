@@ -347,6 +347,7 @@ class Bot(discord.Client):
                     itr=itr, title=initiative.title, description=initiative.description
                 )
             )
+            await VC.play_initiative_roll(itr, initiative)
 
         @self.tree.command(
             name="setinitiative",

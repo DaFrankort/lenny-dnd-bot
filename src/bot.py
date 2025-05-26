@@ -30,7 +30,7 @@ from initiative import (
 from search import SearchEmbed, search_from_query
 from stats import Stats
 from user_colors import UserColor
-from voice_chat import VC, Sounds
+from voice_chat import VC, SoundType, Sounds
 
 
 class Bot(discord.Client):
@@ -398,6 +398,7 @@ class Bot(discord.Client):
             await itr.response.send_message(
                 embed=UserActionEmbed(itr=itr, title=title, description=description)
             )
+            await VC.play(itr, SoundType.ROLL)
 
         @self.tree.command(
             name="showinitiative",

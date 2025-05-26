@@ -30,7 +30,7 @@ from initiative import (
 from search import SearchEmbed, search_from_query
 from stats import Stats
 from user_colors import UserColor
-from voice_chat import VC, Sound
+from voice_chat import VC, Sounds
 
 
 class Bot(discord.Client):
@@ -66,7 +66,7 @@ class Bot(discord.Client):
         self._register_commands()
         await self._attempt_sync_guild()
         await self.tree.sync()
-        Sound.init_folders()
+        Sounds.init_folders()
         VC.check_ffmpeg()
         logging.info("Finished initialization")
 

@@ -93,7 +93,7 @@ class VC:
             await asyncio.sleep(0.1)
             retries += 1
 
-        sound = Sound.get(sound_type)
+        sound = Sounds.get(sound_type)
         if sound:
             client.play(sound)
 
@@ -155,7 +155,7 @@ class VC:
             await asyncio.sleep(60)
 
 
-class Sound:
+class Sounds:
     BASE_PATH = Path("./sounds/")
 
     @staticmethod
@@ -188,7 +188,7 @@ class Sound:
     @staticmethod
     def get(sound_type: SoundType) -> discord.FFmpegPCMAudio:
         """Get a random sound file for the given sound type."""
-        folder = Sound.BASE_PATH / sound_type.value
+        folder = Sounds.BASE_PATH / sound_type.value
         if not folder.exists() or not folder.is_dir():
             folder.mkdir(parents=True, exist_ok=True)
 
@@ -202,7 +202,7 @@ class Sound:
             return None
 
         src = str(random.choice(sound_files))
-        options = Sound._get_options(sound_type)
+        options = Sounds._get_options(sound_type)
         return discord.FFmpegPCMAudio(source=src, options=options)
 
     @classmethod

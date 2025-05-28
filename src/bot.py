@@ -311,7 +311,7 @@ class Bot(discord.Client):
 
             else:
                 embed = ClassEmbed(found[0], level)
-                await itr.response.send_message(embed=embed)
+                await itr.response.send_message(embed=embed, view=embed.view)
 
         @character_class.autocomplete("name")
         async def class_autocomplete(

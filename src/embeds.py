@@ -254,10 +254,37 @@ class MultiCreatureSelectView(discord.ui.View):
         self.add_item(MultiCreatureSelect(query, creatures))
 
 
-class ClassEmbed(discord.Embed):
+class MultiSubclassSelect(discord.ui.Select):
     def __init__(self, character_class: Class, level: int):
+        options = []
+        for subclass_name in character_class.subclass.keys():
+            options.append(discord.SelectOption(label=subclass_name, value=subclass_name))
+
+        super().__init__(placeholder="Select Subclass", min_values=1, max_values=1, options=options)
+
+        self.character_class = character_class
+        self.level = level
+
+    async def callback(self, interaction: discord.Interaction):
+        subclass = self.values[0]
+        embed = ClassEmbed(self.character_class, self.level, subclass)
+        await interaction.response.edit_message(embed=embed, view=embed.view)
+
+
+class SubclassSelectView(discord.ui.View):
+    def __init__(self, character_class: Class, level: int):
+        super().__init__()
+        self.add_item(MultiSubclassSelect(character_class, level))
+
+
+class ClassEmbed(discord.Embed):
+    view: SubclassSelectView
+
+    def __init__(self, character_class: Class, level: int, subclass: str | None = None):
         title = f"{character_class.name} ({character_class.source})"
         subtitle = "*Base Information*" if level == 0 else f"*Level {level}*"
+        if subclass:
+            subtitle += f" - {subclass}"
 
         super().__init__(
             title=title,
@@ -267,12 +294,20 @@ class ClassEmbed(discord.Embed):
             description=subtitle
         )
 
-        descriptions = character_class.get_description(level, None)
+        descriptions = character_class.get_description(level, subclass)
         for description in descriptions:
             self.add_field(name=description["name"], value=description["text"], inline=False)
 
         footer_text = f"Page {level + 1} / {len(character_class.descriptions)}"
         self.set_footer(text=footer_text, icon_url="")
+
+        self.view = discord.ui.View()
+        if not character_class.subclass:
+            return
+        if level < character_class.subclass_unlock_level:
+            return
+
+        self.view = SubclassSelectView(character_class, level)
 
 
 class MultiClassSelect(MultiDNDSelect):

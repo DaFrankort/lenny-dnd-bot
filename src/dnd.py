@@ -287,8 +287,8 @@ class Class(DNDObject):
     source: str
     url: str
     subclass_unlock_level: int | None
-    descriptions: dict[str, list[tuple[str, str]]] | None
-    subclass: dict[str, dict[str, list[tuple[str, str]]]] | None
+    descriptions: dict[str, list[dict[str, str]]] | None
+    subclass: dict[str, dict[str, list[dict[str, str]]]] | None
 
     def __init__(self, json: any):
         self.object_type = "class"
@@ -299,16 +299,18 @@ class Class(DNDObject):
         self.descriptions = json.get("descriptions", None)
         self.subclass = json.get("subclass", None)
 
-    def get_description(self, page: int, subclass: str | None) -> list[tuple[str, str]]:
+    def get_description(self, page: int, subclass: str | None) -> list[dict[str, str]]:
         """Makes sure page number is within bounds and appends subclass information if available."""
         # 0 Is always base description, the rest are per-level.
-        page = max(0, min(page, len(self.descriptions) - 1))
+        max_page = max(0, len(self.descriptions) - 1)
+        page = max(0, min(page, max_page))
         page_key = str(page)
 
         descriptions = list(self.descriptions.get(page_key, []))
         if subclass:
             subclass_descriptions = self.subclass.get(subclass, {}).get(page_key, [])
-            descriptions.extend(subclass_descriptions)
+            for subclass_description in subclass_descriptions:
+                descriptions.append({"name": "", "text": subclass_description})  # TODO Fix in LENNY-DND-DATA
 
         return descriptions
 

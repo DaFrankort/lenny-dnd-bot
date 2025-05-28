@@ -314,7 +314,7 @@ class ClassEmbed(discord.Embed):
         title = f"{character_class.name} ({character_class.source})"
         subtitle = "*Base Information*" if level == 0 else f"*Level {level}*"
         if subclass:
-            subtitle += f" - {subclass}"
+            subtitle += f" - *{subclass}*"
 
         super().__init__(
             title=title,

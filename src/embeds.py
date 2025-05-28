@@ -271,6 +271,9 @@ class ClassEmbed(discord.Embed):
         for description in descriptions:
             self.add_field(name=description["name"], value=description["text"], inline=False)
 
+        footer_text = f"Page {level + 1} / {len(character_class.descriptions)}"
+        self.set_footer(text=footer_text, icon_url="")
+
 
 class MultiClassSelect(MultiDNDSelect):
     def __init__(self, query: str, entries: list[Class]):

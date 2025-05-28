@@ -282,17 +282,60 @@ class CreatureList(DNDObjectList):
             self.entries.append(Creature(creature))
 
 
+class Class(DNDObject):
+    name: str
+    source: str
+    url: str
+    subclass_unlock_level: int | None
+    descriptions: dict[str, list[tuple[str, str]]] | None
+    subclass: dict[str, dict[str, list[tuple[str, str]]]] | None
+
+    def __init__(self, json: any):
+        self.object_type = "class"
+        self.name = json["name"]
+        self.source = json["source"]
+        self.url = json["url"]
+        self.subclass_unlock_level = json["subclass_unlock_level"]
+        self.descriptions = json.get("descriptions", None)
+        self.subclass = json.get("subclass", None)
+
+    def get_description(self, page: int, subclass: str | None) -> list[tuple[str, str]]:
+        """Makes sure page number is within bounds and appends subclass information if available."""
+        # 0 Is always base description, the rest are per-level.
+        page = max(0, min(page, len(self.descriptions) - 1))
+        page_key = str(page)
+
+        descriptions = list(self.descriptions.get(page_key, []))
+        if subclass:
+            subclass_descriptions = self.subclass.get(subclass, {}).get(page_key, [])
+            descriptions.extend(subclass_descriptions)
+
+        return descriptions
+
+
+class ClassList(DNDObjectList):
+    path = "./submodules/lenny-dnd-data/generated/classes.json"
+
+    def __init__(self):
+        super().__init__()
+        data = _read_dnd_data(self.path)
+        for character_class in data:
+            self.entries.append(Class(character_class))
+
+
 class DNDData(object):
     spells: SpellList
     items: ItemList
     conditions: ConditionList
     creatures: CreatureList
+    classes: ClassList
 
     def __init__(self):
         self.spells = SpellList()
         self.items = ItemList()
         self.conditions = ConditionList()
         self.creatures = CreatureList()
+        self.classes = ClassList()
 
 
 class DNDSearchResults(object):
@@ -300,15 +343,17 @@ class DNDSearchResults(object):
     items: list[Item]
     conditions: list[Condition]
     creatures: list[Creature]
+    classes: list[Class]
 
     def __init__(self):
         self.spells = []
         self.items = []
         self.conditions = []
         self.creatures = []
+        self.classes = []
 
     def get_all(self) -> list[DNDObject]:
-        return self.spells + self.items + self.conditions + self.creatures
+        return self.spells + self.items + self.conditions + self.creatures + self.classes
 
     def get_all_sorted(self) -> list[DNDObject]:
         return sorted(self.get_all(), key=lambda r: (r.object_type, r.name, r.source))

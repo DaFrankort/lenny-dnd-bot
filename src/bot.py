@@ -8,13 +8,16 @@ from dotenv import load_dotenv
 from dice import DiceExpression, DiceRollMode
 from dnd import DNDData
 from embeds import (
+    ClassEmbed,
     ConditionEmbed,
     CreatureEmbed,
     ItemEmbed,
+    MultiClassSelectView,
     MultiConditionSelectView,
     MultiCreatureSelectView,
     MultiItemSelectView,
     MultiSpellSelectView,
+    NoClassesFoundEmbed,
     NoConditionsFoundEmbed,
     NoCreaturesFoundEmbed,
     NoItemsFoundEmbed,
@@ -289,6 +292,32 @@ class Bot(discord.Client):
             itr: Interaction, current: str
         ) -> list[app_commands.Choice[str]]:
             return self.data.creatures.get_autocomplete_suggestions(current)
+
+        @self.tree.command(
+            name="class", description="Get the details for a class."
+        )
+        async def character_class(itr: Interaction, name: str, level: app_commands.Range[int, 0, 20] = 0):
+            log_cmd(itr)
+            found = self.data.classes.get(name)
+            logging.debug(f"Found {len(found)} for '{name}'")
+
+            if len(found) == 0:
+                embed = NoClassesFoundEmbed(name)
+                await itr.response.send_message(embed=embed)
+
+            elif len(found) > 1:
+                view = MultiClassSelectView(name, found)
+                await itr.response.send_message(view=view, ephemeral=True)
+
+            else:
+                embed = ClassEmbed(found[0], level)
+                await itr.response.send_message(embed=embed)
+
+        @character_class.autocomplete("name")
+        async def class_autocomplete(
+            itr: Interaction, current: str
+        ) -> list[app_commands.Choice[str]]:
+            return self.data.classes.get_autocomplete_suggestions(current)
 
         @self.tree.command(name="search", description="Search for a spell.")
         async def search(itr: Interaction, query: str):

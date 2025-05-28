@@ -2,7 +2,7 @@ import logging
 import re
 import discord
 
-from dnd import Creature, DNDObject, Item, Spell, Condition
+from dnd import Class, Creature, DNDObject, Item, Spell, Condition
 from user_colors import UserColor
 
 HORIZONTAL_LINE = "~~-------------------------------------------------------------------------------------~~"
@@ -254,6 +254,35 @@ class MultiCreatureSelectView(discord.ui.View):
         self.add_item(MultiCreatureSelect(query, creatures))
 
 
+class ClassEmbed(discord.Embed):
+    def __init__(self, character_class: Class, level: int):
+        title = f"{character_class.name} ({character_class.source})"
+        subtitle = "*Base Information*" if level == 0 else f"*Level {level}*"
+
+        super().__init__(
+            title=title,
+            type="rich",
+            color=discord.Color.dark_green(),
+            url=character_class.url,
+            description=subtitle
+        )
+
+        descriptions = character_class.get_description(level, None)
+        for description in descriptions:
+            self.add_field(name=description["name"], value=description["text"], inline=False)
+
+
+class MultiClassSelect(MultiDNDSelect):
+    def __init__(self, query: str, entries: list[Class]):
+        super().__init__(query, entries, "MultiClassSelect", ClassEmbed)
+
+
+class MultiClassSelectView(discord.ui.View):
+    def __init__(self, query: str, classes: list[Class]):
+        super().__init__()
+        self.add_item(MultiClassSelect(query, classes))
+
+
 class SimpleEmbed(discord.Embed):
     def __init__(
         self, title: str, description: str, color: discord.Color = None
@@ -327,3 +356,8 @@ class NoConditionsFoundEmbed(SimpleEmbed):
 class NoCreaturesFoundEmbed(SimpleEmbed):
     def __init__(self, query: str):
         super().__init__("No creatures found.", f"No creatures found for '{query}'.")
+
+
+class NoClassesFoundEmbed(SimpleEmbed):
+    def __init__(self, query: str):
+        super().__init__("No classes found.", f"No classes found for '{query}'.")

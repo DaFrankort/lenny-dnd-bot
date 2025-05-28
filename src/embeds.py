@@ -255,7 +255,8 @@ class MultiCreatureSelectView(discord.ui.View):
 
 
 class MultiSubclassSelect(discord.ui.Select):
-    def __init__(self, character_class: Class, level: int):
+    """Select component to provide a Subclass-dropdown under a ClassEmbed"""
+    def __init__(self, character_class: Class, level: int, parent_view: "ClassNavigationView"):
         options = []
         for subclass_name in character_class.subclass.keys():
             options.append(discord.SelectOption(label=subclass_name, value=subclass_name))
@@ -264,21 +265,50 @@ class MultiSubclassSelect(discord.ui.Select):
 
         self.character_class = character_class
         self.level = level
+        self.parent_view = parent_view
 
     async def callback(self, interaction: discord.Interaction):
         subclass = self.values[0]
+        self.parent_view.subclass = subclass
         embed = ClassEmbed(self.character_class, self.level, subclass)
         await interaction.response.edit_message(embed=embed, view=embed.view)
 
 
-class SubclassSelectView(discord.ui.View):
-    def __init__(self, character_class: Class, level: int):
+class ClassNavigationView(discord.ui.View):
+    def __init__(self, character_class: Class, level: int, subclass: str | None):
         super().__init__()
-        self.add_item(MultiSubclassSelect(character_class, level))
+
+        self.character_class = character_class
+        self.level = level
+        self.subclass = subclass
+
+        if character_class.subclass:
+            self.add_item(MultiSubclassSelect(self.character_class, self.level, self))
+
+    async def edit_message(self, interaction: discord.Interaction):
+        embed = ClassEmbed(self.character_class, self.level, self.subclass)
+        await interaction.response.edit_message(embed=embed, view=self)
+
+    @discord.ui.button(label="Base", style=discord.ButtonStyle.primary)
+    async def base_info(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.level = 0
+        await self.edit_message(interaction)
+
+    @discord.ui.button(label="Previous", style=discord.ButtonStyle.secondary)
+    async def previous_level(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if self.level > 0:
+            self.level -= 1
+            await self.edit_message(interaction)
+
+    @discord.ui.button(label="Next", style=discord.ButtonStyle.secondary)
+    async def next_level(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if self.level < len(self.character_class.descriptions) - 1:
+            self.level += 1
+            await self.edit_message(interaction)
 
 
 class ClassEmbed(discord.Embed):
-    view: SubclassSelectView
+    view: ClassNavigationView
 
     def __init__(self, character_class: Class, level: int, subclass: str | None = None):
         title = f"{character_class.name} ({character_class.source})"
@@ -301,13 +331,7 @@ class ClassEmbed(discord.Embed):
         footer_text = f"Page {level + 1} / {len(character_class.descriptions)}"
         self.set_footer(text=footer_text, icon_url="")
 
-        self.view = discord.ui.View()
-        if not character_class.subclass:
-            return
-        if level < character_class.subclass_unlock_level:
-            return
-
-        self.view = SubclassSelectView(character_class, level)
+        self.view = ClassNavigationView(character_class, level, subclass)
 
 
 class MultiClassSelect(MultiDNDSelect):

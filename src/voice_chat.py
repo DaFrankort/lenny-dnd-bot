@@ -14,7 +14,6 @@ class SoundType(Enum):
     ROLL = "dice/roll"
     NAT_20 = "dice/nat_20"
     NAT_1 = "dice/nat_1"
-    DIRTY_20 = "dice/dirty_20"
     ATTACK = "combat/attack"
     DAMAGE = "combat/damage"
     FIRE = "combat/fire"
@@ -117,8 +116,6 @@ class VC:
             sound_type = SoundType.NAT_20
         elif roll.is_natural_one:
             sound_type = SoundType.NAT_1
-        elif roll.is_dirty_twenty:
-            sound_type = SoundType.DIRTY_20
 
         await VC.play(itr, sound_type)
 
@@ -160,7 +157,7 @@ class Sounds:
     def _get_options(sound_type: SoundType) -> str:
         """Get the FFmpeg options for the sound type."""
 
-        def option(volume: float = 0.5, speed_deviation: float = 0) -> str:
+        def option(volume: float = 0.3, speed_deviation: float = 0) -> str:
             speed_max = min(1 + speed_deviation, 2)
             speed_min = max(1 - speed_deviation, 0.1)
             speed = round(random.uniform(speed_min, speed_max), 2)
@@ -174,10 +171,10 @@ class Sounds:
             return f"-filter:a '{','.join(filters)}'"
 
         options_map = {
-            SoundType.ROLL: option(volume=0.3, speed_deviation=0.3),
-            SoundType.ATTACK: option(speed_deviation=0.4),
-            SoundType.DAMAGE: option(speed_deviation=0.5),
-            SoundType.FIRE: option(speed_deviation=0.3),
+            SoundType.ROLL: option(speed_deviation=0.3),
+            SoundType.ATTACK: option(speed_deviation=0.3),
+            SoundType.DAMAGE: option(speed_deviation=0.4),
+            SoundType.FIRE: option(speed_deviation=0.2),
             # Add sound types and specific options here
         }
 

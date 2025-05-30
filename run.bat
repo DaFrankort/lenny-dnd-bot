@@ -1,4 +1,4 @@
 git pull
-pip install -r requirements.txt
+pip install -r requirements.txt --user
 cls
-py -3 ./src/main.py
+py ./src/main.py

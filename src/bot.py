@@ -30,6 +30,7 @@ from initiative import (
 from search import SearchEmbed, search_from_query
 from stats import Stats
 from user_colors import UserColor
+from voice_chat import VC, SoundType, Sounds
 
 
 class Bot(discord.Client):
@@ -65,6 +66,8 @@ class Bot(discord.Client):
         self._register_commands()
         await self._attempt_sync_guild()
         await self.tree.sync()
+        Sounds.init_folders()
+        VC.check_ffmpeg()
         logging.info("Finished initialization")
 
     async def _attempt_sync_guild(self):
@@ -94,7 +97,7 @@ class Bot(discord.Client):
             expression = DiceExpression(
                 diceroll, mode=DiceRollMode.Normal, reason=reason
             )
-            return await itr.response.send_message(
+            await itr.response.send_message(
                 embed=UserActionEmbed(
                     itr=itr,
                     title=expression.title,
@@ -102,12 +105,13 @@ class Bot(discord.Client):
                 ),
                 ephemeral=expression.ephemeral,
             )
+            await VC.play_dice_roll(itr, expression, reason)
 
         @self.tree.command(name="d20", description="Just roll a clean d20")
         async def d20(itr: Interaction):
             log_cmd(itr)
             expression = DiceExpression("1d20", DiceRollMode.Normal)
-            return await itr.response.send_message(
+            await itr.response.send_message(
                 embed=UserActionEmbed(
                     itr=itr,
                     title=expression.title,
@@ -115,6 +119,7 @@ class Bot(discord.Client):
                 ),
                 ephemeral=expression.ephemeral,
             )
+            await VC.play_dice_roll(itr, expression)
 
         @self.tree.command(
             name="advantage", description="Lucky you! Roll and take the best of two!"
@@ -122,7 +127,7 @@ class Bot(discord.Client):
         async def advantage(itr: Interaction, diceroll: str, reason: str = None):
             log_cmd(itr)
             expression = DiceExpression(diceroll, DiceRollMode.Advantage, reason=reason)
-            return await itr.response.send_message(
+            await itr.response.send_message(
                 embed=UserActionEmbed(
                     itr=itr,
                     title=expression.title,
@@ -130,6 +135,7 @@ class Bot(discord.Client):
                 ),
                 ephemeral=expression.ephemeral,
             )
+            await VC.play_dice_roll(itr, expression, reason)
 
         @self.tree.command(
             name="disadvantage",
@@ -140,7 +146,7 @@ class Bot(discord.Client):
             expression = DiceExpression(
                 diceroll, DiceRollMode.Disadvantage, reason=reason
             )
-            return await itr.response.send_message(
+            await itr.response.send_message(
                 embed=UserActionEmbed(
                     itr=itr,
                     title=expression.title,
@@ -148,6 +154,7 @@ class Bot(discord.Client):
                 ),
                 ephemeral=expression.ephemeral,
             )
+            await VC.play_dice_roll(itr, expression, reason)
 
         @roll.autocomplete("reason")
         @advantage.autocomplete("reason")
@@ -158,7 +165,6 @@ class Bot(discord.Client):
             reasons = [
                 "Attack",
                 "Damage",
-                "Initiative",
                 "Saving Throw",
                 "Athletics",
                 "Acrobatics",
@@ -178,6 +184,7 @@ class Bot(discord.Client):
                 "Intimidation",
                 "Performance",
                 "Persuasion",
+                "Fire",
             ]
             filtered_reasons = [
                 reason for reason in reasons if current.lower() in reason.lower()
@@ -214,7 +221,7 @@ class Bot(discord.Client):
         @self.tree.command(name="item", description="Get the details for an item.")
         async def item(itr: Interaction, name: str):
             log_cmd(itr)
-            found = self.items.get(name)
+            found = self.data.items.get(name)
             logging.debug(f"Found {len(found)} for '{name}'")
 
             if len(found) == 0:
@@ -233,14 +240,14 @@ class Bot(discord.Client):
         async def item_autocomplete(
             itr: discord.Interaction, current: str
         ) -> list[app_commands.Choice[str]]:
-            return self.items.get_autocomplete_suggestions(query=current)
+            return self.data.items.get_autocomplete_suggestions(query=current)
 
         @self.tree.command(
             name="condition", description="Get the details for a condition."
         )
         async def condition(itr: Interaction, name: str):
             log_cmd(itr)
-            found = self.conditions.get(name)
+            found = self.data.conditions.get(name)
             logging.debug(f"Found {len(found)} for '{name}'")
 
             if len(found) == 0:
@@ -259,7 +266,7 @@ class Bot(discord.Client):
         async def condition_autocomplete(
             itr: discord.Interaction, current: str
         ) -> list[app_commands.Choice[str]]:
-            return self.conditions.get_autocomplete_suggestions(query=current)
+            return self.data.conditions.get_autocomplete_suggestions(query=current)
 
         @self.tree.command(name="search", description="Search for a spell.")
         async def search(itr: Interaction, query: str):
@@ -340,6 +347,7 @@ class Bot(discord.Client):
                     itr=itr, title=initiative.title, description=initiative.description
                 )
             )
+            await VC.play_initiative_roll(itr, initiative)
 
         @self.tree.command(
             name="setinitiative",
@@ -390,6 +398,7 @@ class Bot(discord.Client):
             await itr.response.send_message(
                 embed=UserActionEmbed(itr=itr, title=title, description=description)
             )
+            await VC.play(itr, SoundType.ROLL)
 
         @self.tree.command(
             name="showinitiative",

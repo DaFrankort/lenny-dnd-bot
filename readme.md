@@ -10,7 +10,7 @@ Powered by [5e.tools](https://5e.tools/) for up-to-date 5e data.
 - **D&D Data Lookup**: Look up D&D data and get detailed information about them directly in Discord, powered by [5e.tools](https://5e.tools/).
 - **Customizable Color Embeds**: Customize the colors of your dice roll embeds for better visual appeal and easy identification, auto-generated if not specified.
 - **Character Stat Rolling**: Automatically roll and generate D&D character stats.
-- **Initiative tracking**: Roll initiatives for players & creatures and track them easily.
+- **Voice Chat Sound Effects**: The bot can join voice channels to play sound effects for your rolls, including special sounds for natural 1s and 20s, as well as effects for attacks, damage, and fire.
 
 ## Installation
 
@@ -62,6 +62,7 @@ Once the bot is added to your server, you can use the following commands:
 ### Dice Rolls
 
 Roll D&D dice using dice-expressions (e.g. `2d6` / `1d20+2`).
+
 - `/roll <dice> [reason]` – Roll a single dice expression, optionally specify a reason for the roll (e.g. Acrobatics)
 - `/advantage <dice> [reason]` – Rolls twice, highlights the highest result.
 - `/disadvantage <dice> [reason]` – Rolls twice, highlights the lowest result.
@@ -70,6 +71,7 @@ Roll D&D dice using dice-expressions (e.g. `2d6` / `1d20+2`).
 ### D&D Data lookup
 
 Look up various D&D data from [5e.tools](https://5e.tools/).
+
 - `/spell <spell-name>` – Look up information about a D&D spell (e.g. Fireball).
 - `/item <item-name>` - Look up information about a D&D item (e.g. Dagger).
 - `/condition <condition-name>` - Look up information about a D&D condition (e.g. Blinded).
@@ -83,12 +85,14 @@ Look up various D&D data from [5e.tools](https://5e.tools/).
 
 Commands that signify user-actions are highlighted with colors that are unique per user. This makes it easy to discern different user's actions.
 By default the user's color is automatically generated based on their display name. Users can adjust their colors using following commands:
+
 - `/color [hex-value]` - Provide a hex value for a color to be used in embeds related to you.
 - `/color` - Using the command without a hex-value defaults the user's color back to an auto-generated one.
 
 ### Track Initiative
 
 Commands to help track initiatives for combat. Names are enforced to be unique and will overwrite each other if specified twice.
+
 - `/initiative <modifier> [target]` - Roll for initiative while keeping it in memory. Rolls for user by default.
 - `/bulkinitiative <modifier> <name> <amount> [shared]` - Adds creature initiatives in bulk, making it easy for a DM to add a group of creatures at once. These are numbered automatically for easy tracking.
 - `/setinitiative <value> [name]` - Set an initiative to a specific value, handy to rectify mistakes or if you want precise control over certain initiatives.
@@ -96,4 +100,3 @@ Commands to help track initiatives for combat. Names are enforced to be unique a
 - `/removeinitiative [target]` - Remove a single user or creature from the initiative tracker. Removes user's initiative by default.
 - `/showinitiative` - Shows an embed with all the initiatives, used to track the order & who's turn it is.
 - `/clearinitiative` - Clears all stored initiatives in the server, used after a battle.
-

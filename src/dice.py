@@ -151,6 +151,10 @@ class ASTExpression(ABC):
         pass
 
     @abstractmethod
+    def contains_dice(self) -> bool:
+        pass
+
+    @abstractmethod
     def __str__(self) -> str:
         pass
 
@@ -199,6 +203,9 @@ class ASTDiceExpression(ASTExpression):
             logging.error("Invalid dice", self.dice.literal)
             exit(1)  # TODO don't exit
 
+    def contains_dice(self):
+        return "d" in self.dice.literal
+
     def __str__(self) -> str:
         return self.dice.literal
 
@@ -216,6 +223,9 @@ class ASTGroupExpression(ASTExpression):
         roll = self.expression.roll()
         roll.text = f"({roll.text})"
         return roll
+
+    def contains_dice(self):
+        return self.expression.contains_dice()
 
     def __str__(self) -> str:
         return f"({str(self.expression)})"
@@ -257,6 +267,9 @@ class ASTCompoundExpression(ASTExpression):
                 roll.value = int(math.floor(lroll.value / rroll.value))
 
         return roll
+
+    def contains_dice(self):
+        return self.left.contains_dice() or self.right.contains_dice()
 
     def __str__(self):
         return f"{str(self.left)} {self.operator.literal} {str(self.right)}"
@@ -455,6 +468,9 @@ class DiceExpression(object):
             for error in self.roll.errors:
                 self.description += f"❌ {error}"
             return
+
+        if not ast.contains_dice():
+            self.description += "⚠️ Expression contains no dice.\n"
 
         for warning in sorted(list(self.roll.warnings)):
             self.description += f"⚠️ {warning}\n"

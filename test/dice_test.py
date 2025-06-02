@@ -140,3 +140,10 @@ class TestDiceExpression:
         dice.roll.dice_rolled[0] = DiceRollDice(5, 20)
         dice.roll.value = 20
         assert dice.roll.is_dirty_twenty, "Modified dice roll should be dirty twenty."
+
+    def test_contains_dice(self):
+        dice1 = DiceExpression("1d20+5")
+        dice2 = DiceExpression("120 + 5")
+
+        assert "Expression contains no dice." not in dice1.description
+        assert "Expression contains no dice." in dice2.description

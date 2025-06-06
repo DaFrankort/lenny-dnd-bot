@@ -1,3 +1,4 @@
+from abc import abstractmethod
 import json
 import logging
 import os.path
@@ -33,8 +34,8 @@ class DNDObject(object):
     def is_phb2014(self) -> bool:
         return is_source_phb2014(self.source)
 
-    @property
-    def embed(self) -> discord.Embed:
+    @abstractmethod
+    def get_embed(self) -> discord.Embed:
         raise NotImplementedError(
             f"No embed-property was defined for DNDObject ${self.__class__.__name__}"
         )
@@ -163,8 +164,8 @@ class Spell(DNDObject):
     def level_school(self) -> str:
         return f"{self.level} {self.school}"
 
-    @property
-    def embed(self) -> discord.Embed:
+    @abstractmethod
+    def get_embed(self) -> discord.Embed:
         from embeds import SpellEmbed
 
         return SpellEmbed(self)
@@ -225,8 +226,8 @@ class Item(DNDObject):
             return None
         return ", ".join(self.properties).capitalize()
 
-    @property
-    def embed(self) -> discord.Embed:
+    @abstractmethod
+    def get_embed(self) -> discord.Embed:
         from embeds import ItemEmbed
 
         return ItemEmbed(self)
@@ -255,8 +256,8 @@ class Condition(DNDObject):
         self.description = json["description"]
         self.image = json["image"]
 
-    @property
-    def embed(self) -> discord.Embed:
+    @abstractmethod
+    def get_embed(self) -> discord.Embed:
         from embeds import ConditionEmbed
 
         return ConditionEmbed(self)

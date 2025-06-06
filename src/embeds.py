@@ -244,20 +244,9 @@ class UserActionEmbed(SimpleEmbed):
 
 
 class NoSearchResultsFoundEmbed(SimpleEmbed):
-    def __init__(self, query: str):
-        super().__init__("No results found.", f"No results found for '{query}'.")
-
-
-class NoSpellsFoundEmbed(SimpleEmbed):
-    def __init__(self, query: str):
-        super().__init__("No spells found.", f"No spells found for '{query}'.")
-
-
-class NoItemsFoundEmbed(SimpleEmbed):
-    def __init__(self, query: str):
-        super().__init__("No items found.", f"No items found for '{query}'.")
-
-
-class NoConditionsFoundEmbed(SimpleEmbed):
-    def __init__(self, query: str):
-        super().__init__("No conditions found.", f"No conditions found for '{query}'.")
+    def __init__(self, name: str,  query: str):
+        super().__init__(
+            f"No {name} found.",
+            f"No results found for '{query}'.",
+            color=discord.Color.red()
+        )

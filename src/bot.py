@@ -13,9 +13,6 @@ from embeds import (
     MultiConditionSelectView,
     MultiItemSelectView,
     MultiSpellSelectView,
-    NoConditionsFoundEmbed,
-    NoItemsFoundEmbed,
-    NoSpellsFoundEmbed,
     NoSearchResultsFoundEmbed,
     SimpleEmbed,
     SpellEmbed,
@@ -201,8 +198,8 @@ class Bot(discord.Client):
             logging.debug(f"Found {len(found)} for '{name}'")
 
             if len(found) == 0:
-                embed = NoSpellsFoundEmbed(name)
-                await itr.response.send_message(embed=embed)
+                embed = NoSearchResultsFoundEmbed('spells', name)
+                await itr.response.send_message(embed=embed, ephemeral=True)
 
             elif len(found) > 1:
                 view = MultiSpellSelectView(name, found)
@@ -225,8 +222,8 @@ class Bot(discord.Client):
             logging.debug(f"Found {len(found)} for '{name}'")
 
             if len(found) == 0:
-                embed = NoItemsFoundEmbed(name)
-                await itr.response.send_message(embed=embed)
+                embed = NoSearchResultsFoundEmbed('items', name)
+                await itr.response.send_message(embed=embed, ephemeral=True)
 
             elif len(found) > 1:
                 view = MultiItemSelectView(name, found)
@@ -251,8 +248,8 @@ class Bot(discord.Client):
             logging.debug(f"Found {len(found)} for '{name}'")
 
             if len(found) == 0:
-                embed = NoConditionsFoundEmbed(name)
-                await itr.response.send_message(embed=embed)
+                embed = NoSearchResultsFoundEmbed('conditions', name)
+                await itr.response.send_message(embed=embed, ephemeral=True)
 
             elif len(found) > 1:
                 view = MultiConditionSelectView(name, found)
@@ -275,11 +272,11 @@ class Bot(discord.Client):
             logging.debug(f"Found {len(results.get_all())} results for '{query}'")
 
             if len(results.get_all()) == 0:
-                embed = NoSearchResultsFoundEmbed(query)
-                await itr.response.send_message(embed=embed)
+                embed = NoSearchResultsFoundEmbed('results', query)
+                await itr.response.send_message(embed=embed, ephemeral=True)
             else:
                 embed = SearchEmbed(query, results)
-                await itr.response.send_message(embed=embed, view=embed.view)
+                await itr.response.send_message(embed=embed, view=embed.view, ephemeral=True)
 
         @self.tree.command(
             name="color",

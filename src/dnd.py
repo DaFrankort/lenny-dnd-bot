@@ -36,9 +36,7 @@ class DNDObject(object):
 
     @abstractmethod
     def get_embed(self) -> discord.Embed:
-        raise NotImplementedError(
-            f"No embed-property was defined for DNDObject ${self.__class__.__name__}"
-        )
+        pass
 
 
 class DNDObjectList(object):

@@ -34,7 +34,10 @@ class MultiDNDSelect(discord.ui.Select):
         logging.debug(f"{name}: found {len(entries)} spells for '{query}'")
 
     def select_option(self, entry: DNDObject) -> discord.SelectOption:
-        return discord.SelectOption(label=f"{entry.name} ({entry.source})")
+        return discord.SelectOption(
+            label=f"{entry.name} ({entry.source})",
+            description=entry.select_description
+        )
 
     async def callback(self, interaction: discord.Interaction):
         """Handles the selection of a spell from the select menu."""
@@ -53,6 +56,14 @@ class MultiDNDSelect(discord.ui.Select):
             f"{self.name}: user {interaction.user.display_name} selected '{name}"
         )
         await interaction.response.send_message(embed=self.embed(entry))
+
+
+class MultiDNDSelectView(discord.ui.View):
+    """A class representing a Discord view for multiple DNDObject selection."""
+
+    def __init__(self, query: str, entries: list[DNDObject]):
+        super().__init__()
+        self.add_item(MultiDNDSelect(query, entries))
 
 
 class SpellEmbed(discord.Embed):
@@ -86,30 +97,6 @@ class SpellEmbed(discord.Embed):
                 self.add_field(
                     name=description["name"], value=description["value"], inline=False
                 )
-
-
-class MultiSpellSelect(MultiDNDSelect):
-    """A class representing a Discord select menu for multiple spell selection."""
-
-    query: str
-    spells: list[Spell]
-
-    def __init__(self, query: str, spells: list[Spell]):
-        super().__init__(query, spells, "MultiSpellSelect", SpellEmbed)
-
-    def select_option(self, entry: Spell) -> discord.SelectOption:
-        return discord.SelectOption(
-            label=f"{entry.name} ({entry.source})",
-            description=f"{entry.level} {entry.school}",
-        )
-
-
-class MultiSpellSelectView(discord.ui.View):
-    """A class representing a Discord view for multiple spell selection."""
-
-    def __init__(self, query: str, spells: list[Spell]):
-        super().__init__()
-        self.add_item(MultiSpellSelect(query, spells))
 
 
 class ItemEmbed(discord.Embed):
@@ -148,17 +135,6 @@ class ItemEmbed(discord.Embed):
                 self.add_field(name=desc["name"], value=desc["text"], inline=False)
 
 
-class MultiItemSelect(MultiDNDSelect):
-    def __init__(self, query: str, entries: list[Item]):
-        super().__init__(query, entries, "MultiItemSelect", ItemEmbed)
-
-
-class MultiItemSelectView(discord.ui.View):
-    def __init__(self, query: str, items: list[Item]):
-        super().__init__()
-        self.add_item(MultiItemSelect(query, items))
-
-
 class ConditionEmbed(discord.Embed):
     def __init__(self, condition: Condition):
         title = f"{condition.name} ({condition.source})"
@@ -180,17 +156,6 @@ class ConditionEmbed(discord.Embed):
 
         if condition.image:
             self.set_thumbnail(url=condition.image)
-
-
-class MultiConditionSelect(MultiDNDSelect):
-    def __init__(self, query: str, entries: list[Condition]):
-        super().__init__(query, entries, "MultiConditionSelect", ConditionEmbed)
-
-
-class MultiConditionSelectView(discord.ui.View):
-    def __init__(self, query: str, conditions: list[Condition]):
-        super().__init__()
-        self.add_item(MultiConditionSelect(query, conditions))
 
 
 class SimpleEmbed(discord.Embed):

@@ -7,7 +7,6 @@ from dnd import (
     DNDData,
     DNDSearchResults,
     DNDObject,
-    Spell,
 )
 
 
@@ -40,12 +39,7 @@ def search_from_query(
 class SearchSelectOption(discord.SelectOption):
     def __init__(self, data: DNDObject):
         label = f"{data.emoji} {data.name} ({data.source})"
-        description = None
-
-        if isinstance(data, Spell):
-            description = f"{data.level} {data.school}"
-
-        super().__init__(label=label, description=description)
+        super().__init__(label=label, description=data.select_description)
 
 
 class SearchSelect(discord.ui.Select):

@@ -29,6 +29,7 @@ class DNDObject(object):
     source: str
     url: str | None
     emoji: str = "❓"
+    select_description: str | None = None  # Description in dropdown menus
 
     @property
     def is_phb2014(self) -> bool:
@@ -143,6 +144,8 @@ class Spell(DNDObject):
         self.duration = json["duration"]
         self.description = json["description"]
         self.classes = json["classes"]
+
+        self.select_description = f"{self.level} {self.school}"
 
     def __str__(self):
         return f"{self.name} ({self.source})"

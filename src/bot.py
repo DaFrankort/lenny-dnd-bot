@@ -6,16 +6,11 @@ from discord import Interaction
 from dotenv import load_dotenv
 
 from dice import DiceExpression, DiceRollMode
-from dnd import DNDData
+from dnd import DNDData, DNDObject
 from embeds import (
-    ConditionEmbed,
-    ItemEmbed,
-    MultiConditionSelectView,
-    MultiItemSelectView,
-    MultiSpellSelectView,
     NoResultsFoundEmbed,
+    MultiDNDSelectView,
     SimpleEmbed,
-    SpellEmbed,
     SuccessEmbed,
     UserActionEmbed,
 )
@@ -78,6 +73,10 @@ class Bot(discord.Client):
     def _register_commands(self):
         logging.info("Registered slash-commands")
 
+        #
+        # HELPER FUNCTIONS
+        #
+
         def log_cmd(itr: Interaction):
             """Helper function to log user's command-usage in the terminal"""
             try:
@@ -87,6 +86,24 @@ class Bot(discord.Client):
             criteria_text = " ".join(criteria)
 
             logging.info(f"{itr.user.name} => /{itr.command.name} {criteria_text}")
+
+        async def send_DNDObject_lookup_result(itr: Interaction, label: str, found: list[DNDObject], name: str):
+            logging.debug(f"{label.upper()}: Found {len(found)} for '{name}'")
+
+            if len(found) == 0:
+                embed = NoResultsFoundEmbed(label, name)
+                await itr.response.send_message(embed=embed, ephemeral=True)
+
+            elif len(found) > 1:
+                view = MultiDNDSelectView(name, found)
+                await itr.response.send_message(view=view, ephemeral=True)
+
+            else:
+                await itr.response.send_message(embed=found[0].get_embed())
+
+        #
+        # COMMANDS
+        #
 
         @self.tree.command(name="roll", description="Roll your d20s!")
         async def roll(itr: Interaction, diceroll: str, reason: str = None):
@@ -195,19 +212,7 @@ class Bot(discord.Client):
         async def spell(itr: Interaction, name: str):
             log_cmd(itr)
             found = self.data.spells.get(name)
-            logging.debug(f"Found {len(found)} for '{name}'")
-
-            if len(found) == 0:
-                embed = NoResultsFoundEmbed("spells", name)
-                await itr.response.send_message(embed=embed, ephemeral=True)
-
-            elif len(found) > 1:
-                view = MultiSpellSelectView(name, found)
-                await itr.response.send_message(view=view, ephemeral=True)
-
-            else:
-                embed = SpellEmbed(found[0])
-                await itr.response.send_message(embed=embed)
+            await send_DNDObject_lookup_result(itr, 'spells', found, name)
 
         @spell.autocomplete("name")
         async def spell_autocomplete(
@@ -219,19 +224,7 @@ class Bot(discord.Client):
         async def item(itr: Interaction, name: str):
             log_cmd(itr)
             found = self.data.items.get(name)
-            logging.debug(f"Found {len(found)} for '{name}'")
-
-            if len(found) == 0:
-                embed = NoResultsFoundEmbed("items", name)
-                await itr.response.send_message(embed=embed, ephemeral=True)
-
-            elif len(found) > 1:
-                view = MultiItemSelectView(name, found)
-                await itr.response.send_message(view=view, ephemeral=True)
-
-            else:
-                embed = ItemEmbed(found[0])
-                await itr.response.send_message(embed=embed)
+            await send_DNDObject_lookup_result(itr, 'items', found, name)
 
         @item.autocomplete("name")
         async def item_autocomplete(
@@ -245,19 +238,7 @@ class Bot(discord.Client):
         async def condition(itr: Interaction, name: str):
             log_cmd(itr)
             found = self.data.conditions.get(name)
-            logging.debug(f"Found {len(found)} for '{name}'")
-
-            if len(found) == 0:
-                embed = NoResultsFoundEmbed("conditions", name)
-                await itr.response.send_message(embed=embed, ephemeral=True)
-
-            elif len(found) > 1:
-                view = MultiConditionSelectView(name, found)
-                await itr.response.send_message(view=view, ephemeral=True)
-
-            else:
-                embed = ConditionEmbed(found[0])
-                await itr.response.send_message(embed=embed)
+            await send_DNDObject_lookup_result(itr, 'conditions', found, name)
 
         @condition.autocomplete("name")
         async def condition_autocomplete(

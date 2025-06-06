@@ -87,7 +87,9 @@ class Bot(discord.Client):
 
             logging.info(f"{itr.user.name} => /{itr.command.name} {criteria_text}")
 
-        async def send_DNDObject_lookup_result(itr: Interaction, label: str, found: list[DNDObject], name: str):
+        async def send_DNDObject_lookup_result(
+            itr: Interaction, label: str, found: list[DNDObject], name: str
+        ):
             logging.debug(f"{label.upper()}: Found {len(found)} for '{name}'")
 
             if len(found) == 0:
@@ -212,7 +214,7 @@ class Bot(discord.Client):
         async def spell(itr: Interaction, name: str):
             log_cmd(itr)
             found = self.data.spells.get(name)
-            await send_DNDObject_lookup_result(itr, 'spells', found, name)
+            await send_DNDObject_lookup_result(itr, "spells", found, name)
 
         @spell.autocomplete("name")
         async def spell_autocomplete(
@@ -224,7 +226,7 @@ class Bot(discord.Client):
         async def item(itr: Interaction, name: str):
             log_cmd(itr)
             found = self.data.items.get(name)
-            await send_DNDObject_lookup_result(itr, 'items', found, name)
+            await send_DNDObject_lookup_result(itr, "items", found, name)
 
         @item.autocomplete("name")
         async def item_autocomplete(
@@ -238,7 +240,7 @@ class Bot(discord.Client):
         async def condition(itr: Interaction, name: str):
             log_cmd(itr)
             found = self.data.conditions.get(name)
-            await send_DNDObject_lookup_result(itr, 'conditions', found, name)
+            await send_DNDObject_lookup_result(itr, "conditions", found, name)
 
         @condition.autocomplete("name")
         async def condition_autocomplete(

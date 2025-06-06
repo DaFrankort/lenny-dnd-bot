@@ -35,8 +35,7 @@ class MultiDNDSelect(discord.ui.Select):
 
     def select_option(self, entry: DNDObject) -> discord.SelectOption:
         return discord.SelectOption(
-            label=f"{entry.name} ({entry.source})",
-            description=entry.select_description
+            label=f"{entry.name} ({entry.source})", description=entry.select_description
         )
 
     async def callback(self, interaction: discord.Interaction):

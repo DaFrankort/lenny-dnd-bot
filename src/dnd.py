@@ -28,7 +28,7 @@ class DNDObject(object):
     name: str
     source: str
     url: str | None
-    emoji: str = '❓'
+    emoji: str = "❓"
 
     @property
     def is_phb2014(self) -> bool:

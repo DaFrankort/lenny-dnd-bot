@@ -198,7 +198,7 @@ class Bot(discord.Client):
             logging.debug(f"Found {len(found)} for '{name}'")
 
             if len(found) == 0:
-                embed = NoSearchResultsFoundEmbed('spells', name)
+                embed = NoSearchResultsFoundEmbed("spells", name)
                 await itr.response.send_message(embed=embed, ephemeral=True)
 
             elif len(found) > 1:
@@ -222,7 +222,7 @@ class Bot(discord.Client):
             logging.debug(f"Found {len(found)} for '{name}'")
 
             if len(found) == 0:
-                embed = NoSearchResultsFoundEmbed('items', name)
+                embed = NoSearchResultsFoundEmbed("items", name)
                 await itr.response.send_message(embed=embed, ephemeral=True)
 
             elif len(found) > 1:
@@ -248,7 +248,7 @@ class Bot(discord.Client):
             logging.debug(f"Found {len(found)} for '{name}'")
 
             if len(found) == 0:
-                embed = NoSearchResultsFoundEmbed('conditions', name)
+                embed = NoSearchResultsFoundEmbed("conditions", name)
                 await itr.response.send_message(embed=embed, ephemeral=True)
 
             elif len(found) > 1:
@@ -272,11 +272,13 @@ class Bot(discord.Client):
             logging.debug(f"Found {len(results.get_all())} results for '{query}'")
 
             if len(results.get_all()) == 0:
-                embed = NoSearchResultsFoundEmbed('results', query)
+                embed = NoSearchResultsFoundEmbed("results", query)
                 await itr.response.send_message(embed=embed, ephemeral=True)
             else:
                 embed = SearchEmbed(query, results)
-                await itr.response.send_message(embed=embed, view=embed.view, ephemeral=True)
+                await itr.response.send_message(
+                    embed=embed, view=embed.view, ephemeral=True
+                )
 
         @self.tree.command(
             name="color",

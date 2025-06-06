@@ -244,9 +244,9 @@ class UserActionEmbed(SimpleEmbed):
 
 
 class NoSearchResultsFoundEmbed(SimpleEmbed):
-    def __init__(self, name: str,  query: str):
+    def __init__(self, name: str, query: str):
         super().__init__(
             f"No {name} found.",
             f"No results found for '{query}'.",
-            color=discord.Color.red()
+            color=discord.Color.red(),
         )

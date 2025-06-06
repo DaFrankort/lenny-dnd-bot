@@ -145,7 +145,7 @@ class ItemEmbed(discord.Embed):
             )
 
             for desc in item.description:
-                self.add_field(name=desc["name"], value=desc["value"], inline=False)
+                self.add_field(name=desc["name"], value=desc["text"], inline=False)
 
 
 class MultiItemSelect(MultiDNDSelect):

@@ -27,16 +27,11 @@ class DNDObject(object):
     name: str
     source: str
     url: str | None
+    emoji: str = '❓'
 
     @property
     def is_phb2014(self) -> bool:
         return is_source_phb2014(self.source)
-
-    @property
-    def emoji(self) -> str:
-        raise NotImplementedError(
-            f"No emoji-property was defined for DNDObject ${self.__class__.__name__}"
-        )
 
     @property
     def embed(self) -> discord.Embed:
@@ -140,6 +135,7 @@ class Spell(DNDObject):
         self.name = json["name"]
         self.source = json["source"]
         self.url = json["url"]
+        self.emoji = "🔥"
         self.level = json["level"]
         self.school = json["school"]
         self.casting_time = json["casting_time"]
@@ -166,10 +162,6 @@ class Spell(DNDObject):
     @property
     def level_school(self) -> str:
         return f"{self.level} {self.school}"
-
-    @property
-    def emoji(self) -> str:
-        return "🔥"
 
     @property
     def embed(self) -> discord.Embed:
@@ -202,6 +194,7 @@ class Item(DNDObject):
         self.name = json["name"]
         self.source = json["source"]
         self.url = json["url"]
+        self.emoji = "🗡️"
         self.value = json["value"]
         self.weight = json["weight"]
         self.type = json["type"]
@@ -233,10 +226,6 @@ class Item(DNDObject):
         return ", ".join(self.properties).capitalize()
 
     @property
-    def emoji(self) -> str:
-        return "🗡️"
-
-    @property
     def embed(self) -> discord.Embed:
         from embeds import ItemEmbed
 
@@ -262,12 +251,9 @@ class Condition(DNDObject):
         self.name = json["name"]
         self.source = json["source"]
         self.url = json["url"]
+        self.emoji = "💀"
         self.description = json["description"]
         self.image = json["image"]
-
-    @property
-    def emoji(self) -> str:
-        return "💀"
 
     @property
     def embed(self) -> discord.Embed:

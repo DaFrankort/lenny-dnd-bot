@@ -34,11 +34,15 @@ class DNDObject(object):
 
     @property
     def emoji(self) -> str:
-        raise NotImplementedError(f'No emoji-property was defined for DNDObject ${self.__class__.__name__}')
+        raise NotImplementedError(
+            f"No emoji-property was defined for DNDObject ${self.__class__.__name__}"
+        )
 
     @property
     def embed(self) -> discord.Embed:
-        raise NotImplementedError(f'No embed-property was defined for DNDObject ${self.__class__.__name__}')
+        raise NotImplementedError(
+            f"No embed-property was defined for DNDObject ${self.__class__.__name__}"
+        )
 
 
 class DNDObjectList(object):
@@ -170,6 +174,7 @@ class Spell(DNDObject):
     @property
     def embed(self) -> discord.Embed:
         from embeds import SpellEmbed
+
         return SpellEmbed(self)
 
 
@@ -234,6 +239,7 @@ class Item(DNDObject):
     @property
     def embed(self) -> discord.Embed:
         from embeds import ItemEmbed
+
         return ItemEmbed(self)
 
 
@@ -266,6 +272,7 @@ class Condition(DNDObject):
     @property
     def embed(self) -> discord.Embed:
         from embeds import ConditionEmbed
+
         return ConditionEmbed(self)
 
 

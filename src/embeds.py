@@ -84,7 +84,7 @@ class SpellEmbed(discord.Embed):
             )
             for description in spell.description:
                 self.add_field(
-                    name=description["name"], value=description["text"], inline=False
+                    name=description["name"], value=description["value"], inline=False
                 )
 
 
@@ -145,7 +145,7 @@ class ItemEmbed(discord.Embed):
             )
 
             for desc in item.description:
-                self.add_field(name=desc["name"], value=desc["text"], inline=False)
+                self.add_field(name=desc["name"], value=desc["value"], inline=False)
 
 
 class MultiItemSelect(MultiDNDSelect):
@@ -172,10 +172,10 @@ class ConditionEmbed(discord.Embed):
         if len(condition.description) == 0:
             return
 
-        self.description = condition.description[0]["text"]
+        self.description = condition.description[0]["value"]
         for description in condition.description[1:]:
             self.add_field(
-                name=description["name"], value=description["text"], inline=False
+                name=description["name"], value=description["value"], inline=False
             )
 
         if condition.image:

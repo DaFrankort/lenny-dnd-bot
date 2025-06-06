@@ -2,6 +2,7 @@ import json
 import logging
 import os.path
 
+import discord
 from rapidfuzz import fuzz
 from discord.app_commands import Choice
 
@@ -30,6 +31,14 @@ class DNDObject(object):
     @property
     def is_phb2014(self) -> bool:
         return is_source_phb2014(self.source)
+
+    @property
+    def emoji(self) -> str:
+        raise NotImplementedError(f'No emoji-property was defined for DNDObject ${self.__class__.__name__}')
+
+    @property
+    def embed(self) -> discord.Embed:
+        raise NotImplementedError(f'No embed-property was defined for DNDObject ${self.__class__.__name__}')
 
 
 class DNDObjectList(object):
@@ -154,6 +163,15 @@ class Spell(DNDObject):
     def level_school(self) -> str:
         return f"{self.level} {self.school}"
 
+    @property
+    def emoji(self) -> str:
+        return "🔥"
+
+    @property
+    def embed(self) -> discord.Embed:
+        from embeds import SpellEmbed
+        return SpellEmbed(self)
+
 
 class SpellList(DNDObjectList):
     """A class representing a list of Dungeons & Dragons spells."""
@@ -209,6 +227,15 @@ class Item(DNDObject):
             return None
         return ", ".join(self.properties).capitalize()
 
+    @property
+    def emoji(self) -> str:
+        return "🗡️"
+
+    @property
+    def embed(self) -> discord.Embed:
+        from embeds import ItemEmbed
+        return ItemEmbed(self)
+
 
 class ItemList(DNDObjectList):
     path = "./submodules/lenny-dnd-data/generated/items.json"
@@ -231,6 +258,15 @@ class Condition(DNDObject):
         self.url = json["url"]
         self.description = json["description"]
         self.image = json["image"]
+
+    @property
+    def emoji(self) -> str:
+        return "💀"
+
+    @property
+    def embed(self) -> discord.Embed:
+        from embeds import ConditionEmbed
+        return ConditionEmbed(self)
 
 
 class ConditionList(DNDObjectList):
@@ -257,16 +293,34 @@ class DNDData(object):
         self.items = ItemList()
         self.conditions = ConditionList()
 
+    def __iter__(self):
+        yield self.spells
+        yield self.items
+        yield self.conditions
+
 
 class DNDSearchResults(object):
     spells: list[Spell]
     items: list[Item]
     conditions: list[Condition]
+    _type_map: dict[type, list[DNDObject]]
 
     def __init__(self):
         self.spells = []
         self.items = []
         self.conditions = []
+
+        self._type_map = {
+            Spell: self.spells,
+            Item: self.items,
+            Condition: self.conditions,
+        }
+
+    def add(self, entry):
+        for entry_type, result_list in self._type_map.items():
+            if isinstance(entry, entry_type):
+                result_list.append(entry)
+                break
 
     def get_all(self) -> list[DNDObject]:
         return self.spells + self.items + self.conditions

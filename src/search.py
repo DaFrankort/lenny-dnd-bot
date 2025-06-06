@@ -3,16 +3,12 @@ import math
 import re
 import discord
 from rapidfuzz import fuzz
-
 from dnd import (
-    Condition,
     DNDData,
     DNDSearchResults,
     DNDObject,
-    Item,
     Spell,
 )
-from embeds import ConditionEmbed, ItemEmbed, SpellEmbed
 
 
 def __search_matches(query: str, name: str, threshold: float) -> bool:
@@ -31,46 +27,23 @@ def search_from_query(
     query = query.strip().lower()
     results = DNDSearchResults()
 
-    for spell in data.spells.entries:
-        if ignore_phb2014 and spell.is_phb2014:
-            continue
-        if __search_matches(query, spell.name, threshold):
-            results.spells.append(spell)
-
-    for item in data.items.entries:
-        if ignore_phb2014 and item.is_phb2014:
-            continue
-        if __search_matches(query, item.name, threshold):
-            results.items.append(item)
-
-    for condition in data.conditions.entries:
-        if ignore_phb2014 and item.is_phb2014:
-            continue
-        if __search_matches(query, condition.name, threshold):
-            results.conditions.append(condition)
+    for data_list in data:
+        for entry in data_list.entries:
+            if ignore_phb2014 and getattr(entry, "is_phb2014", False):
+                continue
+            if __search_matches(query, entry.name, threshold):
+                results.add(entry)
 
     return results
 
 
-class Emoji:
-    fire = "🔥"
-    dagger = "🗡️"
-    skull = "💀"
-
-
 class SearchSelectOption(discord.SelectOption):
     def __init__(self, data: DNDObject):
-        label = ""
+        label = f"{data.emoji} {data.name} ({data.source})"
         description = None
+
         if isinstance(data, Spell):
-            label = f"{Emoji.fire} {data.name} ({data.source})"
             description = f"{data.level} {data.school}"
-
-        elif isinstance(data, Item):
-            label = f"{Emoji.dagger} {data.name} ({data.source})"
-
-        elif isinstance(data, Condition):
-            label = f"{Emoji.skull} {data.name} ({data.source})"
 
         super().__init__(label=label, description=description)
 
@@ -102,23 +75,14 @@ class SearchSelect(discord.ui.Select):
         value = self.values[0]
         name_pattern = r"^([^ ]*?) (.+) \(([^\)]+)\)"  # "Emoji Name (Source)"
         name_match = re.match(name_pattern, value)
-        type = name_match.group(1)
         name = name_match.group(2)
         source = name_match.group(3)
 
         user_name = interaction.user.display_name
         logging.debug(f"SearchEmbed: user {user_name} selected '{name}")
 
-        embed_type = None
-        if type == Emoji.fire:
-            embed_type = SpellEmbed
-        if type == Emoji.dagger:
-            embed_type = ItemEmbed
-        if type == Emoji.skull:
-            embed_type = ConditionEmbed
-
         result = [r for r in self.results if r.name == name and r.source == source][0]
-        await interaction.response.send_message(embed=embed_type(result))
+        await interaction.response.send_message(embed=result.embed)
 
 
 class SearchActionView(discord.ui.View):

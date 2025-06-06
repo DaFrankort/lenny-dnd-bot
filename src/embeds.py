@@ -12,13 +12,11 @@ class MultiDNDSelect(discord.ui.Select):
     name: str
     query: str
     entries: list[DNDObject]
-    embed: any
 
-    def __init__(self, query: str, entries: list[DNDObject], name: str, embed: any):
-        self.name = name
+    def __init__(self, query: str, entries: list[DNDObject]):
+        self.name = entries[0].__class__.__name__.upper() if entries else "UNKNOWN"
         self.query = query
         self.entries = entries
-        self.embed = embed
 
         options = []
         for entry in entries:
@@ -31,7 +29,7 @@ class MultiDNDSelect(discord.ui.Select):
             max_values=1,
         )
 
-        logging.debug(f"{name}: found {len(entries)} spells for '{query}'")
+        logging.debug(f"{self.name}: found {len(entries)} entries for '{query}'")
 
     def select_option(self, entry: DNDObject) -> discord.SelectOption:
         return discord.SelectOption(
@@ -54,7 +52,7 @@ class MultiDNDSelect(discord.ui.Select):
         logging.debug(
             f"{self.name}: user {interaction.user.display_name} selected '{name}"
         )
-        await interaction.response.send_message(embed=self.embed(entry))
+        await interaction.response.send_message(embed=entry.get_embed())
 
 
 class MultiDNDSelectView(discord.ui.View):

@@ -13,7 +13,7 @@ from embeds import (
     MultiConditionSelectView,
     MultiItemSelectView,
     MultiSpellSelectView,
-    NoSearchResultsFoundEmbed,
+    NoResultsFoundEmbed,
     SimpleEmbed,
     SpellEmbed,
     SuccessEmbed,
@@ -198,7 +198,7 @@ class Bot(discord.Client):
             logging.debug(f"Found {len(found)} for '{name}'")
 
             if len(found) == 0:
-                embed = NoSearchResultsFoundEmbed("spells", name)
+                embed = NoResultsFoundEmbed("spells", name)
                 await itr.response.send_message(embed=embed, ephemeral=True)
 
             elif len(found) > 1:
@@ -222,7 +222,7 @@ class Bot(discord.Client):
             logging.debug(f"Found {len(found)} for '{name}'")
 
             if len(found) == 0:
-                embed = NoSearchResultsFoundEmbed("items", name)
+                embed = NoResultsFoundEmbed("items", name)
                 await itr.response.send_message(embed=embed, ephemeral=True)
 
             elif len(found) > 1:
@@ -248,7 +248,7 @@ class Bot(discord.Client):
             logging.debug(f"Found {len(found)} for '{name}'")
 
             if len(found) == 0:
-                embed = NoSearchResultsFoundEmbed("conditions", name)
+                embed = NoResultsFoundEmbed("conditions", name)
                 await itr.response.send_message(embed=embed, ephemeral=True)
 
             elif len(found) > 1:
@@ -272,7 +272,7 @@ class Bot(discord.Client):
             logging.debug(f"Found {len(results.get_all())} results for '{query}'")
 
             if len(results.get_all()) == 0:
-                embed = NoSearchResultsFoundEmbed("results", query)
+                embed = NoResultsFoundEmbed("results", query)
                 await itr.response.send_message(embed=embed, ephemeral=True)
             else:
                 embed = SearchEmbed(query, results)

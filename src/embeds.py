@@ -243,7 +243,7 @@ class UserActionEmbed(SimpleEmbed):
         )
 
 
-class NoSearchResultsFoundEmbed(SimpleEmbed):
+class NoResultsFoundEmbed(SimpleEmbed):
     def __init__(self, name: str, query: str):
         super().__init__(
             f"No {name} found.",

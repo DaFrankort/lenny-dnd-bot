@@ -3,7 +3,7 @@ import logging
 import re
 import discord
 import rich
-from dnd import Creature, DNDObject, Description, Item, Spell, Condition
+from dnd import Creature, DNDObject, Description, Item, Rule, Spell, Condition
 from user_colors import UserColor
 from rich.table import Table
 from rich.console import Console
@@ -268,6 +268,13 @@ class CreatureEmbed(_DNDObjectEmbed):
         self.add_description_fields(
             creature.description, ignore_tables=True, MAX_FIELDS=3
         )
+
+
+class RuleEmbed(_DNDObjectEmbed):
+    def __init__(self, rule: Rule):
+        super().__init__(rule)
+        self.description = f"*{rule.select_description}*"
+        self.add_description_fields(rule.description)
 
 
 class SimpleEmbed(discord.Embed):

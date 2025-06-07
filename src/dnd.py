@@ -1,13 +1,16 @@
+from abc import abstractmethod
 import json
 import logging
 import os.path
 
+import discord
 from rapidfuzz import fuzz
 from discord.app_commands import Choice
+from typing import Literal, Union, TypedDict
 
 
 def is_source_phb2014(source: str) -> bool:
-    return source == "PHB" or source == "DMG"
+    return source in ["PHB", "DMG", "MM"]
 
 
 def _read_dnd_data(path: str) -> list[dict]:
@@ -17,8 +20,19 @@ def _read_dnd_data(path: str) -> list[dict]:
     if not os.path.isfile(path):
         logging.warning(f"D&D data file is not a file: '{path}'")
         return []
-    with open(path, "r") as file:
+    with open(path, "r", encoding="utf-8") as file:
         return json.load(file)
+
+
+class DescriptionTable(TypedDict):
+    headers: list[str]
+    rows: list[list[str]]
+
+
+class Description(TypedDict):
+    name: str
+    type: Literal["text", "table"]
+    value: Union[str, DescriptionTable]
 
 
 class DNDObject(object):
@@ -26,10 +40,20 @@ class DNDObject(object):
     name: str
     source: str
     url: str | None
+    emoji: str = "❓"
+    select_description: str | None = None  # Description in dropdown menus
 
     @property
     def is_phb2014(self) -> bool:
         return is_source_phb2014(self.source)
+
+    @property
+    def title(self) -> str:
+        return f"{self.name} ({self.source})"
+
+    @abstractmethod
+    def get_embed(self) -> discord.Embed:
+        pass
 
 
 class DNDObjectList(object):
@@ -119,14 +143,17 @@ class Spell(DNDObject):
     spell_range: str
     components: str
     duration: str
-    description: list
+    description: list[Description]
     classes: list
 
     def __init__(self, json: any):
         self.object_type = "spell"
+        self.emoji = "🔥"
+
         self.name = json["name"]
         self.source = json["source"]
         self.url = json["url"]
+
         self.level = json["level"]
         self.school = json["school"]
         self.casting_time = json["casting_time"]
@@ -135,6 +162,8 @@ class Spell(DNDObject):
         self.duration = json["duration"]
         self.description = json["description"]
         self.classes = json["classes"]
+
+        self.select_description = f"{self.level} {self.school}"
 
     def __str__(self):
         return f"{self.name} ({self.source})"
@@ -154,10 +183,14 @@ class Spell(DNDObject):
     def level_school(self) -> str:
         return f"{self.level} {self.school}"
 
+    @abstractmethod
+    def get_embed(self) -> discord.Embed:
+        from embeds import SpellEmbed
+
+        return SpellEmbed(self)
+
 
 class SpellList(DNDObjectList):
-    """A class representing a list of Dungeons & Dragons spells."""
-
     path = "./submodules/lenny-dnd-data/generated/spells.json"
 
     def __init__(self):
@@ -172,10 +205,12 @@ class Item(DNDObject):
     weight: str | None
     type: list[str]
     properties: list[str]
-    description: list[tuple[str, str]]
+    description: list[Description]
 
     def __init__(self, json: any):
         self.object_type = "item"
+        self.emoji = "🗡️"
+
         self.name = json["name"]
         self.source = json["source"]
         self.url = json["url"]
@@ -209,6 +244,12 @@ class Item(DNDObject):
             return None
         return ", ".join(self.properties).capitalize()
 
+    @abstractmethod
+    def get_embed(self) -> discord.Embed:
+        from embeds import ItemEmbed
+
+        return ItemEmbed(self)
+
 
 class ItemList(DNDObjectList):
     path = "./submodules/lenny-dnd-data/generated/items.json"
@@ -221,16 +262,24 @@ class ItemList(DNDObjectList):
 
 
 class Condition(DNDObject):
-    description: list[tuple[str, str]]
+    description: list[Description]
     image: str | None
 
     def __init__(self, json: any):
         self.object_type = "condition"
+        self.emoji = "💀"
+
         self.name = json["name"]
         self.source = json["source"]
         self.url = json["url"]
         self.description = json["description"]
         self.image = json["image"]
+
+    @abstractmethod
+    def get_embed(self) -> discord.Embed:
+        from embeds import ConditionEmbed
+
+        return ConditionEmbed(self)
 
 
 class ConditionList(DNDObjectList):
@@ -247,29 +296,96 @@ class ConditionList(DNDObjectList):
                 self.entries.append(Condition(condition))
 
 
+class Creature(DNDObject):
+    subtitle: str | None
+    summoned_by_spell: str | None
+    token_url: str | None
+    url: str
+    description: list[Description]
+
+    def __init__(self, json: any):
+        self.object_type = "creature"
+        self.emoji = "🐉"
+
+        self.name = json["name"]
+        self.source = json["source"]
+        self.subtitle = json["subtitle"]
+        self.summoned_by_spell = json["summonedBySpell"]
+        self.token_url = json["tokenUrl"]
+        self.url = json["url"]
+        self.description = json["description"]
+
+        self.select_description = self.subtitle
+
+    def __repr__(self):
+        return str(self)
+
+    @abstractmethod
+    def get_embed(self) -> discord.Embed:
+        from embeds import CreatureEmbed
+
+        return CreatureEmbed(self)
+
+
+class CreatureList(DNDObjectList):
+    path = "./submodules/lenny-dnd-data/generated/creatures.json"
+
+    def __init__(self):
+        super().__init__()
+        for creature in _read_dnd_data(self.path):
+            self.entries.append(Creature(creature))
+
+
 class DNDData(object):
     spells: SpellList
     items: ItemList
     conditions: ConditionList
+    creatures: CreatureList
 
     def __init__(self):
         self.spells = SpellList()
         self.items = ItemList()
         self.conditions = ConditionList()
+        self.creatures = CreatureList()
+
+    def __iter__(self):
+        yield self.spells
+        yield self.items
+        yield self.conditions
+        yield self.creatures
 
 
 class DNDSearchResults(object):
     spells: list[Spell]
     items: list[Item]
     conditions: list[Condition]
+    creatures: list[Creature]
+    _type_map: dict[type, list[DNDObject]]
 
     def __init__(self):
         self.spells = []
         self.items = []
         self.conditions = []
+        self.creatures = []
+
+        self._type_map = {
+            Spell: self.spells,
+            Item: self.items,
+            Condition: self.conditions,
+            Creature: self.creatures,
+        }
+
+    def add(self, entry):
+        for entry_type, result_list in self._type_map.items():
+            if isinstance(entry, entry_type):
+                result_list.append(entry)
+                break
 
     def get_all(self) -> list[DNDObject]:
-        return self.spells + self.items + self.conditions
+        all_entries = []
+        for entries in self._type_map.values():
+            all_entries.extend(entries)
+        return all_entries
 
     def get_all_sorted(self) -> list[DNDObject]:
         return sorted(self.get_all(), key=lambda r: (r.object_type, r.name, r.source))

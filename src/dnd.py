@@ -20,7 +20,7 @@ def _read_dnd_data(path: str) -> list[dict]:
     if not os.path.isfile(path):
         logging.warning(f"D&D data file is not a file: '{path}'")
         return []
-    with open(path, "r") as file:
+    with open(path, "r", encoding="utf-8") as file:
         return json.load(file)
 
 
@@ -300,7 +300,6 @@ class Creature(DNDObject):
     subtitle: str | None
     summoned_by_spell: str | None
     token_url: str | None
-    url: str
     description: list[Description]
 
     def __init__(self, json: any):
@@ -309,10 +308,11 @@ class Creature(DNDObject):
 
         self.name = json["name"]
         self.source = json["source"]
+        self.url = json["url"]
+
         self.subtitle = json["subtitle"]
         self.summoned_by_spell = json["summonedBySpell"]
         self.token_url = json["tokenUrl"]
-        self.url = json["url"]
         self.description = json["description"]
 
         self.select_description = self.subtitle
@@ -336,23 +336,59 @@ class CreatureList(DNDObjectList):
             self.entries.append(Creature(creature))
 
 
+class Rule(DNDObject):
+    description: list[Description]
+
+    def __init__(self, json: any):
+        self.object_type = "rule"
+        self.emoji = "📜"
+
+        self.name = json["name"]
+        self.source = json["source"]
+        self.url = json["url"]
+        self.select_description = f"{json['ruleType']} Rule"
+
+        self.description = json["description"]
+
+    def __repr__(self):
+        return str(self)
+
+    @abstractmethod
+    def get_embed(self) -> discord.Embed:
+        from embeds import RuleEmbed
+
+        return RuleEmbed(self)
+
+
+class RuleList(DNDObjectList):
+    path = "./submodules/lenny-dnd-data/generated/rules.json"
+
+    def __init__(self):
+        super().__init__()
+        for rule in _read_dnd_data(self.path):
+            self.entries.append(Rule(rule))
+
+
 class DNDData(object):
     spells: SpellList
     items: ItemList
     conditions: ConditionList
     creatures: CreatureList
+    rules: RuleList
 
     def __init__(self):
         self.spells = SpellList()
         self.items = ItemList()
         self.conditions = ConditionList()
         self.creatures = CreatureList()
+        self.rules = RuleList()
 
     def __iter__(self):
         yield self.spells
         yield self.items
         yield self.conditions
         yield self.creatures
+        yield self.rules
 
 
 class DNDSearchResults(object):
@@ -360,6 +396,7 @@ class DNDSearchResults(object):
     items: list[Item]
     conditions: list[Condition]
     creatures: list[Creature]
+    rules: list[Rule]
     _type_map: dict[type, list[DNDObject]]
 
     def __init__(self):
@@ -367,12 +404,14 @@ class DNDSearchResults(object):
         self.items = []
         self.conditions = []
         self.creatures = []
+        self.rules = []
 
         self._type_map = {
             Spell: self.spells,
             Item: self.items,
             Condition: self.conditions,
             Creature: self.creatures,
+            Rule: self.rules
         }
 
     def add(self, entry):

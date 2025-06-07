@@ -336,23 +336,70 @@ class CreatureList(DNDObjectList):
             self.entries.append(Creature(creature))
 
 
+class Class(DNDObject):
+    subclass_unlock_level: int | None
+    primary_ability: str | None
+    spellcast_ability: str | None
+    base_info: list[Description]
+    level_resources: dict[str, list[Description]]
+    level_features: dict[str, list[Description]]
+    subclass_level_features: dict[str, dict[str, list[Description]]]
+
+    def __init__(self, json: any):
+        self.object_type = "class"
+        self.emoji = "🧙‍♂️"
+
+        self.name = json["name"]
+        self.source = json["source"]
+        self.url = json["url"]
+
+        self.subclass_unlock_level = json["subclassUnlockLevel"]
+        self.primary_ability = json["primaryAbility"]
+        self.spellcast_ability = json["spellcastAbility"]
+        self.base_info = json["baseInfo"]
+        self.level_resources = json["levelResources"]
+        self.level_features = json["levelFeatures"]
+        self.subclass_level_features = json["subclassLevelFeatures"]
+
+    def __repr__(self):
+        return str(self)
+
+    @abstractmethod
+    def get_embed(self) -> discord.Embed:
+        from embeds import ClassEmbed
+
+        return ClassEmbed(self)
+
+
+class ClassList(DNDObjectList):
+    path = "./submodules/lenny-dnd-data/generated/classes.json"
+
+    def __init__(self):
+        super().__init__()
+        for character_class in _read_dnd_data(self.path):
+            self.entries.append(Class(character_class))
+
+
 class DNDData(object):
     spells: SpellList
     items: ItemList
     conditions: ConditionList
     creatures: CreatureList
+    classes: ClassList
 
     def __init__(self):
         self.spells = SpellList()
         self.items = ItemList()
         self.conditions = ConditionList()
         self.creatures = CreatureList()
+        self.classes = ClassList()
 
     def __iter__(self):
         yield self.spells
         yield self.items
         yield self.conditions
         yield self.creatures
+        yield self.classes
 
 
 class DNDSearchResults(object):
@@ -360,6 +407,7 @@ class DNDSearchResults(object):
     items: list[Item]
     conditions: list[Condition]
     creatures: list[Creature]
+    classes: list[Class]
     _type_map: dict[type, list[DNDObject]]
 
     def __init__(self):
@@ -367,12 +415,14 @@ class DNDSearchResults(object):
         self.items = []
         self.conditions = []
         self.creatures = []
+        self.classes = []
 
         self._type_map = {
             Spell: self.spells,
             Item: self.items,
             Condition: self.conditions,
             Creature: self.creatures,
+            Class: self.classes,
         }
 
     def add(self, entry):

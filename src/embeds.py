@@ -3,7 +3,7 @@ import logging
 import re
 import discord
 import rich
-from dnd import Creature, DNDObject, Description, Item, Spell, Condition
+from dnd import Class, Creature, DNDObject, Description, Item, Spell, Condition
 from user_colors import UserColor
 from rich.table import Table
 from rich.console import Console
@@ -271,6 +271,42 @@ class CreatureEmbed(_DNDObjectEmbed):
         self.add_description_fields(
             creature.description, ignore_tables=True, MAX_FIELDS=3
         )
+
+
+class ClassEmbed(_DNDObjectEmbed):
+    def __init__(self, character_class: Class, page: int = 0, subclass: str | None = None):
+        page = max(0, min(20, page))
+
+        super().__init__(character_class)
+
+        if page == 0:
+            self.description = "Core Info"
+            self.add_description_fields(character_class.base_info)
+            return
+
+        subtitle = f"Level {page}"
+        if subclass and page <= (character_class.subclass_unlock_level or 0):
+            subtitle += f" | {subclass}"
+        self.description = subtitle
+
+        # Level Resources are handled differently, since we want inline fields here.
+        level_resources = character_class.level_resources.get(page, [])
+        for resource in level_resources:
+            name = resource["name"]
+            if resource["type"] == "table":
+                value = self.build_table(resource["value"])
+                inline = False
+            else:
+                value = resource["value"]
+                inline = True
+
+            self.add_field(name=name, value=value, inline=inline)
+
+        # Rest of the descriptions
+        descriptions = character_class.level_features.get(page, []).copy()
+        if subclass:
+            descriptions += character_class.subclass_level_features.get(subclass, {}).get(page, [])
+        self.add_description_fields(descriptions=descriptions)
 
 
 class SimpleEmbed(discord.Embed):

@@ -237,10 +237,7 @@ class ItemEmbed(_DNDObjectEmbed):
                 inline=False,
             )
 
-            for desc in item.description:
-                self.add_field(
-                    name=desc["name"], value=desc["text"], inline=False
-                )  # TODO items.json does not follow the Description convention yet. ('text' instead of 'value')
+            self.add_description_fields(item.description)
 
 
 class ConditionEmbed(_DNDObjectEmbed):

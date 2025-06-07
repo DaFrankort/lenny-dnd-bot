@@ -10,7 +10,7 @@ from typing import Literal, Union, TypedDict
 
 
 def is_source_phb2014(source: str) -> bool:
-    return source == "PHB" or source == "DMG" or source == "MM"
+    return source in ["PHB", "DMG", "MM"]
 
 
 def _read_dnd_data(path: str) -> list[dict]:

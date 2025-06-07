@@ -274,7 +274,9 @@ class CreatureEmbed(_DNDObjectEmbed):
 
 
 class ClassEmbed(_DNDObjectEmbed):
-    def __init__(self, character_class: Class, page: int = 0, subclass: str | None = None):
+    def __init__(
+        self, character_class: Class, page: int = 0, subclass: str | None = None
+    ):
         page = max(0, min(20, page))
 
         super().__init__(character_class)
@@ -305,7 +307,9 @@ class ClassEmbed(_DNDObjectEmbed):
         # Rest of the descriptions
         descriptions = character_class.level_features.get(page, []).copy()
         if subclass:
-            descriptions += character_class.subclass_level_features.get(subclass, {}).get(page, [])
+            descriptions += character_class.subclass_level_features.get(
+                subclass, {}
+            ).get(page, [])
         self.add_description_fields(descriptions=descriptions)
 
 

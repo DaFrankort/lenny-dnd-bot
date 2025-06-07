@@ -262,9 +262,7 @@ class Bot(discord.Client):
         ) -> list[app_commands.Choice[str]]:
             return self.data.creatures.get_autocomplete_suggestions(query=current)
 
-        @self.tree.command(
-            name="rule", description="Look up D&D rules."
-        )
+        @self.tree.command(name="rule", description="Look up D&D rules.")
         async def rule(itr: Interaction, name: str):
             log_cmd(itr)
             found = self.data.rules.get(name)

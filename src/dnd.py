@@ -411,7 +411,7 @@ class DNDSearchResults(object):
             Item: self.items,
             Condition: self.conditions,
             Creature: self.creatures,
-            Rule: self.rules
+            Rule: self.rules,
         }
 
     def add(self, entry):

@@ -305,7 +305,7 @@ class Creature(DNDObject):
 
     def __init__(self, json: any):
         self.object_type = "creature"
-        self.emoji = "🐾"
+        self.emoji = "🐉"
 
         self.name = json["name"]
         self.source = json["source"]

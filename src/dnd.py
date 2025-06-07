@@ -318,7 +318,10 @@ class DNDSearchResults(object):
                 break
 
     def get_all(self) -> list[DNDObject]:
-        return self.spells + self.items + self.conditions
+        all_entries = []
+        for entries in self._type_map.values():
+            all_entries.extend(entries)
+        return all_entries
 
     def get_all_sorted(self) -> list[DNDObject]:
         return sorted(self.get_all(), key=lambda r: (r.object_type, r.name, r.source))

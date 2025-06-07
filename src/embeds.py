@@ -1,9 +1,12 @@
+import io
 import logging
 import re
 import discord
-
-from dnd import DNDObject, Item, Spell, Condition
+import rich
+from dnd import Creature, DNDObject, Description, Item, Spell, Condition
 from user_colors import UserColor
+from rich.table import Table
+from rich.console import Console
 
 HORIZONTAL_LINE = "~~-------------------------------------------------------------------------------------~~"
 
@@ -63,19 +66,121 @@ class MultiDNDSelectView(discord.ui.View):
         self.add_item(MultiDNDSelect(query, entries))
 
 
-class SpellEmbed(discord.Embed):
+class _DNDObjectEmbed(discord.Embed):
+    """
+    Superclass for DNDObjects that helps ensure data stays within Discord's character limits.
+    Additionally provides functions to handle Description-field & Table generation.
+    """
+
+    _object: DNDObject
+
+    def __init__(self, object: DNDObject):
+        self._object = object
+
+        super().__init__(
+            title=object.title,
+            type="rich",
+            color=discord.Color.dark_green(),
+            url=object.url,
+        )
+
+    @property
+    def char_count(self):
+        """The total amount of characters currently in the embed."""
+
+        char_count = (
+            (len(self.title) if self.title else 0)
+            + (len(self.description) if self.description else 0)
+            + (len(self.footer.text) if self.footer and self.footer.text else 0)
+            + (len(self.author.name) if self.author else 0)
+        )
+
+        if (self.fields):
+            for field in self.fields:
+                char_count += len(field.name) + len(field.value)
+
+        return char_count
+
+    def build_table(self, value, CHAR_FIELD_LIMIT=1024):
+        """Turns a Description with headers & rows into a clean table using rich."""
+
+        headers = value["headers"]
+        rows = value["rows"]
+        table = Table(style=None, box=rich.box.ROUNDED)
+
+        for header in headers:
+            table.add_column(header, justify="left", style=None)
+
+        for row in rows:
+            row = map(str, row)
+            table.add_row(*row)
+
+        buffer = io.StringIO()
+        console = Console(file=buffer, width=56)
+        console.print(table)
+        table_string = f"```{buffer.getvalue()}```"
+        buffer.close()
+
+        if len(table_string) > CHAR_FIELD_LIMIT:
+            return f"The table for [{self._object.name} can be found here]({self._object.url})."
+        return table_string
+
+    def add_description_fields(self, descriptions: list[Description], ignore_tables=False, CHAR_FIELD_LIMIT=1024, CHAR_EMBED_LIMIT=6000, MAX_FIELDS=25):
+        """
+        Adds fields to the embed for each Description in the list.
+        Ensures that neither the number of fields nor the total character count exceeds Discord's embed limits.
+
+        Discord embed limits:
+        - Title: 256 characters
+        - Description: 4096 characters
+        - Fields: Up to 25 fields
+            - Field name: 256 characters
+            - Field value: 1024 characters
+        - Footer: 2048 characters
+        - Author name: 256 characters
+        - Embed total size (including all fields, title, description, footer, etc.): 6000 characters
+        """
+
+        CHAR_FIELD_LIMIT = min(CHAR_FIELD_LIMIT, 1024)
+        CHAR_EMBED_LIMIT = min(CHAR_EMBED_LIMIT, 6000)
+        MAX_FIELDS = min(MAX_FIELDS, 25)
+
+        char_count = self.char_count
+        for description in descriptions:
+            if (len(self.fields)) >= MAX_FIELDS:
+                logging.debug(f"{self._object.object_type.upper()} - Max field count reached! {len(self.fields)} >= {MAX_FIELDS}")
+                break
+
+            name = description["name"]
+            value = description["value"]
+            type = description["type"]
+
+            if type == 'table':
+                if ignore_tables:
+                    continue
+                value = self.build_table(value, CHAR_FIELD_LIMIT)
+
+            field_length = len(name) + len(value)
+            if field_length >= CHAR_FIELD_LIMIT:
+                logging.debug(f"{self._object.object_type.upper()} - Field character limit reached! {field_length} >= {CHAR_FIELD_LIMIT}")
+                continue  # TODO split field to fit, possibly concatenate descriptions to make optimal use of field-limits
+
+            char_count += field_length
+            if char_count >= CHAR_EMBED_LIMIT:
+                logging.debug(f"{self._object.object_type.upper()} - Embed character limit reached! {char_count} >= {CHAR_EMBED_LIMIT}")
+                break  # TODO Cut description short and add a message
+
+            self.add_field(name=name, value=value, inline=False)
+
+
+class SpellEmbed(_DNDObjectEmbed):
     """A class representing a Discord embed for a Dungeons & Dragons spell."""
 
     def __init__(self, spell: Spell):
-        title = f"{spell.name} ({spell.source})"
         classes = spell.get_formatted_classes()
 
-        super().__init__(
-            title=title,
-            type="rich",
-            color=discord.Color.dark_green(),
-            url=spell.url,
-        )
+        super().__init__(spell)
+
         self.add_field(name="Type", value=spell.level_school, inline=True)
         self.add_field(name="Casting Time", value=spell.casting_time, inline=True)
         self.add_field(name="Range", value=spell.spell_range, inline=True)
@@ -90,21 +195,12 @@ class SpellEmbed(discord.Embed):
                 value=HORIZONTAL_LINE,
                 inline=False,
             )
-            for description in spell.description:
-                self.add_field(
-                    name=description["name"], value=description["value"], inline=False
-                )
+            self.add_description_fields(spell.description)
 
 
-class ItemEmbed(discord.Embed):
+class ItemEmbed(_DNDObjectEmbed):
     def __init__(self, item: Item) -> None:
-        title = f"{item.name} ({item.source})"
-        super().__init__(
-            title=title,
-            type="rich",
-            color=discord.Color.dark_green(),
-            url=item.url,
-        )
+        super().__init__(item)
 
         value_weight = item.formatted_value_weight
         properties = item.formatted_properties
@@ -129,30 +225,35 @@ class ItemEmbed(discord.Embed):
             )
 
             for desc in item.description:
-                self.add_field(name=desc["name"], value=desc["text"], inline=False)
+                self.add_field(name=desc["name"], value=desc["text"], inline=False)  # TODO items.json does not follow the Description convention yet. ('text' instead of 'value')
 
 
-class ConditionEmbed(discord.Embed):
+class ConditionEmbed(_DNDObjectEmbed):
     def __init__(self, condition: Condition):
-        title = f"{condition.name} ({condition.source})"
+        super().__init__(condition)
 
-        super().__init__(
-            title=title,
-            type="rich",
-            color=discord.Color.dark_green(),
-            url=condition.url,
-        )
         if len(condition.description) == 0:
             return
 
         self.description = condition.description[0]["value"]
-        for description in condition.description[1:]:
-            self.add_field(
-                name=description["name"], value=description["value"], inline=False
-            )
+        self.add_description_fields(condition.description[1:])
 
         if condition.image:
             self.set_thumbnail(url=condition.image)
+
+
+class CreatureEmbed(_DNDObjectEmbed):
+    def __init__(self, creature: Creature):
+        super().__init__(creature)
+        self.description = creature.subtitle
+
+        if creature.token_url:
+            self.set_thumbnail(url=creature.token_url)
+
+        if creature.summoned_by_spell:
+            self.add_field(name="Summoned by:", value=creature.summoned_by_spell)
+
+        self.add_description_fields(creature.description, ignore_tables=True, MAX_FIELDS=3)
 
 
 class SimpleEmbed(discord.Embed):

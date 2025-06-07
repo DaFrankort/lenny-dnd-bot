@@ -95,7 +95,7 @@ class _DNDObjectEmbed(discord.Embed):
             + (len(self.author.name) if self.author else 0)
         )
 
-        if (self.fields):
+        if self.fields:
             for field in self.fields:
                 char_count += len(field.name) + len(field.value)
 
@@ -125,7 +125,14 @@ class _DNDObjectEmbed(discord.Embed):
             return f"The table for [{self._object.name} can be found here]({self._object.url})."
         return table_string
 
-    def add_description_fields(self, descriptions: list[Description], ignore_tables=False, CHAR_FIELD_LIMIT=1024, CHAR_EMBED_LIMIT=6000, MAX_FIELDS=25):
+    def add_description_fields(
+        self,
+        descriptions: list[Description],
+        ignore_tables=False,
+        CHAR_FIELD_LIMIT=1024,
+        CHAR_EMBED_LIMIT=6000,
+        MAX_FIELDS=25,
+    ):
         """
         Adds fields to the embed for each Description in the list.
         Ensures that neither the number of fields nor the total character count exceeds Discord's embed limits.
@@ -148,26 +155,32 @@ class _DNDObjectEmbed(discord.Embed):
         char_count = self.char_count
         for description in descriptions:
             if (len(self.fields)) >= MAX_FIELDS:
-                logging.debug(f"{self._object.object_type.upper()} - Max field count reached! {len(self.fields)} >= {MAX_FIELDS}")
+                logging.debug(
+                    f"{self._object.object_type.upper()} - Max field count reached! {len(self.fields)} >= {MAX_FIELDS}"
+                )
                 break
 
             name = description["name"]
             value = description["value"]
             type = description["type"]
 
-            if type == 'table':
+            if type == "table":
                 if ignore_tables:
                     continue
                 value = self.build_table(value, CHAR_FIELD_LIMIT)
 
             field_length = len(name) + len(value)
             if field_length >= CHAR_FIELD_LIMIT:
-                logging.debug(f"{self._object.object_type.upper()} - Field character limit reached! {field_length} >= {CHAR_FIELD_LIMIT}")
+                logging.debug(
+                    f"{self._object.object_type.upper()} - Field character limit reached! {field_length} >= {CHAR_FIELD_LIMIT}"
+                )
                 continue  # TODO split field to fit, possibly concatenate descriptions to make optimal use of field-limits
 
             char_count += field_length
             if char_count >= CHAR_EMBED_LIMIT:
-                logging.debug(f"{self._object.object_type.upper()} - Embed character limit reached! {char_count} >= {CHAR_EMBED_LIMIT}")
+                logging.debug(
+                    f"{self._object.object_type.upper()} - Embed character limit reached! {char_count} >= {CHAR_EMBED_LIMIT}"
+                )
                 break  # TODO Cut description short and add a message
 
             self.add_field(name=name, value=value, inline=False)
@@ -225,7 +238,9 @@ class ItemEmbed(_DNDObjectEmbed):
             )
 
             for desc in item.description:
-                self.add_field(name=desc["name"], value=desc["text"], inline=False)  # TODO items.json does not follow the Description convention yet. ('text' instead of 'value')
+                self.add_field(
+                    name=desc["name"], value=desc["text"], inline=False
+                )  # TODO items.json does not follow the Description convention yet. ('text' instead of 'value')
 
 
 class ConditionEmbed(_DNDObjectEmbed):
@@ -253,7 +268,9 @@ class CreatureEmbed(_DNDObjectEmbed):
         if creature.summoned_by_spell:
             self.add_field(name="Summoned by:", value=creature.summoned_by_spell)
 
-        self.add_description_fields(creature.description, ignore_tables=True, MAX_FIELDS=3)
+        self.add_description_fields(
+            creature.description, ignore_tables=True, MAX_FIELDS=3
+        )
 
 
 class SimpleEmbed(discord.Embed):

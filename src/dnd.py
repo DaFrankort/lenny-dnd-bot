@@ -31,7 +31,7 @@ class DescriptionTable(TypedDict):
 
 class Description(TypedDict):
     name: str
-    type: Literal['text', 'table']
+    type: Literal["text", "table"]
     value: Union[str, DescriptionTable]
 
 
@@ -309,8 +309,8 @@ class Creature(DNDObject):
 
         self.name = json["name"]
         self.source = json["source"]
-        self.subtitle = json['subtitle']
-        self.summoned_by_spell = json['summonedBySpell']
+        self.subtitle = json["subtitle"]
+        self.summoned_by_spell = json["summonedBySpell"]
         self.token_url = json["tokenUrl"]
         self.url = json["url"]
         self.description = json["description"]

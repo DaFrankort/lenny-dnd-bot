@@ -20,7 +20,7 @@ def _read_dnd_data(path: str) -> list[dict]:
     if not os.path.isfile(path):
         logging.warning(f"D&D data file is not a file: '{path}'")
         return []
-    with open(path, "r") as file:
+    with open(path, "r", encoding="utf-8") as file:
         return json.load(file)
 
 

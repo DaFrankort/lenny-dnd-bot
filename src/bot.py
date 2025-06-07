@@ -248,6 +248,20 @@ class Bot(discord.Client):
         ) -> list[app_commands.Choice[str]]:
             return self.data.conditions.get_autocomplete_suggestions(query=current)
 
+        @self.tree.command(
+            name="creature", description="Get the details for a creature."
+        )
+        async def creature(itr: Interaction, name: str):
+            log_cmd(itr)
+            found = self.data.creatures.get(name)
+            await send_DNDObject_lookup_result(itr, "creatures", found, name)
+
+        @creature.autocomplete("name")
+        async def creature_autocomplete(
+            itr: discord.Interaction, current: str
+        ) -> list[app_commands.Choice[str]]:
+            return self.data.creatures.get_autocomplete_suggestions(query=current)
+
         @self.tree.command(name="search", description="Search for a spell.")
         async def search(itr: Interaction, query: str):
             log_cmd(itr)

@@ -379,7 +379,7 @@ class Action(DNDObject):
         self.name = json["name"]
         self.source = json["source"]
         self.url = json["url"]
-        self.select_description = json['time']
+        self.select_description = json["time"]
 
         self.description = json["description"]
 
@@ -450,7 +450,7 @@ class DNDSearchResults(object):
             Condition: self.conditions,
             Creature: self.creatures,
             Rule: self.rules,
-            Action: self.actions
+            Action: self.actions,
         }
 
     def add(self, entry):

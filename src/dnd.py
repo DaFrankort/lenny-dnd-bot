@@ -317,9 +317,6 @@ class Creature(DNDObject):
 
         self.select_description = self.subtitle
 
-    def __repr__(self):
-        return str(self)
-
     @abstractmethod
     def get_embed(self) -> discord.Embed:
         from embeds import CreatureEmbed
@@ -350,9 +347,6 @@ class Rule(DNDObject):
 
         self.description = json["description"]
 
-    def __repr__(self):
-        return str(self)
-
     @abstractmethod
     def get_embed(self) -> discord.Embed:
         from embeds import RuleEmbed
@@ -382,9 +376,6 @@ class Action(DNDObject):
         self.select_description = json["time"]
 
         self.description = json["description"]
-
-    def __repr__(self):
-        return str(self)
 
     @abstractmethod
     def get_embed(self) -> discord.Embed:

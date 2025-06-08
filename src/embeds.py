@@ -277,6 +277,13 @@ class RuleEmbed(_DNDObjectEmbed):
         self.add_description_fields(rule.description)
 
 
+class ActionEmbed(_DNDObjectEmbed):
+    def __init__(self, rule: Rule):
+        super().__init__(rule)
+        self.description = f"*{rule.select_description}*"
+        self.add_description_fields(rule.description)
+
+
 class SimpleEmbed(discord.Embed):
     def __init__(
         self, title: str, description: str, color: discord.Color = None

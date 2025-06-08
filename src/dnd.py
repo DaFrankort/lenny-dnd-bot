@@ -317,9 +317,6 @@ class Creature(DNDObject):
 
         self.select_description = self.subtitle
 
-    def __repr__(self):
-        return str(self)
-
     @abstractmethod
     def get_embed(self) -> discord.Embed:
         from embeds import CreatureEmbed
@@ -350,9 +347,6 @@ class Rule(DNDObject):
 
         self.description = json["description"]
 
-    def __repr__(self):
-        return str(self)
-
     @abstractmethod
     def get_embed(self) -> discord.Embed:
         from embeds import RuleEmbed
@@ -369,12 +363,43 @@ class RuleList(DNDObjectList):
             self.entries.append(Rule(rule))
 
 
+class Action(DNDObject):
+    description: list[Description]
+
+    def __init__(self, json: any):
+        self.object_type = "action"
+        self.emoji = "🏃"
+
+        self.name = json["name"]
+        self.source = json["source"]
+        self.url = json["url"]
+        self.select_description = json["time"]
+
+        self.description = json["description"]
+
+    @abstractmethod
+    def get_embed(self) -> discord.Embed:
+        from embeds import ActionEmbed
+
+        return ActionEmbed(self)
+
+
+class ActionList(DNDObjectList):
+    path = "./submodules/lenny-dnd-data/generated/actions.json"
+
+    def __init__(self):
+        super().__init__()
+        for action in _read_dnd_data(self.path):
+            self.entries.append(Action(action))
+
+
 class DNDData(object):
     spells: SpellList
     items: ItemList
     conditions: ConditionList
     creatures: CreatureList
     rules: RuleList
+    actions: ActionList
 
     def __init__(self):
         self.spells = SpellList()
@@ -382,6 +407,7 @@ class DNDData(object):
         self.conditions = ConditionList()
         self.creatures = CreatureList()
         self.rules = RuleList()
+        self.actions = ActionList()
 
     def __iter__(self):
         yield self.spells
@@ -389,6 +415,7 @@ class DNDData(object):
         yield self.conditions
         yield self.creatures
         yield self.rules
+        yield self.actions
 
 
 class DNDSearchResults(object):
@@ -397,6 +424,7 @@ class DNDSearchResults(object):
     conditions: list[Condition]
     creatures: list[Creature]
     rules: list[Rule]
+    actions: list[Action]
     _type_map: dict[type, list[DNDObject]]
 
     def __init__(self):
@@ -405,6 +433,7 @@ class DNDSearchResults(object):
         self.conditions = []
         self.creatures = []
         self.rules = []
+        self.actions = []
 
         self._type_map = {
             Spell: self.spells,
@@ -412,6 +441,7 @@ class DNDSearchResults(object):
             Condition: self.conditions,
             Creature: self.creatures,
             Rule: self.rules,
+            Action: self.actions,
         }
 
     def add(self, entry):

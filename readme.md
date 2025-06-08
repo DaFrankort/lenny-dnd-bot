@@ -75,6 +75,9 @@ Look up various D&D data from [5e.tools](https://5e.tools/).
 - `/spell <spell-name>` – Look up information about a D&D spell (e.g. Fireball).
 - `/item <item-name>` - Look up information about a D&D item (e.g. Dagger).
 - `/condition <condition-name>` - Look up information about a D&D condition (e.g. Blinded).
+- `/creature <creature-name>` – Look up information about a D&D creature (e.g. Orc).
+- `/rule <rule-name>` – Look up information about a D&D rule (e.g. Saving Throw).
+- `/action <action-name>` – Look up information about a D&D action (e.g. Dash).
 - `/search <query>` - Look for many related results regarding D&D data. Example: `/search fire` would return any data with 'fire' in the name.
 
 ### Character Stat Roll

@@ -72,7 +72,7 @@ def generate_token_filename(base_image: discord.Attachment) -> str:
 
 
 def image_to_bytesio(image: Image.Image) -> io.BytesIO:
-    with io.BytesIO() as output:
-        image.save(output, format="PNG")
-        output.seek(0)
-        return output
+    output = io.BytesIO()
+    image.save(output, format="PNG")
+    output.seek(0)
+    return output

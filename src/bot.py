@@ -21,6 +21,12 @@ from initiative import (
 )
 from search import SearchEmbed, search_from_query
 from stats import Stats
+from token_gen import (
+    generate_token_filename,
+    generate_token_image,
+    image_to_bytesio,
+    open_image,
+)
 from user_colors import UserColor
 from voice_chat import VC, SoundType, Sounds
 
@@ -349,6 +355,37 @@ class Bot(discord.Client):
                     title=stats.get_embed_title(),
                     description=stats.get_embed_description(),
                 ),
+            )
+
+        @self.tree.command(
+            name="tokengen", description="Turn an image into a 5etools-style token."
+        )
+        async def generate_token(itr: Interaction, image: discord.Attachment):
+            log_cmd(itr)
+
+            if not image.content_type.startswith("image"):
+                await itr.response.send_message(
+                    "❌ Attachment must be an image! ❌",
+                    ephemeral=True,
+                )
+                return
+
+            await itr.response.defer()
+            img = await open_image(image)
+
+            if img is None:
+                await itr.followup.send(
+                    "❌ Could not process image, please try again later or with another image. ❌",
+                    ephemeral=True,
+                )
+                return
+
+            token_image = generate_token_image(img)
+            await itr.followup.send(
+                file=discord.File(
+                    fp=image_to_bytesio(token_image),
+                    filename=generate_token_filename(image),
+                )
             )
 
         @self.tree.command(

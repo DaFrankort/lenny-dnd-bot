@@ -85,7 +85,7 @@ def _crop_image(
     return background
 
 
-def get_hue_frame(hue: int) -> Image.Image:
+def _get_hue_frame(hue: int) -> Image.Image:
     """
     Returns a copy of TOKEN_FRAME with its hue shifted by the given amount.
     Hue should be in the range -360 to 360.
@@ -114,7 +114,7 @@ def get_hue_frame(hue: int) -> Image.Image:
 
 def generate_token_image(image: Image.Image, hue: int) -> Image.Image:
     inner = _crop_image(image, TOKEN_FRAME.size)
-    frame = get_hue_frame(hue) if hue else TOKEN_FRAME
+    frame = _get_hue_frame(hue) if hue else TOKEN_FRAME
     return Image.alpha_composite(inner, frame)
 
 

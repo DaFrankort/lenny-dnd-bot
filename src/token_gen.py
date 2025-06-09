@@ -56,7 +56,7 @@ async def open_image(image: discord.Attachment) -> Image.Image | None:
     return base_image
 
 
-def __squarify_image(
+def _squarify_image(
     image: Image.Image, h_align: AlignH, v_align: AlignV
 ) -> Image.Image:
     """Turn image into a square and adjust focus to match given alignment."""
@@ -106,7 +106,7 @@ def _crop_image(
     width_y = max_size[1]
 
     # Make square-shaped
-    image = __squarify_image(image, h_align, v_align)
+    image = _squarify_image(image, h_align, v_align)
 
     # Resize with inset to avoid sticking out of the frame
     inner_width = width_x - 2 * inset

@@ -355,8 +355,7 @@ class Bot(discord.Client):
             )
 
         @self.tree.command(
-            name="tokengen",
-            description="Turn an image into a 5e-tools style token."
+            name="tokengen", description="Turn an image into a 5e-tools style token."
         )
         async def generate_token(itr: Interaction, image: discord.Attachment):
             log_cmd(itr)
@@ -365,8 +364,13 @@ class Bot(discord.Client):
 
             if img is None:
                 await itr.followup.send(
-                    embed=SuccessEmbed('', 'Error processing image!', 'Please try again or with another image.', False),
-                    ephemeral=True
+                    embed=SuccessEmbed(
+                        "",
+                        "Error processing image!",
+                        "Please try again or with another image.",
+                        False,
+                    ),
+                    ephemeral=True,
                 )
                 return
 

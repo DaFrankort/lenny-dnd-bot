@@ -1,11 +1,10 @@
-
 import io
 import aiohttp
 import discord
 from PIL import Image, ImageDraw
 
 
-TOKEN_FRAME = Image.open('./img/token_border.png').convert("RGBA")
+TOKEN_FRAME = Image.open("./img/token_border.png").convert("RGBA")
 
 
 async def open_image(image: discord.Attachment) -> Image.Image | None:
@@ -23,7 +22,9 @@ async def open_image(image: discord.Attachment) -> Image.Image | None:
     return base_image
 
 
-def _crop_image(image: Image.Image, max_size: tuple[int, int] = (512, 512), inset: int = 8) -> Image.Image:
+def _crop_image(
+    image: Image.Image, max_size: tuple[int, int] = (512, 512), inset: int = 8
+) -> Image.Image:
     """
     Processes the input image by:
     1. Cropping it to a square shape.
@@ -46,13 +47,13 @@ def _crop_image(image: Image.Image, max_size: tuple[int, int] = (512, 512), inse
     image = image.resize((inner_width, inner_height), Image.LANCZOS)
 
     # Apply circular mask
-    mask = Image.new('L', (inner_width, inner_height), 0)
+    mask = Image.new("L", (inner_width, inner_height), 0)
     draw = ImageDraw.Draw(mask)
     draw.ellipse((0, 0, inner_width, inner_height), fill=255)
     image.putalpha(mask)
 
     # Paste onto transparent background of full token size
-    background = Image.new('RGBA', (width_x, width_y), (0, 0, 0, 0))
+    background = Image.new("RGBA", (width_x, width_y), (0, 0, 0, 0))
     background.paste(image, (inset, inset), image)
     return background
 

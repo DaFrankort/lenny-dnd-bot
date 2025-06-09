@@ -48,8 +48,9 @@ def _crop_image(
     """
     Processes the input image by:
     1. Cropping it to a square shape.
-    2. Resizing it with an inset so it fits within max_size.
-    3. Applying a transparent circular mask to make the image round.
+    2. Applying an inset, to make sure image fits within frame.
+    3. Applying a white background, for cleaner transparent image handling.
+    4. Applying a transparent circular mask to make the image round.
     """
 
     width_x = max_size[0]
@@ -65,6 +66,11 @@ def _crop_image(
     inner_width = width_x - 2 * inset
     inner_height = width_y - 2 * inset
     image = image.resize((inner_width, inner_height), Image.LANCZOS)
+
+    # Add white background, for cleaner png-tokens
+    white_bg = Image.new("RGBA", image.size, (255, 255, 255, 255))
+    white_bg.paste(image, (0, 0), image)
+    image = white_bg
 
     # Apply circular mask
     mask = Image.new("L", (inner_width, inner_height), 0)

@@ -22,6 +22,8 @@ from initiative import (
 from search import SearchEmbed, search_from_query
 from stats import Stats
 from token_gen import (
+    AlignH,
+    AlignV,
     generate_token_filename,
     generate_token_image,
     generate_token_url_filename,
@@ -365,11 +367,27 @@ class Bot(discord.Client):
         @app_commands.describe(
             image="The image to turn into a token.",
             frame_hue="Hue shift to apply to the token-frame (Gold: 0 | Red: -30 | Blue: 180 | Green: 80).",
+            h_alignment="Horizontal alignment for the token image.",
+            v_alignment="Vertical alignment for the token image.",
+        )
+        @app_commands.choices(
+            h_alignment=[
+                app_commands.Choice(name="Left", value=AlignH.LEFT.value),
+                app_commands.Choice(name="Center", value=AlignH.CENTER.value),
+                app_commands.Choice(name="Right", value=AlignH.RIGHT.value),
+            ],
+            v_alignment=[
+                app_commands.Choice(name="Top", value=AlignV.TOP.value),
+                app_commands.Choice(name="Center", value=AlignV.CENTER.value),
+                app_commands.Choice(name="Bottom", value=AlignV.BOTTOM.value),
+            ],
         )
         async def generate_token(
             itr: Interaction,
             image: discord.Attachment,
             frame_hue: app_commands.Range[int, -360, 360] = 0,
+            h_alignment: str = AlignH.CENTER.value,
+            v_alignment: str = AlignV.CENTER.value,
         ):
             log_cmd(itr)
 
@@ -389,7 +407,7 @@ class Bot(discord.Client):
                 )
                 return
 
-            token_image = generate_token_image(img, frame_hue)
+            token_image = generate_token_image(img, frame_hue, h_alignment, v_alignment)
             await itr.followup.send(
                 file=discord.File(
                     fp=image_to_bytesio(token_image),
@@ -404,11 +422,27 @@ class Bot(discord.Client):
         @app_commands.describe(
             url="The image-url to generate a token from.",
             frame_hue="Hue shift to apply to the token-frame (Gold: 0 | Red: -30 | Blue: 180 | Green: 80).",
+            h_alignment="Horizontal alignment for the token image.",
+            v_alignment="Vertical alignment for the token image.",
+        )
+        @app_commands.choices(
+            h_alignment=[
+                app_commands.Choice(name="Left", value=AlignH.LEFT.value),
+                app_commands.Choice(name="Center", value=AlignH.CENTER.value),
+                app_commands.Choice(name="Right", value=AlignH.RIGHT.value),
+            ],
+            v_alignment=[
+                app_commands.Choice(name="Top", value=AlignV.TOP.value),
+                app_commands.Choice(name="Center", value=AlignV.CENTER.value),
+                app_commands.Choice(name="Bottom", value=AlignV.BOTTOM.value),
+            ],
         )
         async def generate_token_from_url(
             itr: Interaction,
             url: str,
             frame_hue: app_commands.Range[int, -360, 360] = 0,
+            h_alignment: str = AlignH.CENTER.value,
+            v_alignment: str = AlignV.CENTER.value,
         ):
             log_cmd(itr)
 
@@ -428,7 +462,7 @@ class Bot(discord.Client):
                 )
                 return
 
-            token_image = generate_token_image(img, frame_hue)
+            token_image = generate_token_image(img, frame_hue, h_alignment, v_alignment)
             await itr.followup.send(
                 file=discord.File(
                     fp=image_to_bytesio(token_image),

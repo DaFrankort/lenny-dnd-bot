@@ -364,8 +364,8 @@ class Bot(discord.Client):
             log_cmd(itr)
 
             if not image.content_type.startswith("image"):
-                await itr.response.send(
-                    "Error: attachment was not an image!",
+                await itr.response.send_message(
+                    "❌ Attachment must be an image! ❌",
                     ephemeral=True,
                 )
                 return
@@ -375,7 +375,7 @@ class Bot(discord.Client):
 
             if img is None:
                 await itr.followup.send(
-                    "Error: Could not process image, please try again later or with another image.",
+                    "❌ Could not process image, please try again later or with another image. ❌",
                     ephemeral=True,
                 )
                 return

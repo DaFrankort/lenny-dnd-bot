@@ -11,7 +11,7 @@ Powered by [5e.tools](https://5e.tools/) for up-to-date 5e data.
 - **Customizable Color Embeds**: Customize the colors of your dice roll embeds for better visual appeal and easy identification, auto-generated if not specified.
 - **Character Stat Rolling**: Automatically roll and generate D&D character stats.
 - **Voice Chat Sound Effects**: The bot can join voice channels to play sound effects for your rolls, including special sounds for natural 1s and 20s, as well as effects for attacks, damage, and fire.
-- **Creature & Character Token Generation** - Generate a 5etools-style token from an image or image-url for your characters or custom creatures.
+- **Token-Image Generation** - Generate a 5etools-style token from an image or image-url for your characters or custom creatures.
 
 ## Installation
 

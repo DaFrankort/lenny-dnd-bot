@@ -1,5 +1,7 @@
+import io
 import logging
 import os
+import time
 import discord
 from discord import app_commands
 from discord import Interaction
@@ -21,6 +23,7 @@ from initiative import (
 )
 from search import SearchEmbed, search_from_query
 from stats import Stats
+from token_gen import generate_token_image, open_image
 from user_colors import UserColor
 from voice_chat import VC, SoundType, Sounds
 
@@ -350,6 +353,30 @@ class Bot(discord.Client):
                     description=stats.get_embed_description(),
                 ),
             )
+
+        @self.tree.command(
+            name="tokengen",
+            description="Turn an image into a 5e-tools style token."
+        )
+        async def generate_token(itr: Interaction, image: discord.Attachment):
+            log_cmd(itr)
+            await itr.response.defer()
+            img = await open_image(image)
+
+            if img is None:
+                await itr.followup.send(
+                    embed=SuccessEmbed('', 'Error processing image!', 'Please try again or with another image.', False),
+                    ephemeral=True
+                )
+                return
+
+            token_image = generate_token_image(img)
+            filename = f"{image.filename}_token_{int(time.time())}.png"
+
+            with io.BytesIO() as output:
+                token_image.save(output, format="PNG")
+                output.seek(0)
+                await itr.followup.send(file=discord.File(fp=output, filename=filename))
 
         @self.tree.command(
             name="initiative", description="Roll initiative for yourself or a creature."

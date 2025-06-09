@@ -3,6 +3,7 @@ import os
 import time
 import aiohttp
 import discord
+import numpy as np
 from PIL import Image, ImageDraw
 
 
@@ -84,9 +85,38 @@ def _crop_image(
     return background
 
 
-def generate_token_image(image: Image.Image) -> Image.Image:
+def get_hue_frame(hue: int) -> Image.Image:
+    """
+    Returns a copy of TOKEN_FRAME with its hue shifted by the given amount.
+    Hue should be in the range -360 to 360.
+    """
+    if hue == 0:
+        return TOKEN_FRAME.copy()
+
+    # Convert to HSV, shift hue, and convert back
+    frame = TOKEN_FRAME.convert("RGBA")
+    r, g, b, a = frame.split()
+    rgb_image = Image.merge("RGB", (r, g, b))
+    hsv_image = rgb_image.convert("HSV")
+    h, s, v = hsv_image.split()
+
+    # Calculate hue shift in 0-255 scale
+    hue_shift = int((hue % 360) * 255 / 360)
+    np_h = np.array(h, dtype=np.uint8).astype(np.uint16)
+    np_h = (np_h + hue_shift) % 256
+    np_h = np_h.astype(np.uint8)
+    h = Image.fromarray(np_h, "L")
+
+    shifted_hsv = Image.merge("HSV", (h, s, v))
+    shifted_rgb = shifted_hsv.convert("RGB")
+    shifted_rgba = Image.merge("RGBA", (*shifted_rgb.split(), a))
+    return shifted_rgba
+
+
+def generate_token_image(image: Image.Image, hue: int) -> Image.Image:
     inner = _crop_image(image, TOKEN_FRAME.size)
-    return Image.alpha_composite(inner, TOKEN_FRAME)
+    frame = get_hue_frame(hue) if hue else TOKEN_FRAME
+    return Image.alpha_composite(inner, frame)
 
 
 def _get_filename(name: str) -> str:

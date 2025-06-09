@@ -362,7 +362,15 @@ class Bot(discord.Client):
         @self.tree.command(
             name="tokengen", description="Turn an image into a 5etools-style token."
         )
-        async def generate_token(itr: Interaction, image: discord.Attachment):
+        @app_commands.describe(
+            image="The image to turn into a token.",
+            frame_hue="Hue shift to apply to the token-frame (Gold: 0 | Red: -30 | Blue: 180 | Green: 80).",
+        )
+        async def generate_token(
+            itr: Interaction,
+            image: discord.Attachment,
+            frame_hue: app_commands.Range[int, -360, 360] = 0,
+        ):
             log_cmd(itr)
 
             if not image.content_type.startswith("image"):
@@ -381,7 +389,7 @@ class Bot(discord.Client):
                 )
                 return
 
-            token_image = generate_token_image(img)
+            token_image = generate_token_image(img, frame_hue)
             await itr.followup.send(
                 file=discord.File(
                     fp=image_to_bytesio(token_image),
@@ -393,7 +401,11 @@ class Bot(discord.Client):
             name="tokengenurl",
             description="Turn an image-url into a 5etools-style token.",
         )
-        async def generate_token_from_url(itr: Interaction, url: str):
+        @app_commands.describe(
+            url="The image-url to generate a token from.",
+            frame_hue="Hue shift to apply to the token-frame (Gold: 0 | Red: -30 | Blue: 180 | Green: 80).",
+        )
+        async def generate_token_from_url(itr: Interaction, url: str, frame_hue: app_commands.Range[int, -360, 360] = 0):
             log_cmd(itr)
 
             if not url.startswith("http"):  # TODO properly validate urls
@@ -412,7 +424,7 @@ class Bot(discord.Client):
                 )
                 return
 
-            token_image = generate_token_image(img)
+            token_image = generate_token_image(img, frame_hue)
             await itr.followup.send(
                 file=discord.File(
                     fp=image_to_bytesio(token_image),

@@ -17,3 +17,4 @@ yarl==1.18.3
 pytest==8.3.5
 pynacl==1.5.0
 pillow==11.2.1
+numpy==2.3.0

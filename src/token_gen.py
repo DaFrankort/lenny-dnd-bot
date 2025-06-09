@@ -94,8 +94,7 @@ def get_hue_frame(hue: int) -> Image.Image:
         return TOKEN_FRAME.copy()
 
     # Convert to HSV, shift hue, and convert back
-    frame = TOKEN_FRAME.convert("RGBA")
-    r, g, b, a = frame.split()
+    r, g, b, a = TOKEN_FRAME.split()
     rgb_image = Image.merge("RGB", (r, g, b))
     hsv_image = rgb_image.convert("HSV")
     h, s, v = hsv_image.split()

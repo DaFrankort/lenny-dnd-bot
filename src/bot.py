@@ -405,7 +405,11 @@ class Bot(discord.Client):
             url="The image-url to generate a token from.",
             frame_hue="Hue shift to apply to the token-frame (Gold: 0 | Red: -30 | Blue: 180 | Green: 80).",
         )
-        async def generate_token_from_url(itr: Interaction, url: str, frame_hue: app_commands.Range[int, -360, 360] = 0):
+        async def generate_token_from_url(
+            itr: Interaction,
+            url: str,
+            frame_hue: app_commands.Range[int, -360, 360] = 0,
+        ):
             log_cmd(itr)
 
             if not url.startswith("http"):  # TODO properly validate urls

@@ -375,7 +375,8 @@ class Bot(discord.Client):
                 return
 
             token_image = generate_token_image(img)
-            filename = f"{image.filename}_token_{int(time.time())}.png"
+            base_filename = os.path.splitext(image.filename)[0]
+            filename = f"{base_filename}_token_{int(time.time())}.png"
 
             with io.BytesIO() as output:
                 token_image.save(output, format="PNG")

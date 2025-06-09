@@ -1,3 +1,4 @@
+from enum import Enum
 import io
 import os
 import time
@@ -8,6 +9,18 @@ from PIL import Image, ImageDraw
 
 
 TOKEN_FRAME = Image.open("./img/token_border.png").convert("RGBA")
+
+
+class AlignH(Enum):
+    LEFT = "left"
+    CENTER = "center"
+    RIGHT = "right"
+
+
+class AlignV(Enum):
+    TOP = "top"
+    CENTER = "center"
+    BOTTOM = "bottom"
 
 
 async def open_image_url(url: str) -> Image.Image | None:
@@ -43,12 +56,47 @@ async def open_image(image: discord.Attachment) -> Image.Image | None:
     return base_image
 
 
+def _squarify_image(
+    image: Image.Image, h_align: AlignH, v_align: AlignV
+) -> Image.Image:
+    """Turn image into a square and adjust focus to match given alignment."""
+
+    size = min(image.size)
+
+    if h_align == AlignH.LEFT.value:
+        left = 0
+        right = size
+    elif h_align == AlignH.RIGHT.value:
+        left = image.width - size
+        right = image.width
+    else:
+        left = (image.width - size) // 2
+        right = left + size
+
+    if v_align == AlignV.TOP.value:
+        top = 0
+        bottom = size
+    elif v_align == AlignV.BOTTOM.value:
+        top = image.height - size
+        bottom = image.height
+    else:
+        top = (image.height - size) // 2
+        bottom = top + size
+
+    image = image.crop((left, top, right, bottom))
+    return image
+
+
 def _crop_image(
-    image: Image.Image, max_size: tuple[int, int] = (512, 512), inset: int = 8
+    image: Image.Image,
+    h_align: AlignH,
+    v_align: AlignV,
+    max_size: tuple[int, int] = (512, 512),
+    inset: int = 8,
 ) -> Image.Image:
     """
     Processes the input image by:
-    1. Cropping it to a square shape.
+    1. Cropping it to a square shape, adjusting the focus of the image.
     2. Applying an inset, to make sure image fits within frame.
     3. Applying a white background, for cleaner transparent image handling.
     4. Applying a transparent circular mask to make the image round.
@@ -58,10 +106,7 @@ def _crop_image(
     width_y = max_size[1]
 
     # Make square-shaped
-    size = min(image.size)
-    left = (image.width - size) / 2
-    top = (image.height - size) / 2
-    image = image.crop((left, top, left + size, top + size))
+    image = _squarify_image(image, h_align, v_align)
 
     # Resize with inset to avoid sticking out of the frame
     inner_width = width_x - 2 * inset
@@ -112,8 +157,13 @@ def _get_hue_frame(hue: int) -> Image.Image:
     return shifted_rgba
 
 
-def generate_token_image(image: Image.Image, hue: int) -> Image.Image:
-    inner = _crop_image(image, TOKEN_FRAME.size)
+def generate_token_image(
+    image: Image.Image,
+    hue: int,
+    h_align: AlignH = AlignH.CENTER,
+    v_align: AlignV = AlignV.CENTER,
+) -> Image.Image:
+    inner = _crop_image(image, h_align, v_align, TOKEN_FRAME.size)
     frame = _get_hue_frame(hue) if hue else TOKEN_FRAME
     return Image.alpha_composite(inner, frame)
 

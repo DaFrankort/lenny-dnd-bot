@@ -1,4 +1,6 @@
 import io
+import os
+import time
 import aiohttp
 import discord
 from PIL import Image, ImageDraw
@@ -61,3 +63,16 @@ def _crop_image(
 def generate_token_image(image: Image.Image) -> Image.Image:
     inner = _crop_image(image, TOKEN_FRAME.size)
     return Image.alpha_composite(inner, TOKEN_FRAME)
+
+
+def generate_token_filename(base_image: discord.Attachment) -> str:
+    base_filename = os.path.splitext(base_image.filename)[0]
+    filename = f"{base_filename}_token_{int(time.time())}.png"
+    return filename
+
+
+def image_to_bytesio(image: Image.Image) -> io.BytesIO:
+    with io.BytesIO() as output:
+        image.save(output, format="PNG")
+        output.seek(0)
+        return output

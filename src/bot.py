@@ -1,7 +1,5 @@
-import io
 import logging
 import os
-import time
 import discord
 from discord import app_commands
 from discord import Interaction
@@ -23,7 +21,12 @@ from initiative import (
 )
 from search import SearchEmbed, search_from_query
 from stats import Stats
-from token_gen import generate_token_image, open_image
+from token_gen import (
+    generate_token_filename,
+    generate_token_image,
+    image_to_bytesio,
+    open_image,
+)
 from user_colors import UserColor
 from voice_chat import VC, SoundType, Sounds
 
@@ -355,33 +358,35 @@ class Bot(discord.Client):
             )
 
         @self.tree.command(
-            name="tokengen", description="Turn an image into a 5e-tools style token."
+            name="tokengen", description="Turn an image into a 5etools-style token."
         )
         async def generate_token(itr: Interaction, image: discord.Attachment):
             log_cmd(itr)
+
+            if not image.content_type.startswith("image"):
+                await itr.response.send(
+                    "Error: attachment was not an image!",
+                    ephemeral=True,
+                )
+                return
+
             await itr.response.defer()
             img = await open_image(image)
 
             if img is None:
                 await itr.followup.send(
-                    embed=SuccessEmbed(
-                        "",
-                        "Error processing image!",
-                        "Please try again or with another image.",
-                        False,
-                    ),
+                    "Error: Could not process image, please try again later or with another image.",
                     ephemeral=True,
                 )
                 return
 
             token_image = generate_token_image(img)
-            base_filename = os.path.splitext(image.filename)[0]
-            filename = f"{base_filename}_token_{int(time.time())}.png"
-
-            with io.BytesIO() as output:
-                token_image.save(output, format="PNG")
-                output.seek(0)
-                await itr.followup.send(file=discord.File(fp=output, filename=filename))
+            await itr.followup.send(
+                file=discord.File(
+                    fp=image_to_bytesio(token_image),
+                    filename=generate_token_filename(image),
+                )
+            )
 
         @self.tree.command(
             name="initiative", description="Roll initiative for yourself or a creature."

@@ -9,6 +9,24 @@ from PIL import Image, ImageDraw
 TOKEN_FRAME = Image.open("./img/token_border.png").convert("RGBA")
 
 
+async def open_image_url(url: str) -> Image.Image | None:
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as resp:
+            if resp.status != 200:
+                return None
+            content_type = resp.headers.get("Content-Type", "")
+            if not content_type.startswith("image/"):
+                return None
+            image_bytes = await resp.read()
+
+    try:
+        base_image = Image.open(io.BytesIO(image_bytes)).convert("RGBA")
+    except Exception:
+        return None
+
+    return base_image
+
+
 async def open_image(image: discord.Attachment) -> Image.Image | None:
     async with aiohttp.ClientSession() as session:
         async with session.get(image.url) as resp:
@@ -65,10 +83,18 @@ def generate_token_image(image: Image.Image) -> Image.Image:
     return Image.alpha_composite(inner, TOKEN_FRAME)
 
 
+def _get_filename(name: str) -> str:
+    return f"{name}_token_{int(time.time())}.png"
+
+
+def generate_token_url_filename(url: str) -> str:
+    url_hash = str(abs(hash(url)))
+    return _get_filename(url_hash)
+
+
 def generate_token_filename(base_image: discord.Attachment) -> str:
-    base_filename = os.path.splitext(base_image.filename)[0]
-    filename = f"{base_filename}_token_{int(time.time())}.png"
-    return filename
+    filename = os.path.splitext(base_image.filename)[0]
+    return _get_filename(filename)
 
 
 def image_to_bytesio(image: Image.Image) -> io.BytesIO:

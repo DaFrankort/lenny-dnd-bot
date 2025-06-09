@@ -24,8 +24,10 @@ from stats import Stats
 from token_gen import (
     generate_token_filename,
     generate_token_image,
+    generate_token_url_filename,
     image_to_bytesio,
     open_image,
+    open_image_url,
 )
 from user_colors import UserColor
 from voice_chat import VC, SoundType, Sounds
@@ -376,7 +378,6 @@ class Bot(discord.Client):
             if img is None:
                 await itr.followup.send(
                     "❌ Could not process image, please try again later or with another image. ❌",
-                    ephemeral=True,
                 )
                 return
 
@@ -385,6 +386,37 @@ class Bot(discord.Client):
                 file=discord.File(
                     fp=image_to_bytesio(token_image),
                     filename=generate_token_filename(image),
+                )
+            )
+
+        @self.tree.command(
+            name="tokengenurl",
+            description="Turn an image-url into a 5etools-style token.",
+        )
+        async def generate_token_from_url(itr: Interaction, url: str):
+            log_cmd(itr)
+
+            if not url.startswith("http"):  # TODO properly validate urls
+                await itr.response.send_message(
+                    f"❌ Not a valid URL: '{url}' ❌",
+                    ephemeral=True,
+                )
+                return
+
+            await itr.response.defer()
+            img = await open_image_url(url)
+
+            if img is None:
+                await itr.response.send_message(
+                    "❌ Could not process image, please provide a valid image-URL. ❌",
+                )
+                return
+
+            token_image = generate_token_image(img)
+            await itr.followup.send(
+                file=discord.File(
+                    fp=image_to_bytesio(token_image),
+                    filename=generate_token_url_filename(url),
                 )
             )
 

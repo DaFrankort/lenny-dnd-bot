@@ -112,7 +112,9 @@ class Bot(discord.Client):
 
             else:
                 embed = found[0].get_embed()
-                view = None if not embed.view else embed.view
+                if embed.view is None:
+                    await itr.response.send_message(embed=embed)
+                    return
                 await itr.response.send_message(embed=embed, view=view)
 
         #

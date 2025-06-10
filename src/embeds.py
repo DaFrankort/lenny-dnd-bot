@@ -271,12 +271,14 @@ class CreatureEmbed(_DNDObjectEmbed):
         )
 
 
-class MultiSubclassSelect(discord.ui.Select):
+class MultiClassSubclassSelect(discord.ui.Select):
     """Select component to provide a Subclass-dropdown under a ClassEmbed"""
-    def __init__(self, character_class: Class, get_level: callable, parent_view: "ClassNavigationView"):
+
+    def __init__(self, character_class: Class, get_level: callable, subclass: str, parent_view: "ClassNavigationView"):
         options = []
         for subclass_name in character_class.subclass_level_features.keys():
-            options.append(discord.SelectOption(label=subclass_name, value=subclass_name))
+            label = subclass_name if subclass != subclass_name else f"{subclass_name} [Current]"
+            options.append(discord.SelectOption(label=label, value=subclass_name))
 
         super().__init__(placeholder="Select Subclass", min_values=1, max_values=1, options=options)
 
@@ -292,6 +294,31 @@ class MultiSubclassSelect(discord.ui.Select):
         await interaction.response.edit_message(embed=embed, view=embed.view)
 
 
+class MultiClassPageSelect(discord.ui.Select):
+    """Select component to quickly navigate between class-pages (base info or level info)"""
+
+    def __init__(self, character_class: Class, get_subclass: callable, page: int, parent_view: "ClassNavigationView"):
+        options = []
+        core_label = "Core Info" if page != 0 else "Core Info [Current]"
+        options.append(discord.SelectOption(label=core_label, value="0"))
+        for level in character_class.level_resources.keys():
+            label = f"Level {level}" if int(level) != page else f"Level {level} [Current]"
+            options.append(discord.SelectOption(label=label, value=level))
+
+        super().__init__(placeholder="Select Level", min_values=1, max_values=1, options=options)
+
+        self.character_class = character_class
+        self.get_subclass = get_subclass
+        self.parent_view = parent_view
+
+    async def callback(self, interaction: discord.Interaction):
+        level = int(self.values[0])
+        self.parent_view.level = level
+        subclass = self.get_subclass()
+        embed = ClassEmbed(self.character_class, level, subclass)
+        await interaction.response.edit_message(embed=embed, view=embed.view)
+
+
 class ClassNavigationView(discord.ui.View):
     level: int
     subclass: str | None
@@ -303,34 +330,13 @@ class ClassNavigationView(discord.ui.View):
         self.level = level
         self.subclass = subclass
 
+        if character_class.level_resources:
+            self.add_item(MultiClassPageSelect(self.character_class, lambda: self.subclass, self.level, self))
         if character_class.subclass_level_features:
-            self.add_item(MultiSubclassSelect(self.character_class, lambda: self.level, self))
-
-    async def edit_message(self, interaction: discord.Interaction):
-        embed = ClassEmbed(self.character_class, self.level, self.subclass)
-        await interaction.response.edit_message(embed=embed, view=self)
-
-    @discord.ui.button(label="Base", style=discord.ButtonStyle.primary)
-    async def base_info(self, interaction: discord.Interaction, button: discord.ui.Button):
-        self.level = 0
-        await self.edit_message(interaction)
-
-    @discord.ui.button(label="Previous", style=discord.ButtonStyle.secondary)
-    async def previous_level(self, interaction: discord.Interaction, button: discord.ui.Button):
-        if self.level > 0:
-            self.level -= 1
-            await self.edit_message(interaction)
-
-    @discord.ui.button(label="Next", style=discord.ButtonStyle.secondary)
-    async def next_level(self, interaction: discord.Interaction, button: discord.ui.Button):
-        if self.level < len(self.character_class.level_resources) - 1:
-            self.level += 1
-            await self.edit_message(interaction)
+            self.add_item(MultiClassSubclassSelect(self.character_class, lambda: self.level, self.subclass, self))
 
 
 class ClassEmbed(_DNDObjectEmbed):
-    view: ClassNavigationView
-
     def __init__(
         self, character_class: Class, level: int = 0, subclass: str | None = None
     ):
@@ -360,11 +366,6 @@ class ClassEmbed(_DNDObjectEmbed):
                     inline = True
 
                 self.add_field(name=name, value=value, inline=inline)
-            self.add_field(
-                name="",
-                value=HORIZONTAL_LINE,
-                inline=False,
-            )
 
             # Rest of the descriptions
             descriptions = character_class.level_features.get(str(level), []).copy()
@@ -373,7 +374,9 @@ class ClassEmbed(_DNDObjectEmbed):
                 subclass_description = subclass_level_descriptions.get(str(level), []).copy()
                 descriptions.extend(subclass_description)
 
-            self.add_description_fields(descriptions=descriptions)
+            if descriptions:
+                self.add_field(name="", value=HORIZONTAL_LINE, inline=False)
+                self.add_description_fields(descriptions=descriptions)
 
         self.set_footer(text=f"Page {level + 1} / 21", icon_url="")
         self.view = ClassNavigationView(character_class, level, subclass)

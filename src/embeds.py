@@ -73,6 +73,7 @@ class _DNDObjectEmbed(discord.Embed):
     """
 
     _object: DNDObject
+    view: discord.ui.View = None
 
     def __init__(self, object: DNDObject):
         self._object = object
@@ -270,44 +271,112 @@ class CreatureEmbed(_DNDObjectEmbed):
         )
 
 
+class MultiSubclassSelect(discord.ui.Select):
+    """Select component to provide a Subclass-dropdown under a ClassEmbed"""
+    def __init__(self, character_class: Class, get_level: callable, parent_view: "ClassNavigationView"):
+        options = []
+        for subclass_name in character_class.subclass_level_features.keys():
+            options.append(discord.SelectOption(label=subclass_name, value=subclass_name))
+
+        super().__init__(placeholder="Select Subclass", min_values=1, max_values=1, options=options)
+
+        self.character_class = character_class
+        self.get_level = get_level
+        self.parent_view = parent_view
+
+    async def callback(self, interaction: discord.Interaction):
+        subclass = self.values[0]
+        self.parent_view.subclass = subclass
+        level = self.get_level()
+        embed = ClassEmbed(self.character_class, level, subclass)
+        await interaction.response.edit_message(embed=embed, view=embed.view)
+
+
+class ClassNavigationView(discord.ui.View):
+    level: int
+    subclass: str | None
+
+    def __init__(self, character_class: Class, level: int, subclass: str | None):
+        super().__init__()
+
+        self.character_class = character_class
+        self.level = level
+        self.subclass = subclass
+
+        if character_class.subclass_level_features:
+            self.add_item(MultiSubclassSelect(self.character_class, lambda: self.level, self))
+
+    async def edit_message(self, interaction: discord.Interaction):
+        embed = ClassEmbed(self.character_class, self.level, self.subclass)
+        await interaction.response.edit_message(embed=embed, view=self)
+
+    @discord.ui.button(label="Base", style=discord.ButtonStyle.primary)
+    async def base_info(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.level = 0
+        await self.edit_message(interaction)
+
+    @discord.ui.button(label="Previous", style=discord.ButtonStyle.secondary)
+    async def previous_level(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if self.level > 0:
+            self.level -= 1
+            await self.edit_message(interaction)
+
+    @discord.ui.button(label="Next", style=discord.ButtonStyle.secondary)
+    async def next_level(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if self.level < len(self.character_class.level_resources) - 1:
+            self.level += 1
+            await self.edit_message(interaction)
+
+
 class ClassEmbed(_DNDObjectEmbed):
+    view: ClassNavigationView
+
     def __init__(
-        self, character_class: Class, page: int = 0, subclass: str | None = None
+        self, character_class: Class, level: int = 0, subclass: str | None = None
     ):
-        page = max(0, min(20, page))
+        level = max(0, min(20, level))
 
         super().__init__(character_class)
 
-        if page == 0:
-            self.description = "Core Info"
+        if level == 0:  # Core Info (page 0)
+            self.description = "*Core Info*"
             self.add_description_fields(character_class.base_info)
-            return
 
-        subtitle = f"Level {page}"
-        if subclass and page <= (character_class.subclass_unlock_level or 0):
-            subtitle += f" | {subclass}"
-        self.description = subtitle
+        else:
+            subtitle = f"Level {level}"
+            if subclass and level >= (character_class.subclass_unlock_level or 0):
+                subtitle += f" {subclass}"
+            self.description = f"*{subtitle}*"
 
-        # Level Resources are handled differently, since we want inline fields here.
-        level_resources = character_class.level_resources.get(page, [])
-        for resource in level_resources:
-            name = resource["name"]
-            if resource["type"] == "table":
-                value = self.build_table(resource["value"])
-                inline = False
-            else:
-                value = resource["value"]
-                inline = True
+            # Level Resources are handled differently, since we want inline fields here.
+            level_resources = character_class.level_resources.get(str(level), [])
+            for resource in level_resources:
+                name = resource["name"]
+                if resource["type"] == "table":
+                    value = self.build_table(resource["value"])
+                    inline = False
+                else:
+                    value = resource["value"]
+                    inline = True
 
-            self.add_field(name=name, value=value, inline=inline)
+                self.add_field(name=name, value=value, inline=inline)
+            self.add_field(
+                name="",
+                value=HORIZONTAL_LINE,
+                inline=False,
+            )
 
-        # Rest of the descriptions
-        descriptions = character_class.level_features.get(page, []).copy()
-        if subclass:
-            descriptions += character_class.subclass_level_features.get(
-                subclass, {}
-            ).get(page, [])
-        self.add_description_fields(descriptions=descriptions)
+            # Rest of the descriptions
+            descriptions = character_class.level_features.get(str(level), []).copy()
+            if subclass:
+                subclass_level_descriptions = character_class.subclass_level_features.get(subclass, {})
+                subclass_description = subclass_level_descriptions.get(str(level), []).copy()
+                descriptions.extend(subclass_description)
+
+            self.add_description_fields(descriptions=descriptions)
+
+        self.set_footer(text=f"Page {level + 1} / 21", icon_url="")
+        self.view = ClassNavigationView(character_class, level, subclass)
 
 
 class RuleEmbed(_DNDObjectEmbed):

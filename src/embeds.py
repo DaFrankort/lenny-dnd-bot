@@ -378,9 +378,17 @@ class ClassEmbed(_DNDObjectEmbed):
             self.description = "*Core Info*"
 
             if character_class.primary_ability:
-                self.add_field(name='Primary Ability', value=character_class.primary_ability, inline=True)
+                self.add_field(
+                    name="Primary Ability",
+                    value=character_class.primary_ability,
+                    inline=True,
+                )
             if character_class.spellcast_ability:
-                self.add_field(name='Spellcast Ability', value=character_class.spellcast_ability, inline=True)
+                self.add_field(
+                    name="Spellcast Ability",
+                    value=character_class.spellcast_ability,
+                    inline=True,
+                )
 
             self.add_description_fields(character_class.base_info)
 

@@ -274,13 +274,25 @@ class CreatureEmbed(_DNDObjectEmbed):
 class MultiClassSubclassSelect(discord.ui.Select):
     """Select component to provide a Subclass-dropdown under a ClassEmbed"""
 
-    def __init__(self, character_class: Class, get_level: callable, subclass: str, parent_view: "ClassNavigationView"):
+    def __init__(
+        self,
+        character_class: Class,
+        get_level: callable,
+        subclass: str,
+        parent_view: "ClassNavigationView",
+    ):
         options = []
         for subclass_name in character_class.subclass_level_features.keys():
-            label = subclass_name if subclass != subclass_name else f"{subclass_name} [Current]"
+            label = (
+                subclass_name
+                if subclass != subclass_name
+                else f"{subclass_name} [Current]"
+            )
             options.append(discord.SelectOption(label=label, value=subclass_name))
 
-        super().__init__(placeholder="Select Subclass", min_values=1, max_values=1, options=options)
+        super().__init__(
+            placeholder="Select Subclass", min_values=1, max_values=1, options=options
+        )
 
         self.character_class = character_class
         self.get_level = get_level
@@ -297,15 +309,25 @@ class MultiClassSubclassSelect(discord.ui.Select):
 class MultiClassPageSelect(discord.ui.Select):
     """Select component to quickly navigate between class-pages (base info or level info)"""
 
-    def __init__(self, character_class: Class, get_subclass: callable, page: int, parent_view: "ClassNavigationView"):
+    def __init__(
+        self,
+        character_class: Class,
+        get_subclass: callable,
+        page: int,
+        parent_view: "ClassNavigationView",
+    ):
         options = []
         core_label = "Core Info" if page != 0 else "Core Info [Current]"
         options.append(discord.SelectOption(label=core_label, value="0"))
         for level in character_class.level_resources.keys():
-            label = f"Level {level}" if int(level) != page else f"Level {level} [Current]"
+            label = (
+                f"Level {level}" if int(level) != page else f"Level {level} [Current]"
+            )
             options.append(discord.SelectOption(label=label, value=level))
 
-        super().__init__(placeholder="Select Level", min_values=1, max_values=1, options=options)
+        super().__init__(
+            placeholder="Select Level", min_values=1, max_values=1, options=options
+        )
 
         self.character_class = character_class
         self.get_subclass = get_subclass
@@ -331,9 +353,17 @@ class ClassNavigationView(discord.ui.View):
         self.subclass = subclass
 
         if character_class.level_resources:
-            self.add_item(MultiClassPageSelect(self.character_class, lambda: self.subclass, self.level, self))
+            self.add_item(
+                MultiClassPageSelect(
+                    self.character_class, lambda: self.subclass, self.level, self
+                )
+            )
         if character_class.subclass_level_features:
-            self.add_item(MultiClassSubclassSelect(self.character_class, lambda: self.level, self.subclass, self))
+            self.add_item(
+                MultiClassSubclassSelect(
+                    self.character_class, lambda: self.level, self.subclass, self
+                )
+            )
 
 
 class ClassEmbed(_DNDObjectEmbed):
@@ -370,8 +400,12 @@ class ClassEmbed(_DNDObjectEmbed):
             # Rest of the descriptions
             descriptions = character_class.level_features.get(str(level), []).copy()
             if subclass:
-                subclass_level_descriptions = character_class.subclass_level_features.get(subclass, {})
-                subclass_description = subclass_level_descriptions.get(str(level), []).copy()
+                subclass_level_descriptions = (
+                    character_class.subclass_level_features.get(subclass, {})
+                )
+                subclass_description = subclass_level_descriptions.get(
+                    str(level), []
+                ).copy()
                 descriptions.extend(subclass_description)
 
             if descriptions:

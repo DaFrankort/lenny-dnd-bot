@@ -115,7 +115,7 @@ class Bot(discord.Client):
                 if embed.view is None:
                     await itr.response.send_message(embed=embed)
                     return
-                await itr.response.send_message(embed=embed, view=view)
+                await itr.response.send_message(embed=embed, view=embed.view)
 
         #
         # COMMANDS

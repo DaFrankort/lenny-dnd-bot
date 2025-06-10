@@ -21,6 +21,16 @@ from initiative import (
 )
 from search import SearchEmbed, search_from_query
 from stats import Stats
+from token_gen import (
+    AlignH,
+    AlignV,
+    generate_token_filename,
+    generate_token_image,
+    generate_token_url_filename,
+    image_to_bytesio,
+    open_image,
+    open_image_url,
+)
 from user_colors import UserColor
 from voice_chat import VC, SoundType, Sounds
 
@@ -276,6 +286,30 @@ class Bot(discord.Client):
         ) -> list[app_commands.Choice[str]]:
             return self.data.classes.get_autocomplete_suggestions(query=current)
 
+        @self.tree.command(name="rule", description="Look up D&D rules.")
+        async def rule(itr: Interaction, name: str):
+            log_cmd(itr)
+            found = self.data.rules.get(name)
+            await send_DNDObject_lookup_result(itr, "rules", found, name)
+
+        @rule.autocomplete("name")
+        async def rule_autocomplete(
+            itr: discord.Interaction, current: str
+        ) -> list[app_commands.Choice[str]]:
+            return self.data.rules.get_autocomplete_suggestions(query=current)
+
+        @self.tree.command(name="action", description="Get the details for an action.")
+        async def action(itr: Interaction, name: str):
+            log_cmd(itr)
+            found = self.data.actions.get(name)
+            await send_DNDObject_lookup_result(itr, "actions", found, name)
+
+        @action.autocomplete("name")
+        async def action_autocomplete(
+            itr: discord.Interaction, current: str
+        ) -> list[app_commands.Choice[str]]:
+            return self.data.actions.get_autocomplete_suggestions(query=current)
+
         @self.tree.command(name="search", description="Search for a spell.")
         async def search(itr: Interaction, query: str):
             log_cmd(itr)
@@ -339,6 +373,115 @@ class Bot(discord.Client):
                     title=stats.get_embed_title(),
                     description=stats.get_embed_description(),
                 ),
+            )
+
+        @self.tree.command(
+            name="tokengen", description="Turn an image into a 5etools-style token."
+        )
+        @app_commands.describe(
+            image="The image to turn into a token.",
+            frame_hue="Hue shift to apply to the token-frame (Gold: 0 | Red: -30 | Blue: 180 | Green: 80).",
+            h_alignment="Horizontal alignment for the token image.",
+            v_alignment="Vertical alignment for the token image.",
+        )
+        @app_commands.choices(
+            h_alignment=[
+                app_commands.Choice(name="Left", value=AlignH.LEFT.value),
+                app_commands.Choice(name="Center", value=AlignH.CENTER.value),
+                app_commands.Choice(name="Right", value=AlignH.RIGHT.value),
+            ],
+            v_alignment=[
+                app_commands.Choice(name="Top", value=AlignV.TOP.value),
+                app_commands.Choice(name="Center", value=AlignV.CENTER.value),
+                app_commands.Choice(name="Bottom", value=AlignV.BOTTOM.value),
+            ],
+        )
+        async def generate_token(
+            itr: Interaction,
+            image: discord.Attachment,
+            frame_hue: app_commands.Range[int, -360, 360] = 0,
+            h_alignment: str = AlignH.CENTER.value,
+            v_alignment: str = AlignV.CENTER.value,
+        ):
+            log_cmd(itr)
+
+            if not image.content_type.startswith("image"):
+                await itr.response.send_message(
+                    "❌ Attachment must be an image! ❌",
+                    ephemeral=True,
+                )
+                return
+
+            await itr.response.defer()
+            img = await open_image(image)
+
+            if img is None:
+                await itr.followup.send(
+                    "❌ Could not process image, please try again later or with another image. ❌",
+                )
+                return
+
+            token_image = generate_token_image(img, frame_hue, h_alignment, v_alignment)
+            await itr.followup.send(
+                file=discord.File(
+                    fp=image_to_bytesio(token_image),
+                    filename=generate_token_filename(image),
+                )
+            )
+
+        @self.tree.command(
+            name="tokengenurl",
+            description="Turn an image-url into a 5etools-style token.",
+        )
+        @app_commands.describe(
+            url="The image-url to generate a token from.",
+            frame_hue="Hue shift to apply to the token-frame (Gold: 0 | Red: -30 | Blue: 180 | Green: 80).",
+            h_alignment="Horizontal alignment for the token image.",
+            v_alignment="Vertical alignment for the token image.",
+        )
+        @app_commands.choices(
+            h_alignment=[
+                app_commands.Choice(name="Left", value=AlignH.LEFT.value),
+                app_commands.Choice(name="Center", value=AlignH.CENTER.value),
+                app_commands.Choice(name="Right", value=AlignH.RIGHT.value),
+            ],
+            v_alignment=[
+                app_commands.Choice(name="Top", value=AlignV.TOP.value),
+                app_commands.Choice(name="Center", value=AlignV.CENTER.value),
+                app_commands.Choice(name="Bottom", value=AlignV.BOTTOM.value),
+            ],
+        )
+        async def generate_token_from_url(
+            itr: Interaction,
+            url: str,
+            frame_hue: app_commands.Range[int, -360, 360] = 0,
+            h_alignment: str = AlignH.CENTER.value,
+            v_alignment: str = AlignV.CENTER.value,
+        ):
+            log_cmd(itr)
+
+            if not url.startswith("http"):  # TODO properly validate urls
+                await itr.response.send_message(
+                    f"❌ Not a valid URL: '{url}' ❌",
+                    ephemeral=True,
+                )
+                return
+
+            await itr.response.defer()
+            img = await open_image_url(url)
+
+            if img is None:
+                await itr.response.send_message(
+                    "❌ Could not process image, please provide a valid image-URL. ❌",
+                )
+                return
+
+            token_image = generate_token_image(img, frame_hue, h_alignment, v_alignment)
+            await itr.followup.send(
+                file=discord.File(
+                    fp=image_to_bytesio(token_image),
+                    filename=generate_token_url_filename(url),
+                )
             )
 
         @self.tree.command(

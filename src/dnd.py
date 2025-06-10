@@ -300,7 +300,6 @@ class Creature(DNDObject):
     subtitle: str | None
     summoned_by_spell: str | None
     token_url: str | None
-    url: str
     description: list[Description]
 
     def __init__(self, json: any):
@@ -309,16 +308,14 @@ class Creature(DNDObject):
 
         self.name = json["name"]
         self.source = json["source"]
+        self.url = json["url"]
+
         self.subtitle = json["subtitle"]
         self.summoned_by_spell = json["summonedBySpell"]
         self.token_url = json["tokenUrl"]
-        self.url = json["url"]
         self.description = json["description"]
 
         self.select_description = self.subtitle
-
-    def __repr__(self):
-        return str(self)
 
     @abstractmethod
     def get_embed(self) -> discord.Embed:
@@ -380,12 +377,74 @@ class ClassList(DNDObjectList):
             self.entries.append(Class(character_class))
 
 
+class Rule(DNDObject):
+    description: list[Description]
+
+    def __init__(self, json: any):
+        self.object_type = "rule"
+        self.emoji = "📜"
+
+        self.name = json["name"]
+        self.source = json["source"]
+        self.url = json["url"]
+        self.select_description = f"{json['ruleType']} Rule"
+
+        self.description = json["description"]
+
+    @abstractmethod
+    def get_embed(self) -> discord.Embed:
+        from embeds import RuleEmbed
+
+        return RuleEmbed(self)
+
+
+class RuleList(DNDObjectList):
+    path = "./submodules/lenny-dnd-data/generated/rules.json"
+
+    def __init__(self):
+        super().__init__()
+        for rule in _read_dnd_data(self.path):
+            self.entries.append(Rule(rule))
+
+
+class Action(DNDObject):
+    description: list[Description]
+
+    def __init__(self, json: any):
+        self.object_type = "action"
+        self.emoji = "🏃"
+
+        self.name = json["name"]
+        self.source = json["source"]
+        self.url = json["url"]
+        self.select_description = json["time"]
+
+        self.description = json["description"]
+
+    @abstractmethod
+    def get_embed(self) -> discord.Embed:
+        from embeds import ActionEmbed
+
+        return ActionEmbed(self)
+
+
+class ActionList(DNDObjectList):
+    path = "./submodules/lenny-dnd-data/generated/actions.json"
+
+    def __init__(self):
+        super().__init__()
+        for action in _read_dnd_data(self.path):
+            self.entries.append(Action(action))
+
+
 class DNDData(object):
     spells: SpellList
     items: ItemList
     conditions: ConditionList
     creatures: CreatureList
     classes: ClassList
+    rules: RuleList
+    actions: ActionList
 
     def __init__(self):
         self.spells = SpellList()
@@ -393,6 +452,8 @@ class DNDData(object):
         self.conditions = ConditionList()
         self.creatures = CreatureList()
         self.classes = ClassList()
+        self.rules = RuleList()
+        self.actions = ActionList()
 
     def __iter__(self):
         yield self.spells
@@ -400,6 +461,8 @@ class DNDData(object):
         yield self.conditions
         yield self.creatures
         yield self.classes
+        yield self.rules
+        yield self.actions
 
 
 class DNDSearchResults(object):
@@ -408,6 +471,8 @@ class DNDSearchResults(object):
     conditions: list[Condition]
     creatures: list[Creature]
     classes: list[Class]
+    rules: list[Rule]
+    actions: list[Action]
     _type_map: dict[type, list[DNDObject]]
 
     def __init__(self):
@@ -416,6 +481,8 @@ class DNDSearchResults(object):
         self.conditions = []
         self.creatures = []
         self.classes = []
+        self.rules = []
+        self.actions = []
 
         self._type_map = {
             Spell: self.spells,
@@ -423,6 +490,8 @@ class DNDSearchResults(object):
             Condition: self.conditions,
             Creature: self.creatures,
             Class: self.classes,
+            Rule: self.rules,
+            Action: self.actions,
         }
 
     def add(self, entry):

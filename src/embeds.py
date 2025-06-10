@@ -3,7 +3,7 @@ import logging
 import re
 import discord
 import rich
-from dnd import Class, Creature, DNDObject, Description, Item, Spell, Condition
+from dnd import Class, Creature, DNDObject, Description, Item, Rule, Spell, Condition
 from user_colors import UserColor
 from rich.table import Table
 from rich.console import Console
@@ -237,10 +237,7 @@ class ItemEmbed(_DNDObjectEmbed):
                 inline=False,
             )
 
-            for desc in item.description:
-                self.add_field(
-                    name=desc["name"], value=desc["text"], inline=False
-                )  # TODO items.json does not follow the Description convention yet. ('text' instead of 'value')
+            self.add_description_fields(item.description)
 
 
 class ConditionEmbed(_DNDObjectEmbed):
@@ -311,6 +308,20 @@ class ClassEmbed(_DNDObjectEmbed):
                 subclass, {}
             ).get(page, [])
         self.add_description_fields(descriptions=descriptions)
+
+
+class RuleEmbed(_DNDObjectEmbed):
+    def __init__(self, rule: Rule):
+        super().__init__(rule)
+        self.description = f"*{rule.select_description}*"
+        self.add_description_fields(rule.description)
+
+
+class ActionEmbed(_DNDObjectEmbed):
+    def __init__(self, rule: Rule):
+        super().__init__(rule)
+        self.description = f"*{rule.select_description}*"
+        self.add_description_fields(rule.description)
 
 
 class SimpleEmbed(discord.Embed):

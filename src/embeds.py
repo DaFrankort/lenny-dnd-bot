@@ -3,7 +3,7 @@ import logging
 import re
 import discord
 import rich
-from dnd import Creature, DNDObject, Description, Item, Rule, Spell, Condition
+from dnd import Creature, DNDObject, Description, Feat, Item, Rule, Spell, Condition
 from user_colors import UserColor
 from rich.table import Table
 from rich.console import Console
@@ -282,6 +282,21 @@ class ActionEmbed(_DNDObjectEmbed):
         super().__init__(rule)
         self.description = f"*{rule.select_description}*"
         self.add_description_fields(rule.description)
+
+
+class FeatEmbed(_DNDObjectEmbed):
+    def __init__(self, feat: Feat):
+        super().__init__(feat)
+        self.description = f"*{feat.select_description}*"
+
+        if feat.ability_increase:
+            self.add_field(name='Ability Increase', value=feat.ability_increase, inline=True)
+        if feat.prerequisite:
+            self.add_field(name='Requires', value=feat.prerequisite, inline=True)
+        if feat.ability_increase or feat.prerequisite:
+            self.add_field(name='', value=HORIZONTAL_LINE, inline=False)
+
+        self.add_description_fields(feat.description)
 
 
 class SimpleEmbed(discord.Embed):

@@ -296,6 +296,20 @@ class Bot(discord.Client):
         ) -> list[app_commands.Choice[str]]:
             return self.data.actions.get_autocomplete_suggestions(query=current)
 
+        @self.tree.command(
+            name="feat", description="Get the details for a character feat."
+        )
+        async def feat(itr: Interaction, name: str):
+            log_cmd(itr)
+            found = self.data.feats.get(name)
+            await send_DNDObject_lookup_result(itr, "feats", found, name)
+
+        @feat.autocomplete("name")
+        async def feat_autocomplete(
+            itr: discord.Interaction, current: str
+        ) -> list[app_commands.Choice[str]]:
+            return self.data.feats.get_autocomplete_suggestions(query=current)
+
         @self.tree.command(name="search", description="Search for a spell.")
         async def search(itr: Interaction, query: str):
             log_cmd(itr)

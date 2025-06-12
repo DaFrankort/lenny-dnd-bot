@@ -407,8 +407,8 @@ class Feat(DNDObject):
         self.url = json["url"]
         self.select_description = json["type"]
 
-        self.prerequisite = json['prerequisite']
-        self.ability_increase = json['abilityIncrease']
+        self.prerequisite = json["prerequisite"]
+        self.ability_increase = json["abilityIncrease"]
         self.description = json["description"]
 
     @abstractmethod
@@ -425,6 +425,7 @@ class FeatList(DNDObjectList):
         super().__init__()
         for feat in _read_dnd_data(self.path):
             self.entries.append(Feat(feat))
+
 
 class DNDData(object):
     spells: SpellList
@@ -480,7 +481,7 @@ class DNDSearchResults(object):
             Creature: self.creatures,
             Rule: self.rules,
             Action: self.actions,
-            Feat: self.feats
+            Feat: self.feats,
         }
 
     def add(self, entry):

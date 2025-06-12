@@ -296,7 +296,9 @@ class Bot(discord.Client):
         ) -> list[app_commands.Choice[str]]:
             return self.data.actions.get_autocomplete_suggestions(query=current)
 
-        @self.tree.command(name="feat", description="Get the details for a character feat.")
+        @self.tree.command(
+            name="feat", description="Get the details for a character feat."
+        )
         async def feat(itr: Interaction, name: str):
             log_cmd(itr)
             found = self.data.feats.get(name)

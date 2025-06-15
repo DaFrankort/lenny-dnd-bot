@@ -490,10 +490,18 @@ class Bot(discord.Client):
         @app_commands.describe(
             modifier="The initiative modifier to apply to the roll.",
             name="The unique name of the creature you're rolling initiative for (leave blank to roll for yourself).",
+            roll_mode="Choose if to roll for initiative with disadvantage or advantage."
         )
-        async def initiative(itr: Interaction, modifier: int, name: str | None = None):
+        @app_commands.choices(
+            roll_mode=[
+                app_commands.Choice(name="Normal", value=DiceRollMode.Normal.value),
+                app_commands.Choice(name="Advantage", value=DiceRollMode.Advantage.value),
+                app_commands.Choice(name="Disadvantage", value=DiceRollMode.Disadvantage.value),
+            ]
+        )
+        async def initiative(itr: Interaction, modifier: int, name: str | None = None, roll_mode: DiceRollMode = DiceRollMode.Normal):
             log_cmd(itr)
-            initiative = Initiative(itr, modifier, name)
+            initiative = Initiative(itr, modifier, name, roll_mode)
             self.initiatives.add(itr, initiative)
             await itr.response.send_message(
                 embed=UserActionEmbed(
@@ -535,18 +543,27 @@ class Bot(discord.Client):
             modifier="The initiative modifier to apply to the roll.",
             name="The names to use for the creatures.",
             amount="The amount of creatures to create.",
+            roll_mode="Choose if to roll for initiative with disadvantage or advantage.",
             shared="Use the same initiative value for all creatures?",
+        )
+        @app_commands.choices(
+            roll_mode=[
+                app_commands.Choice(name="Normal", value=DiceRollMode.Normal.value),
+                app_commands.Choice(name="Advantage", value=DiceRollMode.Advantage.value),
+                app_commands.Choice(name="Disadvantage", value=DiceRollMode.Disadvantage.value),
+            ]
         )
         async def bulk_initiative(
             itr: Interaction,
             modifier: int,
             name: str,
             amount: app_commands.Range[int, 1],
+            roll_mode: DiceRollMode = DiceRollMode.Normal,
             shared: bool = False,
         ):
             log_cmd(itr)
             title, description = self.initiatives.add_bulk(
-                itr=itr, modifier=modifier, name=name, amount=amount, shared=shared
+                itr=itr, modifier=modifier, name=name, amount=amount, roll_mode=roll_mode, shared=shared
             )
             await itr.response.send_message(
                 embed=UserActionEmbed(itr=itr, title=title, description=description)

@@ -1,6 +1,7 @@
 import random
 import discord
 
+from dice import DiceRollMode
 from embeds import SimpleEmbed
 from rapidfuzz import fuzz
 from discord.app_commands import Choice
@@ -10,33 +11,45 @@ class Initiative:
     name: str
     d20: int
     modifier: int
+    roll_mode: DiceRollMode
     is_npc: bool
     owner: discord.User
 
     title: str
     description: str
 
-    def __init__(self, itr: discord.Interaction, modifier: int, name: str | None):
+    def __init__(self, itr: discord.Interaction, modifier: int, name: str | None, roll_mode: DiceRollMode):
         self.is_npc = name is not None
         self.name = name or itr.user.display_name
         self.name = self.name.title().strip()
-        self.d20 = random.randint(1, 20)
+        self.roll_mode = roll_mode
+        self._set_d20()
         self.modifier = modifier
         self.owner = itr.user
 
         self._set_title(True)
         self._set_description()
 
+    def _set_d20(self):
+        roll_1 = random.randint(1, 20)
+        roll_2 = random.randint(1, 20)
+
+        if self.roll_mode == DiceRollMode.Advantage:
+            self.d20 = max(roll_1, roll_2)
+        elif self.roll_mode == DiceRollMode.Disadvantage:
+            self.d20 = min(roll_1, roll_2)
+        else:
+            self.d20 = roll_1
+
     def _set_title(self, rolled: bool) -> str:
         action_text = "rolled" if rolled else "set"
+        title = f"{self.owner.display_name} {action_text} Initiative"
 
-        if self.is_npc:
-            self.title = (
-                f"{self.owner.display_name} {action_text} Initiative for {self.name}!"
-            )
-            return
+        title += f" for {self.name}" if self.is_npc else ''
+        title += " with Advantage" if self.roll_mode == DiceRollMode.Advantage else ''
+        title += " with Disadvantage" if self.roll_mode == DiceRollMode.Disadvantage else ''
 
-        self.title = f"{self.owner.display_name} {action_text} Initiative!"
+        self.title = f"{title.strip()}!"
 
     def _set_description(self):
         mod = self.modifier
@@ -231,14 +244,18 @@ class InitiativeTracker:
         modifier: int,
         name: str,
         amount: int,
+        roll_mode: DiceRollMode,
         shared: bool,
     ) -> tuple[str, str]:
         """Adds many initiatives to a server. Returns a title and description for the embed."""
-        title = f"{itr.user.display_name} rolled Initiative for {amount} {name.strip().title()}(s)!"
+        title = f"{itr.user.display_name} rolled Initiative for {amount} {name.strip().title()}(s)"
+        title += " with Advantage" if roll_mode == DiceRollMode.Advantage else ''
+        title += " with Disadvantage" if roll_mode == DiceRollMode.Disadvantage else ''
+        title += '!'
 
         initiatives = []
         for i in range(amount):
-            initiative = Initiative(itr, modifier, f"{name}")
+            initiative = Initiative(itr, modifier, f"{name}", roll_mode)
             if shared and i != 0:
                 initiative.d20 = initiatives[0].d20
             initiatives.append(initiative)

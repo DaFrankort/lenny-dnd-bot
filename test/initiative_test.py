@@ -1,4 +1,5 @@
 import pytest
+from dice import DiceRollMode
 from utils.mock_discord_interaction import MockInteraction, MockUser
 
 from initiative import Initiative, InitiativeTracker
@@ -8,7 +9,7 @@ class TestInitiative:
     @pytest.mark.parametrize("mod", [5, -5, 0])
     def test_init_no_target(self, mod: int):
         itr = MockInteraction()
-        initiative = Initiative(itr, mod, None)
+        initiative = Initiative(itr, mod, None, DiceRollMode.Normal)
 
         assert (
             initiative.modifier == mod
@@ -30,7 +31,7 @@ class TestInitiative:
     )
     def test_init_with_target(self, mod: int, target: str):
         itr = MockInteraction()
-        initiative = Initiative(itr, mod, target)
+        initiative = Initiative(itr, mod, target, DiceRollMode.Normal)
 
         assert (
             initiative.modifier == mod
@@ -47,7 +48,7 @@ class TestInitiative:
 
     def test_roll(self):
         itr = MockInteraction()
-        initiative = Initiative(itr, 0, None)
+        initiative = Initiative(itr, 0, None, DiceRollMode.Normal)
         for i in range(50):
             assert (
                 1 <= initiative.d20 <= 20
@@ -56,7 +57,7 @@ class TestInitiative:
     @pytest.mark.parametrize("mod", [5, -5, 0])
     def test_get_total(self, mod: int):
         itr = MockInteraction()
-        initiative = Initiative(itr, mod, None)
+        initiative = Initiative(itr, mod, None, DiceRollMode.Normal)
         expected = initiative.d20 + mod
         assert (
             initiative.get_total() == expected
@@ -72,7 +73,7 @@ class TestInitiative:
     )
     def test_set_initiative(self, val, expected_d20, expected_modifier):
         itr = MockInteraction()
-        initiative = Initiative(itr, 0, None)
+        initiative = Initiative(itr, 0, None, DiceRollMode.Normal)
         initiative.set_value(val)
         assert (
             initiative.d20 == expected_d20
@@ -93,11 +94,11 @@ class TestInitiativeTracker:
 
     @pytest.fixture
     def npc_initiative(self, itr):
-        return Initiative(itr, modifier=2, name="Goblin")
+        return Initiative(itr, modifier=2, name="Goblin", roll_mode=DiceRollMode.Normal)
 
     @pytest.fixture
     def pc_initiative(self, itr):
-        return Initiative(itr, modifier=1, name=None)
+        return Initiative(itr, modifier=1, name=None, roll_mode=DiceRollMode.Normal)
 
     def test_add_npc_initiative(self, tracker, itr, npc_initiative):
         tracker.add(itr, npc_initiative)
@@ -111,7 +112,7 @@ class TestInitiativeTracker:
     def test_add_pc_initiative_replaces_existing(self, tracker, itr, pc_initiative):
         tracker.add(itr, pc_initiative)
 
-        new_pc = Initiative(itr, modifier=5, name=None)
+        new_pc = Initiative(itr, modifier=5, name=None, roll_mode=DiceRollMode.Normal)
         new_pc.d20 = 20
         tracker.add(itr, new_pc)
 
@@ -135,8 +136,8 @@ class TestInitiativeTracker:
         itr1 = MockInteraction(guild_id=1)
         itr2 = MockInteraction(MockUser(456, "Bar"), guild_id=2)
 
-        initiative1 = Initiative(itr1, modifier=1, name="Goblin")
-        initiative2 = Initiative(itr2, modifier=3, name="Orc")
+        initiative1 = Initiative(itr1, modifier=1, name="Goblin", roll_mode=DiceRollMode.Normal)
+        initiative2 = Initiative(itr2, modifier=3, name="Orc", roll_mode=DiceRollMode.Normal)
 
         tracker.add(itr1, initiative1)
         tracker.add(itr2, initiative2)
@@ -156,7 +157,7 @@ class TestInitiativeTracker:
 
     def test_sorting_order(self, tracker, itr):
         for i in range(50):
-            initiative = Initiative(itr, 3, f"Goblin {i}")
+            initiative = Initiative(itr, 3, f"Goblin {i}", roll_mode=DiceRollMode.Normal)
             tracker.add(itr, initiative)
 
         sorted_initiatives = tracker.get(itr)
@@ -180,7 +181,7 @@ class TestInitiativeTracker:
     @pytest.mark.parametrize("name", [None, "NPC"])
     def test_names_are_unique(self, name, tracker, itr):
         def add_initiative():
-            initiative = Initiative(itr, 0, name)
+            initiative = Initiative(itr, 0, name, roll_mode=DiceRollMode.Normal)
             tracker.add(itr, initiative)
 
         add_initiative()
@@ -195,8 +196,8 @@ class TestInitiativeTracker:
         name_1, name_2 = "Goblin", "Orc"
         high, low = 20, 1
 
-        initiative_1 = Initiative(itr, 0, name_1)
-        initiative_2 = Initiative(itr, 0, name_2)
+        initiative_1 = Initiative(itr, 0, name_1, roll_mode=DiceRollMode.Normal)
+        initiative_2 = Initiative(itr, 0, name_2, roll_mode=DiceRollMode.Normal)
         initiative_1.d20 = high
         initiative_2.d20 = low
         tracker.add(itr, initiative_1)

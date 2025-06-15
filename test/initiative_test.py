@@ -48,11 +48,32 @@ class TestInitiative:
 
     def test_roll(self):
         itr = MockInteraction()
-        initiative = Initiative(itr, 0, None, DiceRollMode.Normal)
-        for i in range(50):
+        for _ in range(50):
+            initiative = Initiative(itr, 0, None, DiceRollMode.Normal)
             assert (
                 1 <= initiative.d20[0] <= 20
             ), f"Initiative d20 roll should be value between 1 or 20, was {initiative.d20[0]}"
+            assert (
+                1 <= initiative.d20[1] <= 20
+            ), f"Initiative d20 roll should be value between 1 or 20, was {initiative.d20[1]}"
+
+    def test_roll_advantage(self):
+        itr = MockInteraction()
+        initiative = Initiative(itr, 0, None, DiceRollMode.Advantage)
+        high = max(initiative.d20)
+
+        expected = high + initiative.modifier
+        total = initiative.get_total()
+        assert total == expected, f"Initiative Advantage result expected {expected}, was {total}"
+
+    def test_roll_disadvantage(self):
+        itr = MockInteraction()
+        initiative = Initiative(itr, 0, None, DiceRollMode.Disadvantage)
+        low = min(initiative.d20)
+
+        expected = low + initiative.modifier
+        total = initiative.get_total()
+        assert total == expected, f"Initiative Disadvantage result expected {expected}, was {total}"
 
     @pytest.mark.parametrize("mod", [5, -5, 0])
     def test_get_total(self, mod: int):

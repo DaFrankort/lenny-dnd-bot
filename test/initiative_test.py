@@ -64,7 +64,9 @@ class TestInitiative:
 
         expected = high + initiative.modifier
         total = initiative.get_total()
-        assert total == expected, f"Initiative Advantage result expected {expected}, was {total}"
+        assert (
+            total == expected
+        ), f"Initiative Advantage result expected {expected}, was {total}"
 
     def test_roll_disadvantage(self):
         itr = MockInteraction()
@@ -73,7 +75,9 @@ class TestInitiative:
 
         expected = low + initiative.modifier
         total = initiative.get_total()
-        assert total == expected, f"Initiative Disadvantage result expected {expected}, was {total}"
+        assert (
+            total == expected
+        ), f"Initiative Disadvantage result expected {expected}, was {total}"
 
     @pytest.mark.parametrize("mod", [5, -5, 0])
     def test_get_total(self, mod: int):

@@ -105,8 +105,8 @@ By default the user's color is automatically generated based on their display na
 
 Commands to help track initiatives for combat. Names are enforced to be unique and will overwrite each other if specified twice.
 
-- `/initiative <modifier> [target]` - Roll for initiative while keeping it in memory. Rolls for user by default.
-- `/bulkinitiative <modifier> <name> <amount> [shared]` - Adds creature initiatives in bulk, making it easy for a DM to add a group of creatures at once. These are numbered automatically for easy tracking.
+- `/initiative <modifier> [target] [roll_mode]` - Roll for initiative while keeping it in memory. Rolls for user by default. Can specify ``roll_mode`` to roll with advantage or disadvantage.
+- `/bulkinitiative <modifier> <name> <amount> [shared] [roll_mode]` - Adds creature initiatives in bulk, making it easy for a DM to add a group of creatures at once. These are numbered automatically for easy tracking.
 - `/setinitiative <value> [name]` - Set an initiative to a specific value, handy to rectify mistakes or if you want precise control over certain initiatives.
 - `/swapinitiative <target a> <target b>` - Swap initiative between two users or creatures, handy for users with the Alert feat.
 - `/removeinitiative [target]` - Remove a single user or creature from the initiative tracker. Removes user's initiative by default.

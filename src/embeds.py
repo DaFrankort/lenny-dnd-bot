@@ -265,9 +265,10 @@ class CreatureEmbed(_DNDObjectEmbed):
         if creature.summoned_by_spell:
             self.add_field(name="Summoned by:", value=creature.summoned_by_spell)
 
-        self.add_description_fields(
-            creature.description, ignore_tables=True, MAX_FIELDS=3
-        )
+        if creature.description:
+            self.add_description_fields(
+                creature.description, ignore_tables=True, MAX_FIELDS=3
+            )
 
 
 class RuleEmbed(_DNDObjectEmbed):

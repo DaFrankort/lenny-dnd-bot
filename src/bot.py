@@ -113,6 +113,26 @@ class Bot(discord.Client):
             else:
                 await itr.response.send_message(embed=found[0].get_embed())
 
+        RollModeChoices = [
+            app_commands.Choice(name="Normal", value=DiceRollMode.Normal.value),
+            app_commands.Choice(name="Advantage", value=DiceRollMode.Advantage.value),
+            app_commands.Choice(
+                name="Disadvantage", value=DiceRollMode.Disadvantage.value
+            ),
+        ]
+
+        HorAlignmentChoices = [
+            app_commands.Choice(name="Left", value=AlignH.LEFT.value),
+            app_commands.Choice(name="Center", value=AlignH.CENTER.value),
+            app_commands.Choice(name="Right", value=AlignH.RIGHT.value),
+        ]
+
+        VerAlignmentChoices = [
+            app_commands.Choice(name="Top", value=AlignV.TOP.value),
+            app_commands.Choice(name="Center", value=AlignV.CENTER.value),
+            app_commands.Choice(name="Bottom", value=AlignV.BOTTOM.value),
+        ]
+
         #
         # COMMANDS
         #
@@ -385,16 +405,7 @@ class Bot(discord.Client):
             v_alignment="Vertical alignment for the token image.",
         )
         @app_commands.choices(
-            h_alignment=[
-                app_commands.Choice(name="Left", value=AlignH.LEFT.value),
-                app_commands.Choice(name="Center", value=AlignH.CENTER.value),
-                app_commands.Choice(name="Right", value=AlignH.RIGHT.value),
-            ],
-            v_alignment=[
-                app_commands.Choice(name="Top", value=AlignV.TOP.value),
-                app_commands.Choice(name="Center", value=AlignV.CENTER.value),
-                app_commands.Choice(name="Bottom", value=AlignV.BOTTOM.value),
-            ],
+            h_alignment=HorAlignmentChoices, v_alignment=VerAlignmentChoices
         )
         async def generate_token(
             itr: Interaction,
@@ -440,16 +451,7 @@ class Bot(discord.Client):
             v_alignment="Vertical alignment for the token image.",
         )
         @app_commands.choices(
-            h_alignment=[
-                app_commands.Choice(name="Left", value=AlignH.LEFT.value),
-                app_commands.Choice(name="Center", value=AlignH.CENTER.value),
-                app_commands.Choice(name="Right", value=AlignH.RIGHT.value),
-            ],
-            v_alignment=[
-                app_commands.Choice(name="Top", value=AlignV.TOP.value),
-                app_commands.Choice(name="Center", value=AlignV.CENTER.value),
-                app_commands.Choice(name="Bottom", value=AlignV.BOTTOM.value),
-            ],
+            h_alignment=HorAlignmentChoices, v_alignment=VerAlignmentChoices
         )
         async def generate_token_from_url(
             itr: Interaction,
@@ -492,17 +494,7 @@ class Bot(discord.Client):
             name="The unique name of the creature you're rolling initiative for (leave blank to roll for yourself).",
             roll_mode="Choose if to roll for initiative with disadvantage or advantage.",
         )
-        @app_commands.choices(
-            roll_mode=[
-                app_commands.Choice(name="Normal", value=DiceRollMode.Normal.value),
-                app_commands.Choice(
-                    name="Advantage", value=DiceRollMode.Advantage.value
-                ),
-                app_commands.Choice(
-                    name="Disadvantage", value=DiceRollMode.Disadvantage.value
-                ),
-            ]
-        )
+        @app_commands.choices(roll_mode=RollModeChoices)
         async def initiative(
             itr: Interaction,
             modifier: int,
@@ -555,17 +547,7 @@ class Bot(discord.Client):
             roll_mode="Choose if to roll for initiative with disadvantage or advantage.",
             shared="Use the same initiative value for all creatures?",
         )
-        @app_commands.choices(
-            roll_mode=[
-                app_commands.Choice(name="Normal", value=DiceRollMode.Normal.value),
-                app_commands.Choice(
-                    name="Advantage", value=DiceRollMode.Advantage.value
-                ),
-                app_commands.Choice(
-                    name="Disadvantage", value=DiceRollMode.Disadvantage.value
-                ),
-            ]
-        )
+        @app_commands.choices(roll_mode=RollModeChoices)
         async def bulk_initiative(
             itr: Interaction,
             modifier: int,

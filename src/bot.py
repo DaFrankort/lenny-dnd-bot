@@ -405,7 +405,8 @@ class Bot(discord.Client):
             v_alignment="Vertical alignment for the token image.",
         )
         @app_commands.choices(
-            h_alignment=TokenGenHorAlignmentChoices, v_alignment=TokenGenVerAlignmentChoices
+            h_alignment=TokenGenHorAlignmentChoices,
+            v_alignment=TokenGenVerAlignmentChoices,
         )
         async def generate_token(
             itr: Interaction,
@@ -451,7 +452,8 @@ class Bot(discord.Client):
             v_alignment="Vertical alignment for the token image.",
         )
         @app_commands.choices(
-            h_alignment=TokenGenHorAlignmentChoices, v_alignment=TokenGenVerAlignmentChoices
+            h_alignment=TokenGenHorAlignmentChoices,
+            v_alignment=TokenGenVerAlignmentChoices,
         )
         async def generate_token_from_url(
             itr: Interaction,

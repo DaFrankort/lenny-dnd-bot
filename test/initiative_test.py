@@ -51,14 +51,14 @@ class TestInitiative:
         initiative = Initiative(itr, 0, None, DiceRollMode.Normal)
         for i in range(50):
             assert (
-                1 <= initiative.d20 <= 20
-            ), f"Initiative d20 roll should be value between 1 or 20, was {initiative.d20}"
+                1 <= initiative.d20[0] <= 20
+            ), f"Initiative d20 roll should be value between 1 or 20, was {initiative.d20[0]}"
 
     @pytest.mark.parametrize("mod", [5, -5, 0])
     def test_get_total(self, mod: int):
         itr = MockInteraction()
         initiative = Initiative(itr, mod, None, DiceRollMode.Normal)
-        expected = initiative.d20 + mod
+        expected = initiative.d20[0] + mod
         assert (
             initiative.get_total() == expected
         ), "Initiative total should equal random d20 value + modifier."
@@ -75,9 +75,10 @@ class TestInitiative:
         itr = MockInteraction()
         initiative = Initiative(itr, 0, None, DiceRollMode.Normal)
         initiative.set_value(val)
-        assert (
-            initiative.d20 == expected_d20
-        ), f"Expected d20={expected_d20}, got {initiative.d20}"
+        assert initiative.d20 == (
+            expected_d20,
+            expected_d20,
+        ), f"Expected d20={expected_d20}, got {initiative.d20[0]}"
         assert (
             initiative.modifier == expected_modifier
         ), f"Expected modifier={expected_modifier}, got {initiative.modifier}"
@@ -113,7 +114,7 @@ class TestInitiativeTracker:
         tracker.add(itr, pc_initiative)
 
         new_pc = Initiative(itr, modifier=5, name=None, roll_mode=DiceRollMode.Normal)
-        new_pc.d20 = 20
+        new_pc.d20 = (20, 20)
         tracker.add(itr, new_pc)
 
         result = tracker.get(itr)
@@ -121,7 +122,7 @@ class TestInitiativeTracker:
             len(result) == 1
         ), f"Expected 1 initiative after replacement, got {len(result)}"
         assert result[0].modifier == 5, f"Expected modifier 5, got {result[0].modifier}"
-        assert result[0].d20 == 20, f"Expected d20 value 20, got {result[0].d20}"
+        assert result[0].d20[0] == 20, f"Expected d20 value 20, got {result[0].d20[0]}"
 
     def test_clear_initiatives(self, tracker, itr, npc_initiative):
         tracker.add(itr, npc_initiative)
@@ -204,8 +205,8 @@ class TestInitiativeTracker:
 
         initiative_1 = Initiative(itr, 0, name_1, roll_mode=DiceRollMode.Normal)
         initiative_2 = Initiative(itr, 0, name_2, roll_mode=DiceRollMode.Normal)
-        initiative_1.d20 = high
-        initiative_2.d20 = low
+        initiative_1.d20 = (high, high)
+        initiative_2.d20 = (low, low)
         tracker.add(itr, initiative_1)
         tracker.add(itr, initiative_2)
 

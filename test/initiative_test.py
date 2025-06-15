@@ -136,8 +136,12 @@ class TestInitiativeTracker:
         itr1 = MockInteraction(guild_id=1)
         itr2 = MockInteraction(MockUser(456, "Bar"), guild_id=2)
 
-        initiative1 = Initiative(itr1, modifier=1, name="Goblin", roll_mode=DiceRollMode.Normal)
-        initiative2 = Initiative(itr2, modifier=3, name="Orc", roll_mode=DiceRollMode.Normal)
+        initiative1 = Initiative(
+            itr1, modifier=1, name="Goblin", roll_mode=DiceRollMode.Normal
+        )
+        initiative2 = Initiative(
+            itr2, modifier=3, name="Orc", roll_mode=DiceRollMode.Normal
+        )
 
         tracker.add(itr1, initiative1)
         tracker.add(itr2, initiative2)
@@ -157,7 +161,9 @@ class TestInitiativeTracker:
 
     def test_sorting_order(self, tracker, itr):
         for i in range(50):
-            initiative = Initiative(itr, 3, f"Goblin {i}", roll_mode=DiceRollMode.Normal)
+            initiative = Initiative(
+                itr, 3, f"Goblin {i}", roll_mode=DiceRollMode.Normal
+            )
             tracker.add(itr, initiative)
 
         sorted_initiatives = tracker.get(itr)

@@ -18,7 +18,13 @@ class Initiative:
     title: str
     description: str
 
-    def __init__(self, itr: discord.Interaction, modifier: int, name: str | None, roll_mode: DiceRollMode):
+    def __init__(
+        self,
+        itr: discord.Interaction,
+        modifier: int,
+        name: str | None,
+        roll_mode: DiceRollMode,
+    ):
         self.is_npc = name is not None
         self.name = name or itr.user.display_name
         self.name = self.name.title().strip()
@@ -45,9 +51,11 @@ class Initiative:
         action_text = "rolled" if rolled else "set"
         title = f"{self.owner.display_name} {action_text} Initiative"
 
-        title += f" for {self.name}" if self.is_npc else ''
-        title += " with Advantage" if self.roll_mode == DiceRollMode.Advantage else ''
-        title += " with Disadvantage" if self.roll_mode == DiceRollMode.Disadvantage else ''
+        title += f" for {self.name}" if self.is_npc else ""
+        title += " with Advantage" if self.roll_mode == DiceRollMode.Advantage else ""
+        title += (
+            " with Disadvantage" if self.roll_mode == DiceRollMode.Disadvantage else ""
+        )
 
         self.title = f"{title.strip()}!"
 
@@ -249,9 +257,9 @@ class InitiativeTracker:
     ) -> tuple[str, str]:
         """Adds many initiatives to a server. Returns a title and description for the embed."""
         title = f"{itr.user.display_name} rolled Initiative for {amount} {name.strip().title()}(s)"
-        title += " with Advantage" if roll_mode == DiceRollMode.Advantage else ''
-        title += " with Disadvantage" if roll_mode == DiceRollMode.Disadvantage else ''
-        title += '!'
+        title += " with Advantage" if roll_mode == DiceRollMode.Advantage else ""
+        title += " with Disadvantage" if roll_mode == DiceRollMode.Disadvantage else ""
+        title += "!"
 
         initiatives = []
         for i in range(amount):

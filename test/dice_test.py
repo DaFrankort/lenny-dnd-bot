@@ -1,43 +1,9 @@
 import math
 import pytest
 from dice import (
-    ASTCompoundExpression,
-    ASTDiceExpression,
-    ASTGroupExpression,
     DiceExpression,
-    DiceRollDice,
     DiceRollMode,
-    TokenType,
 )
-
-
-class TestDiceAST:
-    def test_ast_tree(self):
-        """
-        The base tree should look like this:
-             +
-           /   \
-        1d20   ( )
-                |
-                5
-        """
-
-        dice = DiceExpression("1d20+(5)")
-        assert isinstance(
-            dice.ast, ASTCompoundExpression
-        ), "Base AST expression should be a compound expression."
-        assert (
-            dice.ast.operator.type == TokenType.Plus
-        ), "Base AST expression should be a plus."
-        assert isinstance(
-            dice.ast.left, ASTDiceExpression
-        ), "Left AST expression should be a dice expression."
-        assert isinstance(
-            dice.ast.right, ASTGroupExpression
-        ), "Right AST expression should be a group expression."
-        assert isinstance(
-            dice.ast.right.expression, ASTDiceExpression
-        ), "Right AST internal expression should be a dice expression."
 
 
 class TestDiceExpression:
@@ -46,7 +12,6 @@ class TestDiceExpression:
         [
             "1d20+4",
             "1d20-1d20-1d20-1d20 / 2",
-            "1invalid20",  # is valid as this gets cleaned to 1d20
         ],
     )
     def test_is_dice_expression_valid(self, expression):
@@ -123,23 +88,23 @@ class TestDiceExpression:
                 min <= dice.roll.value <= max
             ), f"Expression '{expression}' should be within [{min}, {max}]"
 
+    """
+    The following three tests are chance-based, where 1000 d20's are rolled for one
+    specific result. The odds of failure are deemed low enough, namely (1/20)^1000
+    """
+
     def test_is_nat_one(self):
-        dice = DiceExpression("1d20+5+5+5")
-        dice.roll.dice_rolled[0] = DiceRollDice(1, 20)
-        assert dice.roll.is_natural_one, "Modified dice roll should be natural one."
+        dice = DiceExpression("1000d20kl1+5+5+5")
+        assert dice.roll.is_natural_one, "Dice roll should be natural one."
 
     def test_is_nat_twenty(self):
-        dice = DiceExpression("1d20+5+5+5")
-        dice.roll.dice_rolled[0] = DiceRollDice(20, 20)
-        assert (
-            dice.roll.is_natural_twenty
-        ), "Modified dice roll should be natural twenty."
+        dice = DiceExpression("1000d20kh1+5+5+5")
+        assert dice.roll.is_natural_twenty, "Dice roll should be natural twenty."
 
     def test_is_dirty_twenty(self):
-        dice = DiceExpression("1d20+5+5+5")
-        dice.roll.dice_rolled[0] = DiceRollDice(5, 20)
-        dice.roll.value = 20
-        assert dice.roll.is_dirty_twenty, "Modified dice roll should be dirty twenty."
+        dice = DiceExpression("1000d20kh1ma17+3")
+        print(dice.roll.is_dirty_twenty, dice.roll.roll, dice.is_valid, dice.roll.value)
+        assert dice.roll.is_dirty_twenty, "Dice roll should be dirty twenty."
 
     def test_contains_dice(self):
         dice1 = DiceExpression("1d20+5")

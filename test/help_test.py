@@ -40,7 +40,7 @@ class TestHelp:
             for line in field._descriptions:
                 prefix = "- ``/"
                 if line.startswith(prefix):
-                    cmd_name = line[len(prefix) :].split("``")[0]
+                    cmd_name = line[len(prefix):].split("``")[0]
                     mentioned_commands.append(cmd_name)
 
         for cmd_name in command_names:

@@ -32,11 +32,10 @@ def _get_default_help_inline_fields() -> list[FieldInfo]:
         FieldInfo(
             name=HelpTabs.Roll.value,
             description=[
-                "- ``/roll``"
-                "- ``/advantage``",
+                "- ``/roll``" "- ``/advantage``",
                 "- ``/disadvantage``",
                 "- ``/d20``",
-            ]
+            ],
         ),
         FieldInfo(
             name=HelpTabs.Initiative.value,
@@ -48,7 +47,7 @@ def _get_default_help_inline_fields() -> list[FieldInfo]:
                 "- ``/removeinitiative``",
                 "- ``/showinitiative``",
                 "- ``/clearinitiative``",
-            ]
+            ],
         ),
         FieldInfo(
             name=HelpTabs.DND.value,
@@ -60,27 +59,27 @@ def _get_default_help_inline_fields() -> list[FieldInfo]:
                 "- ``/rule``",
                 "- ``/action``",
                 "- ``/search``",
-            ]
+            ],
         ),
         FieldInfo(
             name=HelpTabs.TokenGen.value,
             description=[
                 "- ``/tokengen``",
                 "- ``/tokengenurl``",
-            ]
+            ],
         ),
         FieldInfo(
             name=HelpTabs.Color.value,
             description=[
                 "- ``/color``",
-            ]
+            ],
         ),
         FieldInfo(
             name=HelpTabs.Stats.value,
             description=[
                 "- ``/stats``",
-            ]
-        )
+            ],
+        ),
     ]
 
     return sorted(fields, key=lambda f: len(f._descriptions), reverse=True)
@@ -203,7 +202,7 @@ def _get_help_fields(tab: HelpTabs) -> tuple[str, FieldInfo]:
                     name="",
                     description=[
                         "You can easily generate stats for your character using the following command:",
-                        "- ``/stats`` - Rolls 6 dice using the 4d6 drop lowest method, providing you with 6 distint values to use for your new character."
+                        "- ``/stats`` - Rolls 6 dice using the 4d6 drop lowest method, providing you with 6 distint values to use for your new character.",
                     ],
                 )
             ]

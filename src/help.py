@@ -1,7 +1,6 @@
 from enum import Enum
 
 from embeds import SimpleEmbed
-from discord import app_commands
 
 
 class HelpTabs(Enum):
@@ -24,9 +23,70 @@ class FieldInfo:
         return "\n".join(self._descriptions)
 
 
-def _get_help_fields(
-    tab: HelpTabs, command_tree: app_commands.CommandTree
-) -> tuple[str, FieldInfo]:
+def _get_default_help_inline_fields() -> list[FieldInfo]:
+    """
+    Returns a list of FieldInfo with each command per category, to be rendered with inline = True.
+    This is only displayed on the general help tab.
+    """
+    fields = [
+        FieldInfo(
+            name=HelpTabs.Roll.value,
+            description=[
+                "- ``/roll``"
+                "- ``/advantage``",
+                "- ``/disadvantage``",
+                "- ``/d20``",
+            ]
+        ),
+        FieldInfo(
+            name=HelpTabs.Initiative.value,
+            description=[
+                "- ``/initiative``",
+                "- ``/bulkinitiative``",
+                "- ``/setinitiative``",
+                "- ``/swapinitiative``",
+                "- ``/removeinitiative``",
+                "- ``/showinitiative``",
+                "- ``/clearinitiative``",
+            ]
+        ),
+        FieldInfo(
+            name=HelpTabs.DND.value,
+            description=[
+                "- ``/spell``",
+                "- ``/item``",
+                "- ``/condition``",
+                "- ``/creature``",
+                "- ``/rule``",
+                "- ``/action``",
+                "- ``/search``",
+            ]
+        ),
+        FieldInfo(
+            name=HelpTabs.TokenGen.value,
+            description=[
+                "- ``/tokengen``",
+                "- ``/tokengenurl``",
+            ]
+        ),
+        FieldInfo(
+            name=HelpTabs.Color.value,
+            description=[
+                "- ``/color``",
+            ]
+        ),
+        FieldInfo(
+            name=HelpTabs.Stats.value,
+            description=[
+                "- ``/stats``",
+            ]
+        )
+    ]
+
+    return sorted(fields, key=lambda f: len(f._descriptions), reverse=True)
+
+
+def _get_help_fields(tab: HelpTabs) -> tuple[str, FieldInfo]:
     """Returns the help text for a specific tab, to be rendered with inline = False."""
     match tab:
         case HelpTabs.Roll:
@@ -148,41 +208,33 @@ def _get_help_fields(
                 )
             ]
         case _:
-            commands = []
-            for command in command_tree.get_commands():
-                text = f"- ``/{command.name}``"
-                commands.append(text)
-
             return "General", [
                 FieldInfo(
-                    name="Commands",
+                    name="",
                     description=[
-                        "This bot provides a lot of handy commands to help you with your Dungeons & Dragons 5th Edition games.",
-                        "\n".join(commands),
-                    ],
-                ),
-                FieldInfo(
-                    name="Help Tabs",
-                    description=[
-                        "You can view more detailed information regarding command-groups by using ``/help <tab>``.",
-                        "The following tabs are available:",
+                        "You can view more detailed information regarding command-groups by using ``/help <tab>``. The following tabs are available:",
                         "\n".join([f"- ``{tab.value}``" for tab in HelpTabs]),
                     ],
                 ),
             ]
 
 
-def get_help_embed(
-    tab: HelpTabs, command_tree: app_commands.CommandTree
-) -> SimpleEmbed:
+def get_help_embed(tab: HelpTabs) -> SimpleEmbed:
     """Generates a help embed depending on the selected tab."""
-    title, field_info = _get_help_fields(tab, command_tree)
+    title, field_info = _get_help_fields(tab)
 
     embed = SimpleEmbed(
         title=f"Help - {title}",
         description="",
     )
-    for info in field_info:
-        embed.add_field(name=info.name, value=info.description, inline=False)
+
+    if tab == HelpTabs.Default:
+        embed.description = "This bot provides a wide range of handy 5th edition Dungeon & Dragons commands, to help you with your games."
+        for info in _get_default_help_inline_fields():
+            embed.add_field(name=info.name, value=info.description, inline=True)
+
+    else:
+        for info in field_info:
+            embed.add_field(name=info.name, value=info.description, inline=False)
 
     return embed

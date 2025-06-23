@@ -145,8 +145,7 @@ class Bot(discord.Client):
         @app_commands.choices(tab=HelpTabsChoices)
         async def help_command(itr: Interaction, tab: str = HelpTabs.Default.name):
             log_cmd(itr)
-            help_tab = HelpTabs[tab]
-            embed = get_help_embed(help_tab, self.tree)
+            embed = get_help_embed(HelpTabs[tab])
             await itr.response.send_message(embed=embed, ephemeral=True)
 
         @self.tree.command(name="roll", description="Roll your d20s!")

@@ -90,6 +90,7 @@ class LocalisationBank:
 class LocalisationTemplate:
     def __init__(self):
         from help import HelpTabs
+
         self.json = {
             "help": {
                 "default_tab_text": "#TODO This bot provides a wide range of handy 5th edition Dungeon & Dragons commands, to help you with your games.",
@@ -100,7 +101,8 @@ class LocalisationTemplate:
                             "description": ["#TODO"],
                         }
                     ]
-                    for tab in HelpTabs if tab != HelpTabs.Default
+                    for tab in HelpTabs
+                    if tab != HelpTabs.Default
                 },
             }
         }

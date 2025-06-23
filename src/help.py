@@ -32,7 +32,8 @@ def _get_default_help_inline_fields() -> list[FieldInfo]:
         FieldInfo(
             name=HelpTabs.Roll.value,
             description=[
-                "- ``/roll``" "- ``/advantage``",
+                "- ``/roll``",
+                "- ``/advantage``",
                 "- ``/disadvantage``",
                 "- ``/d20``",
             ],
@@ -56,6 +57,7 @@ def _get_default_help_inline_fields() -> list[FieldInfo]:
                 "- ``/item``",
                 "- ``/condition``",
                 "- ``/creature``",
+                "- ``/feat``",
                 "- ``/rule``",
                 "- ``/action``",
                 "- ``/search``",

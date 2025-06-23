@@ -171,6 +171,7 @@ def _get_help_fields(tab: HelpTabs) -> tuple[str, FieldInfo]:
                         "- ``/item <item-name>`` - Look up an item by name.",
                         "- ``/condition <condition-name>`` - Looks up a condition/ailment by name.",
                         "- ``/creature <creature-name>`` - Looks up a creature by name.",
+                        "- ``/feat <feat-name>`` - Looks up a feat by name.",
                         "- ``/rule <rule-name>`` - Looks up a rule by name.",
                         "- ``/action <action-name>`` - Looks up an action by name.",
                         "- ``/search <query>`` - Searches for matching results across all categories.",

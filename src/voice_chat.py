@@ -151,7 +151,7 @@ class VC:
 
 
 class Sounds:
-    BASE_PATH = Path("./sounds/")
+    BASE_PATH = Path("./assets/sounds/")
 
     @staticmethod
     def _get_options(sound_type: SoundType) -> str:

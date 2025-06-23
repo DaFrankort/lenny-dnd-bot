@@ -8,7 +8,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 
-TOKEN_FRAME = Image.open("./img/token_border.png").convert("RGBA")
+TOKEN_FRAME = Image.open("./assets/img/token_border.png").convert("RGBA")
 
 
 class AlignH(Enum):

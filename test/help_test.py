@@ -39,8 +39,9 @@ class TestHelp:
         for field in inline_fields:
             for line in field._descriptions:
                 prefix = "- ``/"
+                prefix_length = len(prefix)
                 if line.startswith(prefix):
-                    cmd_name = line[len(prefix):].split("``")[0]
+                    cmd_name = line[prefix_length:].split("``")[0]
                     mentioned_commands.append(cmd_name)
 
         for cmd_name in command_names:

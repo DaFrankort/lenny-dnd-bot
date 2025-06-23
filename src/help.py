@@ -235,10 +235,10 @@ def _get_help_fields(tab: HelpTabs) -> tuple[str, FieldInfo]:
 
 class HelpTabSelect(discord.ui.Select):
     """A select menu to choose a help tab."""
+
     def __init__(self):
         options = [
-            discord.SelectOption(label=tab.value, value=tab.name)
-            for tab in HelpTabs
+            discord.SelectOption(label=tab.value, value=tab.name) for tab in HelpTabs
         ]
         super().__init__(placeholder="Select a help tab", options=options)
 

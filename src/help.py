@@ -90,7 +90,9 @@ def _get_default_help_inline_fields() -> list[FieldInfo]:
     ]
 
     for field in fields:
-        field._descriptions = [_format_description_point(d) for d in field._descriptions if d]
+        field._descriptions = [
+            _format_description_point(d) for d in field._descriptions if d
+        ]
 
     return sorted(fields, key=lambda f: len(f._descriptions), reverse=True)
 

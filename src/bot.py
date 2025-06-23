@@ -52,7 +52,8 @@ class Bot(discord.Client):
 
         self.tree = app_commands.CommandTree(self)
         self.token = os.getenv("DISCORD_BOT_TOKEN")
-        self.guild_id = int(os.getenv("GUILD_ID"))
+        guild_id = os.getenv("GUILD_ID")
+        self.guild_id = int(guild_id) if guild_id else None
 
         self.data = DNDData()
         self.initiatives = InitiativeTracker()

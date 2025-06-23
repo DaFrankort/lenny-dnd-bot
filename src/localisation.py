@@ -87,32 +87,20 @@ class LocalisationBank:
         return result
 
 
-class _HelpTemplate:
-    def __init__(self):
-        self.default_text = "#TODO This bot provides a wide range of handy 5th edition Dungeon & Dragons commands, to help you with your games."
-        self.fields = self.get_fields()
-
-    def get_fields(self):
-        from help import HelpTabs
-
-        fields = {}
-        for tab in HelpTabs:
-            if tab == HelpTabs.Default:
-                continue  # Default has special formatting
-
-            fields[tab.name] = [
-                {
-                    "name": "#TODO",
-                    "description": ["#TODO"],
-                }
-            ]
-
-        return fields
-
-    def to_dict(self):
-        return {"default_tab_text": self.default_text, "tab_fields": self.fields}
-
-
 class LocalisationTemplate:
     def __init__(self):
-        self.json = {"help": _HelpTemplate().to_dict()}
+        from help import HelpTabs
+        self.json = {
+            "help": {
+                "default_tab_text": "#TODO This bot provides a wide range of handy 5th edition Dungeon & Dragons commands, to help you with your games.",
+                "tab_fields": {
+                    tab.name: [
+                        {
+                            "name": "#TODO",
+                            "description": ["#TODO"],
+                        }
+                    ]
+                    for tab in HelpTabs if tab != HelpTabs.Default
+                },
+            }
+        }

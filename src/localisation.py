@@ -102,8 +102,8 @@ class _HelpTemplate:
 
             fields[tab.name] = [
                 {
-                    "name": "#TODO Subtitle",
-                    "description": ["#TODO Field Description"],
+                    "name": "#TODO",
+                    "description": ["#TODO"],
                 }
             ]
 

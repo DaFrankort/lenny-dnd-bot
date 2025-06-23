@@ -3,6 +3,7 @@ from enum import Enum
 import discord
 
 from embeds import SimpleEmbed
+from localisation import FieldInfo, LocalisationBank
 
 
 class HelpTabs(Enum):
@@ -13,16 +14,6 @@ class HelpTabs(Enum):
     TokenGen = "Token Generation"
     Color = "User Color"
     Stats = "Character Stats"
-
-
-class FieldInfo:
-    def __init__(self, name: HelpTabs, description: list[str]):
-        self.name = name
-        self._descriptions = description
-
-    @property
-    def description(self) -> str:
-        return "\n".join(self._descriptions)
 
 
 def _format_command_list_item(description: str) -> str:
@@ -259,19 +250,18 @@ class HelpTabView(discord.ui.View):
 
 def get_help_embed(tab: HelpTabs) -> SimpleEmbed:
     """Generates a help embed depending on the selected tab."""
-    title, field_info = _get_help_fields(tab)
-
     embed = SimpleEmbed(
-        title=f"Help - {title}",
+        title=f"Help - {tab.value}",
         description="",
     )
 
     if tab == HelpTabs.Default:
-        embed.description = "This bot provides a wide range of handy 5th edition Dungeon & Dragons commands, to help you with your games."
+        embed.description = LocalisationBank.get_default_help_text()
         for info in _get_default_help_inline_fields():
             embed.add_field(name=info.name, value=info.description, inline=True)
 
     else:
+        field_info = LocalisationBank.get_help_info(tab.name)
         for info in field_info:
             embed.add_field(name=info.name, value=info.description, inline=False)
 

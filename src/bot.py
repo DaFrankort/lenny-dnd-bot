@@ -20,6 +20,7 @@ from initiative import (
     InitiativeTracker,
     InitiativeTrackerEmbed,
 )
+from localisation import LocalisationBank, init_localisation
 from search import SearchEmbed, search_from_query
 from stats import Stats
 from token_gen import (
@@ -72,6 +73,8 @@ class Bot(discord.Client):
         await self.tree.sync()
         Sounds.init_folders()
         VC.check_ffmpeg()
+        init_localisation()
+        LocalisationBank.load()
         logging.info("Finished initialization")
 
     async def _attempt_sync_guild(self):

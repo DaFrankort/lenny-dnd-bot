@@ -46,7 +46,9 @@ class LocalisationBank:
         for language in LANGUAGES:
             path = f"{BASE_PATH}/{language}.json"
             if not os.path.exists(path):
-                logging.warning(f"Localisation file for {language} does not exist at {path}.")
+                logging.warning(
+                    f"Localisation file for {language} does not exist at {path}."
+                )
                 continue
 
             with open(path, "r", encoding="utf-8") as file:
@@ -66,8 +68,12 @@ class LocalisationBank:
         return cls._get_help_data(language).get("default_tab_text", "UNDEFINED")
 
     @classmethod
-    def get_help_info(cls, tab_name: str, language: str = LANGUAGES[0]) -> list[FieldInfo]:
-        field_info = cls._get_help_data(language).get("tab_fields", {}).get(tab_name, None)
+    def get_help_info(
+        cls, tab_name: str, language: str = LANGUAGES[0]
+    ) -> list[FieldInfo]:
+        field_info = (
+            cls._get_help_data(language).get("tab_fields", {}).get(tab_name, None)
+        )
         if field_info is None:
             return [FieldInfo("UNDEFINED", ["UNDEFINED"])]
 
@@ -81,7 +87,7 @@ class LocalisationBank:
         return result
 
 
-class _HelpTemplate():
+class _HelpTemplate:
     def __init__(self):
         self.default_text = "#TODO This bot provides a wide range of handy 5th edition Dungeon & Dragons commands, to help you with your games."
         self.fields = self.get_fields()
@@ -95,23 +101,18 @@ class _HelpTemplate():
                 continue  # Default has special formatting
 
             fields[tab.name] = [
-                    {
-                        "name": "#TODO Subtitle",
-                        "description": ["#TODO Field Description"],
-                    }
-                ]
+                {
+                    "name": "#TODO Subtitle",
+                    "description": ["#TODO Field Description"],
+                }
+            ]
 
         return fields
 
     def to_dict(self):
-        return {
-            "default_tab_text": self.default_text,
-            "tab_fields": self.fields
-        }
+        return {"default_tab_text": self.default_text, "tab_fields": self.fields}
 
 
 class LocalisationTemplate:
     def __init__(self):
-        self.json = {
-            "help": _HelpTemplate().to_dict()
-        }
+        self.json = {"help": _HelpTemplate().to_dict()}

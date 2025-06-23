@@ -16,8 +16,12 @@ class TestHelp:
 
             title, fields = _get_help_fields(tab)
 
-            assert title != default_title, f"Title for HelpTab `{tab.name}` should not resolve to default title."
-            assert fields != default_fields, f"Fields for HelpTab `{tab.name}` should not resolve to default fields."
+            assert (
+                title != default_title
+            ), f"Title for HelpTab `{tab.name}` should not resolve to default title."
+            assert (
+                fields != default_fields
+            ), f"Fields for HelpTab `{tab.name}` should not resolve to default fields."
 
     def test_all_commands_mentioned(self):
         """
@@ -28,14 +32,18 @@ class TestHelp:
 
         command_names = [cmd.name for cmd in bot.tree.get_commands()]
         inline_fields = _get_default_help_inline_fields()
-        mentioned_commands = ['help']  # Help is not mentioned in inline fields by design.
+        mentioned_commands = [
+            "help"
+        ]  # Help is not mentioned in inline fields by design.
 
         for field in inline_fields:
             for line in field._descriptions:
                 prefix = "- ``/"
                 if line.startswith(prefix):
-                    cmd_name = line[len(prefix):].split("``")[0]
+                    cmd_name = line[len(prefix) :].split("``")[0]
                     mentioned_commands.append(cmd_name)
 
         for cmd_name in command_names:
-            assert cmd_name in mentioned_commands, f"Command '/{cmd_name}' not mentioned in general /help tab."
+            assert (
+                cmd_name in mentioned_commands
+            ), f"Command '/{cmd_name}' not mentioned in general /help tab."

@@ -1,5 +1,7 @@
 from enum import Enum
 
+import discord
+
 from embeds import SimpleEmbed
 
 
@@ -228,6 +230,30 @@ def _get_help_fields(tab: HelpTabs) -> tuple[str, FieldInfo]:
                     ],
                 ),
             ]
+
+
+class HelpTabSelect(discord.ui.Select):
+    """A select menu to choose a help tab."""
+    def __init__(self):
+        options = [
+            discord.SelectOption(label=tab.value, value=tab.name)
+            for tab in HelpTabs
+        ]
+        super().__init__(placeholder="Select a help tab", options=options)
+
+    async def callback(self, interaction: discord.Interaction):
+        """Updates the help embed based on the selected tab."""
+        selected_tab = HelpTabs[self.values[0]]
+        embed = get_help_embed(selected_tab)
+        await interaction.response.edit_message(embed=embed)
+
+
+class HelpTabView(discord.ui.View):
+    """A view that contains the help tab select menu."""
+
+    def __init__(self):
+        super().__init__()
+        self.add_item(HelpTabSelect())
 
 
 def get_help_embed(tab: HelpTabs) -> SimpleEmbed:

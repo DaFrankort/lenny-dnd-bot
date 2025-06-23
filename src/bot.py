@@ -14,6 +14,7 @@ from embeds import (
     SuccessEmbed,
     UserActionEmbed,
 )
+from help import HelpTabs, get_help_embed
 from initiative import (
     Initiative,
     InitiativeTracker,
@@ -133,9 +134,20 @@ class Bot(discord.Client):
             app_commands.Choice(name="Bottom", value=AlignV.BOTTOM.value),
         ]
 
+        HelpTabsChoices = [
+            app_commands.Choice(name=tab.value, value=tab.name) for tab in HelpTabs
+        ]
+
         #
         # COMMANDS
         #
+        @self.tree.command(name="help", description="Look up the bot's commands")
+        @app_commands.choices(tab=HelpTabsChoices)
+        async def help_command(itr: Interaction, tab: str = HelpTabs.Default.name):
+            log_cmd(itr)
+            help_tab = HelpTabs[tab]
+            embed = get_help_embed(help_tab, self.tree)
+            await itr.response.send_message(embed=embed, ephemeral=True)
 
         @self.tree.command(name="roll", description="Roll your d20s!")
         async def roll(itr: Interaction, diceroll: str, reason: str = None):

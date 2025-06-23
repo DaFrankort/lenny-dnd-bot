@@ -23,9 +23,9 @@ class FieldInfo:
         return "\n".join(self._descriptions)
 
 
-def _format_description_point(description: str) -> str:
+def _format_command_list_item(description: str) -> str:
     """Formats a text to be displayed with a bullet point in the help embed."""
-    return f"- ``{description}``" if description else ""
+    return f"- ``/{description}``" if description else ""
 
 
 def _get_default_help_inline_fields() -> list[FieldInfo]:
@@ -91,7 +91,7 @@ def _get_default_help_inline_fields() -> list[FieldInfo]:
 
     for field in fields:
         field._descriptions = [
-            _format_description_point(d) for d in field._descriptions if d
+            _format_command_list_item(d) for d in field._descriptions if d
         ]
 
     return sorted(fields, key=lambda f: len(f._descriptions), reverse=True)

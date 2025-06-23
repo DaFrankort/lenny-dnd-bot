@@ -1,7 +1,7 @@
 from bot import Bot
 from help import (
     HelpTabs,
-    _format_description_point,
+    _format_command_list_item,
     _get_default_help_inline_fields,
     _get_help_fields,
 )
@@ -36,11 +36,11 @@ class TestHelp:
         bot._register_commands()
 
         command_names = [
-            _format_description_point(cmd.name) for cmd in bot.tree.get_commands()
+            _format_command_list_item(cmd.name) for cmd in bot.tree.get_commands()
         ]
         inline_fields = _get_default_help_inline_fields()
         mentioned_commands = [
-            _format_description_point("help")
+            _format_command_list_item("help")
         ]  # Help is not mentioned in inline fields by design.
 
         for field in inline_fields:

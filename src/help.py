@@ -23,6 +23,11 @@ class FieldInfo:
         return "\n".join(self._descriptions)
 
 
+def _format_description_point(description: str) -> str:
+    """Formats a text to be displayed with a bullet point in the help embed."""
+    return f"- ``{description}``" if description else ""
+
+
 def _get_default_help_inline_fields() -> list[FieldInfo]:
     """
     Returns a list of FieldInfo with each command per category, to be rendered with inline = True.
@@ -32,57 +37,60 @@ def _get_default_help_inline_fields() -> list[FieldInfo]:
         FieldInfo(
             name=HelpTabs.Roll.value,
             description=[
-                "- ``/roll``",
-                "- ``/advantage``",
-                "- ``/disadvantage``",
-                "- ``/d20``",
+                "roll",
+                "advantage",
+                "disadvantage",
+                "d20",
             ],
         ),
         FieldInfo(
             name=HelpTabs.Initiative.value,
             description=[
-                "- ``/initiative``",
-                "- ``/bulkinitiative``",
-                "- ``/setinitiative``",
-                "- ``/swapinitiative``",
-                "- ``/removeinitiative``",
-                "- ``/showinitiative``",
-                "- ``/clearinitiative``",
+                "initiative",
+                "bulkinitiative",
+                "setinitiative",
+                "swapinitiative",
+                "removeinitiative",
+                "showinitiative",
+                "clearinitiative",
             ],
         ),
         FieldInfo(
             name=HelpTabs.DND.value,
             description=[
-                "- ``/spell``",
-                "- ``/item``",
-                "- ``/condition``",
-                "- ``/creature``",
-                "- ``/feat``",
-                "- ``/rule``",
-                "- ``/action``",
-                "- ``/search``",
+                "spell",
+                "item",
+                "condition",
+                "creature",
+                "feat",
+                "rule",
+                "action",
+                "search",
             ],
         ),
         FieldInfo(
             name=HelpTabs.TokenGen.value,
             description=[
-                "- ``/tokengen``",
-                "- ``/tokengenurl``",
+                "tokengen",
+                "tokengenurl",
             ],
         ),
         FieldInfo(
             name=HelpTabs.Color.value,
             description=[
-                "- ``/color``",
+                "color",
             ],
         ),
         FieldInfo(
             name=HelpTabs.Stats.value,
             description=[
-                "- ``/stats``",
+                "stats",
             ],
         ),
     ]
+
+    for field in fields:
+        field._descriptions = [_format_description_point(d) for d in field._descriptions if d]
 
     return sorted(fields, key=lambda f: len(f._descriptions), reverse=True)
 

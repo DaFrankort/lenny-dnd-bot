@@ -1,5 +1,5 @@
 from bot import Bot
-from help import HelpTabs, _get_default_help_inline_fields, _get_help_fields
+from help import HelpTabs, _format_description_point, _get_default_help_inline_fields, _get_help_fields
 
 
 class TestHelp:
@@ -30,19 +30,15 @@ class TestHelp:
         bot = Bot()
         bot._register_commands()
 
-        command_names = [cmd.name for cmd in bot.tree.get_commands()]
+        command_names = [_format_description_point(cmd.name) for cmd in bot.tree.get_commands()]
         inline_fields = _get_default_help_inline_fields()
         mentioned_commands = [
-            "help"
+            _format_description_point("help")
         ]  # Help is not mentioned in inline fields by design.
 
         for field in inline_fields:
             for line in field._descriptions:
-                prefix = "- ``/"
-                prefix_length = len(prefix)
-                if line.startswith(prefix):
-                    cmd_name = line[prefix_length:].split("``")[0]
-                    mentioned_commands.append(cmd_name)
+                mentioned_commands.append(line)
 
         for cmd_name in command_names:
             assert (

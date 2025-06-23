@@ -4,6 +4,7 @@ import discord
 from discord import app_commands
 from discord import Interaction
 from dotenv import load_dotenv
+from i18n import t
 
 from dice import DiceExpression, DiceRollMode
 from dnd import DNDData, DNDObject
@@ -137,7 +138,9 @@ class Bot(discord.Client):
         # COMMANDS
         #
 
-        @self.tree.command(name="roll", description="Roll your d20s!")
+        @self.tree.command(
+            name=t("commands.roll.name"), description=t("commands.roll.desc")
+        )
         async def roll(itr: Interaction, diceroll: str, reason: str = None):
             log_cmd(itr)
             expression = DiceExpression(
@@ -153,7 +156,9 @@ class Bot(discord.Client):
             )
             await VC.play_dice_roll(itr, expression, reason)
 
-        @self.tree.command(name="d20", description="Just roll a clean d20")
+        @self.tree.command(
+            name=t("commands.d20.name"), description=t("commands.d20.desc")
+        )
         async def d20(itr: Interaction):
             log_cmd(itr)
             expression = DiceExpression("1d20", DiceRollMode.Normal)
@@ -168,7 +173,7 @@ class Bot(discord.Client):
             await VC.play_dice_roll(itr, expression)
 
         @self.tree.command(
-            name="advantage", description="Lucky you! Roll and take the best of two!"
+            name=t("commands.advantage.name"), description=t("commands.advantage.desc")
         )
         async def advantage(itr: Interaction, diceroll: str, reason: str = None):
             log_cmd(itr)
@@ -184,8 +189,8 @@ class Bot(discord.Client):
             await VC.play_dice_roll(itr, expression, reason)
 
         @self.tree.command(
-            name="disadvantage",
-            description="Tough luck chump... Roll twice and suck it.",
+            name=t("commands.disadvantage.name"),
+            description=t("commands.disadvantage.desc"),
         )
         async def disadvantage(itr: Interaction, diceroll: str, reason: str = None):
             log_cmd(itr)
@@ -240,7 +245,9 @@ class Bot(discord.Client):
                 for reason in filtered_reasons[:25]
             ]
 
-        @self.tree.command(name="spell", description="Get the details for a spell.")
+        @self.tree.command(
+            name=t("commands.spell.name"), description=t("commands.spell.desc")
+        )
         async def spell(itr: Interaction, name: str):
             log_cmd(itr)
             found = self.data.spells.get(name)

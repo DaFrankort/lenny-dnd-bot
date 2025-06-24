@@ -3,7 +3,17 @@ import logging
 import re
 import discord
 import rich
-from dnd import Class, Creature, DNDObject, Description, Feat, Item, Rule, Spell, Condition
+from dnd import (
+    Class,
+    Creature,
+    DNDObject,
+    Description,
+    Feat,
+    Item,
+    Rule,
+    Spell,
+    Condition,
+)
 from user_colors import UserColor
 from rich.table import Table
 from rich.console import Console

@@ -1,4 +1,5 @@
 import json
+import re
 
 
 __translations = {}
@@ -21,11 +22,19 @@ def __get_translation_raw(key: str) -> any:
     keys = key.split(".")
     current = __translations
     for subkey in keys:
-        if subkey not in current:
-            return None
-        if not isinstance(current, dict):
-            return None
-        current = current[subkey]
+        if isinstance(current, dict):
+            if subkey not in current:
+                return None
+            current = current[subkey]
+        elif isinstance(current, list):
+            # Key has to be a number, e.g. 'key.entries.0.value'
+            if not subkey.isnumeric():
+                return None
+            subkey = int(subkey)
+            if subkey < 0 or subkey >= len(current):
+                return None
+            current = current[int(subkey)]
+
     return current
 
 

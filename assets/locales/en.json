@@ -66,6 +66,12 @@
       "help": "Looks up a D&D action by name.",
       "command": "/action <action name>"
     },
+    "class": {
+      "name": "class",
+      "desc": "Get the details for a character class.",
+      "help": "Looks up a D&D class by name.",
+      "command": "/class <class name>"
+    },
     "feat": {
       "name": "feat",
       "desc": "Get the details of a character feat.",
@@ -198,6 +204,7 @@
         "item",
         "condition",
         "creature",
+        "class",
         "feat",
         "rule",
         "action",

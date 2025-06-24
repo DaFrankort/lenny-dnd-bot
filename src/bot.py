@@ -307,7 +307,8 @@ class Bot(discord.Client):
             return self.data.creatures.get_autocomplete_suggestions(query=current)
 
         @self.tree.command(
-            name="class", description="Get the details for a character-class."
+            name=t("commands.class.name"),
+            description=t("commands.class.desc"),
         )
         async def character_class(itr: Interaction, name: str):
             log_cmd(itr)

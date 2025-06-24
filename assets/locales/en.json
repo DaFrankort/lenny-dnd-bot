@@ -1,0 +1,109 @@
+{
+  "commands": {
+    "roll": {
+      "name": "roll",
+      "desc": "Roll your d20s!",
+      "help": "Roll a single dice expression.",
+      "command": "/roll <dice notation> [reason]"
+    },
+    "d20": {
+      "name": "d20",
+      "desc": "Just roll a clean d20!",
+      "help": "Rolls a basic 1d20 with no modifiers.",
+      "command": "/d20"
+    },
+    "advantage": {
+      "name": "advantage",
+      "desc": "Lucky you! Roll and take the best of two!",
+      "help": "Roll the expression twice, use the highest result.",
+      "command": "/advantage <dice notation> [reason]"
+    },
+    "disadvantage": {
+      "name": "disadvantage",
+      "desc": "Tough luck chump... Roll twice and suck it.",
+      "help": "Roll the expression twice, use the lowest result",
+      "command": "/disadvantage <dice notation> [reason]"
+    },
+    "spell": {
+      "name": "spell",
+      "desc": "Get the details for a spell.",
+      "help": "Looks up a spell by name.",
+      "command": "/spell <spell name>"
+    },
+    "item": {
+      "name": "item",
+      "desc": "Get the details for an item.",
+      "help": "Looks up an item by name.",
+      "command": "/item <item name>"
+    },
+    "condition": {
+      "name": "condition",
+      "desc": "Get the details of a condition or status effect.",
+      "help": "Looks up a condition or status effect by name.",
+      "command": "/condition <condition name>"
+    },
+    "creature": {
+      "name": "creature",
+      "desc": "Get the details of a creature.",
+      "help": "Looks up a creature by name.",
+      "command": "/creature <creature name>"
+    },
+    "rule": {
+      "name": "rule",
+      "desc": "Get the details of a D&D rule.",
+      "help": "Looks up a D&D rule by name.",
+      "command": "/rule <rule name>"
+    },
+    "action": {
+      "name": "action",
+      "desc": "Get the details of a D&D action.",
+      "help": "Looks up a D&D action by name.",
+      "command": "/action <action name>"
+    },
+    "feat": {
+      "name": "feat",
+      "desc": "Get the details of a character feat.",
+      "help": "Looks up a character feat by name.",
+      "command": "/feat <feat name>"
+    },
+    "search": {
+      "name": "search",
+      "desc": "Search for a D&D entry.",
+      "help": "Looks up all possible D&D entries for a query.",
+      "command": "/search <query>"
+    },
+    "color": {
+      "name": "color",
+      "desc": "Set a preferred color using a hex-value. Leave hex_color empty to use auto-generated colors.",
+      "help": "Set a custom color for yourself by providing a hex value. Using the command without a hex-value defaults the user's color back to an auto-generated one.",
+      "command": "/color [color]"
+    }
+  },
+  "help": {
+    "roll": {
+      "name": "Roll",
+      "commands": ["roll", "d20", "advantage", "disadvantage"],
+      "info": "You can roll dice using the following commands:",
+      "extra1": {
+        "name": "Dice Notations",
+        "info": [
+          "To roll dice, you need to use dice notations, these follow the format `XdY + Z`.",
+          "For example, ``1d20 + 6`` rolls a single 20-sided die and adds 6 to the result, these notations are expandable to combine a large number of dice.",
+          "Besides basic math operators (``+``, ``-``, ``/``, ``*``), ``NdN`` and numbers, you can also use modifiers [documented on this site.](https://d20.readthedocs.io/en/latest/start.html#grammar)"
+        ]
+      },
+      "extra2": {
+        "name": "Sound Effects",
+        "info": [
+          "If FFMPEG is installed, the bot will play sound effects for rolls, by default these are basic dice-rolling sounds.",
+          "A handful of reasons or events may trigger a special sound effect, these are the following:",
+          "- *Critical Hit* - When a 1d20 results to 20, a critical hit sound is played.",
+          "- *Critical Fail* - When a 1d20 results to 1, a critical fail sound is played.",
+          "- *Attack* - If the specified rason is `attack`, an attack sound is played.",
+          "- *Damage* - If the specified reason is `damage`, a damage sound is played.",
+          "- *Fire* - If the specified reason is `fire`, a fire sound is played."
+        ]
+      }
+    }
+  }
+}

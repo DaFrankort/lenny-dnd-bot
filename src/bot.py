@@ -259,7 +259,9 @@ class Bot(discord.Client):
         ) -> list[app_commands.Choice[str]]:
             return self.data.spells.get_autocomplete_suggestions(query=current)
 
-        @self.tree.command(name="item", description="Get the details for an item.")
+        @self.tree.command(
+            name=t("commands.item.name"), description=t("commands.item.desc")
+        )
         async def item(itr: Interaction, name: str):
             log_cmd(itr)
             found = self.data.items.get(name)
@@ -272,7 +274,8 @@ class Bot(discord.Client):
             return self.data.items.get_autocomplete_suggestions(query=current)
 
         @self.tree.command(
-            name="condition", description="Get the details for a condition."
+            name=t("commands.condition.name"),
+            description=t("commands.condition.desc"),
         )
         async def condition(itr: Interaction, name: str):
             log_cmd(itr)
@@ -286,7 +289,8 @@ class Bot(discord.Client):
             return self.data.conditions.get_autocomplete_suggestions(query=current)
 
         @self.tree.command(
-            name="creature", description="Get the details for a creature."
+            name=t("commands.creature.name"),
+            description=t("commands.creature.desc"),
         )
         async def creature(itr: Interaction, name: str):
             log_cmd(itr)
@@ -299,7 +303,9 @@ class Bot(discord.Client):
         ) -> list[app_commands.Choice[str]]:
             return self.data.creatures.get_autocomplete_suggestions(query=current)
 
-        @self.tree.command(name="rule", description="Look up D&D rules.")
+        @self.tree.command(
+            name=t("commands.rule.name"), description=t("commands.rule.desc")
+        )
         async def rule(itr: Interaction, name: str):
             log_cmd(itr)
             found = self.data.rules.get(name)
@@ -311,7 +317,9 @@ class Bot(discord.Client):
         ) -> list[app_commands.Choice[str]]:
             return self.data.rules.get_autocomplete_suggestions(query=current)
 
-        @self.tree.command(name="action", description="Get the details for an action.")
+        @self.tree.command(
+            name=t("commands.action.name"), description=t("commands.action.desc")
+        )
         async def action(itr: Interaction, name: str):
             log_cmd(itr)
             found = self.data.actions.get(name)
@@ -324,7 +332,8 @@ class Bot(discord.Client):
             return self.data.actions.get_autocomplete_suggestions(query=current)
 
         @self.tree.command(
-            name="feat", description="Get the details for a character feat."
+            name=t("commands.feat.name"),
+            description=t("commands.feat.desc"),
         )
         async def feat(itr: Interaction, name: str):
             log_cmd(itr)
@@ -337,7 +346,9 @@ class Bot(discord.Client):
         ) -> list[app_commands.Choice[str]]:
             return self.data.feats.get_autocomplete_suggestions(query=current)
 
-        @self.tree.command(name="search", description="Search for a spell.")
+        @self.tree.command(
+            name=t("commands.search.name"), description=t("commands.search.desc")
+        )
         async def search(itr: Interaction, query: str):
             log_cmd(itr)
             results = search_from_query(query, self.data)
@@ -353,8 +364,7 @@ class Bot(discord.Client):
                 )
 
         @self.tree.command(
-            name="color",
-            description="Set a preferred color using a hex-value. Leave hex_color empty to use auto-generated colors.",
+            name=t("commands.color.name"), description=t("commands.color.desc")
         )
         async def set_color(itr: Interaction, hex_color: str = ""):
             log_cmd(itr)

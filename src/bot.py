@@ -4,6 +4,7 @@ import discord
 from discord import app_commands
 from discord import Interaction
 from dotenv import load_dotenv
+from help import HelpEmbed
 from i18n import t
 
 from dice import DiceExpression, DiceRollMode
@@ -672,3 +673,11 @@ class Bot(discord.Client):
             itr: discord.Interaction, current: str
         ) -> list[app_commands.Choice[str]]:
             return self.initiatives.get_autocomplete_suggestions(itr, current)
+
+        @self.tree.command(
+            name=t("commands.help.name"), description=t("commands.help.desc")
+        )
+        async def help(itr: discord.Interaction, tab: str = None):
+            log_cmd(itr)
+            embed = HelpEmbed(tab)
+            await itr.response.send_message(embed=embed, view=embed.view)

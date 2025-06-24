@@ -21,7 +21,7 @@ def search_from_query(
     query: str,
     data: DNDData,
     threshold=75.0,
-    ignore_phb2014=False,
+    ignore_phb2014=True,
 ):
     query = query.strip().lower()
     results = DNDSearchResults()

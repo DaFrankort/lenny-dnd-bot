@@ -283,6 +283,9 @@ class MultiClassSubclassSelect(discord.ui.Select):
     ):
         options = []
         for subclass_name in character_class.subclass_level_features.keys():
+            if not character_class.is_phb2014 and subclass_name.endswith("(PHB)"):
+                continue  # Only show PHB subclasses for PHB classes
+
             label = (
                 subclass_name
                 if subclass != subclass_name

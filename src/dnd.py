@@ -333,6 +333,50 @@ class CreatureList(DNDObjectList):
             self.entries.append(Creature(creature))
 
 
+class Class(DNDObject):
+    subclass_unlock_level: int | None
+    primary_ability: str | None
+    spellcast_ability: str | None
+    base_info: list[Description]
+    level_resources: dict[str, list[Description]]
+    level_features: dict[str, list[Description]]
+    subclass_level_features: dict[str, dict[str, list[Description]]]
+
+    def __init__(self, json: any):
+        self.object_type = "class"
+        self.emoji = "🧙‍♂️"
+
+        self.name = json["name"]
+        self.source = json["source"]
+        self.url = json["url"]
+
+        self.subclass_unlock_level = json["subclassUnlockLevel"]
+        self.primary_ability = json["primaryAbility"]
+        self.spellcast_ability = json["spellcastAbility"]
+        self.base_info = json["baseInfo"]
+        self.level_resources = json["levelResources"]
+        self.level_features = json["levelFeatures"]
+        self.subclass_level_features = json["subclassLevelFeatures"]
+
+    def __repr__(self):
+        return str(self)
+
+    @abstractmethod
+    def get_embed(self) -> discord.Embed:
+        from embeds import ClassEmbed
+
+        return ClassEmbed(self)
+
+
+class ClassList(DNDObjectList):
+    path = "./submodules/lenny-dnd-data/generated/classes.json"
+
+    def __init__(self):
+        super().__init__()
+        for character_class in _read_dnd_data(self.path):
+            self.entries.append(Class(character_class))
+
+
 class Rule(DNDObject):
     description: list[Description]
 
@@ -432,6 +476,7 @@ class DNDData(object):
     items: ItemList
     conditions: ConditionList
     creatures: CreatureList
+    classes: ClassList
     rules: RuleList
     actions: ActionList
     feats: FeatList
@@ -441,6 +486,7 @@ class DNDData(object):
         self.items = ItemList()
         self.conditions = ConditionList()
         self.creatures = CreatureList()
+        self.classes = ClassList()
         self.rules = RuleList()
         self.actions = ActionList()
         self.feats = FeatList()
@@ -450,6 +496,7 @@ class DNDData(object):
         yield self.items
         yield self.conditions
         yield self.creatures
+        yield self.classes
         yield self.rules
         yield self.actions
         yield self.feats
@@ -460,6 +507,7 @@ class DNDSearchResults(object):
     items: list[Item]
     conditions: list[Condition]
     creatures: list[Creature]
+    classes: list[Class]
     rules: list[Rule]
     actions: list[Action]
     feats: list[Feat]
@@ -470,6 +518,7 @@ class DNDSearchResults(object):
         self.items = []
         self.conditions = []
         self.creatures = []
+        self.classes = []
         self.rules = []
         self.actions = []
         self.feats = []
@@ -479,6 +528,7 @@ class DNDSearchResults(object):
             Item: self.items,
             Condition: self.conditions,
             Creature: self.creatures,
+            Class: self.classes,
             Rule: self.rules,
             Action: self.actions,
             Feat: self.feats,

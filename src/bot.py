@@ -112,10 +112,8 @@ class Bot(discord.Client):
 
             else:
                 embed = found[0].get_embed()
-                if embed.view is None:
-                    await itr.response.send_message(embed=embed)
-                    return
-                await itr.response.send_message(embed=embed, view=embed.view)
+                view = embed.view or discord.ui.View
+                await itr.response.send_message(embed=embed, view=view)
 
         RollModeChoices = [
             app_commands.Choice(name="Normal", value=DiceRollMode.Normal.value),

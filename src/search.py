@@ -78,7 +78,7 @@ class SearchSelect(discord.ui.Select):
         result = [r for r in self.results if r.name == name and r.source == source][0]
         embed = result.get_embed()
         view = embed.view or discord.ui.View()
-        await interaction.response.send_message(embed=result.get_embed(), view=view)
+        await interaction.response.send_message(embed=embed, view=view)
 
 
 class SearchActionView(discord.ui.View):

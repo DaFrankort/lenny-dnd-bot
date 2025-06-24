@@ -117,6 +117,26 @@ class Bot(discord.Client):
                     return
                 await itr.response.send_message(embed=embed, view=embed.view)
 
+        RollModeChoices = [
+            app_commands.Choice(name="Normal", value=DiceRollMode.Normal.value),
+            app_commands.Choice(name="Advantage", value=DiceRollMode.Advantage.value),
+            app_commands.Choice(
+                name="Disadvantage", value=DiceRollMode.Disadvantage.value
+            ),
+        ]
+
+        TokenGenHorAlignmentChoices = [
+            app_commands.Choice(name="Left", value=AlignH.LEFT.value),
+            app_commands.Choice(name="Center", value=AlignH.CENTER.value),
+            app_commands.Choice(name="Right", value=AlignH.RIGHT.value),
+        ]
+
+        TokenGenVerAlignmentChoices = [
+            app_commands.Choice(name="Top", value=AlignV.TOP.value),
+            app_commands.Choice(name="Center", value=AlignV.CENTER.value),
+            app_commands.Choice(name="Bottom", value=AlignV.BOTTOM.value),
+        ]
+
         #
         # COMMANDS
         #
@@ -314,6 +334,20 @@ class Bot(discord.Client):
         ) -> list[app_commands.Choice[str]]:
             return self.data.actions.get_autocomplete_suggestions(query=current)
 
+        @self.tree.command(
+            name="feat", description="Get the details for a character feat."
+        )
+        async def feat(itr: Interaction, name: str):
+            log_cmd(itr)
+            found = self.data.feats.get(name)
+            await send_DNDObject_lookup_result(itr, "feats", found, name)
+
+        @feat.autocomplete("name")
+        async def feat_autocomplete(
+            itr: discord.Interaction, current: str
+        ) -> list[app_commands.Choice[str]]:
+            return self.data.feats.get_autocomplete_suggestions(query=current)
+
         @self.tree.command(name="search", description="Search for a spell.")
         async def search(itr: Interaction, query: str):
             log_cmd(itr)
@@ -389,16 +423,8 @@ class Bot(discord.Client):
             v_alignment="Vertical alignment for the token image.",
         )
         @app_commands.choices(
-            h_alignment=[
-                app_commands.Choice(name="Left", value=AlignH.LEFT.value),
-                app_commands.Choice(name="Center", value=AlignH.CENTER.value),
-                app_commands.Choice(name="Right", value=AlignH.RIGHT.value),
-            ],
-            v_alignment=[
-                app_commands.Choice(name="Top", value=AlignV.TOP.value),
-                app_commands.Choice(name="Center", value=AlignV.CENTER.value),
-                app_commands.Choice(name="Bottom", value=AlignV.BOTTOM.value),
-            ],
+            h_alignment=TokenGenHorAlignmentChoices,
+            v_alignment=TokenGenVerAlignmentChoices,
         )
         async def generate_token(
             itr: Interaction,
@@ -444,16 +470,8 @@ class Bot(discord.Client):
             v_alignment="Vertical alignment for the token image.",
         )
         @app_commands.choices(
-            h_alignment=[
-                app_commands.Choice(name="Left", value=AlignH.LEFT.value),
-                app_commands.Choice(name="Center", value=AlignH.CENTER.value),
-                app_commands.Choice(name="Right", value=AlignH.RIGHT.value),
-            ],
-            v_alignment=[
-                app_commands.Choice(name="Top", value=AlignV.TOP.value),
-                app_commands.Choice(name="Center", value=AlignV.CENTER.value),
-                app_commands.Choice(name="Bottom", value=AlignV.BOTTOM.value),
-            ],
+            h_alignment=TokenGenHorAlignmentChoices,
+            v_alignment=TokenGenVerAlignmentChoices,
         )
         async def generate_token_from_url(
             itr: Interaction,
@@ -494,10 +512,17 @@ class Bot(discord.Client):
         @app_commands.describe(
             modifier="The initiative modifier to apply to the roll.",
             name="The unique name of the creature you're rolling initiative for (leave blank to roll for yourself).",
+            roll_mode="Choose if to roll for initiative with disadvantage or advantage.",
         )
-        async def initiative(itr: Interaction, modifier: int, name: str | None = None):
+        @app_commands.choices(roll_mode=RollModeChoices)
+        async def initiative(
+            itr: Interaction,
+            modifier: int,
+            name: str | None = None,
+            roll_mode: DiceRollMode = DiceRollMode.Normal,
+        ):
             log_cmd(itr)
-            initiative = Initiative(itr, modifier, name)
+            initiative = Initiative(itr, modifier, name, roll_mode)
             self.initiatives.add(itr, initiative)
             await itr.response.send_message(
                 embed=UserActionEmbed(
@@ -539,18 +564,26 @@ class Bot(discord.Client):
             modifier="The initiative modifier to apply to the roll.",
             name="The names to use for the creatures.",
             amount="The amount of creatures to create.",
+            roll_mode="Choose if to roll for initiative with disadvantage or advantage.",
             shared="Use the same initiative value for all creatures?",
         )
+        @app_commands.choices(roll_mode=RollModeChoices)
         async def bulk_initiative(
             itr: Interaction,
             modifier: int,
             name: str,
             amount: app_commands.Range[int, 1],
+            roll_mode: DiceRollMode = DiceRollMode.Normal,
             shared: bool = False,
         ):
             log_cmd(itr)
             title, description = self.initiatives.add_bulk(
-                itr=itr, modifier=modifier, name=name, amount=amount, shared=shared
+                itr=itr,
+                modifier=modifier,
+                name=name,
+                amount=amount,
+                roll_mode=roll_mode,
+                shared=shared,
             )
             await itr.response.send_message(
                 embed=UserActionEmbed(itr=itr, title=title, description=description)

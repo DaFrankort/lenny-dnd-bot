@@ -11,6 +11,7 @@ Powered by [5e.tools](https://5e.tools/) for up-to-date 5e data.
 - **Customizable Color Embeds**: Customize the colors of your dice roll embeds for better visual appeal and easy identification, auto-generated if not specified.
 - **Character Stat Rolling**: Automatically roll and generate D&D character stats.
 - **Voice Chat Sound Effects**: The bot can join voice channels to play sound effects for your rolls, including special sounds for natural 1s and 20s, as well as effects for attacks, damage, and fire.
+- **Token-Image Generation** - Generate a 5etools-style token from an image or image-url for your characters or custom creatures.
 
 ## Installation
 
@@ -84,6 +85,14 @@ Look up various D&D data from [5e.tools](https://5e.tools/).
 
 - `/stats` – Automatically roll stats for a new character's skills, using the 4d6 drop lowest method.
 
+### Token-Image Generation
+
+Create 5e.tools-style token images quickly, [like this example](https://5e.tools/img/bestiary/tokens/MM/Goblin.webp).
+Optionally adjust the frame's color with `hue-shift` (default: gold), and control image alignment using `h_alignment` and `v_alignment` (default: center).
+
+- `/tokengen <image-attachment> [hue-shift] [h_alignment] [v_alignment]` - Generate a token from an image attachment.
+- `/tokengenurl <image-url> [hue-shift] [h_alignment] [v_alignment]` - Generate a token from an image URL.
+
 ### Customize embed colors for users
 
 Commands that signify user-actions are highlighted with colors that are unique per user. This makes it easy to discern different user's actions.
@@ -96,8 +105,8 @@ By default the user's color is automatically generated based on their display na
 
 Commands to help track initiatives for combat. Names are enforced to be unique and will overwrite each other if specified twice.
 
-- `/initiative <modifier> [target]` - Roll for initiative while keeping it in memory. Rolls for user by default.
-- `/bulkinitiative <modifier> <name> <amount> [shared]` - Adds creature initiatives in bulk, making it easy for a DM to add a group of creatures at once. These are numbered automatically for easy tracking.
+- `/initiative <modifier> [target] [roll_mode]` - Roll for initiative while keeping it in memory. Rolls for user by default. Can specify ``roll_mode`` to roll with advantage or disadvantage.
+- `/bulkinitiative <modifier> <name> <amount> [shared] [roll_mode]` - Adds creature initiatives in bulk, making it easy for a DM to add a group of creatures at once. These are numbered automatically for easy tracking.
 - `/setinitiative <value> [name]` - Set an initiative to a specific value, handy to rectify mistakes or if you want precise control over certain initiatives.
 - `/swapinitiative <target a> <target b>` - Swap initiative between two users or creatures, handy for users with the Alert feat.
 - `/removeinitiative [target]` - Remove a single user or creature from the initiative tracker. Removes user's initiative by default.

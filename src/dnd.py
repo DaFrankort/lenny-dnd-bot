@@ -437,6 +437,40 @@ class ActionList(DNDObjectList):
             self.entries.append(Action(action))
 
 
+class Feat(DNDObject):
+    prerequisite: str | None
+    ability_increase: str | None
+    description: list[Description]
+
+    def __init__(self, json: any):
+        self.object_type = "feat"
+        self.emoji = "🎖️"
+
+        self.name = json["name"]
+        self.source = json["source"]
+        self.url = json["url"]
+        self.select_description = json["type"]
+
+        self.prerequisite = json["prerequisite"]
+        self.ability_increase = json["abilityIncrease"]
+        self.description = json["description"]
+
+    @abstractmethod
+    def get_embed(self) -> discord.Embed:
+        from embeds import FeatEmbed
+
+        return FeatEmbed(self)
+
+
+class FeatList(DNDObjectList):
+    path = "./submodules/lenny-dnd-data/generated/feats.json"
+
+    def __init__(self):
+        super().__init__()
+        for feat in _read_dnd_data(self.path):
+            self.entries.append(Feat(feat))
+
+
 class DNDData(object):
     spells: SpellList
     items: ItemList
@@ -445,6 +479,7 @@ class DNDData(object):
     classes: ClassList
     rules: RuleList
     actions: ActionList
+    feats: FeatList
 
     def __init__(self):
         self.spells = SpellList()
@@ -454,6 +489,7 @@ class DNDData(object):
         self.classes = ClassList()
         self.rules = RuleList()
         self.actions = ActionList()
+        self.feats = FeatList()
 
     def __iter__(self):
         yield self.spells
@@ -463,6 +499,7 @@ class DNDData(object):
         yield self.classes
         yield self.rules
         yield self.actions
+        yield self.feats
 
 
 class DNDSearchResults(object):
@@ -473,6 +510,7 @@ class DNDSearchResults(object):
     classes: list[Class]
     rules: list[Rule]
     actions: list[Action]
+    feats: list[Feat]
     _type_map: dict[type, list[DNDObject]]
 
     def __init__(self):
@@ -483,6 +521,7 @@ class DNDSearchResults(object):
         self.classes = []
         self.rules = []
         self.actions = []
+        self.feats = []
 
         self._type_map = {
             Spell: self.spells,
@@ -492,6 +531,7 @@ class DNDSearchResults(object):
             Class: self.classes,
             Rule: self.rules,
             Action: self.actions,
+            Feat: self.feats,
         }
 
     def add(self, entry):

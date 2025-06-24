@@ -113,7 +113,9 @@ class Bot(discord.Client):
                 await itr.response.send_message(view=view, ephemeral=True)
 
             else:
-                await itr.response.send_message(embed=found[0].get_embed())
+                embed = found[0].get_embed()
+                view = embed.view or discord.ui.View
+                await itr.response.send_message(embed=embed, view=view)
 
         RollModeChoices = [
             app_commands.Choice(name="Normal", value=DiceRollMode.Normal.value),
@@ -303,6 +305,20 @@ class Bot(discord.Client):
             itr: discord.Interaction, current: str
         ) -> list[app_commands.Choice[str]]:
             return self.data.creatures.get_autocomplete_suggestions(query=current)
+
+        @self.tree.command(
+            name="class", description="Get the details for a character-class."
+        )
+        async def character_class(itr: Interaction, name: str):
+            log_cmd(itr)
+            found = self.data.classes.get(name)
+            await send_DNDObject_lookup_result(itr, "classes", found, name)
+
+        @character_class.autocomplete("name")
+        async def character_class_autocomplete(
+            itr: discord.Interaction, current: str
+        ) -> list[app_commands.Choice[str]]:
+            return self.data.classes.get_autocomplete_suggestions(query=current)
 
         @self.tree.command(
             name=t("commands.rule.name"), description=t("commands.rule.desc")

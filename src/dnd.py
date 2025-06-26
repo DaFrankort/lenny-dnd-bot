@@ -99,14 +99,14 @@ class DNDObjectList(object):
             return []
 
         choices = []
-        seen_names = set()
+        seen_names = set()  # Required to avoid duplicate suggestions
         for e in self.entries:
             if ignore_phb2014 and e.is_phb2014:
                 continue
-
-            name_clean = e.name.strip().lower().replace(" ", "")
             if e.name in seen_names:
                 continue
+
+            name_clean = e.name.strip().lower().replace(" ", "")
             score = fuzz.partial_ratio(query, name_clean)
             if score > fuzzy_threshold:
                 starts_with_query = name_clean.startswith(query)

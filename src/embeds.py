@@ -143,9 +143,10 @@ class _DNDObjectEmbed(discord.Embed):
         concatenated: list[Description] = [descriptions[0]]
         for description in descriptions[1:]:
             has_title = description["name"] != ""
-            prev_or_curr_is_table = "table" in [concatenated[-1]["type"], description["type"]]
+            prev_is_not_text = concatenated[-1]["type"] != "text"
+            curr_is_not_text = description["type"] != "text"
 
-            if has_title or prev_or_curr_is_table:
+            if has_title or prev_is_not_text or curr_is_not_text:
                 concatenated.append(description)
                 continue
 
@@ -154,9 +155,6 @@ class _DNDObjectEmbed(discord.Embed):
                 concatenated.append(description)
             else:
                 last_desc["value"] += "\n\n" + description["value"]
-
-        print(len(descriptions))
-        print(len(concatenated))
 
         return concatenated
 

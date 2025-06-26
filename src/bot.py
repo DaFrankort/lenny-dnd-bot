@@ -112,8 +112,11 @@ class Bot(discord.Client):
 
             else:
                 embed = found[0].get_embed()
-                view = embed.view or discord.ui.View
-                await itr.response.send_message(embed=embed, view=view)
+                view = embed.view
+                if view:
+                    await itr.response.send_message(embed=embed, view=view)
+                    return
+                await itr.response.send_message(embed=embed)
 
         RollModeChoices = [
             app_commands.Choice(name="Normal", value=DiceRollMode.Normal.value),
@@ -539,7 +542,7 @@ class Bot(discord.Client):
         )
         async def set_initiative(itr: Interaction, value: int, name: str | None = None):
             log_cmd(itr)
-            initiative = Initiative(itr, 0, name)
+            initiative = Initiative(itr, 0, name, roll_mode=DiceRollMode.Normal)
             initiative.set_value(value)
             self.initiatives.add(itr, initiative)
             await itr.response.send_message(

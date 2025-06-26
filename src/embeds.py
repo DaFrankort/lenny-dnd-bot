@@ -136,6 +136,30 @@ class _DNDObjectEmbed(discord.Embed):
             return f"The table for [{self._object.name} can be found here]({self._object.url})."
         return table_string
 
+    def _concatenate_descriptions(self, descriptions: list[Description], char_field_limit: int) -> list[Description]:
+        if not descriptions:
+            return []
+
+        concatenated: list[Description] = [descriptions[0]]
+        for description in descriptions[1:]:
+            has_title = description["name"] != ""
+            prev_or_curr_is_table = "table" in [concatenated[-1]["type"], description["type"]]
+
+            if has_title or prev_or_curr_is_table:
+                concatenated.append(description)
+                continue
+
+            last_desc = concatenated[-1]
+            if len(last_desc["value"]) + len(description["value"]) > char_field_limit:
+                concatenated.append(description)
+            else:
+                last_desc["value"] += "\n\n" + description["value"]
+
+        print(len(descriptions))
+        print(len(concatenated))
+
+        return concatenated
+
     def add_description_fields(
         self,
         descriptions: list[Description],
@@ -162,6 +186,9 @@ class _DNDObjectEmbed(discord.Embed):
         CHAR_FIELD_LIMIT = min(CHAR_FIELD_LIMIT, 1024)
         CHAR_EMBED_LIMIT = min(CHAR_EMBED_LIMIT, 6000)
         MAX_FIELDS = min(MAX_FIELDS, 25)
+
+        if len(descriptions) > MAX_FIELDS - len(self.fields):  # Concatenate descriptions to save field-space.
+            descriptions = self._concatenate_descriptions(descriptions, CHAR_FIELD_LIMIT)
 
         char_count = self.char_count
         for description in descriptions:

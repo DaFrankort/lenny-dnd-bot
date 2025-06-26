@@ -156,6 +156,7 @@ class _DNDObjectEmbed(discord.Embed):
             else:
                 last_desc["value"] += "\n\n" + description["value"]
 
+        logging.debug(f"Collapsed {len(descriptions)} descriptions to {len(concatenated)}.")
         return concatenated
 
     def add_description_fields(

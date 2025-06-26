@@ -56,7 +56,7 @@ class Initiative:
 
         def get_roll_line(d20: int):
             if mod == 0:
-                return ''
+                return ""
 
             total = d20 + mod
             mod_str = f"+ {mod}" if mod > 0 else f"- {-mod}"

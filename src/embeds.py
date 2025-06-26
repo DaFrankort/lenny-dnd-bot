@@ -54,7 +54,9 @@ class MultiDNDSelect(discord.ui.Select):
     async def callback(self, interaction: discord.Interaction):
         """Handles the selection of a spell from the select menu."""
         index = int(self.values[0])
-        entry = self.entries[index] if len(self.entries) < index + 1 else self.entries[-1]
+        entry = (
+            self.entries[index] if len(self.entries) < index + 1 else self.entries[-1]
+        )
 
         logging.debug(
             f"{self.name}: user {interaction.user.display_name} selected option {index}: '{entry.name}`"

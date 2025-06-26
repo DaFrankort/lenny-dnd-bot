@@ -469,7 +469,7 @@ class Feat(DNDObject):
 class FeatList(DNDObjectList):
     paths = [
         "./submodules/lenny-dnd-data/generated/feats.json",
-        "./submodules/lenny-dnd-data/generated/classfeats.json"
+        "./submodules/lenny-dnd-data/generated/classfeats.json",
     ]
 
     def __init__(self):

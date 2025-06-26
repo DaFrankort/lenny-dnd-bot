@@ -99,8 +99,11 @@ class DNDObjectList(object):
             return []
 
         choices = []
+        seen_names = set()  # Required to avoid duplicate suggestions
         for e in self.entries:
             if ignore_phb2014 and e.is_phb2014:
+                continue
+            if e.name in seen_names:
                 continue
 
             name_clean = e.name.strip().lower().replace(" ", "")
@@ -110,6 +113,7 @@ class DNDObjectList(object):
                 choices.append(
                     (starts_with_query, score, Choice(name=e.name, value=e.name))
                 )
+                seen_names.add(e.name)
 
         choices.sort(
             key=lambda x: (-x[0], -x[1], x[2].name)
@@ -463,12 +467,16 @@ class Feat(DNDObject):
 
 
 class FeatList(DNDObjectList):
-    path = "./submodules/lenny-dnd-data/generated/feats.json"
+    paths = [
+        "./submodules/lenny-dnd-data/generated/feats.json",
+        "./submodules/lenny-dnd-data/generated/classfeats.json",
+    ]
 
     def __init__(self):
         super().__init__()
-        for feat in _read_dnd_data(self.path):
-            self.entries.append(Feat(feat))
+        for path in self.paths:
+            for feat in _read_dnd_data(path):
+                self.entries.append(Feat(feat))
 
 
 class DNDData(object):

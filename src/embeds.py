@@ -1,6 +1,5 @@
 import io
 import logging
-import re
 import discord
 import rich
 from dnd import (
@@ -45,25 +44,20 @@ class MultiDNDSelect(discord.ui.Select):
         logging.debug(f"{self.name}: found {len(entries)} entries for '{query}'")
 
     def select_option(self, entry: DNDObject) -> discord.SelectOption:
+        index = self.entries.index(entry)
         return discord.SelectOption(
-            label=f"{entry.name} ({entry.source})", description=entry.select_description
+            label=f"{entry.name} ({entry.source})",
+            description=entry.select_description,
+            value=str(index),
         )
 
     async def callback(self, interaction: discord.Interaction):
         """Handles the selection of a spell from the select menu."""
-        full_name = self.values[0]
-        name_pattern = r"^(.+) \(([^\)]+)\)"  # "Name (Source)"
-        name_match = re.match(name_pattern, full_name)
-        name = name_match.group(1)
-        source = name_match.group(2)
+        index = int(self.values[0])
+        entry = self.entries[index]
 
-        entry = [
-            entry
-            for entry in self.entries
-            if entry.name == name and entry.source == source
-        ][0]
         logging.debug(
-            f"{self.name}: user {interaction.user.display_name} selected '{name}"
+            f"{self.name}: user {interaction.user.display_name} selected option {index}: '{entry.name}`"
         )
         await interaction.response.send_message(embed=entry.get_embed())
 

@@ -3,7 +3,7 @@
     "help": {
       "name": "help",
       "desc": "Get an overview of all commands.",
-      "help": "Show this command.",
+      "help": "Show the help tab for the given section. If no section is provided, this overview is given.",
       "command": "/help [tab]"
     },
     "roll": {
@@ -155,8 +155,10 @@
     "overview": {
       "name": "Overview",
       "commands": ["help"],
-      "text": "TODO",
-      "info": []
+      "info": [{
+        "name": "Additional info",
+        "info": ["You can get more information for each command by navigating to its category help tab."]
+      }]
     },
     "roll": {
       "name": "Roll",

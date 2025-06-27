@@ -9,6 +9,15 @@ class HelpSelectOption(object):
     label: str
 
 
+def get_tab_base_commands_list(tab: str) -> list[str]:
+    commands = []
+    for command in i18n.get(f"help.{tab}.commands"):
+        command = i18n.get(f"commands.{command}.command")
+        command = command.split(" ")[0]  # Remove arguments
+        commands.append(command)
+    return commands
+
+
 class HelpSelect(discord.ui.Select):
     def __init__(self, embed: any, options: list[HelpSelectOption]):
         self.embed = embed
@@ -82,7 +91,8 @@ class HelpEmbed(discord.Embed):
         self.add_field(name="", value="\n".join(commands_desc), inline=False)
 
         # Add extra info
-        for info_i in range(100):
+        info_i = 0
+        while True:
             if not i18n.has(f"help.{tab}.info.{info_i}"):
                 break
 
@@ -93,3 +103,30 @@ class HelpEmbed(discord.Embed):
                 info_fields = "\n".join(info_fields)
 
             self.add_field(name=info_name, value=info_fields, inline=False)
+            info_i += 1
+
+        # If on overview tab, list all commands, grouped by category
+        if tab == "overview":
+            categories = [tab for tab in HelpEmbed.tabs if tab != "overview"]
+            categories_commands = []
+            for category in categories:
+                category_name = i18n.get(f"help.{category}.name")
+                category_commands = get_tab_base_commands_list(category)
+                category_commands = [
+                    f"``- {command}``" for command in category_commands
+                ]
+                categories_commands.append((category_name, category_commands))
+
+            categories_commands.sort(key=lambda t: (-len(t[1]), t[0]))
+
+            for name, commands in categories_commands:
+                self.add_field(name=name, value="\n".join(commands), inline=True)
+
+    @staticmethod
+    def get_tab_choices() -> list[discord.app_commands.Choice]:
+        choices: list[discord.app_commands.Choice] = []
+        for tab in HelpEmbed.tabs:
+            name = i18n.get(f"help.{tab}.name")
+            choices.append(discord.app_commands.Choice(name=name, value=tab))
+        choices.sort(key=lambda c: c.name)
+        return choices

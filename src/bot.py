@@ -694,6 +694,7 @@ class Bot(discord.Client):
         @self.tree.command(
             name=t("commands.help.name"), description=t("commands.help.desc")
         )
+        @app_commands.choices(tab=HelpEmbed.get_tab_choices())
         async def help(itr: discord.Interaction, tab: str = None):
             log_cmd(itr)
             embed = HelpEmbed(tab)

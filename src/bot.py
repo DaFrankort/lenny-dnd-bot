@@ -53,7 +53,7 @@ class Bot(discord.Client):
 
         self.tree = app_commands.CommandTree(self)
         self.token = os.getenv("DISCORD_BOT_TOKEN")
-        
+
         guild_id = os.getenv("GUILD_ID")
         self.guild_id = int(guild_id) if guild_id is not None else None
 

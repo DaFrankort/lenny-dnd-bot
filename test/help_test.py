@@ -8,7 +8,6 @@ class TestHelp:
         bot = Bot()
         bot._register_commands()
 
-        # TODO add a commands.all field to en.json and use that
         command_names = [cmd.name for cmd in bot.tree.get_commands()]
 
         for name in command_names:

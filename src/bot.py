@@ -700,4 +700,6 @@ class Bot(discord.Client):
         async def help(itr: discord.Interaction, tab: str = None):
             log_cmd(itr)
             embed = HelpEmbed(tab)
-            await itr.response.send_message(embed=embed, view=embed.view, ephemeral=True)
+            await itr.response.send_message(
+                embed=embed, view=embed.view, ephemeral=True
+            )

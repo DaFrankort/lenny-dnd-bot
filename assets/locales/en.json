@@ -180,7 +180,7 @@
             "A handful of reasons or events may trigger a special sound effect, these are the following:",
             "- *Critical Hit* - When a 1d20 results to 20, a critical hit sound is played.",
             "- *Critical Fail* - When a 1d20 results to 1, a critical fail sound is played.",
-            "- *Attack* - If the specified rason is `attack`, an attack sound is played.",
+            "- *Attack* - If the specified reason is `attack`, an attack sound is played.",
             "- *Damage* - If the specified reason is `damage`, a damage sound is played.",
             "- *Fire* - If the specified reason is `fire`, a fire sound is played."
           ]

@@ -579,7 +579,7 @@ class DNDSearchResults(object):
             Rule: self.rules,
             Action: self.actions,
             Feat: self.feats,
-            Language: self.languages
+            Language: self.languages,
         }
 
     def add(self, entry):

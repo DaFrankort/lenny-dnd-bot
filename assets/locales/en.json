@@ -200,7 +200,7 @@
       "info": []
     },
     "dnd": {
-      "name": "D&D",
+      "name": "D&D Resources",
       "commands": [
         "spell",
         "item",

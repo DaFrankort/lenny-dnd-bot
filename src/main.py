@@ -18,6 +18,14 @@ if __name__ == "__main__":
         action=argparse.BooleanOptionalAction,
         help="Enable additional logging. Disabled by default.",
     )
+    parser.add_argument(
+        "--voice",
+        type=bool,
+        default=True,
+        action=argparse.BooleanOptionalAction,
+        help="Enable voice behavior. Enabled by default.",
+    )
+
     args = parser.parse_args()
 
     # Set up logging using discord.py's _ColourFormatter
@@ -32,5 +40,5 @@ if __name__ == "__main__":
 
     # Start the bot
     os.makedirs("./temp", exist_ok=True)
-    bot = Bot()
+    bot = Bot(voice=args.voice)
     bot.run_client()

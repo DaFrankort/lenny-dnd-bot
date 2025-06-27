@@ -43,8 +43,9 @@ class Bot(discord.Client):
     guild_id: int | None
     data: DNDData
     initiatives: InitiativeTracker
+    voice_enabled: bool
 
-    def __init__(self):
+    def __init__(self, voice: bool = True):
         load_dotenv()
         intents = discord.Intents.default()
         intents.members = True
@@ -56,6 +57,7 @@ class Bot(discord.Client):
 
         guild_id = os.getenv("GUILD_ID")
         self.guild_id = int(guild_id) if guild_id is not None else None
+        self.voice_enabled = voice
 
         self.data = DNDData()
         self.initiatives = InitiativeTracker()
@@ -73,7 +75,10 @@ class Bot(discord.Client):
         await self._attempt_sync_guild()
         await self.tree.sync()
         Sounds.init_folders()
-        VC.check_ffmpeg()
+        if self.voice_enabled:
+            VC.check_ffmpeg()
+        else:
+            VC.disable_vc()
         logging.info("Finished initialization")
 
     async def _attempt_sync_guild(self):

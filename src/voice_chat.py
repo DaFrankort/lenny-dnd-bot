@@ -21,7 +21,7 @@ class SoundType(Enum):
 
 class VC:
     clients: dict[int, discord.VoiceClient] = {}
-    ffmpeg_available: bool = False
+    voice_available: bool = False
 
     @staticmethod
     def check_ffmpeg():
@@ -30,16 +30,21 @@ class VC:
             logging.warning(
                 "FFmpeg not installed or found in PATH, voice chat features are disabled."
             )
-            VC.ffmpeg_available = False
+            VC.voice_available = False
             return
 
         logging.info("FFmpeg available, voice chat features are enabled.")
-        VC.ffmpeg_available = True
+        VC.voice_available = True
+
+    @staticmethod
+    def disable_vc():
+        logging.info("Voice manually turned off, voice chat features are disabled.")
+        VC.voice_available = False
 
     @staticmethod
     async def join(itr: discord.Interaction):
         """Join the voice channel of the user who invoked the command."""
-        if not VC.ffmpeg_available:
+        if not VC.voice_available:
             return
 
         if not itr.guild or not itr.user.voice:

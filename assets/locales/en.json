@@ -78,6 +78,12 @@
       "help": "Looks up a character feat by name.",
       "command": "/feat <feat name>"
     },
+    "language": {
+      "name": "language",
+      "desc": "Get the details of a language.",
+      "help": "Looks up a D&D Language by name.",
+      "command": "/language <language name>"
+    },
     "search": {
       "name": "search",
       "desc": "Search for a D&D entry.",
@@ -155,10 +161,12 @@
     "overview": {
       "name": "Overview",
       "commands": ["help"],
-      "info": [{
-        "name": "Additional info",
-        "info": ["You can get more information for each command by navigating to its category help tab."]
-      }]
+      "info": [
+        {
+          "name": "Additional info",
+          "info": ["You can get more information for each command by navigating to its category help tab."]
+        }
+      ]
     },
     "roll": {
       "name": "Roll",
@@ -201,17 +209,7 @@
     },
     "dnd": {
       "name": "D&D Resources",
-      "commands": [
-        "spell",
-        "item",
-        "condition",
-        "creature",
-        "class",
-        "feat",
-        "rule",
-        "action",
-        "search"
-      ],
+      "commands": ["spell", "item", "condition", "creature", "class", "feat", "rule", "action", "language", "search"],
       "text": "You can look up D&D information from [5e.tools](https://5e.tools/) using the following commands:",
       "info": []
     },

@@ -1,6 +1,7 @@
 import dataclasses
 import discord
 import i18n
+from i18n import t
 
 
 @dataclasses.dataclass
@@ -11,8 +12,8 @@ class HelpSelectOption(object):
 
 def get_tab_base_commands_list(tab: str) -> list[str]:
     commands = []
-    for command in i18n.get(f"help.{tab}.commands"):
-        command = i18n.get(f"commands.{command}.command")
+    for command in t(f"help.{tab}.commands"):
+        command = t(f"commands.{command}.command")
         command = command.split(" ")[0]  # Remove arguments
         commands.append(command)
     return commands
@@ -65,7 +66,7 @@ class HelpEmbed(discord.Embed):
 
         self.tab = tab or "overview"
         self.options = [
-            HelpSelectOption(tab, i18n.t(f"help.{tab}.name")) for tab in HelpEmbed.tabs
+            HelpSelectOption(tab, t(f"help.{tab}.name")) for tab in HelpEmbed.tabs
         ]
         self.view = HelpSelectView(self, self.options)
         self.load_tab(self.tab)
@@ -73,19 +74,19 @@ class HelpEmbed(discord.Embed):
     def load_tab(self, tab: str):
         self.clear_fields()
 
-        name = i18n.t(f"help.{tab}.name")
+        name = t(f"help.{tab}.name")
         self.title = f"Help - {name}"
 
         # List all commands
-        commands = i18n.t(f"help.{tab}.commands")
+        commands = t(f"help.{tab}.commands")
         commands_desc = []
 
         if i18n.has(f"help.{tab}.text"):
-            commands_desc.append(i18n.t(f"help.{tab}.text") + "\n")
+            commands_desc.append(t(f"help.{tab}.text") + "\n")
 
         for command in commands:
-            command_comm = i18n.t(f"commands.{command}.command")
-            command_help = i18n.t(f"commands.{command}.help")
+            command_comm = t(f"commands.{command}.command")
+            command_help = t(f"commands.{command}.help")
             commands_desc.append(f"``{command_comm}``\n{command_help}\n")
 
         self.add_field(name="", value="\n".join(commands_desc), inline=False)
@@ -96,8 +97,8 @@ class HelpEmbed(discord.Embed):
             if not i18n.has(f"help.{tab}.info.{info_i}"):
                 break
 
-            info_name = i18n.t(f"help.{tab}.info.{info_i}.name")
-            info_fields = i18n.t(f"help.{tab}.info.{info_i}.info")
+            info_name = t(f"help.{tab}.info.{info_i}.name")
+            info_fields = t(f"help.{tab}.info.{info_i}.info")
 
             if isinstance(info_fields, list):
                 info_fields = "\n".join(info_fields)
@@ -110,7 +111,7 @@ class HelpEmbed(discord.Embed):
             categories = [tab for tab in HelpEmbed.tabs if tab != "overview"]
             categories_commands = []
             for category in categories:
-                category_name = i18n.get(f"help.{category}.name")
+                category_name = t(f"help.{category}.name")
                 category_commands = get_tab_base_commands_list(category)
                 category_commands = [
                     f"``- {command}``" for command in category_commands
@@ -126,7 +127,7 @@ class HelpEmbed(discord.Embed):
     def get_tab_choices() -> list[discord.app_commands.Choice]:
         choices: list[discord.app_commands.Choice] = []
         for tab in HelpEmbed.tabs:
-            name = i18n.get(f"help.{tab}.name")
+            name = t(f"help.{tab}.name")
             choices.append(discord.app_commands.Choice(name=name, value=tab))
         choices.sort(key=lambda c: c.name)
         return choices

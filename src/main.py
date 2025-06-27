@@ -37,6 +37,8 @@ if __name__ == "__main__":
 
     if args.verbose:
         logger.setLevel(logging.DEBUG)
+    else:
+        logging.getLogger('discord.player').setLevel(logging.WARNING)
 
     # Start the bot
     os.makedirs("./temp", exist_ok=True)

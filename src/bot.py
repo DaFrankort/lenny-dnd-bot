@@ -40,7 +40,7 @@ from voice_chat import VC, SoundType, Sounds
 class Bot(discord.Client):
     tree: app_commands.CommandTree
     token: str
-    guild_id: int
+    guild_id: int | None
     data: DNDData
     initiatives: InitiativeTracker
 
@@ -53,7 +53,9 @@ class Bot(discord.Client):
 
         self.tree = app_commands.CommandTree(self)
         self.token = os.getenv("DISCORD_BOT_TOKEN")
-        self.guild_id = int(os.getenv("GUILD_ID"))
+        
+        guild_id = os.getenv("GUILD_ID")
+        self.guild_id = int(guild_id) if guild_id is not None else None
 
         self.data = DNDData()
         self.initiatives = InitiativeTracker()

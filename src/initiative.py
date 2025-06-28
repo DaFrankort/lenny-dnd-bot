@@ -380,9 +380,10 @@ class InitiativeView(discord.ui.View):
         row=0,
     )
     async def remove_initiative(self, itr: Interaction, button: discord.ui.Button):
-        await itr.response.send_message(
-            "Sorry, still working on this :-(", ephemeral=True
-        )
+        self.tracker.remove(itr, None)
+        embed = InitiativeEmbed(itr, self.tracker, self.owner_id)
+        await itr.response.edit_message(embed=embed, view=embed.view)
+        await itr.followup.send("Initiative removed!", ephemeral=True)
 
     @discord.ui.button(
         label="Bulk", style=discord.ButtonStyle.primary, custom_id="bulk_btn", row=1

@@ -314,13 +314,19 @@ class InitiativeRollModal(discord.ui.Modal, title="Rolling for Initiative"):
 
 class InitiativeBulkModal(discord.ui.Modal, title="Adding Initiatives in Bulk"):
     modifier = discord.ui.TextInput(
-        label="Creature's Initiative Modifier", placeholder="0", required=True, max_length=2
+        label="Creature's Initiative Modifier", placeholder="0", max_length=3
     )
     name = discord.ui.TextInput(
-        label="Creature's Name", placeholder="Goblin", required=True
+        label="Creature's Name", placeholder="Goblin"
     )
     amount = discord.ui.TextInput(
-        label="Amount of creatures to add", placeholder="1", required=True, max_length=2
+        label="Amount of creatures to add", placeholder="1", max_length=2
+    )
+    mode = discord.ui.TextInput(
+        label="Roll Mode (Normal by default)", placeholder="Advantage / Disadvantage", required=False, max_length=12
+    )
+    shared = discord.ui.TextInput(
+        label="Share Initiative (False by default)", placeholder="True / False", required=False,  max_length=5
     )
 
     def __init__(self, itr: Interaction, tracker: InitiativeTracker, owner_id: int):
@@ -340,13 +346,28 @@ class InitiativeBulkModal(discord.ui.Modal, title="Adding Initiatives in Bulk"):
                 ephemeral=True,
             )
             return
+        mode = DiceRollMode.Normal
+        mode_input = str(self.mode).lower()
+        if mode_input.startswith('a'):  # 'a' for Advantage
+            mode = DiceRollMode.Advantage
+        elif mode_input.startswith('d'):  # 'd' for Disadvantage
+            mode = DiceRollMode.Disadvantage
 
-        self.tracker.add_bulk(itr, modifier, name, amount, DiceRollMode.Normal, False)
+        shared = False
+        shared_input = str(self.shared).lower()
+        if shared_input.startswith("t"):  # 't' for True
+            shared = True
+
+        self.tracker.add_bulk(itr, modifier, name, amount, mode, shared)
         self.tracker.add(itr, Initiative(itr, modifier, None, DiceRollMode.Normal))
 
         embed = InitiativeEmbed(itr, self.tracker, self.owner_id)
         await itr.response.edit_message(embed=embed, view=embed.view)
-        await itr.followup.send(f"Rolled Initiatives for {amount} {name}(s) using ``1d20+{modifier}``.", ephemeral=True)
+
+        additional_text = ""
+        additional_text += "" if mode == DiceRollMode.Normal else f"with {mode.value.capitalize()} "
+        additional_text += "using the same values " if shared else ""
+        await itr.followup.send(f"Rolled Initiative {additional_text}for {amount} {name}(s) using ``1d20+{modifier}``.", ephemeral=True)
 
 
 class InitiativeSetModal(discord.ui.Modal, title="Setting your Initiative value"):

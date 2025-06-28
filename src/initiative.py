@@ -4,7 +4,7 @@ import discord
 from discord import Interaction
 
 from dice import DiceRollMode
-from embeds import SimpleEmbed
+from embeds import SimpleEmbed, SuccessEmbed, UserActionEmbed
 from rapidfuzz import fuzz
 from discord.app_commands import Choice
 
@@ -297,7 +297,7 @@ class _InitiativeModal(discord.ui.Modal):
         input_values = {
             child.label: str(child)
             for child in self.children
-            if isinstance(child, discord.ui.TextInput) and str(child) != ''
+            if isinstance(child, discord.ui.TextInput) and str(child) != ""
         }
 
         username = itr.user.name
@@ -305,7 +305,9 @@ class _InitiativeModal(discord.ui.Modal):
 
     async def on_error(self, itr: Interaction, error: Exception):
         self.log_inputs(itr)
-        await itr.response.send_message("Something went wrong! Please try again later.", ephemeral=True)
+        await itr.response.send_message(
+            "Something went wrong! Please try again later.", ephemeral=True
+        )
 
     def get_int(self, text_input: discord.ui.TextInput):
         """Safely parse integer from TextInput. Returns None on failure."""
@@ -314,7 +316,9 @@ class _InitiativeModal(discord.ui.Modal):
         except ValueError:
             return None
 
-    def get_choice(self, text_input: discord.ui.TextInput, default: any, choices: dict[str, any]) -> any:
+    def get_choice(
+        self, text_input: discord.ui.TextInput, default: any, choices: dict[str, any]
+    ) -> any:
         """Used to simulate selection-menu functionality, allowing a user to select a certain option."""
         choice = default
         user_input = str(text_input).lower()
@@ -333,10 +337,16 @@ class InitiativeRollModal(_InitiativeModal, title="Rolling for Initiative"):
         label="Your Initiative Modifier", placeholder="0", max_length=2
     )
     mode = discord.ui.TextInput(
-        label="Roll Mode (Normal by default)", placeholder="Advantage / Disadvantage", required=False, max_length=12
+        label="Roll Mode (Normal by default)",
+        placeholder="Advantage / Disadvantage",
+        required=False,
+        max_length=12,
     )
     name = discord.ui.TextInput(
-        label="Name (Username by default)", placeholder="Goblin", required=False, max_length=128
+        label="Name (Username by default)",
+        placeholder="Goblin",
+        required=False,
+        max_length=128,
     )
 
     async def on_submit(self, itr: Interaction):
@@ -345,15 +355,63 @@ class InitiativeRollModal(_InitiativeModal, title="Rolling for Initiative"):
         name = str(self.name) or None
         modifier = self.get_int(self.modifier)
         if not modifier:
-            await itr.response.send_message("Initiative Modifier must be a number without decimals.", ephemeral=True)
+            await itr.response.send_message(
+                "Initiative Modifier must be a number without decimals.", ephemeral=True
+            )
             return
 
-        mode = self.get_choice(self.mode, DiceRollMode.Normal, {"a": DiceRollMode.Advantage, "d": DiceRollMode.Disadvantage})
-        self.tracker.add(itr, Initiative(itr, modifier, name, mode))
+        mode = self.get_choice(
+            self.mode,
+            DiceRollMode.Normal,
+            {"a": DiceRollMode.Advantage, "d": DiceRollMode.Disadvantage},
+        )
+        initiative = Initiative(itr, modifier, name, mode)
+        self.tracker.add(itr, initiative)
 
         embed = InitiativeEmbed(itr, self.tracker)
         await itr.response.edit_message(embed=embed, view=embed.view)
-        await itr.followup.send("Initiative rolled!", ephemeral=True)
+        await itr.followup.send(
+            embed=UserActionEmbed(
+                itr=itr, title=initiative.title, description=initiative.description
+            ),
+            ephemeral=True,
+        )
+
+
+class InitiativeSetModal(_InitiativeModal, title="Setting your Initiative value"):
+    value = discord.ui.TextInput(
+        label="Your Initiative value", placeholder="0", max_length=3
+    )
+    name = discord.ui.TextInput(
+        label="Name (Username by default)",
+        placeholder="Goblin",
+        required=False,
+        max_length=128,
+    )
+
+    async def on_submit(self, itr: Interaction):
+        self.log_inputs(itr)
+
+        name = str(self.name) or None
+        value = self.get_int(self.value)
+        if not value or value < 0:
+            await itr.response.send_message(
+                "Value must be a positive number without decimals.", ephemeral=True
+            )
+            return
+
+        initiative = Initiative(itr, value, name, DiceRollMode.Normal)
+        initiative.set_value(value)
+        self.tracker.add(itr, initiative)
+
+        embed = InitiativeEmbed(itr, self.tracker)
+        await itr.response.edit_message(embed=embed, view=embed.view)
+        await itr.followup.send(
+            embed=UserActionEmbed(
+                itr=itr, title=initiative.title, description=initiative.description
+            ),
+            ephemeral=True,
+        )
 
 
 class InitiativeBulkModal(_InitiativeModal, title="Adding Initiatives in Bulk"):
@@ -367,10 +425,16 @@ class InitiativeBulkModal(_InitiativeModal, title="Adding Initiatives in Bulk"):
         label="Amount of creatures to add", placeholder="1", max_length=2
     )
     mode = discord.ui.TextInput(
-        label="Roll Mode (Normal by default)", placeholder="Advantage / Disadvantage", required=False, max_length=12
+        label="Roll Mode (Normal by default)",
+        placeholder="Advantage / Disadvantage",
+        required=False,
+        max_length=12,
     )
     shared = discord.ui.TextInput(
-        label="Share Initiative (False by default)", placeholder="True / False", required=False,  max_length=5
+        label="Share Initiative (False by default)",
+        placeholder="True / False",
+        required=False,
+        max_length=5,
     )
 
     async def on_submit(self, itr: Interaction):
@@ -393,62 +457,51 @@ class InitiativeBulkModal(_InitiativeModal, title="Adding Initiatives in Bulk"):
             )
             return
 
-        mode = self.get_choice(self.mode, DiceRollMode.Normal, {"a": DiceRollMode.Advantage, "d": DiceRollMode.Disadvantage})
-        shared = self.get_choice(self.shared, False, {'t': True})
+        mode = self.get_choice(
+            self.mode,
+            DiceRollMode.Normal,
+            {"a": DiceRollMode.Advantage, "d": DiceRollMode.Disadvantage},
+        )
+        shared = self.get_choice(self.shared, False, {"t": True})
 
-        self.tracker.add_bulk(itr, modifier, name, amount, mode, shared)
+        title, description = self.tracker.add_bulk(
+            itr, modifier, name, amount, mode, shared
+        )
         embed = InitiativeEmbed(itr, self.tracker)
         await itr.response.edit_message(embed=embed, view=embed.view)
-
-        additional_text = ""
-        additional_text += "" if mode == DiceRollMode.Normal else f"with {mode.value.capitalize()} "
-        additional_text += "using the same values " if shared else ""
-        await itr.followup.send(f"Rolled Initiative {additional_text}for {amount} {name}(s) using ``1d20+{modifier}``.", ephemeral=True)
-
-
-class InitiativeSetModal(_InitiativeModal, title="Setting your Initiative value"):
-    value = discord.ui.TextInput(
-        label="Your Initiative value", placeholder="0",  max_length=3
-    )
-    name = discord.ui.TextInput(
-        label="Name (Username by default)", placeholder="Goblin", required=False, max_length=128
-    )
-
-    async def on_submit(self, itr: Interaction):
-        self.log_inputs(itr)
-
-        name = str(self.name) or None
-        value = self.get_int(self.value)
-        if not value or value < 0:
-            await itr.response.send_message("Value must be a positive number without decimals.", ephemeral=True)
-            return
-
-        initiative = Initiative(itr, value, name, DiceRollMode.Normal)
-        initiative.set_value(value)
-        self.tracker.add(itr, initiative)
-
-        embed = InitiativeEmbed(itr, self.tracker)
-        await itr.response.edit_message(embed=embed, view=embed.view)
-        await itr.followup.send(f"Initiative set to {value}!", ephemeral=True)
+        await itr.followup.send(
+            embed=UserActionEmbed(itr=itr, title=title, description=description),
+            ephemeral=True,
+        )
 
 
-class InitiativeClearConfirmModal(_InitiativeModal, title="Are you sure you want to clear?"):
-    confirm = discord.ui.TextInput(
-        label="Type 'CLEAR' to confirm", placeholder="CLEAR"
-    )
+class InitiativeClearConfirmModal(
+    _InitiativeModal, title="Are you sure you want to clear?"
+):
+    confirm = discord.ui.TextInput(label="Type 'CLEAR' to confirm", placeholder="CLEAR")
 
     async def on_submit(self, itr: Interaction):
         self.log_inputs(itr)
 
         confirm = str(self.confirm)
-        if confirm != 'CLEAR':
-            await itr.response.send_message("Clearing cancelled, input 'CLEAR' in all caps to confirm.", ephemeral=True)
+        if confirm != "CLEAR":
+            await itr.response.send_message(
+                embed=SimpleEmbed(
+                    "Clearing cancelled!", "Type 'CLEAR' in all caps to confirm."
+                ),
+                ephemeral=True,
+            )
             return
 
         self.tracker.clear(itr)
         embed = InitiativeEmbed(itr, self.tracker)
         await itr.response.edit_message(embed=embed, view=embed.view)
-        await itr.followup.send("Initiatives cleared!", ephemeral=True)
+        await itr.followup.send(
+            embed=SimpleEmbed(
+                "Cleared all initiatives!", f"Cleared by {itr.user.display_name}."
+            ),
+            ephemeral=True,
+        )
 
 
 class InitiativeView(discord.ui.View):
@@ -461,17 +514,13 @@ class InitiativeView(discord.ui.View):
         label="Roll", style=discord.ButtonStyle.success, custom_id="roll_btn", row=0
     )
     async def roll_initiative(self, itr: Interaction, button: discord.ui.Button):
-        await itr.response.send_modal(
-            InitiativeRollModal(itr, self.tracker)
-        )
+        await itr.response.send_modal(InitiativeRollModal(itr, self.tracker))
 
     @discord.ui.button(
         label="Set", style=discord.ButtonStyle.success, custom_id="set_btn", row=0
     )
     async def set_initiative(self, itr: Interaction, button: discord.ui.Button):
-        await itr.response.send_modal(
-            InitiativeSetModal(itr, self.tracker)
-        )
+        await itr.response.send_modal(InitiativeSetModal(itr, self.tracker))
 
     @discord.ui.button(
         label="Delete Roll",
@@ -480,18 +529,22 @@ class InitiativeView(discord.ui.View):
         row=0,
     )
     async def remove_initiative(self, itr: Interaction, button: discord.ui.Button):
-        self.tracker.remove(itr, None)
+        text, success = self.tracker.remove(itr, None)
         embed = InitiativeEmbed(itr, self.tracker)
         await itr.response.edit_message(embed=embed, view=embed.view)
-        await itr.followup.send("Initiative removed!", ephemeral=True)
+        removal_embed = SuccessEmbed(
+            title_success="Removed initiative",
+            title_fail="Failed to remove initiative",
+            description=text,
+            success=success,
+        )
+        await itr.followup.send(embed=removal_embed, ephemeral=True)
 
     @discord.ui.button(
         label="Bulk", style=discord.ButtonStyle.primary, custom_id="bulk_btn", row=1
     )
     async def bulk_roll_initiative(self, itr: Interaction, button: discord.ui.Button):
-        await itr.response.send_modal(
-            InitiativeBulkModal(itr, self.tracker)
-        )
+        await itr.response.send_modal(InitiativeBulkModal(itr, self.tracker))
 
     @discord.ui.button(
         label="Lock", style=discord.ButtonStyle.primary, custom_id="lock_btn", row=1

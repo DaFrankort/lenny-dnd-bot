@@ -546,7 +546,7 @@ class Bot(discord.Client):
             itr: Interaction,
         ):
             log_cmd(itr)
-            embed = InitiativeEmbed(itr, self.initiatives, itr.user.id)
+            embed = InitiativeEmbed(itr, self.initiatives)
             await itr.response.send_message(embed=embed, view=embed.view)
 
         @self.tree.command(

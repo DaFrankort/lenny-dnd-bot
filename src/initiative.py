@@ -310,7 +310,9 @@ class _InitiativeModal(discord.ui.Modal):
     async def on_error(self, itr: Interaction, error: Exception):
         self.log_inputs(itr)
 
-        tb_str = ''.join(traceback.format_exception(type(error), error, error.__traceback__))
+        tb_str = "".join(
+            traceback.format_exception(type(error), error, error.__traceback__)
+        )
         logging.error(f"Error occurred during interaction {itr}: {tb_str}")
 
         await itr.response.send_message(
@@ -618,5 +620,7 @@ class InitiativeEmbed(SimpleEmbed):
         self.description = description or "*No initiatives rolled!*"
         self.view = InitiativeView(itr, tracker)
         if footer:
-            footer = footer.replace('*', "").replace('`', '').replace('_', '')  # Footer doesn't support formatting.
+            footer = (
+                footer.replace("*", "").replace("`", "").replace("_", "")
+            )  # Footer doesn't support formatting.
             self.set_footer(text=footer, icon_url=itr.user.avatar.url)

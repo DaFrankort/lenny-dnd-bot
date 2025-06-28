@@ -1,3 +1,4 @@
+import logging
 import random
 import discord
 from discord import Interaction
@@ -291,7 +292,19 @@ class _InitiativeModal(discord.ui.Modal):
         self.itr = itr
         self.tracker = tracker
 
+    def log_inputs(self, itr: Interaction):
+        """Logs all text input values."""
+        input_values = {
+            child.label: str(child)
+            for child in self.children
+            if isinstance(child, discord.ui.TextInput)
+        }
+
+        username = itr.user.name
+        logging.info(f"{username} submitted modal => {input_values}")
+
     async def on_error(self, itr: Interaction, error: Exception):
+        self.log_inputs(itr)
         await itr.response.send_message("Something went wrong! Please try again later.", ephemeral=True)
 
     def get_int(self, text_input: discord.ui.TextInput):
@@ -327,6 +340,8 @@ class InitiativeRollModal(_InitiativeModal, title="Rolling for Initiative"):
     )
 
     async def on_submit(self, itr: Interaction):
+        self.log_inputs(itr)
+
         name = str(self.name) or None
         modifier = self.get_int(self.modifier)
         if not modifier:
@@ -359,6 +374,8 @@ class InitiativeBulkModal(_InitiativeModal, title="Adding Initiatives in Bulk"):
     )
 
     async def on_submit(self, itr: Interaction):
+        self.log_inputs(itr)
+
         name = str(self.name)
         modifier = self.get_int(self.modifier)
         amount = self.get_int(self.amount)
@@ -398,6 +415,8 @@ class InitiativeSetModal(_InitiativeModal, title="Setting your Initiative value"
     )
 
     async def on_submit(self, itr: Interaction):
+        self.log_inputs(itr)
+
         name = str(self.name) or None
         value = self.get_int(self.value)
         if not value or value < 0:
@@ -419,8 +438,9 @@ class InitiativeClearConfirmModal(_InitiativeModal, title="Are you sure you want
     )
 
     async def on_submit(self, itr: Interaction):
-        confirm = str(self.confirm)
+        self.log_inputs(itr)
 
+        confirm = str(self.confirm)
         if confirm != 'CLEAR':
             await itr.response.send_message("Clearing cancelled, input 'CLEAR' in all caps to confirm.", ephemeral=True)
             return

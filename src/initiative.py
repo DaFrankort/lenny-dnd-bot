@@ -313,9 +313,12 @@ class _InitiativeModal(discord.ui.Modal):
         )
 
     def get_int(self, text_input: discord.ui.TextInput):
-        """Safely parse integer from TextInput. Returns None on failure."""
+        """Safely parse integer from TextInput. Returns None on failure, defaults to 0 if input is ''"""
+        text = str(text_input).strip()
+        if text == '':
+            return 0
         try:
-            return int(str(text_input))
+            return int(text)
         except ValueError:
             return None
 
@@ -337,7 +340,7 @@ class _InitiativeModal(discord.ui.Modal):
 
 class InitiativeRollModal(_InitiativeModal, title="Rolling for Initiative"):
     modifier = discord.ui.TextInput(
-        label="Your Initiative Modifier", placeholder="0", max_length=2
+        label="Your Initiative Modifier", placeholder="0", max_length=2, required=False
     )
     name = discord.ui.TextInput(
         label="Name (Username by default)",
@@ -357,7 +360,7 @@ class InitiativeRollModal(_InitiativeModal, title="Rolling for Initiative"):
 
         name = str(self.name) or None
         modifier = self.get_int(self.modifier)
-        if not modifier:
+        if modifier is None:
             await itr.response.send_message(
                 "Initiative Modifier must be a number without decimals.", ephemeral=True
             )
@@ -384,7 +387,7 @@ class InitiativeRollModal(_InitiativeModal, title="Rolling for Initiative"):
 
 class InitiativeSetModal(_InitiativeModal, title="Setting your Initiative value"):
     value = discord.ui.TextInput(
-        label="Your Initiative value", placeholder="0", max_length=3
+        label="Initiative value", placeholder="20", max_length=3
     )
     name = discord.ui.TextInput(
         label="Name (Username by default)",
@@ -446,7 +449,7 @@ class InitiativeDeleteModal(_InitiativeModal, title="Remove an Initiative"):
 
 class InitiativeBulkModal(_InitiativeModal, title="Adding Initiatives in Bulk"):
     modifier = discord.ui.TextInput(
-        label="Creature's Initiative Modifier", placeholder="0", max_length=3
+        label="Creature's Initiative Modifier", placeholder="0", max_length=3, required=False
     )
     name = discord.ui.TextInput(
         label="Creature's Name", placeholder="Goblin", max_length=128
@@ -474,7 +477,7 @@ class InitiativeBulkModal(_InitiativeModal, title="Adding Initiatives in Bulk"):
         modifier = self.get_int(self.modifier)
         amount = self.get_int(self.amount)
 
-        if not modifier or not amount:
+        if modifier is None or amount is None:
             await itr.response.send_message(
                 "Modifier and Amount must be a number without a decimals.",
                 ephemeral=True,

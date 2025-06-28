@@ -297,7 +297,7 @@ class _InitiativeModal(discord.ui.Modal):
         input_values = {
             child.label: str(child)
             for child in self.children
-            if isinstance(child, discord.ui.TextInput)
+            if isinstance(child, discord.ui.TextInput) and str(child) != ''
         }
 
         username = itr.user.name

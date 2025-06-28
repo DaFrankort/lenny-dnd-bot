@@ -8,16 +8,27 @@ on:
   workflow_dispatch:
 
 jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11.5"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
   flake8-lint:
+    needs: build
     runs-on: ubuntu-latest
     name: flake8
     steps:
-      - name: Check out source repository
-        uses: actions/checkout@v3
-      - name: Set up Python environment
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.11"
       - name: flake8 Lint
         uses: py-actions/flake8@v2
         with:
@@ -27,15 +38,10 @@ jobs:
           plugins: "flake8-black"
 
   black-lints:
+    needs: build
     runs-on: ubuntu-latest
     name: black
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11.5"
       - name: Black linter
         uses: psf/black@stable
         with:
@@ -43,18 +49,20 @@ jobs:
           src: src
 
   unit-test:
+    needs: build
     runs-on: ubuntu-latest
     name: pytest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11.5"
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install -r requirements.txt
       - name: Run unit-tests
         run: python -m pytest
+
+  check-unused-requirements:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pip-check-reqs
+        run: pip install pip-check-reqs
+      - name: Check for unused requirements
+        run: |
+          pip-missing-reqs . --ignore-file=requirements.txt || true

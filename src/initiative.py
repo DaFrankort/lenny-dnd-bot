@@ -428,9 +428,11 @@ class InitiativeView(discord.ui.View):
     async def clear_initiative(self, itr: Interaction, button: discord.ui.Button):
         if not await self._check_auth(itr):
             return
-        await itr.response.send_message(
-            "Sorry, still working on this :-(", ephemeral=True
-        )
+
+        self.tracker.clear(itr)
+        embed = InitiativeEmbed(itr, self.tracker, self.owner_id)
+        await itr.response.edit_message(embed=embed, view=embed.view)
+        await itr.followup.send("Initiatives cleared!", ephemeral=True)
 
 
 class InitiativeEmbed(SimpleEmbed):

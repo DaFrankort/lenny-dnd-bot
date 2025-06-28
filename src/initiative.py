@@ -315,7 +315,7 @@ class _InitiativeModal(discord.ui.Modal):
     def get_int(self, text_input: discord.ui.TextInput):
         """Safely parse integer from TextInput. Returns None on failure, defaults to 0 if input is ''"""
         text = str(text_input).strip()
-        if text == '':
+        if text == "":
             return 0
         try:
             return int(text)
@@ -449,7 +449,10 @@ class InitiativeDeleteModal(_InitiativeModal, title="Remove an Initiative"):
 
 class InitiativeBulkModal(_InitiativeModal, title="Adding Initiatives in Bulk"):
     modifier = discord.ui.TextInput(
-        label="Creature's Initiative Modifier", placeholder="0", max_length=3, required=False
+        label="Creature's Initiative Modifier",
+        placeholder="0",
+        max_length=3,
+        required=False,
     )
     name = discord.ui.TextInput(
         label="Creature's Name", placeholder="Goblin", max_length=128

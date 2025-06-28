@@ -284,8 +284,8 @@ class InitiativeTracker:
         return title, description
 
 
-class InitiativeRollModal(discord.ui.Modal, title="Engage in combat!"):
-    user_input = discord.ui.TextInput(
+class InitiativeRollModal(discord.ui.Modal, title="Rolling for Initiative"):
+    modifier = discord.ui.TextInput(
         label="Your Initiative Modifier", placeholder="0", required=True, max_length=2
     )
 
@@ -297,17 +297,48 @@ class InitiativeRollModal(discord.ui.Modal, title="Engage in combat!"):
 
     async def on_submit(self, itr: Interaction):
         try:
-            modifier = int(str(self.user_input))
+            modifier = int(str(self.modifier))
         except ValueError:
             await itr.response.send_message(
-                "Please enter a valid number.", ephemeral=True
+                "Initiative modifier must be a number without a decimals.",
+                ephemeral=True,
             )
             return
 
         self.tracker.add(itr, Initiative(itr, modifier, None, DiceRollMode.Normal))
+
         embed = InitiativeEmbed(itr, self.tracker, self.owner_id)
         await itr.response.edit_message(embed=embed, view=embed.view)
-        await itr.followup.send("Initiative updated!", ephemeral=True)
+        await itr.followup.send("Initiative rolled!", ephemeral=True)
+
+
+class InitiativeSetModal(discord.ui.Modal, title="Setting your Initiative value"):
+    value = discord.ui.TextInput(
+        label="Your Initiative value", placeholder="0", required=True, max_length=3
+    )
+
+    def __init__(self, itr: Interaction, tracker: InitiativeTracker, owner_id: int):
+        super().__init__()
+        self.itr = itr
+        self.tracker = tracker
+        self.owner_id = owner_id
+
+    async def on_submit(self, itr: Interaction):
+        try:
+            value = int(str(self.value))
+        except ValueError:
+            await itr.response.send_message(
+                "Initiative value must be a number without a decimals.", ephemeral=True
+            )
+            return
+
+        initiative = Initiative(itr, value, None, DiceRollMode.Normal)
+        initiative.set_value(value)
+        self.tracker.add(itr, initiative)
+
+        embed = InitiativeEmbed(itr, self.tracker, self.owner_id)
+        await itr.response.edit_message(embed=embed, view=embed.view)
+        await itr.followup.send(f"Initiative set to {value}!", ephemeral=True)
 
 
 class InitiativeView(discord.ui.View):
@@ -338,8 +369,8 @@ class InitiativeView(discord.ui.View):
         label="Set", style=discord.ButtonStyle.success, custom_id="set_btn", row=0
     )
     async def set_initiative(self, itr: Interaction, button: discord.ui.Button):
-        await itr.response.send_message(
-            "Sorry, still working on this :-(", ephemeral=True
+        await itr.response.send_modal(
+            InitiativeSetModal(itr, self.tracker, self.owner_id)
         )
 
     @discord.ui.button(

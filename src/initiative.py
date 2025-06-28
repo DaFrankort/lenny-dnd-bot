@@ -159,9 +159,7 @@ class InitiativeTracker:
         )  # Sort by query match => fuzzy score => alphabetically
         return [choice for _, _, choice in choices[:limit]]
 
-    def swap(
-        self, itr: Interaction, target_a: str, target_b: str
-    ) -> tuple[str, bool]:
+    def swap(self, itr: Interaction, target_a: str, target_b: str) -> tuple[str, bool]:
         """
         Swaps the initiative values between two initiatives identified by their names.
         Returns a tuple containing a message string explaining the result of the swap and a boolean indicating whether the swap was successful.
@@ -288,10 +286,7 @@ class InitiativeTracker:
 
 class InitiativeRollModal(discord.ui.Modal, title="Engage in combat!"):
     user_input = discord.ui.TextInput(
-        label="Your Initiative Modifier",
-        placeholder="0",
-        required=True,
-        max_length=2
+        label="Your Initiative Modifier", placeholder="0", required=True, max_length=2
     )
 
     def __init__(self, itr: Interaction, tracker: InitiativeTracker, owner_id: int):
@@ -304,7 +299,9 @@ class InitiativeRollModal(discord.ui.Modal, title="Engage in combat!"):
         try:
             modifier = int(str(self.user_input))
         except ValueError:
-            await itr.response.send_message("Please enter a valid number.", ephemeral=True)
+            await itr.response.send_message(
+                "Please enter a valid number.", ephemeral=True
+            )
             return
 
         self.tracker.add(itr, Initiative(itr, modifier, None, DiceRollMode.Normal))
@@ -324,30 +321,51 @@ class InitiativeView(discord.ui.View):
         if itr.user.id == self.owner_id:
             return True
 
-        await itr.response.send_message("Sorry! You can't use this button, as you're not the owner!", ephemeral=True)
+        await itr.response.send_message(
+            "Sorry! You can't use this button, as you're not the owner!", ephemeral=True
+        )
         return False
 
-    @discord.ui.button(label="Roll", style=discord.ButtonStyle.success, custom_id="roll_btn", row=0)
+    @discord.ui.button(
+        label="Roll", style=discord.ButtonStyle.success, custom_id="roll_btn", row=0
+    )
     async def roll_initiative(self, itr: Interaction, button: discord.ui.Button):
         await itr.response.send_modal(
             InitiativeRollModal(itr, self.tracker, self.owner_id)
         )
 
-    @discord.ui.button(label="Set", style=discord.ButtonStyle.success, custom_id="set_btn", row=0)
+    @discord.ui.button(
+        label="Set", style=discord.ButtonStyle.success, custom_id="set_btn", row=0
+    )
     async def set_initiative(self, itr: Interaction, button: discord.ui.Button):
-        await itr.response.send_message("Sorry, still working on this :-(", ephemeral=True)
+        await itr.response.send_message(
+            "Sorry, still working on this :-(", ephemeral=True
+        )
 
-    @discord.ui.button(label="Delete Roll", style=discord.ButtonStyle.danger, custom_id="retract_btn", row=0)
+    @discord.ui.button(
+        label="Delete Roll",
+        style=discord.ButtonStyle.danger,
+        custom_id="retract_btn",
+        row=0,
+    )
     async def remove_initiative(self, itr: Interaction, button: discord.ui.Button):
-        await itr.response.send_message("Sorry, still working on this :-(", ephemeral=True)
+        await itr.response.send_message(
+            "Sorry, still working on this :-(", ephemeral=True
+        )
 
-    @discord.ui.button(label="Bulk", style=discord.ButtonStyle.primary, custom_id="bulk_btn", row=1)
+    @discord.ui.button(
+        label="Bulk", style=discord.ButtonStyle.primary, custom_id="bulk_btn", row=1
+    )
     async def bulk_roll_initiative(self, itr: Interaction, button: discord.ui.Button):
         if not await self._check_auth(itr):
             return
-        await itr.response.send_message("Sorry, still working on this :-(", ephemeral=True)
+        await itr.response.send_message(
+            "Sorry, still working on this :-(", ephemeral=True
+        )
 
-    @discord.ui.button(label="Lock", style=discord.ButtonStyle.primary, custom_id="lock_btn", row=1)
+    @discord.ui.button(
+        label="Lock", style=discord.ButtonStyle.primary, custom_id="lock_btn", row=1
+    )
     async def lock(self, itr: Interaction, button: discord.ui.Button):
         if not await self._check_auth(itr):
             return
@@ -358,18 +376,29 @@ class InitiativeView(discord.ui.View):
                 continue
 
             child.disabled = self.locked
-            child.style = discord.ButtonStyle.secondary if self.locked else {
-                "retract_btn": discord.ButtonStyle.danger,
-                "clear_btn": discord.ButtonStyle.danger,
-                "bulk_btn": discord.ButtonStyle.primary,
-            }.get(child.custom_id, discord.ButtonStyle.success)
+            child.style = (
+                discord.ButtonStyle.secondary
+                if self.locked
+                else {
+                    "retract_btn": discord.ButtonStyle.danger,
+                    "clear_btn": discord.ButtonStyle.danger,
+                    "bulk_btn": discord.ButtonStyle.primary,
+                }.get(child.custom_id, discord.ButtonStyle.success)
+            )
         await itr.response.edit_message(view=self)
 
-    @discord.ui.button(label="Clear Rolls", style=discord.ButtonStyle.danger, custom_id="clear_btn", row=1)
+    @discord.ui.button(
+        label="Clear Rolls",
+        style=discord.ButtonStyle.danger,
+        custom_id="clear_btn",
+        row=1,
+    )
     async def clear_initiative(self, itr: Interaction, button: discord.ui.Button):
         if not await self._check_auth(itr):
             return
-        await itr.response.send_message("Sorry, still working on this :-(", ephemeral=True)
+        await itr.response.send_message(
+            "Sorry, still working on this :-(", ephemeral=True
+        )
 
 
 class InitiativeEmbed(SimpleEmbed):
@@ -384,8 +413,7 @@ class InitiativeEmbed(SimpleEmbed):
         description = description or "*No initiatives rolled yet!*"
 
         super().__init__(
-            title="Initiative - Get ready for Combat!",
-            description=description
+            title="Initiative - Get ready for Combat!", description=description
         )
 
         self.view = InitiativeView(itr, tracker, owner_id)

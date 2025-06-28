@@ -159,6 +159,7 @@ class InitiativeTracker:
         )  # Sort by query match => fuzzy score => alphabetically
         return [choice for _, _, choice in choices[:limit]]
 
+    @DeprecationWarning
     def swap(self, itr: Interaction, target_a: str, target_b: str) -> tuple[str, bool]:
         """
         Swaps the initiative values between two initiatives identified by their names.
@@ -284,7 +285,37 @@ class InitiativeTracker:
         return title, description
 
 
-class InitiativeRollModal(discord.ui.Modal, title="Rolling for Initiative"):
+class _InitiativeModal(discord.ui.Modal):
+    def __init__(self, itr: Interaction, tracker: InitiativeTracker):
+        super().__init__()
+        self.itr = itr
+        self.tracker = tracker
+
+    async def on_error(self, itr: Interaction, error: Exception):
+        await itr.response.send_message("Something went wrong! Please try again later.", ephemeral=True)
+
+    def get_int(self, text_input: discord.ui.TextInput):
+        """Safely parse integer from TextInput. Returns None on failure."""
+        try:
+            return int(str(text_input))
+        except ValueError:
+            return None
+
+    def get_choice(self, text_input: discord.ui.TextInput, default: any, choices: dict[str, any]) -> any:
+        """Used to simulate selection-menu functionality, allowing a user to select a certain option."""
+        choice = default
+        user_input = str(text_input).lower()
+
+        for key in choices:
+            choice_value = choices[key]
+            if user_input.startswith(key.lower()):
+                choice = choice_value
+                break
+
+        return choice
+
+
+class InitiativeRollModal(_InitiativeModal, title="Rolling for Initiative"):
     modifier = discord.ui.TextInput(
         label="Your Initiative Modifier", placeholder="0", max_length=2
     )
@@ -295,29 +326,14 @@ class InitiativeRollModal(discord.ui.Modal, title="Rolling for Initiative"):
         label="Name (Username by default)", placeholder="Goblin", required=False, max_length=128
     )
 
-    def __init__(self, itr: Interaction, tracker: InitiativeTracker):
-        super().__init__()
-        self.itr = itr
-        self.tracker = tracker
-
     async def on_submit(self, itr: Interaction):
         name = str(self.name) or None
-        try:
-            modifier = int(str(self.modifier))
-        except ValueError:
-            await itr.response.send_message(
-                "Initiative modifier must be a number without a decimals.",
-                ephemeral=True,
-            )
+        modifier = self.get_int(self.modifier)
+        if not modifier:
+            await itr.response.send_message("Initiative Modifier must be a number without decimals.", ephemeral=True)
             return
 
-        mode = DiceRollMode.Normal
-        mode_input = str(self.mode).lower()
-        if mode_input.startswith('a'):  # 'a' for Advantage
-            mode = DiceRollMode.Advantage
-        elif mode_input.startswith('d'):  # 'd' for Disadvantage
-            mode = DiceRollMode.Disadvantage
-
+        mode = self.get_choice(self.mode, DiceRollMode.Normal, {"a": DiceRollMode.Advantage, "d": DiceRollMode.Disadvantage})
         self.tracker.add(itr, Initiative(itr, modifier, name, mode))
 
         embed = InitiativeEmbed(itr, self.tracker)
@@ -325,7 +341,7 @@ class InitiativeRollModal(discord.ui.Modal, title="Rolling for Initiative"):
         await itr.followup.send("Initiative rolled!", ephemeral=True)
 
 
-class InitiativeBulkModal(discord.ui.Modal, title="Adding Initiatives in Bulk"):
+class InitiativeBulkModal(_InitiativeModal, title="Adding Initiatives in Bulk"):
     modifier = discord.ui.TextInput(
         label="Creature's Initiative Modifier", placeholder="0", max_length=3
     )
@@ -342,33 +358,26 @@ class InitiativeBulkModal(discord.ui.Modal, title="Adding Initiatives in Bulk"):
         label="Share Initiative (False by default)", placeholder="True / False", required=False,  max_length=5
     )
 
-    def __init__(self, itr: Interaction, tracker: InitiativeTracker):
-        super().__init__()
-        self.itr = itr
-        self.tracker = tracker
-
     async def on_submit(self, itr: Interaction):
         name = str(self.name)
-        try:
-            modifier = int(str(self.modifier))
-            amount = int(str(self.amount))
-        except ValueError:
+        modifier = self.get_int(self.modifier)
+        amount = self.get_int(self.amount)
+
+        if not modifier or not amount:
             await itr.response.send_message(
                 "Modifier and Amount must be a number without a decimals.",
                 ephemeral=True,
             )
             return
-        mode = DiceRollMode.Normal
-        mode_input = str(self.mode).lower()
-        if mode_input.startswith('a'):  # 'a' for Advantage
-            mode = DiceRollMode.Advantage
-        elif mode_input.startswith('d'):  # 'd' for Disadvantage
-            mode = DiceRollMode.Disadvantage
+        if amount <= 0:
+            await itr.response.send_message(
+                "Amount must be a numerical value larger than 0.",
+                ephemeral=True,
+            )
+            return
 
-        shared = False
-        shared_input = str(self.shared).lower()
-        if shared_input.startswith("t"):  # 't' for True
-            shared = True
+        mode = self.get_choice(self.mode, DiceRollMode.Normal, {"a": DiceRollMode.Advantage, "d": DiceRollMode.Disadvantage})
+        shared = self.get_choice(self.shared, False, {'t': True})
 
         self.tracker.add_bulk(itr, modifier, name, amount, mode, shared)
         embed = InitiativeEmbed(itr, self.tracker)
@@ -380,7 +389,7 @@ class InitiativeBulkModal(discord.ui.Modal, title="Adding Initiatives in Bulk"):
         await itr.followup.send(f"Rolled Initiative {additional_text}for {amount} {name}(s) using ``1d20+{modifier}``.", ephemeral=True)
 
 
-class InitiativeSetModal(discord.ui.Modal, title="Setting your Initiative value"):
+class InitiativeSetModal(_InitiativeModal, title="Setting your Initiative value"):
     value = discord.ui.TextInput(
         label="Your Initiative value", placeholder="0",  max_length=3
     )
@@ -388,20 +397,11 @@ class InitiativeSetModal(discord.ui.Modal, title="Setting your Initiative value"
         label="Name (Username by default)", placeholder="Goblin", required=False, max_length=128
     )
 
-    def __init__(self, itr: Interaction, tracker: InitiativeTracker):
-        super().__init__()
-        self.itr = itr
-        self.tracker = tracker
-
     async def on_submit(self, itr: Interaction):
         name = str(self.name) or None
-
-        try:
-            value = int(str(self.value))
-        except ValueError:
-            await itr.response.send_message(
-                "Initiative value must be a number without a decimals.", ephemeral=True
-            )
+        value = self.get_int(self.value)
+        if not value or value < 0:
+            await itr.response.send_message("Value must be a positive number without decimals.", ephemeral=True)
             return
 
         initiative = Initiative(itr, value, name, DiceRollMode.Normal)
@@ -413,15 +413,10 @@ class InitiativeSetModal(discord.ui.Modal, title="Setting your Initiative value"
         await itr.followup.send(f"Initiative set to {value}!", ephemeral=True)
 
 
-class InitiativeClearConfirmModal(discord.ui.Modal, title="Are you sure you want to clear?"):
+class InitiativeClearConfirmModal(_InitiativeModal, title="Are you sure you want to clear?"):
     confirm = discord.ui.TextInput(
         label="Type 'CLEAR' to confirm", placeholder="CLEAR"
     )
-
-    def __init__(self, itr: Interaction, tracker: InitiativeTracker):
-        super().__init__()
-        self.itr = itr
-        self.tracker = tracker
 
     async def on_submit(self, itr: Interaction):
         confirm = str(self.confirm)

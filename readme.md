@@ -12,6 +12,7 @@ Powered by [5e.tools](https://5e.tools/) for up-to-date 5e data.
 - **Character Stat Rolling**: Automatically roll and generate D&D character stats.
 - **Voice Chat Sound Effects**: The bot can join voice channels to play sound effects for your rolls, including special sounds for natural 1s and 20s, as well as effects for attacks, damage, and fire.
 - **Token-Image Generation** - Generate a 5etools-style token from an image or image-url for your characters or custom creatures.
+- **Initiative Tracking** - Track initiatives for combat easily, with easy-to-use buttons for players and dungeon masters.
 
 ## Installation
 

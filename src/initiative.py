@@ -286,7 +286,13 @@ class InitiativeTracker:
 
 class InitiativeRollModal(discord.ui.Modal, title="Rolling for Initiative"):
     modifier = discord.ui.TextInput(
-        label="Your Initiative Modifier", placeholder="0", required=True, max_length=2
+        label="Your Initiative Modifier", placeholder="0", max_length=2
+    )
+    mode = discord.ui.TextInput(
+        label="Roll Mode (Normal by default)", placeholder="Advantage / Disadvantage", required=False, max_length=12
+    )
+    name = discord.ui.TextInput(
+        label="Name (Username by default)", placeholder="Goblin", required=False
     )
 
     def __init__(self, itr: Interaction, tracker: InitiativeTracker, owner_id: int):
@@ -296,6 +302,7 @@ class InitiativeRollModal(discord.ui.Modal, title="Rolling for Initiative"):
         self.owner_id = owner_id
 
     async def on_submit(self, itr: Interaction):
+        name = str(self.name) or None
         try:
             modifier = int(str(self.modifier))
         except ValueError:
@@ -305,7 +312,14 @@ class InitiativeRollModal(discord.ui.Modal, title="Rolling for Initiative"):
             )
             return
 
-        self.tracker.add(itr, Initiative(itr, modifier, None, DiceRollMode.Normal))
+        mode = DiceRollMode.Normal
+        mode_input = str(self.mode).lower()
+        if mode_input.startswith('a'):  # 'a' for Advantage
+            mode = DiceRollMode.Advantage
+        elif mode_input.startswith('d'):  # 'd' for Disadvantage
+            mode = DiceRollMode.Disadvantage
+
+        self.tracker.add(itr, Initiative(itr, modifier, name, mode))
 
         embed = InitiativeEmbed(itr, self.tracker, self.owner_id)
         await itr.response.edit_message(embed=embed, view=embed.view)
@@ -372,7 +386,10 @@ class InitiativeBulkModal(discord.ui.Modal, title="Adding Initiatives in Bulk"):
 
 class InitiativeSetModal(discord.ui.Modal, title="Setting your Initiative value"):
     value = discord.ui.TextInput(
-        label="Your Initiative value", placeholder="0", required=True, max_length=3
+        label="Your Initiative value", placeholder="0",  max_length=3
+    )
+    name = discord.ui.TextInput(
+        label="Name (Username by default)", placeholder="Goblin", required=False
     )
 
     def __init__(self, itr: Interaction, tracker: InitiativeTracker, owner_id: int):
@@ -382,6 +399,8 @@ class InitiativeSetModal(discord.ui.Modal, title="Setting your Initiative value"
         self.owner_id = owner_id
 
     async def on_submit(self, itr: Interaction):
+        name = str(self.name) or None
+
         try:
             value = int(str(self.value))
         except ValueError:
@@ -390,7 +409,7 @@ class InitiativeSetModal(discord.ui.Modal, title="Setting your Initiative value"
             )
             return
 
-        initiative = Initiative(itr, value, None, DiceRollMode.Normal)
+        initiative = Initiative(itr, value, name, DiceRollMode.Normal)
         initiative.set_value(value)
         self.tracker.add(itr, initiative)
 
@@ -401,7 +420,7 @@ class InitiativeSetModal(discord.ui.Modal, title="Setting your Initiative value"
 
 class InitiativeView(discord.ui.View):
     def __init__(self, itr: Interaction, tracker: InitiativeTracker, owner_id: int):
-        super().__init__()
+        super().__init__(timeout=3600)  # Stop being responsive after 1 hour
         self.tracker = tracker
         self.owner_id = owner_id
         self.locked = False

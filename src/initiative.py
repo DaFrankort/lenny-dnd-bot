@@ -160,9 +160,10 @@ class InitiativeTracker:
         )  # Sort by query match => fuzzy score => alphabetically
         return [choice for _, _, choice in choices[:limit]]
 
-    @DeprecationWarning
     def swap(self, itr: Interaction, target_a: str, target_b: str) -> tuple[str, bool]:
         """
+        ## DEPRECATED, NOT USED RIGHT NOW ALTHOUGH MAY BE RE-IMPLEMENTED IN THE FUTURE? ##
+
         Swaps the initiative values between two initiatives identified by their names.
         Returns a tuple containing a message string explaining the result of the swap and a boolean indicating whether the swap was successful.
         """

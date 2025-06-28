@@ -429,12 +429,15 @@ class InitiativeDeleteModal(_InitiativeModal, title="Remove an Initiative"):
         text, success = self.tracker.remove(itr, name)
         embed = InitiativeEmbed(itr, self.tracker)
         await itr.response.edit_message(embed=embed, view=embed.view)
-        await itr.followup.send(embed=SuccessEmbed(
-            title_success="Removed initiative",
-            title_fail="Failed to remove initiative",
-            description=text,
-            success=success,
-        ), ephemeral=True)
+        await itr.followup.send(
+            embed=SuccessEmbed(
+                title_success="Removed initiative",
+                title_fail="Failed to remove initiative",
+                description=text,
+                success=success,
+            ),
+            ephemeral=True,
+        )
 
 
 class InitiativeBulkModal(_InitiativeModal, title="Adding Initiatives in Bulk"):
@@ -595,10 +598,7 @@ class InitiativeEmbed(SimpleEmbed):
     view: discord.ui.View
 
     def __init__(self, itr: Interaction, tracker: InitiativeTracker):
-        super().__init__(
-            title="Initiatives",
-            description=None
-        )
+        super().__init__(title="Initiatives", description=None)
 
         description = ""
         for initiative in tracker.get(itr):

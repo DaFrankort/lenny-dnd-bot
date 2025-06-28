@@ -1,4 +1,4 @@
-aiohttp==3.11.12
+aiohttp==3.12.13
 discord.py==2.5.0
 python-dotenv==1.0.1
 RapidFuzz==3.12.1

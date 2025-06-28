@@ -8,6 +8,8 @@ from embeds import SimpleEmbed, SuccessEmbed, UserActionEmbed, log_button_press
 from rapidfuzz import fuzz
 from discord.app_commands import Choice
 
+from voice_chat import VC, SoundType
+
 
 class Initiative:
     name: str
@@ -377,6 +379,7 @@ class InitiativeRollModal(_InitiativeModal, title="Rolling for Initiative"):
             ),
             ephemeral=True,
         )
+        await VC.play(itr, SoundType.ROLL)
 
 
 class InitiativeSetModal(_InitiativeModal, title="Setting your Initiative value"):
@@ -500,6 +503,7 @@ class InitiativeBulkModal(_InitiativeModal, title="Adding Initiatives in Bulk"):
             embed=UserActionEmbed(itr=itr, title=title, description=description),
             ephemeral=True,
         )
+        await VC.play(itr, SoundType.ROLL)
 
 
 class InitiativeClearConfirmModal(

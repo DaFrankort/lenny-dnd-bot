@@ -5,6 +5,7 @@ from pathlib import Path
 import random
 import shutil
 import discord
+from discord import Interaction
 
 from dice import DiceExpression
 
@@ -16,6 +17,12 @@ class SoundType(Enum):
     ATTACK = "combat/attack"
     DAMAGE = "combat/damage"
     FIRE = "combat/fire"
+    INITIATIVE = "initiative/roll"
+    SET = "initiative/set"
+    DELETE = "initiative/delete"
+    BULK = "initiative/bulk"
+    LOCK = "initiative/lock"
+    HORN = "initiative/horn"
 
 
 class VC:
@@ -41,7 +48,7 @@ class VC:
         VC.voice_available = False
 
     @staticmethod
-    async def join(itr: discord.Interaction):
+    async def join(itr: Interaction):
         """Join the voice channel of the user who invoked the command."""
         if not VC.voice_available:
             return
@@ -76,7 +83,7 @@ class VC:
             del VC.clients[guild_id]
 
     @staticmethod
-    async def play(itr: discord.Interaction, sound_type: SoundType):
+    async def play(itr: Interaction, sound_type: SoundType):
         """Play an audio file in the voice channel."""
         if not itr.guild or not itr.user.voice:
             return  # User in DMs or not in voice chat
@@ -102,7 +109,7 @@ class VC:
 
     @staticmethod
     async def play_dice_roll(
-        itr: discord.Interaction, expression: DiceExpression, reason: str = None
+        itr: Interaction, expression: DiceExpression, reason: str = None
     ):
         roll = expression.roll
         sound_type = SoundType.ROLL
@@ -168,6 +175,12 @@ class Sounds:
             SoundType.ATTACK: option(speed_deviation=0.3),
             SoundType.DAMAGE: option(speed_deviation=0.4),
             SoundType.FIRE: option(speed_deviation=0.2),
+            SoundType.HORN: option(volume=0.1, speed_deviation=0.2),
+            SoundType.INITIATIVE: option(speed_deviation=0.2),
+            SoundType.SET: option(volume=0.4, speed_deviation=0.3),
+            SoundType.DELETE: option(speed_deviation=0.3),
+            SoundType.BULK: option(volume=0.1),
+            SoundType.LOCK: option(volume=0.2, speed_deviation=0.3),
             # Add sound types and specific options here
         }
 

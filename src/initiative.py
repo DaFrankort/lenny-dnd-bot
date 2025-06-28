@@ -375,6 +375,7 @@ class InitiativeRollModal(_InitiativeModal, title="Rolling for Initiative"):
         self.tracker.add(itr, initiative)
 
         embed = InitiativeEmbed(itr, self.tracker)
+        await VC.play(itr, SoundType.INITIATIVE)
         await itr.response.edit_message(embed=embed, view=embed.view)
         await itr.followup.send(
             embed=UserActionEmbed(
@@ -382,7 +383,6 @@ class InitiativeRollModal(_InitiativeModal, title="Rolling for Initiative"):
             ),
             ephemeral=True,
         )
-        await VC.play(itr, SoundType.ROLL)
 
 
 class InitiativeSetModal(_InitiativeModal, title="Setting your Initiative value"):
@@ -412,6 +412,7 @@ class InitiativeSetModal(_InitiativeModal, title="Setting your Initiative value"
         self.tracker.add(itr, initiative)
 
         embed = InitiativeEmbed(itr, self.tracker)
+        await VC.play(itr, SoundType.SET)
         await itr.response.edit_message(embed=embed, view=embed.view)
         await itr.followup.send(
             embed=UserActionEmbed(
@@ -435,6 +436,7 @@ class InitiativeDeleteModal(_InitiativeModal, title="Remove an Initiative"):
         name = str(self.name) or None
         text, success = self.tracker.remove(itr, name)
         embed = InitiativeEmbed(itr, self.tracker)
+        await VC.play(itr, SoundType.DELETE)
         await itr.response.edit_message(embed=embed, view=embed.view)
         await itr.followup.send(
             embed=SuccessEmbed(
@@ -504,12 +506,12 @@ class InitiativeBulkModal(_InitiativeModal, title="Adding Initiatives in Bulk"):
             itr, modifier, name, amount, mode, shared
         )
         embed = InitiativeEmbed(itr, self.tracker)
+        await VC.play(itr, SoundType.BULK)
         await itr.response.edit_message(embed=embed, view=embed.view)
         await itr.followup.send(
             embed=UserActionEmbed(itr=itr, title=title, description=description),
             ephemeral=True,
         )
-        await VC.play(itr, SoundType.ROLL)
 
 
 class InitiativeClearConfirmModal(
@@ -532,6 +534,7 @@ class InitiativeClearConfirmModal(
 
         self.tracker.clear(itr)
         embed = InitiativeEmbed(itr, self.tracker)
+        await VC.play(itr, SoundType.DELETE)
         await itr.response.edit_message(embed=embed, view=embed.view)
         await itr.followup.send(
             embed=SimpleEmbed(
@@ -562,7 +565,7 @@ class InitiativeView(discord.ui.View):
     @discord.ui.button(
         label="Delete Roll",
         style=discord.ButtonStyle.danger,
-        custom_id="retract_btn",
+        custom_id="delete_btn",
         row=0,
     )
     async def remove_initiative(self, itr: Interaction, button: discord.ui.Button):
@@ -589,11 +592,13 @@ class InitiativeView(discord.ui.View):
                 discord.ButtonStyle.secondary
                 if self.locked
                 else {
-                    "retract_btn": discord.ButtonStyle.danger,
+                    "delete_btn": discord.ButtonStyle.danger,
                     "clear_btn": discord.ButtonStyle.danger,
                     "bulk_btn": discord.ButtonStyle.primary,
                 }.get(child.custom_id, discord.ButtonStyle.success)
             )
+
+        await VC.play(itr, SoundType.LOCK)
         await itr.response.edit_message(view=self)
 
     @discord.ui.button(

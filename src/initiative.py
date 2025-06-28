@@ -425,15 +425,6 @@ class InitiativeView(discord.ui.View):
         self.owner_id = owner_id
         self.locked = False
 
-    async def _check_auth(self, itr: Interaction) -> bool:
-        if itr.user.id == self.owner_id:
-            return True
-
-        await itr.response.send_message(
-            "Sorry! You can't use this button, as you're not the owner!", ephemeral=True
-        )
-        return False
-
     @discord.ui.button(
         label="Roll", style=discord.ButtonStyle.success, custom_id="roll_btn", row=0
     )
@@ -466,8 +457,6 @@ class InitiativeView(discord.ui.View):
         label="Bulk", style=discord.ButtonStyle.primary, custom_id="bulk_btn", row=1
     )
     async def bulk_roll_initiative(self, itr: Interaction, button: discord.ui.Button):
-        if not await self._check_auth(itr):
-            return
         await itr.response.send_modal(
             InitiativeBulkModal(itr, self.tracker, self.owner_id)
         )
@@ -476,9 +465,6 @@ class InitiativeView(discord.ui.View):
         label="Lock", style=discord.ButtonStyle.primary, custom_id="lock_btn", row=1
     )
     async def lock(self, itr: Interaction, button: discord.ui.Button):
-        if not await self._check_auth(itr):
-            return
-
         self.locked = not self.locked
         for child in self.children:
             if child.custom_id == "lock_btn":
@@ -503,9 +489,6 @@ class InitiativeView(discord.ui.View):
         row=1,
     )
     async def clear_initiative(self, itr: Interaction, button: discord.ui.Button):
-        if not await self._check_auth(itr):
-            return
-
         self.tracker.clear(itr)
         embed = InitiativeEmbed(itr, self.tracker, self.owner_id)
         await itr.response.edit_message(embed=embed, view=embed.view)

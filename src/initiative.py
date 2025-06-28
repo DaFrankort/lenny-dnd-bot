@@ -1,5 +1,6 @@
 import logging
 import random
+import traceback
 import discord
 from discord import Interaction
 
@@ -308,6 +309,10 @@ class _InitiativeModal(discord.ui.Modal):
 
     async def on_error(self, itr: Interaction, error: Exception):
         self.log_inputs(itr)
+
+        tb_str = ''.join(traceback.format_exception(type(error), error, error.__traceback__))
+        logging.error(f"Error occurred during interaction {itr}: {tb_str}")
+
         await itr.response.send_message(
             "Something went wrong! Please try again later.", ephemeral=True
         )
@@ -371,7 +376,7 @@ class InitiativeRollModal(_InitiativeModal, title="Rolling for Initiative"):
         initiative = Initiative(itr, modifier, name, mode)
         self.tracker.add(itr, initiative)
 
-        embed = InitiativeEmbed(itr, self.tracker)
+        embed = InitiativeEmbed(itr, self.tracker, initiative.title)
         await itr.response.edit_message(embed=embed, view=embed.view)
         await itr.followup.send(
             embed=UserActionEmbed(
@@ -408,7 +413,7 @@ class InitiativeSetModal(_InitiativeModal, title="Setting your Initiative value"
         initiative.set_value(value)
         self.tracker.add(itr, initiative)
 
-        embed = InitiativeEmbed(itr, self.tracker)
+        embed = InitiativeEmbed(itr, self.tracker, initiative.title)
         await itr.response.edit_message(embed=embed, view=embed.view)
         await itr.followup.send(
             embed=UserActionEmbed(
@@ -431,7 +436,7 @@ class InitiativeDeleteModal(_InitiativeModal, title="Remove an Initiative"):
 
         name = str(self.name) or None
         text, success = self.tracker.remove(itr, name)
-        embed = InitiativeEmbed(itr, self.tracker)
+        embed = InitiativeEmbed(itr, self.tracker, text)
         await itr.response.edit_message(embed=embed, view=embed.view)
         await itr.followup.send(
             embed=SuccessEmbed(
@@ -497,7 +502,7 @@ class InitiativeBulkModal(_InitiativeModal, title="Adding Initiatives in Bulk"):
         title, description = self.tracker.add_bulk(
             itr, modifier, name, amount, mode, shared
         )
-        embed = InitiativeEmbed(itr, self.tracker)
+        embed = InitiativeEmbed(itr, self.tracker, title)
         await itr.response.edit_message(embed=embed, view=embed.view)
         await itr.followup.send(
             embed=UserActionEmbed(itr=itr, title=title, description=description),
@@ -525,12 +530,11 @@ class InitiativeClearConfirmModal(
             return
 
         self.tracker.clear(itr)
-        embed = InitiativeEmbed(itr, self.tracker)
+        text = f"{itr.user.display_name} cleared all initiatives."
+        embed = InitiativeEmbed(itr, self.tracker, text)
         await itr.response.edit_message(embed=embed, view=embed.view)
         await itr.followup.send(
-            embed=SimpleEmbed(
-                "Cleared all initiatives!", f"Cleared by {itr.user.display_name}."
-            ),
+            embed=SimpleEmbed("Cleared all initiatives!", text),
             ephemeral=True,
         )
 
@@ -603,7 +607,7 @@ class InitiativeView(discord.ui.View):
 class InitiativeEmbed(SimpleEmbed):
     view: discord.ui.View
 
-    def __init__(self, itr: Interaction, tracker: InitiativeTracker):
+    def __init__(self, itr: Interaction, tracker: InitiativeTracker, footer=""):
         super().__init__(title="Initiatives", description=None)
 
         description = ""
@@ -611,5 +615,8 @@ class InitiativeEmbed(SimpleEmbed):
             total = initiative.get_total()
             description += f"- ``{total:>2}`` - {initiative.name}\n"
 
-        self.description = description or "*No initiatives rolled yet!*"
+        self.description = description or "*No initiatives rolled!*"
         self.view = InitiativeView(itr, tracker)
+        if footer:
+            footer = footer.replace('*', "").replace('`', '').replace('_', '')  # Footer doesn't support formatting.
+            self.set_footer(text=footer, icon_url=itr.user.avatar.url)

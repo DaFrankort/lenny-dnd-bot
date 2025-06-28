@@ -312,6 +312,43 @@ class InitiativeRollModal(discord.ui.Modal, title="Rolling for Initiative"):
         await itr.followup.send("Initiative rolled!", ephemeral=True)
 
 
+class InitiativeBulkModal(discord.ui.Modal, title="Adding Initiatives in Bulk"):
+    modifier = discord.ui.TextInput(
+        label="Creature's Initiative Modifier", placeholder="0", required=True, max_length=2
+    )
+    name = discord.ui.TextInput(
+        label="Creature's Name", placeholder="Goblin", required=True
+    )
+    amount = discord.ui.TextInput(
+        label="Amount of creatures to add", placeholder="1", required=True, max_length=2
+    )
+
+    def __init__(self, itr: Interaction, tracker: InitiativeTracker, owner_id: int):
+        super().__init__()
+        self.itr = itr
+        self.tracker = tracker
+        self.owner_id = owner_id
+
+    async def on_submit(self, itr: Interaction):
+        name = str(self.name)
+        try:
+            modifier = int(str(self.modifier))
+            amount = int(str(self.amount))
+        except ValueError:
+            await itr.response.send_message(
+                "Modifier and Amount must be a number without a decimals.",
+                ephemeral=True,
+            )
+            return
+
+        self.tracker.add_bulk(itr, modifier, name, amount, DiceRollMode.Normal, False)
+        self.tracker.add(itr, Initiative(itr, modifier, None, DiceRollMode.Normal))
+
+        embed = InitiativeEmbed(itr, self.tracker, self.owner_id)
+        await itr.response.edit_message(embed=embed, view=embed.view)
+        await itr.followup.send(f"Rolled Initiatives for {amount} {name}(s) using ``1d20+{modifier}``.", ephemeral=True)
+
+
 class InitiativeSetModal(discord.ui.Modal, title="Setting your Initiative value"):
     value = discord.ui.TextInput(
         label="Your Initiative value", placeholder="0", required=True, max_length=3
@@ -391,8 +428,8 @@ class InitiativeView(discord.ui.View):
     async def bulk_roll_initiative(self, itr: Interaction, button: discord.ui.Button):
         if not await self._check_auth(itr):
             return
-        await itr.response.send_message(
-            "Sorry, still working on this :-(", ephemeral=True
+        await itr.response.send_modal(
+            InitiativeBulkModal(itr, self.tracker, self.owner_id)
         )
 
     @discord.ui.button(

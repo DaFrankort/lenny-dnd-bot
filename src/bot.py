@@ -4,6 +4,8 @@ import discord
 from discord import app_commands
 from discord import Interaction
 from dotenv import load_dotenv
+from help import HelpEmbed
+from i18n import t
 
 from dice import DiceExpression, DiceRollMode
 from dnd import DNDData, DNDObject
@@ -38,11 +40,12 @@ from voice_chat import VC, SoundType, Sounds
 class Bot(discord.Client):
     tree: app_commands.CommandTree
     token: str
-    guild_id: int
+    guild_id: int | None
     data: DNDData
     initiatives: InitiativeTracker
+    voice_enabled: bool
 
-    def __init__(self):
+    def __init__(self, voice: bool = True):
         load_dotenv()
         intents = discord.Intents.default()
         intents.members = True
@@ -51,7 +54,10 @@ class Bot(discord.Client):
 
         self.tree = app_commands.CommandTree(self)
         self.token = os.getenv("DISCORD_BOT_TOKEN")
-        self.guild_id = int(os.getenv("GUILD_ID"))
+
+        guild_id = os.getenv("GUILD_ID")
+        self.guild_id = int(guild_id) if guild_id is not None else None
+        self.voice_enabled = voice
 
         self.data = DNDData()
         self.initiatives = InitiativeTracker()
@@ -69,7 +75,10 @@ class Bot(discord.Client):
         await self._attempt_sync_guild()
         await self.tree.sync()
         Sounds.init_folders()
-        VC.check_ffmpeg()
+        if self.voice_enabled:
+            VC.check_ffmpeg()
+        else:
+            VC.disable_vc()
         logging.info("Finished initialization")
 
     async def _attempt_sync_guild(self):
@@ -112,8 +121,11 @@ class Bot(discord.Client):
 
             else:
                 embed = found[0].get_embed()
-                view = embed.view or discord.ui.View
-                await itr.response.send_message(embed=embed, view=view)
+                view = embed.view
+                if view:
+                    await itr.response.send_message(embed=embed, view=view)
+                    return
+                await itr.response.send_message(embed=embed)
 
         RollModeChoices = [
             app_commands.Choice(name="Normal", value=DiceRollMode.Normal.value),
@@ -139,7 +151,9 @@ class Bot(discord.Client):
         # COMMANDS
         #
 
-        @self.tree.command(name="roll", description="Roll your d20s!")
+        @self.tree.command(
+            name=t("commands.roll.name"), description=t("commands.roll.desc")
+        )
         async def roll(itr: Interaction, diceroll: str, reason: str = None):
             log_cmd(itr)
             expression = DiceExpression(
@@ -155,7 +169,9 @@ class Bot(discord.Client):
             )
             await VC.play_dice_roll(itr, expression, reason)
 
-        @self.tree.command(name="d20", description="Just roll a clean d20")
+        @self.tree.command(
+            name=t("commands.d20.name"), description=t("commands.d20.desc")
+        )
         async def d20(itr: Interaction):
             log_cmd(itr)
             expression = DiceExpression("1d20", DiceRollMode.Normal)
@@ -170,7 +186,7 @@ class Bot(discord.Client):
             await VC.play_dice_roll(itr, expression)
 
         @self.tree.command(
-            name="advantage", description="Lucky you! Roll and take the best of two!"
+            name=t("commands.advantage.name"), description=t("commands.advantage.desc")
         )
         async def advantage(itr: Interaction, diceroll: str, reason: str = None):
             log_cmd(itr)
@@ -186,8 +202,8 @@ class Bot(discord.Client):
             await VC.play_dice_roll(itr, expression, reason)
 
         @self.tree.command(
-            name="disadvantage",
-            description="Tough luck chump... Roll twice and suck it.",
+            name=t("commands.disadvantage.name"),
+            description=t("commands.disadvantage.desc"),
         )
         async def disadvantage(itr: Interaction, diceroll: str, reason: str = None):
             log_cmd(itr)
@@ -242,7 +258,9 @@ class Bot(discord.Client):
                 for reason in filtered_reasons[:25]
             ]
 
-        @self.tree.command(name="spell", description="Get the details for a spell.")
+        @self.tree.command(
+            name=t("commands.spell.name"), description=t("commands.spell.desc")
+        )
         async def spell(itr: Interaction, name: str):
             log_cmd(itr)
             found = self.data.spells.get(name)
@@ -254,7 +272,9 @@ class Bot(discord.Client):
         ) -> list[app_commands.Choice[str]]:
             return self.data.spells.get_autocomplete_suggestions(query=current)
 
-        @self.tree.command(name="item", description="Get the details for an item.")
+        @self.tree.command(
+            name=t("commands.item.name"), description=t("commands.item.desc")
+        )
         async def item(itr: Interaction, name: str):
             log_cmd(itr)
             found = self.data.items.get(name)
@@ -267,7 +287,8 @@ class Bot(discord.Client):
             return self.data.items.get_autocomplete_suggestions(query=current)
 
         @self.tree.command(
-            name="condition", description="Get the details for a condition."
+            name=t("commands.condition.name"),
+            description=t("commands.condition.desc"),
         )
         async def condition(itr: Interaction, name: str):
             log_cmd(itr)
@@ -281,7 +302,8 @@ class Bot(discord.Client):
             return self.data.conditions.get_autocomplete_suggestions(query=current)
 
         @self.tree.command(
-            name="creature", description="Get the details for a creature."
+            name=t("commands.creature.name"),
+            description=t("commands.creature.desc"),
         )
         async def creature(itr: Interaction, name: str):
             log_cmd(itr)
@@ -295,7 +317,8 @@ class Bot(discord.Client):
             return self.data.creatures.get_autocomplete_suggestions(query=current)
 
         @self.tree.command(
-            name="class", description="Get the details for a character-class."
+            name=t("commands.class.name"),
+            description=t("commands.class.desc"),
         )
         async def character_class(itr: Interaction, name: str):
             log_cmd(itr)
@@ -308,7 +331,9 @@ class Bot(discord.Client):
         ) -> list[app_commands.Choice[str]]:
             return self.data.classes.get_autocomplete_suggestions(query=current)
 
-        @self.tree.command(name="rule", description="Look up D&D rules.")
+        @self.tree.command(
+            name=t("commands.rule.name"), description=t("commands.rule.desc")
+        )
         async def rule(itr: Interaction, name: str):
             log_cmd(itr)
             found = self.data.rules.get(name)
@@ -320,7 +345,9 @@ class Bot(discord.Client):
         ) -> list[app_commands.Choice[str]]:
             return self.data.rules.get_autocomplete_suggestions(query=current)
 
-        @self.tree.command(name="action", description="Get the details for an action.")
+        @self.tree.command(
+            name=t("commands.action.name"), description=t("commands.action.desc")
+        )
         async def action(itr: Interaction, name: str):
             log_cmd(itr)
             found = self.data.actions.get(name)
@@ -333,7 +360,8 @@ class Bot(discord.Client):
             return self.data.actions.get_autocomplete_suggestions(query=current)
 
         @self.tree.command(
-            name="feat", description="Get the details for a character feat."
+            name=t("commands.feat.name"),
+            description=t("commands.feat.desc"),
         )
         async def feat(itr: Interaction, name: str):
             log_cmd(itr)
@@ -346,7 +374,24 @@ class Bot(discord.Client):
         ) -> list[app_commands.Choice[str]]:
             return self.data.feats.get_autocomplete_suggestions(query=current)
 
-        @self.tree.command(name="search", description="Search for a spell.")
+        @self.tree.command(
+            name=t("commands.language.name"),
+            description=t("commands.language.desc"),
+        )
+        async def language(itr: Interaction, name: str):
+            log_cmd(itr)
+            found = self.data.languages.get(name)
+            await send_DNDObject_lookup_result(itr, "languages", found, name)
+
+        @language.autocomplete("name")
+        async def language_autocomplete(
+            itr: discord.Interaction, current: str
+        ) -> list[app_commands.Choice[str]]:
+            return self.data.languages.get_autocomplete_suggestions(query=current)
+
+        @self.tree.command(
+            name=t("commands.search.name"), description=t("commands.search.desc")
+        )
         async def search(itr: Interaction, query: str):
             log_cmd(itr)
             results = search_from_query(query, self.data)
@@ -362,8 +407,7 @@ class Bot(discord.Client):
                 )
 
         @self.tree.command(
-            name="color",
-            description="Set a preferred color using a hex-value. Leave hex_color empty to use auto-generated colors.",
+            name=t("commands.color.name"), description=t("commands.color.desc")
         )
         async def set_color(itr: Interaction, hex_color: str = ""):
             log_cmd(itr)
@@ -397,8 +441,8 @@ class Bot(discord.Client):
             )
 
         @self.tree.command(
-            name="stats",
-            description="Roll stats for a new character, using the 4d6 drop lowest method.",
+            name=t("commands.stats.name"),
+            description=t("commands.stats.desc"),
         )
         async def stats(itr: Interaction):
             log_cmd(itr)
@@ -412,7 +456,8 @@ class Bot(discord.Client):
             )
 
         @self.tree.command(
-            name="tokengen", description="Turn an image into a 5etools-style token."
+            name=t("commands.tokengen.name"),
+            description=t("commands.tokengen.desc"),
         )
         @app_commands.describe(
             image="The image to turn into a token.",
@@ -458,8 +503,8 @@ class Bot(discord.Client):
             )
 
         @self.tree.command(
-            name="tokengenurl",
-            description="Turn an image-url into a 5etools-style token.",
+            name=t("commands.tokengenurl.name"),
+            description=t("commands.tokengenurl.desc"),
         )
         @app_commands.describe(
             url="The image-url to generate a token from.",
@@ -505,7 +550,8 @@ class Bot(discord.Client):
             )
 
         @self.tree.command(
-            name="initiative", description="Roll initiative for yourself or a creature."
+            name=t("commands.initiative.name"),
+            description=t("commands.initiative.desc"),
         )
         @app_commands.describe(
             modifier="The initiative modifier to apply to the roll.",
@@ -530,8 +576,8 @@ class Bot(discord.Client):
             await VC.play_initiative_roll(itr, initiative)
 
         @self.tree.command(
-            name="setinitiative",
-            description="Set initiative for yourself or a creature.",
+            name=t("commands.setinitiative.name"),
+            description=t("commands.setinitiative.desc"),
         )
         @app_commands.describe(
             value="The initiative value to use.",
@@ -539,7 +585,7 @@ class Bot(discord.Client):
         )
         async def set_initiative(itr: Interaction, value: int, name: str | None = None):
             log_cmd(itr)
-            initiative = Initiative(itr, 0, name)
+            initiative = Initiative(itr, 0, name, roll_mode=DiceRollMode.Normal)
             initiative.set_value(value)
             self.initiatives.add(itr, initiative)
             await itr.response.send_message(
@@ -555,8 +601,8 @@ class Bot(discord.Client):
             return self.initiatives.get_autocomplete_suggestions(itr, current)
 
         @self.tree.command(
-            name="bulkinitiative",
-            description="Roll initiative for a defined amount of creatures.",
+            name=t("commands.bulkinitiative.name"),
+            description=t("commands.bulkinitiative.desc"),
         )
         @app_commands.describe(
             modifier="The initiative modifier to apply to the roll.",
@@ -589,8 +635,8 @@ class Bot(discord.Client):
             await VC.play(itr, SoundType.ROLL)
 
         @self.tree.command(
-            name="showinitiative",
-            description="Show an overview of all the rolled initiatives.",
+            name=t("commands.showinitiative.name"),
+            description=t("commands.showinitiative.desc"),
         )
         async def show_initiative(itr: Interaction):
             log_cmd(itr)
@@ -606,7 +652,8 @@ class Bot(discord.Client):
             await itr.response.send_message(embed=embed)
 
         @self.tree.command(
-            name="clearinitiative", description="Clear all initiative rolls."
+            name=t("commands.clearinitiative.name"),
+            description=t("commands.clearinitiative.desc"),
         )
         async def clear_initiative(itr: Interaction):
             log_cmd(itr)
@@ -618,8 +665,8 @@ class Bot(discord.Client):
             )
 
         @self.tree.command(
-            name="removeinitiative",
-            description="Remove a single initiative roll from the list.",
+            name=t("commands.removeinitiative.name"),
+            description=t("commands.removeinitiative.desc"),
         )
         async def remove_initiative(itr: Interaction, target: str | None = None):
             log_cmd(itr)
@@ -641,8 +688,8 @@ class Bot(discord.Client):
             return self.initiatives.get_autocomplete_suggestions(itr, current)
 
         @self.tree.command(
-            name="swapinitiative",
-            description="Swap the initiative order of two creatures or players (useful for feats like Alert).",
+            name=t("commands.swapinitiative.name"),
+            description=t("commands.swapinitiative.desc"),
         )
         async def swap_initiative(itr: Interaction, target_a: str, target_b: str):
             log_cmd(itr)
@@ -668,3 +715,14 @@ class Bot(discord.Client):
             itr: discord.Interaction, current: str
         ) -> list[app_commands.Choice[str]]:
             return self.initiatives.get_autocomplete_suggestions(itr, current)
+
+        @self.tree.command(
+            name=t("commands.help.name"), description=t("commands.help.desc")
+        )
+        @app_commands.choices(tab=HelpEmbed.get_tab_choices())
+        async def help(itr: discord.Interaction, tab: str = None):
+            log_cmd(itr)
+            embed = HelpEmbed(tab)
+            await itr.response.send_message(
+                embed=embed, view=embed.view, ephemeral=True
+            )

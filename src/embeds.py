@@ -1,6 +1,5 @@
 import io
 import logging
-import re
 import discord
 import rich
 from dnd import (
@@ -10,6 +9,7 @@ from dnd import (
     Description,
     Feat,
     Item,
+    Language,
     Rule,
     Spell,
     Condition,
@@ -45,25 +45,20 @@ class MultiDNDSelect(discord.ui.Select):
         logging.debug(f"{self.name}: found {len(entries)} entries for '{query}'")
 
     def select_option(self, entry: DNDObject) -> discord.SelectOption:
+        index = self.entries.index(entry)
         return discord.SelectOption(
-            label=f"{entry.name} ({entry.source})", description=entry.select_description
+            label=f"{entry.name} ({entry.source})",
+            description=entry.select_description,
+            value=str(index),
         )
 
     async def callback(self, interaction: discord.Interaction):
         """Handles the selection of a spell from the select menu."""
-        full_name = self.values[0]
-        name_pattern = r"^(.+) \(([^\)]+)\)"  # "Name (Source)"
-        name_match = re.match(name_pattern, full_name)
-        name = name_match.group(1)
-        source = name_match.group(2)
+        index = int(self.values[0])
+        entry = self.entries[index]
 
-        entry = [
-            entry
-            for entry in self.entries
-            if entry.name == name and entry.source == source
-        ][0]
         logging.debug(
-            f"{self.name}: user {interaction.user.display_name} selected '{name}"
+            f"{self.name}: user {interaction.user.display_name} selected option {index}: '{entry.name}`"
         )
         await interaction.response.send_message(embed=entry.get_embed())
 
@@ -507,6 +502,24 @@ class FeatEmbed(_DNDObjectEmbed):
             self.add_field(name="", value=HORIZONTAL_LINE, inline=False)
 
         self.add_description_fields(feat.description)
+
+
+class LanguageEmbed(_DNDObjectEmbed):
+    def __init__(self, language: Language):
+        super().__init__(language)
+        self.description = f"*{language.select_description}*"
+
+        if language.speakers:
+            self.add_field(
+                name="Typical Speakers", value=language.speakers, inline=True
+            )
+        if language.script:
+            self.add_field(name="Script", value=language.script, inline=True)
+
+        if language.description:
+            if len(self.fields) > 0:
+                self.add_field(name="", value=HORIZONTAL_LINE, inline=False)
+            self.add_description_fields(language.description)
 
 
 class SimpleEmbed(discord.Embed):

@@ -13,6 +13,6 @@ venv
 .env
 .flake8
 
-# Audio files
-/sounds/**/*
-!/sounds/**/*_default.*
+# Assets
+assets/sounds/**/*
+!assets/sounds/**/*_default.*

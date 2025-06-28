@@ -99,8 +99,11 @@ class DNDObjectList(object):
             return []
 
         choices = []
+        seen_names = set()  # Required to avoid duplicate suggestions
         for e in self.entries:
             if ignore_phb2014 and e.is_phb2014:
+                continue
+            if e.name in seen_names:
                 continue
 
             name_clean = e.name.strip().lower().replace(" ", "")
@@ -110,6 +113,7 @@ class DNDObjectList(object):
                 choices.append(
                     (starts_with_query, score, Choice(name=e.name, value=e.name))
                 )
+                seen_names.add(e.name)
 
         choices.sort(
             key=lambda x: (-x[0], -x[1], x[2].name)
@@ -463,12 +467,50 @@ class Feat(DNDObject):
 
 
 class FeatList(DNDObjectList):
-    path = "./submodules/lenny-dnd-data/generated/feats.json"
+    paths = [
+        "./submodules/lenny-dnd-data/generated/feats.json",
+        "./submodules/lenny-dnd-data/generated/classfeats.json",
+    ]
 
     def __init__(self):
         super().__init__()
-        for feat in _read_dnd_data(self.path):
-            self.entries.append(Feat(feat))
+        for path in self.paths:
+            for feat in _read_dnd_data(path):
+                self.entries.append(Feat(feat))
+
+
+class Language(DNDObject):
+    speakers: str | None
+    script: str | None
+    description: list[Description]
+
+    def __init__(self, json: any):
+        self.object_type = "language"
+        self.emoji = "🗣️"
+
+        self.name = json["name"]
+        self.source = json["source"]
+        self.url = json["url"]
+        self.select_description = json["type"]
+
+        self.speakers = json["typicalSpeakers"]
+        self.script = json["script"]
+        self.description = json["description"]
+
+    @abstractmethod
+    def get_embed(self) -> discord.Embed:
+        from embeds import LanguageEmbed
+
+        return LanguageEmbed(self)
+
+
+class LanguageList(DNDObjectList):
+    path = "./submodules/lenny-dnd-data/generated/languages.json"
+
+    def __init__(self):
+        super().__init__()
+        for language in _read_dnd_data(self.path):
+            self.entries.append(Language(language))
 
 
 class DNDData(object):
@@ -480,6 +522,7 @@ class DNDData(object):
     rules: RuleList
     actions: ActionList
     feats: FeatList
+    languages: LanguageList
 
     def __init__(self):
         self.spells = SpellList()
@@ -490,6 +533,7 @@ class DNDData(object):
         self.rules = RuleList()
         self.actions = ActionList()
         self.feats = FeatList()
+        self.languages = LanguageList()
 
     def __iter__(self):
         yield self.spells
@@ -500,6 +544,7 @@ class DNDData(object):
         yield self.rules
         yield self.actions
         yield self.feats
+        yield self.languages
 
 
 class DNDSearchResults(object):
@@ -511,6 +556,7 @@ class DNDSearchResults(object):
     rules: list[Rule]
     actions: list[Action]
     feats: list[Feat]
+    languages: list[Language]
     _type_map: dict[type, list[DNDObject]]
 
     def __init__(self):
@@ -522,6 +568,7 @@ class DNDSearchResults(object):
         self.rules = []
         self.actions = []
         self.feats = []
+        self.languages = []
 
         self._type_map = {
             Spell: self.spells,
@@ -532,6 +579,7 @@ class DNDSearchResults(object):
             Rule: self.rules,
             Action: self.actions,
             Feat: self.feats,
+            Language: self.languages,
         }
 
     def add(self, entry):

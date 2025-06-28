@@ -55,9 +55,12 @@ class Initiative:
         mod = self.modifier
 
         def get_roll_line(d20: int):
+            if mod == 0:
+                return ""
+
             total = d20 + mod
-            mod_str = f"+{mod}" if mod > 0 else f"{mod}"
-            return f"- ``[{d20}]{mod_str}`` -> {total}\n"
+            mod_str = f"+ {mod}" if mod > 0 else f"- {-mod}"
+            return f"- ``[{d20}] {mod_str}`` -> {total}\n"
 
         description = ""
         description += get_roll_line(self.d20[0])

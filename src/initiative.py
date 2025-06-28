@@ -339,17 +339,17 @@ class InitiativeRollModal(_InitiativeModal, title="Rolling for Initiative"):
     modifier = discord.ui.TextInput(
         label="Your Initiative Modifier", placeholder="0", max_length=2
     )
-    mode = discord.ui.TextInput(
-        label="Roll Mode (Normal by default)",
-        placeholder="Advantage / Disadvantage",
-        required=False,
-        max_length=12,
-    )
     name = discord.ui.TextInput(
         label="Name (Username by default)",
         placeholder="Goblin",
         required=False,
         max_length=128,
+    )
+    mode = discord.ui.TextInput(
+        label="Roll Mode (Normal by default)",
+        placeholder="Advantage / Disadvantage",
+        required=False,
+        max_length=12,
     )
 
     async def on_submit(self, itr: Interaction):

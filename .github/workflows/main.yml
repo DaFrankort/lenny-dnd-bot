@@ -12,6 +12,9 @@ jobs:
     runs-on: ubuntu-latest
     name: flake8
     steps:
+      - name: Check out source repository
+        uses: actions/checkout@v4
+
       - uses: ./.github/actions/setup
 
       - name: flake8 Lint
@@ -26,6 +29,9 @@ jobs:
     runs-on: ubuntu-latest
     name: black
     steps:
+      - name: Check out source repository
+        uses: actions/checkout@v4
+
       - uses: ./.github/actions/setup
 
       - name: Black linter
@@ -37,6 +43,9 @@ jobs:
     runs-on: ubuntu-latest
     name: pytest
     steps:
+      - name: Check out source repository
+        uses: actions/checkout@v4
+
       - uses: ./.github/actions/setup
 
       - name: Run unit-tests
@@ -45,6 +54,9 @@ jobs:
   requirements:
     runs-on: ubuntu-latest
     steps:
+      - name: Check out source repository
+        uses: actions/checkout@v4
+
       - uses: ./.github/actions/setup
 
       - name: Install pip-check-reqs

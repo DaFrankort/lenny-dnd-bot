@@ -63,8 +63,8 @@ jobs:
         run: |
           pip install pip-check-reqs
 
-      - name: Check for unused requirements
-        run: pip-missing-reqs src test --ignore-file=requirements.txt || true
+      - name: Check for imports missing from requirements.txt
+        run: pip-missing-reqs src test --ignore-file=requirements.txt
 
-      - name: Check for missing requirements
-        run: pip-extra-reqs src test --ignore-file=requirements.txt || true
+      - name: Check for unused packages in requirements.txt
+        run: pip-extra-reqs src test --ignore-file=requirements.txt

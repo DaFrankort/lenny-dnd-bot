@@ -292,7 +292,7 @@ class InitiativeRollModal(discord.ui.Modal, title="Rolling for Initiative"):
         label="Roll Mode (Normal by default)", placeholder="Advantage / Disadvantage", required=False, max_length=12
     )
     name = discord.ui.TextInput(
-        label="Name (Username by default)", placeholder="Goblin", required=False
+        label="Name (Username by default)", placeholder="Goblin", required=False, max_length=128
     )
 
     def __init__(self, itr: Interaction, tracker: InitiativeTracker, owner_id: int):
@@ -331,7 +331,7 @@ class InitiativeBulkModal(discord.ui.Modal, title="Adding Initiatives in Bulk"):
         label="Creature's Initiative Modifier", placeholder="0", max_length=3
     )
     name = discord.ui.TextInput(
-        label="Creature's Name", placeholder="Goblin"
+        label="Creature's Name", placeholder="Goblin", max_length=128
     )
     amount = discord.ui.TextInput(
         label="Amount of creatures to add", placeholder="1", max_length=2
@@ -389,7 +389,7 @@ class InitiativeSetModal(discord.ui.Modal, title="Setting your Initiative value"
         label="Your Initiative value", placeholder="0",  max_length=3
     )
     name = discord.ui.TextInput(
-        label="Name (Username by default)", placeholder="Goblin", required=False
+        label="Name (Username by default)", placeholder="Goblin", required=False, max_length=128
     )
 
     def __init__(self, itr: Interaction, tracker: InitiativeTracker, owner_id: int):
@@ -416,6 +416,30 @@ class InitiativeSetModal(discord.ui.Modal, title="Setting your Initiative value"
         embed = InitiativeEmbed(itr, self.tracker, self.owner_id)
         await itr.response.edit_message(embed=embed, view=embed.view)
         await itr.followup.send(f"Initiative set to {value}!", ephemeral=True)
+
+
+class InitiativeClearConfirmModal(discord.ui.Modal, title="Are you sure you want to clear?"):
+    confirm = discord.ui.TextInput(
+        label="Type 'CLEAR' to confirm", placeholder="CLEAR"
+    )
+
+    def __init__(self, itr: Interaction, tracker: InitiativeTracker, owner_id: int):
+        super().__init__()
+        self.itr = itr
+        self.tracker = tracker
+        self.owner_id = owner_id
+
+    async def on_submit(self, itr: Interaction):
+        confirm = str(self.confirm)
+
+        if confirm != 'CLEAR':
+            await itr.response.send_message("Clearing cancelled, input 'CLEAR' in all caps to confirm.", ephemeral=True)
+            return
+
+        self.tracker.clear(itr)
+        embed = InitiativeEmbed(itr, self.tracker, self.owner_id)
+        await itr.response.edit_message(embed=embed, view=embed.view)
+        await itr.followup.send("Initiatives cleared!", ephemeral=True)
 
 
 class InitiativeView(discord.ui.View):
@@ -489,10 +513,7 @@ class InitiativeView(discord.ui.View):
         row=1,
     )
     async def clear_initiative(self, itr: Interaction, button: discord.ui.Button):
-        self.tracker.clear(itr)
-        embed = InitiativeEmbed(itr, self.tracker, self.owner_id)
-        await itr.response.edit_message(embed=embed, view=embed.view)
-        await itr.followup.send("Initiatives cleared!", ephemeral=True)
+        await itr.response.send_modal(InitiativeClearConfirmModal(itr, self.tracker, self.owner_id))
 
 
 class InitiativeEmbed(SimpleEmbed):

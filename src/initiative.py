@@ -414,6 +414,29 @@ class InitiativeSetModal(_InitiativeModal, title="Setting your Initiative value"
         )
 
 
+class InitiativeDeleteModal(_InitiativeModal, title="Remove an Initiative"):
+    name = discord.ui.TextInput(
+        label="Name (Username by default)",
+        placeholder="Goblin",
+        required=False,
+        max_length=128,
+    )
+
+    async def on_submit(self, itr: Interaction):
+        self.log_inputs(itr)
+
+        name = str(self.name) or None
+        text, success = self.tracker.remove(itr, name)
+        embed = InitiativeEmbed(itr, self.tracker)
+        await itr.response.edit_message(embed=embed, view=embed.view)
+        await itr.followup.send(embed=SuccessEmbed(
+            title_success="Removed initiative",
+            title_fail="Failed to remove initiative",
+            description=text,
+            success=success,
+        ), ephemeral=True)
+
+
 class InitiativeBulkModal(_InitiativeModal, title="Adding Initiatives in Bulk"):
     modifier = discord.ui.TextInput(
         label="Creature's Initiative Modifier", placeholder="0", max_length=3
@@ -529,16 +552,7 @@ class InitiativeView(discord.ui.View):
         row=0,
     )
     async def remove_initiative(self, itr: Interaction, button: discord.ui.Button):
-        text, success = self.tracker.remove(itr, None)
-        embed = InitiativeEmbed(itr, self.tracker)
-        await itr.response.edit_message(embed=embed, view=embed.view)
-        removal_embed = SuccessEmbed(
-            title_success="Removed initiative",
-            title_fail="Failed to remove initiative",
-            description=text,
-            success=success,
-        )
-        await itr.followup.send(embed=removal_embed, ephemeral=True)
+        await itr.response.send_modal(InitiativeDeleteModal(itr, self.tracker))
 
     @discord.ui.button(
         label="Bulk", style=discord.ButtonStyle.primary, custom_id="bulk_btn", row=1
@@ -581,15 +595,15 @@ class InitiativeEmbed(SimpleEmbed):
     view: discord.ui.View
 
     def __init__(self, itr: Interaction, tracker: InitiativeTracker):
+        super().__init__(
+            title="Initiatives",
+            description=None
+        )
+
         description = ""
         for initiative in tracker.get(itr):
             total = initiative.get_total()
             description += f"- ``{total:>2}`` - {initiative.name}\n"
 
-        description = description or "*No initiatives rolled yet!*"
-
-        super().__init__(
-            title="Initiative - Get ready for Combat!", description=description
-        )
-
+        self.description = description or "*No initiatives rolled yet!*"
         self.view = InitiativeView(itr, tracker)

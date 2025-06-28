@@ -1,5 +1,6 @@
 import random
 import discord
+from discord import Interaction
 
 from dice import DiceRollMode
 from embeds import SimpleEmbed
@@ -285,14 +286,117 @@ class InitiativeTracker:
         return title, description
 
 
-class InitiativeTrackerEmbed(SimpleEmbed):
+class InitiativeSetupModal(discord.ui.Modal, title="Engage in combat!"):
+    user_input = discord.ui.TextInput(
+        label="Your Initiative Modifier",
+        placeholder="0",
+        required=True,
+        max_length=4
+    )
+
+    def __init__(self, itr: discord.Interaction, tracker: InitiativeTracker, original_message: discord.Message):
+        super().__init__()
+        self.itr = itr
+        self.tracker = tracker
+        self.original_message = original_message
+
+    async def on_submit(self, itr: discord.Interaction):
+        try:
+            modifier = int(str(self.user_input))
+        except ValueError:
+            await itr.response.send_message("Please enter a valid number.", ephemeral=True)
+            return
+
+        self.tracker.add(itr, Initiative(itr, modifier, None, DiceRollMode.Normal))
+        embed = InitiativeEmbed(itr, self.tracker)
+        await self.original_message.edit(embed=embed, view=InitiativeView(itr, self.tracker, self.original_message))
+        await itr.response.send_message("Initiative updated!", ephemeral=True)
+
+
+class InitiativeView(discord.ui.View):
+    def __init__(self, itr: Interaction, tracker, original_message):
+        super().__init__()
+        self.tracker = tracker
+        self.original_message = original_message
+        self.owner_id = itr.user.id
+        self.locked = False
+
+    async def _check_auth(self, itr: Interaction) -> bool:
+        if itr.user.id == self.owner_id:
+            return True
+
+        await itr.response.send_message("Sorry! You can't use this button, as you're not the owner!", ephemeral=True)
+        return False
+
+    @discord.ui.button(label="Roll", style=discord.ButtonStyle.success, custom_id="roll_btn", row=0)
+    async def roll_initiative(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_modal(
+            InitiativeSetupModal(interaction, self.tracker, self.original_message)
+        )
+
+    @discord.ui.button(label="Set", style=discord.ButtonStyle.success, custom_id="set_btn", row=0)
+    async def set_initiative(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_message("Sorry, still working on this :-(", ephemeral=True)
+
+    @discord.ui.button(label="Delete Roll", style=discord.ButtonStyle.danger, custom_id="retract_btn", row=0)
+    async def remove_initiative(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_message("Sorry, still working on this :-(", ephemeral=True)
+
+    @discord.ui.button(label="Bulk", style=discord.ButtonStyle.primary, custom_id="bulk_btn", row=1)
+    async def bulk_roll_initiative(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if not await self._check_auth(interaction):
+            return
+
+        await interaction.response.send_message("Sorry, still working on this :-(", ephemeral=True)
+
+    @discord.ui.button(label="Lock", style=discord.ButtonStyle.primary, custom_id="lock_btn", row=1)
+    async def lock(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if not await self._check_auth(interaction):
+            return
+
+        self.locked = not self.locked
+        for child in self.children:
+            if child.custom_id == "lock_btn":
+                continue
+
+            child.disabled = self.locked
+            child.style = discord.ButtonStyle.secondary if self.locked else {
+                "retract_btn": discord.ButtonStyle.danger,
+                "clear_btn": discord.ButtonStyle.danger,
+                "bulk_btn": discord.ButtonStyle.primary,
+            }.get(child.custom_id, discord.ButtonStyle.success)
+        await interaction.response.edit_message(view=self)
+
+    @discord.ui.button(label="Clear Rolls", style=discord.ButtonStyle.danger, custom_id="clear_btn", row=1)
+    async def clear_initiative(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if not await self._check_auth(interaction):
+            return
+
+        await interaction.response.send_message("Sorry, still working on this :-(", ephemeral=True)
+
+
+class InitiativeEmbed(SimpleEmbed):
     def __init__(self, itr: discord.Interaction, tracker: InitiativeTracker):
         description = ""
         for initiative in tracker.get(itr):
             total = initiative.get_total()
             description += f"- ``{total:>2}`` - {initiative.name}\n"
 
+        description = description or "*No initiatives rolled yet!*"
+
         super().__init__(
-            title="Initiatives",
-            description=description,
-        ),
+            title="Initiative - Get ready for Combat!",
+            description=description
+        )
+
+# class InitiativeTrackerEmbed(SimpleEmbed):
+#     def __init__(self, itr: discord.Interaction, tracker: InitiativeTracker):
+#         description = ""
+#         for initiative in tracker.get(itr):
+#             total = initiative.get_total()
+#             description += f"- ``{total:>2}`` - {initiative.name}\n"
+
+#         super().__init__(
+#             title="Initiatives",
+#             description=description,
+#         ),

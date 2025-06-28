@@ -373,8 +373,6 @@ class InitiativeBulkModal(discord.ui.Modal, title="Adding Initiatives in Bulk"):
             shared = True
 
         self.tracker.add_bulk(itr, modifier, name, amount, mode, shared)
-        self.tracker.add(itr, Initiative(itr, modifier, None, DiceRollMode.Normal))
-
         embed = InitiativeEmbed(itr, self.tracker, self.owner_id)
         await itr.response.edit_message(embed=embed, view=embed.view)
 

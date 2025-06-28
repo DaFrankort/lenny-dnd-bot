@@ -21,6 +21,10 @@ from rich.console import Console
 HORIZONTAL_LINE = "~~-------------------------------------------------------------------------------------~~"
 
 
+def log_button_press(itr: discord.Interaction, button: discord.ui.Button):
+    logging.info(f"{itr.user.name} pressed '{button.label}'")
+
+
 class MultiDNDSelect(discord.ui.Select):
     name: str
     query: str

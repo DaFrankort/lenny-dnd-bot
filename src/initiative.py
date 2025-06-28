@@ -4,7 +4,7 @@ import discord
 from discord import Interaction
 
 from dice import DiceRollMode
-from embeds import SimpleEmbed, SuccessEmbed, UserActionEmbed
+from embeds import SimpleEmbed, SuccessEmbed, UserActionEmbed, log_button_press
 from rapidfuzz import fuzz
 from discord.app_commands import Choice
 
@@ -567,6 +567,7 @@ class InitiativeView(discord.ui.View):
         label="Lock", style=discord.ButtonStyle.primary, custom_id="lock_btn", row=1
     )
     async def lock(self, itr: Interaction, button: discord.ui.Button):
+        log_button_press(itr, button)
         self.locked = not self.locked
         for child in self.children:
             if child.custom_id == "lock_btn":

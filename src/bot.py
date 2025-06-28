@@ -17,7 +17,6 @@ from embeds import (
 from initiative import (
     InitiativeEmbed,
     InitiativeTracker,
-    InitiativeView,
 )
 from search import SearchEmbed, search_from_query
 from stats import Stats
@@ -124,14 +123,6 @@ class Bot(discord.Client):
                     await itr.response.send_message(embed=embed, view=view)
                     return
                 await itr.response.send_message(embed=embed)
-
-        RollModeChoices = [
-            app_commands.Choice(name="Normal", value=DiceRollMode.Normal.value),
-            app_commands.Choice(name="Advantage", value=DiceRollMode.Advantage.value),
-            app_commands.Choice(
-                name="Disadvantage", value=DiceRollMode.Disadvantage.value
-            ),
-        ]
 
         TokenGenHorAlignmentChoices = [
             app_commands.Choice(name="Left", value=AlignH.LEFT.value),
@@ -551,176 +542,12 @@ class Bot(discord.Client):
             name=t("commands.initiative.name"),
             description=t("commands.initiative.desc"),
         )
-        # @app_commands.describe(
-        #     modifier="The initiative modifier to apply to the roll.",
-        #     name="The unique name of the creature you're rolling initiative for (leave blank to roll for yourself).",
-        #     roll_mode="Choose if to roll for initiative with disadvantage or advantage.",
-        # )
-        @app_commands.choices(roll_mode=RollModeChoices)
         async def initiative(
             itr: Interaction,
-            # modifier: int,
-            # name: str | None = None,
-            # roll_mode: DiceRollMode = DiceRollMode.Normal,
         ):
             log_cmd(itr)
-
-            embed = InitiativeEmbed(itr, self.initiatives)
-            await itr.response.send_message(embed=embed)
-            message = await itr.original_response()
-
-            view = InitiativeView(itr, self.initiatives, message)
-            await message.edit(view=view)
-
-            # initiative = Initiative(itr, modifier, name, roll_mode)
-            # self.initiatives.add(itr, initiative)
-            # await itr.response.send_message(
-            #     embed=UserActionEmbed(
-            #         itr=itr, title=initiative.title, description=initiative.description
-            #     )
-            # )
-            # await VC.play_initiative_roll(itr, initiative)
-
-        # @self.tree.command(
-        #     name=t("commands.setinitiative.name"),
-        #     description=t("commands.setinitiative.desc"),
-        # )
-        # @app_commands.describe(
-        #     value="The initiative value to use.",
-        #     name="The unique name of the creature you're rolling initiative for (leave blank to roll for yourself).",
-        # )
-        # async def set_initiative(itr: Interaction, value: int, name: str | None = None):
-        #     log_cmd(itr)
-        #     initiative = Initiative(itr, 0, name, roll_mode=DiceRollMode.Normal)
-        #     initiative.set_value(value)
-        #     self.initiatives.add(itr, initiative)
-        #     await itr.response.send_message(
-        #         embed=UserActionEmbed(
-        #             itr=itr, title=initiative.title, description=initiative.description
-        #         )
-        #     )
-
-        # @set_initiative.autocomplete("name")
-        # async def set_initiative_autocomplete(
-        #     itr: discord.Interaction, current: str
-        # ) -> list[app_commands.Choice[str]]:
-        #     return self.initiatives.get_autocomplete_suggestions(itr, current)
-
-        # @self.tree.command(
-        #     name=t("commands.bulkinitiative.name"),
-        #     description=t("commands.bulkinitiative.desc"),
-        # )
-        # @app_commands.describe(
-        #     modifier="The initiative modifier to apply to the roll.",
-        #     name="The names to use for the creatures.",
-        #     amount="The amount of creatures to create.",
-        #     roll_mode="Choose if to roll for initiative with disadvantage or advantage.",
-        #     shared="Use the same initiative value for all creatures?",
-        # )
-        # @app_commands.choices(roll_mode=RollModeChoices)
-        # async def bulk_initiative(
-        #     itr: Interaction,
-        #     modifier: int,
-        #     name: str,
-        #     amount: app_commands.Range[int, 1],
-        #     roll_mode: DiceRollMode = DiceRollMode.Normal,
-        #     shared: bool = False,
-        # ):
-        #     log_cmd(itr)
-        #     title, description = self.initiatives.add_bulk(
-        #         itr=itr,
-        #         modifier=modifier,
-        #         name=name,
-        #         amount=amount,
-        #         roll_mode=roll_mode,
-        #         shared=shared,
-        #     )
-        #     await itr.response.send_message(
-        #         embed=UserActionEmbed(itr=itr, title=title, description=description)
-        #     )
-        #     await VC.play(itr, SoundType.ROLL)
-
-        # @self.tree.command(
-        #     name=t("commands.showinitiative.name"),
-        #     description=t("commands.showinitiative.desc"),
-        # )
-        # async def show_initiative(itr: Interaction):
-        #     log_cmd(itr)
-
-        #     if self.initiatives.get(itr) == []:
-        #         await itr.response.send_message(
-        #             f"❌ There are no initiatives for {itr.guild.name} ❌",
-        #             ephemeral=True,
-        #         )
-        #         return
-
-        #     embed = InitiativeTrackerEmbed(itr, self.initiatives)
-        #     await itr.response.send_message(embed=embed)
-
-        # @self.tree.command(
-        #     name=t("commands.clearinitiative.name"),
-        #     description=t("commands.clearinitiative.desc"),
-        # )
-        # async def clear_initiative(itr: Interaction):
-        #     log_cmd(itr)
-        #     self.initiatives.clear(itr)
-        #     await itr.response.send_message(
-        #         embed=SimpleEmbed(
-        #             "Cleared all initiatives!", f"Cleared by {itr.user.display_name}."
-        #         )
-        #     )
-
-        # @self.tree.command(
-        #     name=t("commands.removeinitiative.name"),
-        #     description=t("commands.removeinitiative.desc"),
-        # )
-        # async def remove_initiative(itr: Interaction, target: str | None = None):
-        #     log_cmd(itr)
-        #     text, success = self.initiatives.remove(itr, target)
-        #     await itr.response.send_message(
-        #         embed=SuccessEmbed(
-        #             title_success="Removed initiative",
-        #             title_fail="Failed to remove initiative",
-        #             description=text,
-        #             success=success,
-        #         ),
-        #         ephemeral=not success,
-        #     )
-
-        # @remove_initiative.autocomplete("target")
-        # async def remove_initiative_autocomplete(
-        #     itr: discord.Interaction, current: str
-        # ) -> list[app_commands.Choice[str]]:
-        #     return self.initiatives.get_autocomplete_suggestions(itr, current)
-
-        # @self.tree.command(
-        #     name=t("commands.swapinitiative.name"),
-        #     description=t("commands.swapinitiative.desc"),
-        # )
-        # async def swap_initiative(itr: Interaction, target_a: str, target_b: str):
-        #     log_cmd(itr)
-        #     text, success = self.initiatives.swap(itr, target_a, target_b)
-        #     await itr.response.send_message(
-        #         embed=SuccessEmbed(
-        #             title_success="Swapped initiative",
-        #             title_fail="Failed to swap initiative",
-        #             description=text,
-        #             success=success,
-        #         ),
-        #         ephemeral=not success,
-        #     )
-
-        # @swap_initiative.autocomplete("target_a")
-        # async def swap_target_a_autocomplete(
-        #     itr: discord.Interaction, current: str
-        # ) -> list[app_commands.Choice[str]]:
-        #     return self.initiatives.get_autocomplete_suggestions(itr, current)
-
-        # @swap_initiative.autocomplete("target_b")
-        # async def swap_target_b_autocomplete(
-        #     itr: discord.Interaction, current: str
-        # ) -> list[app_commands.Choice[str]]:
-        #     return self.initiatives.get_autocomplete_suggestions(itr, current)
+            embed = InitiativeEmbed(itr, self.initiatives, itr.user.id)
+            await itr.response.send_message(embed=embed, view=embed.view)
 
         @self.tree.command(
             name=t("commands.help.name"), description=t("commands.help.desc")

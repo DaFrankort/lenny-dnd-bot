@@ -21,7 +21,7 @@ class Initiative:
 
     def __init__(
         self,
-        itr: discord.Interaction,
+        itr: Interaction,
         modifier: int,
         name: str | None,
         roll_mode: DiceRollMode,
@@ -100,11 +100,11 @@ class InitiativeTracker:
         """Used to make name-comparisons less strict. (Case insensitive, no spaces)"""
         return name.strip().lower()
 
-    def get(self, itr: discord.Interaction) -> list[Initiative]:
+    def get(self, itr: Interaction) -> list[Initiative]:
         guild_id = int(itr.guild_id)
         return self.server_initiatives.get(guild_id, [])
 
-    def add(self, itr: discord.Interaction, initiative: Initiative):
+    def add(self, itr: Interaction, initiative: Initiative):
         guild_id = int(itr.guild_id)
         if guild_id not in self.server_initiatives:
             self.server_initiatives[guild_id] = [initiative]
@@ -127,14 +127,14 @@ class InitiativeTracker:
         else:
             self.server_initiatives[guild_id].insert(insert_index, initiative)
 
-    def clear(self, itr: discord.Interaction):
+    def clear(self, itr: Interaction):
         guild_id = int(itr.guild_id)
         if guild_id in self.server_initiatives:
             del self.server_initiatives[guild_id]
 
     def get_autocomplete_suggestions(
         self,
-        itr: discord.Interaction,
+        itr: Interaction,
         query: str = "",
         fuzzy_threshold: float = 75,
         limit: int = 25,
@@ -160,7 +160,7 @@ class InitiativeTracker:
         return [choice for _, _, choice in choices[:limit]]
 
     def swap(
-        self, itr: discord.Interaction, target_a: str, target_b: str
+        self, itr: Interaction, target_a: str, target_b: str
     ) -> tuple[str, bool]:
         """
         Swaps the initiative values between two initiatives identified by their names.
@@ -217,7 +217,7 @@ class InitiativeTracker:
             True,
         )
 
-    def remove(self, itr: discord.Interaction, name: str | None) -> tuple[str, bool]:
+    def remove(self, itr: Interaction, name: str | None) -> tuple[str, bool]:
         """Remove an initiative from the list. Returns a message and a success flag."""
         guild_id = int(itr.guild_id)
         if guild_id not in self.server_initiatives:
@@ -255,7 +255,7 @@ class InitiativeTracker:
 
     def add_bulk(
         self,
-        itr: discord.Interaction,
+        itr: Interaction,
         modifier: int,
         name: str,
         amount: int,
@@ -286,21 +286,21 @@ class InitiativeTracker:
         return title, description
 
 
-class InitiativeSetupModal(discord.ui.Modal, title="Engage in combat!"):
+class InitiativeRollModal(discord.ui.Modal, title="Engage in combat!"):
     user_input = discord.ui.TextInput(
         label="Your Initiative Modifier",
         placeholder="0",
         required=True,
-        max_length=4
+        max_length=2
     )
 
-    def __init__(self, itr: discord.Interaction, tracker: InitiativeTracker, original_message: discord.Message):
+    def __init__(self, itr: Interaction, tracker: InitiativeTracker, owner_id: int):
         super().__init__()
         self.itr = itr
         self.tracker = tracker
-        self.original_message = original_message
+        self.owner_id = owner_id
 
-    async def on_submit(self, itr: discord.Interaction):
+    async def on_submit(self, itr: Interaction):
         try:
             modifier = int(str(self.user_input))
         except ValueError:
@@ -308,17 +308,16 @@ class InitiativeSetupModal(discord.ui.Modal, title="Engage in combat!"):
             return
 
         self.tracker.add(itr, Initiative(itr, modifier, None, DiceRollMode.Normal))
-        embed = InitiativeEmbed(itr, self.tracker)
-        await self.original_message.edit(embed=embed, view=InitiativeView(itr, self.tracker, self.original_message))
-        await itr.response.send_message("Initiative updated!", ephemeral=True)
+        embed = InitiativeEmbed(itr, self.tracker, self.owner_id)
+        await itr.response.edit_message(embed=embed, view=embed.view)
+        await itr.followup.send("Initiative updated!", ephemeral=True)
 
 
 class InitiativeView(discord.ui.View):
-    def __init__(self, itr: Interaction, tracker, original_message):
+    def __init__(self, itr: Interaction, tracker: InitiativeTracker, owner_id: int):
         super().__init__()
         self.tracker = tracker
-        self.original_message = original_message
-        self.owner_id = itr.user.id
+        self.owner_id = owner_id
         self.locked = False
 
     async def _check_auth(self, itr: Interaction) -> bool:
@@ -329,29 +328,28 @@ class InitiativeView(discord.ui.View):
         return False
 
     @discord.ui.button(label="Roll", style=discord.ButtonStyle.success, custom_id="roll_btn", row=0)
-    async def roll_initiative(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_modal(
-            InitiativeSetupModal(interaction, self.tracker, self.original_message)
+    async def roll_initiative(self, itr: Interaction, button: discord.ui.Button):
+        await itr.response.send_modal(
+            InitiativeRollModal(itr, self.tracker, self.owner_id)
         )
 
     @discord.ui.button(label="Set", style=discord.ButtonStyle.success, custom_id="set_btn", row=0)
-    async def set_initiative(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_message("Sorry, still working on this :-(", ephemeral=True)
+    async def set_initiative(self, itr: Interaction, button: discord.ui.Button):
+        await itr.response.send_message("Sorry, still working on this :-(", ephemeral=True)
 
     @discord.ui.button(label="Delete Roll", style=discord.ButtonStyle.danger, custom_id="retract_btn", row=0)
-    async def remove_initiative(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_message("Sorry, still working on this :-(", ephemeral=True)
+    async def remove_initiative(self, itr: Interaction, button: discord.ui.Button):
+        await itr.response.send_message("Sorry, still working on this :-(", ephemeral=True)
 
     @discord.ui.button(label="Bulk", style=discord.ButtonStyle.primary, custom_id="bulk_btn", row=1)
-    async def bulk_roll_initiative(self, interaction: discord.Interaction, button: discord.ui.Button):
-        if not await self._check_auth(interaction):
+    async def bulk_roll_initiative(self, itr: Interaction, button: discord.ui.Button):
+        if not await self._check_auth(itr):
             return
-
-        await interaction.response.send_message("Sorry, still working on this :-(", ephemeral=True)
+        await itr.response.send_message("Sorry, still working on this :-(", ephemeral=True)
 
     @discord.ui.button(label="Lock", style=discord.ButtonStyle.primary, custom_id="lock_btn", row=1)
-    async def lock(self, interaction: discord.Interaction, button: discord.ui.Button):
-        if not await self._check_auth(interaction):
+    async def lock(self, itr: Interaction, button: discord.ui.Button):
+        if not await self._check_auth(itr):
             return
 
         self.locked = not self.locked
@@ -365,18 +363,19 @@ class InitiativeView(discord.ui.View):
                 "clear_btn": discord.ButtonStyle.danger,
                 "bulk_btn": discord.ButtonStyle.primary,
             }.get(child.custom_id, discord.ButtonStyle.success)
-        await interaction.response.edit_message(view=self)
+        await itr.response.edit_message(view=self)
 
     @discord.ui.button(label="Clear Rolls", style=discord.ButtonStyle.danger, custom_id="clear_btn", row=1)
-    async def clear_initiative(self, interaction: discord.Interaction, button: discord.ui.Button):
-        if not await self._check_auth(interaction):
+    async def clear_initiative(self, itr: Interaction, button: discord.ui.Button):
+        if not await self._check_auth(itr):
             return
-
-        await interaction.response.send_message("Sorry, still working on this :-(", ephemeral=True)
+        await itr.response.send_message("Sorry, still working on this :-(", ephemeral=True)
 
 
 class InitiativeEmbed(SimpleEmbed):
-    def __init__(self, itr: discord.Interaction, tracker: InitiativeTracker):
+    view: discord.ui.View
+
+    def __init__(self, itr: Interaction, tracker: InitiativeTracker, owner_id: int):
         description = ""
         for initiative in tracker.get(itr):
             total = initiative.get_total()
@@ -389,14 +388,4 @@ class InitiativeEmbed(SimpleEmbed):
             description=description
         )
 
-# class InitiativeTrackerEmbed(SimpleEmbed):
-#     def __init__(self, itr: discord.Interaction, tracker: InitiativeTracker):
-#         description = ""
-#         for initiative in tracker.get(itr):
-#             total = initiative.get_total()
-#             description += f"- ``{total:>2}`` - {initiative.name}\n"
-
-#         super().__init__(
-#             title="Initiatives",
-#             description=description,
-#         ),
+        self.view = InitiativeView(itr, tracker, owner_id)

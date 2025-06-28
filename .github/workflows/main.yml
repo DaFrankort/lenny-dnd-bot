@@ -64,7 +64,6 @@ jobs:
     steps:
       - *checkout_step
       - *setup_python_step
-      - *install-dependencies-step
 
       - name: Install PIP-requirements
         run: |

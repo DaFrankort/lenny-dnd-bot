@@ -12,12 +12,10 @@ jobs:
     runs-on: ubuntu-latest
     name: flake8
     steps:
-      - &checkout_step
-        name: Check out source repository
+      - name: Check out source repository
         uses: actions/checkout@v4
 
-      - &setup_python_step
-        name: Set up Python environment
+      - name: Set up Python environment
         uses: actions/setup-python@v4
         with:
           python-version: "3.11.5"
@@ -34,8 +32,13 @@ jobs:
     runs-on: ubuntu-latest
     name: black
     steps:
-      - *checkout_step
-      - *setup_python_step
+      - name: Check out source repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python environment
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11.5"
 
       - name: Black linter
         uses: psf/black@stable
@@ -46,8 +49,13 @@ jobs:
     runs-on: ubuntu-latest
     name: pytest
     steps:
-      - *checkout_step
-      - *setup_python_step
+      - name: Check out source repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python environment
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11.5"
 
       - name: Install PIP-requirements
         run: |
@@ -61,8 +69,13 @@ jobs:
     runs-on: ubuntu-latest
     name: Check unused requirements
     steps:
-      - *checkout_step
-      - *setup_python_step
+      - name: Check out source repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python environment
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11.5"
 
       - name: Install PIP-requirements
         run: |

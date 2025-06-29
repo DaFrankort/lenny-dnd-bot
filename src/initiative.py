@@ -437,7 +437,10 @@ class InitiativeDeleteModal(_InitiativeModal, title="Remove an Initiative"):
         name = str(self.name) or None
         text, success = self.tracker.remove(itr, name)
         embed = InitiativeEmbed(itr, self.tracker)
-        await VC.play(itr, SoundType.DELETE)
+
+        if success:
+            await VC.play(itr, SoundType.DELETE)
+
         await itr.response.edit_message(embed=embed, view=embed.view)
         await itr.followup.send(
             embed=SuccessEmbed(

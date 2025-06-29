@@ -119,7 +119,7 @@ class InitiativeTracker:
             try:
                 await prev_message.delete()
             except NotFound:
-                logging.debug('Previous initiative-message has already been deleted!')
+                logging.debug("Previous initiative-message has already been deleted!")
             self.server_messages[guild_id] = message
 
     def get(self, itr: Interaction) -> list[Initiative]:

@@ -95,14 +95,28 @@ class Initiative:
 
 class InitiativeTracker:
     server_initiatives: dict[int, list[Initiative]]
+    server_messages: dict[int, discord.Message]
     INITIATIVE_LIMIT = 30  # 4096/128 = 32 | 4096 Chars per description, max-name-length is 128 => lowered to 30 for safety.
 
     def __init__(self):
         self.server_initiatives = {}
+        self.server_messages = {}
 
     def _sanitize_name(self, name: str) -> str:
         """Used to make name-comparisons less strict. (Case insensitive, no spaces)"""
         return name.strip().lower()
+
+    async def set_message(self, itr: Interaction, message: discord.Message):
+        guild_id = int(itr.guild_id)
+        prev_message = self.server_messages.get(guild_id, None)
+        if prev_message is None:
+            self.server_messages[guild_id] = message
+            return
+
+        is_new_message = prev_message != message
+        if is_new_message:
+            await prev_message.delete()
+            self.server_messages[guild_id] = message
 
     def get(self, itr: Interaction) -> list[Initiative]:
         guild_id = int(itr.guild_id)

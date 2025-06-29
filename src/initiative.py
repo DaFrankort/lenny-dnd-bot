@@ -375,7 +375,8 @@ class InitiativeRollModal(_InitiativeModal, title="Rolling for Initiative"):
         self.tracker.add(itr, initiative)
 
         embed = InitiativeEmbed(itr, self.tracker)
-        await VC.play(itr, SoundType.INITIATIVE)
+        sound_type = SoundType.CREATURE if name else SoundType.PLAYER
+        await VC.play(itr, sound_type)
         await itr.response.edit_message(embed=embed, view=embed.view)
         await itr.followup.send(
             embed=UserActionEmbed(
@@ -412,7 +413,7 @@ class InitiativeSetModal(_InitiativeModal, title="Setting your Initiative value"
         self.tracker.add(itr, initiative)
 
         embed = InitiativeEmbed(itr, self.tracker)
-        await VC.play(itr, SoundType.SET)
+        await VC.play(itr, SoundType.WRITE)
         await itr.response.edit_message(embed=embed, view=embed.view)
         await itr.followup.send(
             embed=UserActionEmbed(
@@ -506,7 +507,7 @@ class InitiativeBulkModal(_InitiativeModal, title="Adding Initiatives in Bulk"):
             itr, modifier, name, amount, mode, shared
         )
         embed = InitiativeEmbed(itr, self.tracker)
-        await VC.play(itr, SoundType.BULK)
+        await VC.play(itr, SoundType.CREATURE)
         await itr.response.edit_message(embed=embed, view=embed.view)
         await itr.followup.send(
             embed=UserActionEmbed(itr=itr, title=title, description=description),

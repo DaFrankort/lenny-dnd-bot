@@ -548,7 +548,7 @@ class Bot(discord.Client):
             log_cmd(itr)
             embed = InitiativeEmbed(itr, self.initiatives)
             await itr.response.send_message(embed=embed, view=embed.view)
-            await VC.play(itr, SoundType.HORN)
+            await VC.play(itr, SoundType.INITIATIVE)
 
         @self.tree.command(
             name=t("commands.help.name"), description=t("commands.help.desc")

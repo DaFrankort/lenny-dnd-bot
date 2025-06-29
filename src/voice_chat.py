@@ -17,12 +17,12 @@ class SoundType(Enum):
     ATTACK = "combat/attack"
     DAMAGE = "combat/damage"
     FIRE = "combat/fire"
-    INITIATIVE = "initiative/roll"
-    SET = "initiative/set"
+    INITIATIVE = "initiative/initiative"
+    PLAYER = "initiative/player"
+    CREATURE = "initiative/creature"
+    WRITE = "initiative/write"
     DELETE = "initiative/delete"
-    BULK = "initiative/bulk"
     LOCK = "initiative/lock"
-    HORN = "initiative/horn"
 
 
 class VC:

@@ -176,9 +176,9 @@ class Sounds:
             SoundType.DAMAGE: option(speed_deviation=0.4),
             SoundType.FIRE: option(speed_deviation=0.2),
             SoundType.INITIATIVE: option(volume=0.1, speed_deviation=0.2),
-            SoundType.PLAYER: option(speed_deviation=0.2),
-            SoundType.CREATURE: option(speed_deviation=0.2),
-            SoundType.WRITE: option(volume=0.4, speed_deviation=0.3),
+            SoundType.PLAYER: option(speed_deviation=0.1),
+            SoundType.CREATURE: option(speed_deviation=0.1),
+            SoundType.WRITE: option(speed_deviation=0.3),
             SoundType.DELETE: option(speed_deviation=0.3),
             SoundType.LOCK: option(volume=0.2, speed_deviation=0.3),
             # Add sound types and specific options here

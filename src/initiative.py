@@ -312,7 +312,12 @@ class _InitiativeModal(discord.ui.Modal):
             "Something went wrong! Please try again later.", ephemeral=True
         )
 
-    def get_int(self, text_input: discord.ui.TextInput):
+    def get_str(self, text_input: discord.ui.TextInput) -> str | None:
+        """Safely parse string from TextInput. Returns None if input is empty or only spaces."""
+        text = str(text_input).strip()
+        return text if text else None
+
+    def get_int(self, text_input: discord.ui.TextInput) -> int | None:
         """Safely parse integer from TextInput. Returns None on failure, defaults to 0 if input is ''"""
         text = str(text_input).strip()
         if text == "":
@@ -358,7 +363,7 @@ class InitiativeRollModal(_InitiativeModal, title="Rolling for Initiative"):
     async def on_submit(self, itr: Interaction):
         self.log_inputs(itr)
 
-        name = str(self.name) or None
+        name = self.get_str(self.name)
         modifier = self.get_int(self.modifier)
         if modifier is None:
             await itr.response.send_message(
@@ -399,7 +404,7 @@ class InitiativeSetModal(_InitiativeModal, title="Setting your Initiative value"
     async def on_submit(self, itr: Interaction):
         self.log_inputs(itr)
 
-        name = str(self.name) or None
+        name = self.get_str(self.name)
         value = self.get_int(self.value)
         if not value or value < 0:
             await itr.response.send_message(
@@ -432,7 +437,7 @@ class InitiativeDeleteModal(_InitiativeModal, title="Remove an Initiative"):
     async def on_submit(self, itr: Interaction):
         self.log_inputs(itr)
 
-        name = str(self.name) or None
+        name = self.get_str(self.name)
         text, success = self.tracker.remove(itr, name)
         embed = InitiativeEmbed(itr, self.tracker)
         await itr.response.edit_message(embed=embed, view=embed.view)
@@ -578,7 +583,7 @@ class InitiativeView(discord.ui.View):
         label="Lock", style=discord.ButtonStyle.primary, custom_id="lock_btn", row=1
     )
     async def lock(self, itr: Interaction, button: discord.ui.Button):
-        log_button_press(itr, button)
+        log_button_press(itr, button, "InitiativeView")
         self.locked = not self.locked
         for child in self.children:
             if child.custom_id == "lock_btn":

@@ -2,6 +2,7 @@ import logging
 import random
 import discord
 from discord import Interaction
+from discord import NotFound
 
 from dice import DiceRollMode
 from embeds import SimpleEmbed, SuccessEmbed, UserActionEmbed, log_button_press
@@ -115,7 +116,10 @@ class InitiativeTracker:
 
         is_new_message = prev_message != message
         if is_new_message:
-            await prev_message.delete()
+            try:
+                await prev_message.delete()
+            except NotFound:
+                logging.debug('Previous initiative-message has already been deleted!')
             self.server_messages[guild_id] = message
 
     def get(self, itr: Interaction) -> list[Initiative]:

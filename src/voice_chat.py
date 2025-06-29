@@ -7,7 +7,6 @@ import shutil
 import discord
 
 from dice import DiceExpression
-from initiative import Initiative
 
 
 class SoundType(Enum):
@@ -120,17 +119,6 @@ class VC:
         if roll.is_natural_twenty:
             sound_type = SoundType.NAT_20
         elif roll.is_natural_one:
-            sound_type = SoundType.NAT_1
-
-        await VC.play(itr, sound_type)
-
-    @staticmethod
-    async def play_initiative_roll(itr: discord.Interaction, initiative: Initiative):
-        sound_type = SoundType.ROLL
-
-        if initiative.d20 == 20:
-            sound_type = SoundType.NAT_20
-        elif initiative.d20 == 1:
             sound_type = SoundType.NAT_1
 
         await VC.play(itr, sound_type)

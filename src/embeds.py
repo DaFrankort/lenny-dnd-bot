@@ -21,6 +21,12 @@ from rich.console import Console
 HORIZONTAL_LINE = "~~-------------------------------------------------------------------------------------~~"
 
 
+def log_button_press(
+    itr: discord.Interaction, button: discord.ui.Button, location: str
+):
+    logging.info(f"{itr.user.name} pressed '{button.label}' in {location}")
+
+
 class MultiDNDSelect(discord.ui.Select):
     name: str
     query: str
@@ -490,7 +496,7 @@ class LanguageEmbed(_DNDObjectEmbed):
 
 class SimpleEmbed(discord.Embed):
     def __init__(
-        self, title: str, description: str, color: discord.Color = None
+        self, title: str, description: str | None, color: discord.Color = None
     ) -> None:
         if not color:
             color = discord.Color.dark_green()

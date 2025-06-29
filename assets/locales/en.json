@@ -104,45 +104,9 @@
     },
     "initiative": {
       "name": "initiative",
-      "desc": "Roll initiative for yourself or a creature.",
-      "help": "Rolls for initiative.",
-      "command": "/initiative <modifier> [target] [roll_mode]"
-    },
-    "bulkinitiative": {
-      "name": "bulkinitiative",
-      "desc": "Roll initiative for a defined amount of creatures.",
-      "help": "Rolls initiative for multiple targets at once.",
-      "command": "/bulkinitiative <modifier> <name> <amount> [roll_mode] [shared]"
-    },
-    "setinitiative": {
-      "name": "setinitiative",
-      "desc": "Set initiative for yourself or a creature.",
-      "help": "a specific initiative value for a target.",
-      "command": "/setinitiative <value> [name]"
-    },
-    "swapinitiative": {
-      "name": "swapinitiative",
-      "desc": "Swap the initiative order of two creatures or players (useful for feats like Alert).",
-      "help": "Swap initiatives between two targets.",
-      "command": "/swapinitiative <target a> <target b>"
-    },
-    "removeinitiative": {
-      "name": "removeinitiative",
-      "desc": "Remove a single initiative roll from the list.",
-      "help": "Removes a single creature from the tracker.",
-      "command": "/removeinitiative [target]"
-    },
-    "showinitiative": {
-      "name": "showinitiative",
-      "desc": "Show an overview of all the rolled initiatives.",
-      "help": "Shows an embed with all the initiatives, used to track the order & who's turn it is.",
-      "command": "/showinitiative"
-    },
-    "clearinitiative": {
-      "name": "clearinitiative",
-      "desc": "Clear all initiative rolls.",
-      "help": "Clears all stored initiatives in the server, to be used before or after a battle.",
-      "command": "/clearinitiative"
+      "desc": "Start tracking initiatives for combat!",
+      "help": "Summons an embed with buttons, to set up combat-initiatives.",
+      "command": "/initiative"
     },
     "tokengen": {
       "name": "tokengen",
@@ -215,25 +179,25 @@
     },
     "initiative": {
       "name": "Initiative",
-      "commands": [
-        "initiative",
-        "bulkinitiative",
-        "setinitiative",
-        "swapinitiative",
-        "removeinitiative",
-        "showinitiative",
-        "clearinitiative"
-      ],
-      "text": "You can track initiatives for combat using the following commands:",
+      "commands": ["initiative"],
+      "text": "You can track initiatives for combat using the following command:",
       "info": [
         {
-          "name": "Options",
+          "name": "Player Buttons",
           "info": [
-            "By default, names are enforced to be unique and will overwrite existing targets.",
-            "Some of these commands have a lot of options, a few more special ones are highlighted here:",
-            "- ``target`` - Used to roll initiative for NPC's / Creatures. If not specified it defaults to the user.",
-            "- ``roll_mode`` - Used to specify the roll mode, this can be `normal`, `advantage`, or `disadvantage`.",
-            "- ``shared`` - Used to use the same initiative value for all creatures in a bulk-roll."
+            "The top row of buttons are mainly meant for players, these include:",
+            "- ``Roll``: Roll a value by providing your __initiative modifier__ in the popup. Optionally you can provide a roll mode by typing A for Advantage and D for Disadvantage and you can roll for a creature by specifying a creature name.",
+            "- ``Set``: Set your initiative value to a specific __value__. Optionally you can specify a name to set another creature's initiative value.",
+            "- ``Delete Roll``: Remove your roll from the initiatives. Optionally you can specify a name to remove another creature's initiative."
+          ]
+        },
+        {
+          "name": "DM Buttons",
+          "info": [
+            "The bottom row of buttons have features which are handy for the Dungeon Master.",
+            "- ``Bulk``: Roll Initiatives in bulk for multiple creatures by specifying their __modifiers__, __names__ and the __amount__ of creatures to add. Optionally can roll with Advantage or Disadvantage or specify to use the same initiative value for all the creatures.",
+            "- ``Lock``: Disables all the other buttons, to prevent users from accidentally pressing any more buttons.",
+            "- ``Clear Rolls``: Clears all the initiatives, to be used after combat."
           ]
         }
       ]

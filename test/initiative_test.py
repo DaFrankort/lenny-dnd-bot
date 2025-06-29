@@ -127,16 +127,19 @@ class TestInitiativeTracker:
         return Initiative(itr, modifier=1, name=None, roll_mode=DiceRollMode.Normal)
 
     def test_add_npc_initiative(self, tracker, itr, npc_initiative):
-        tracker.add(itr, npc_initiative)
+        success = tracker.add(itr, npc_initiative)
         result = tracker.get(itr)
         assert len(result) == 1, f"Expected 1 initiative, got {len(result)}"
         assert (
             result[0].name == npc_initiative.name
         ), f"Expected initiative name '{npc_initiative.name}', got '{result[0].name}'"
         assert result[0].is_npc is True, "Expected initiative to be NPC (is_npc=True)"
+        assert (
+            success is True
+        ), f"Succesful initiative add should return True, returned {success}"
 
     def test_add_pc_initiative_replaces_existing(self, tracker, itr, pc_initiative):
-        tracker.add(itr, pc_initiative)
+        success = tracker.add(itr, pc_initiative)
 
         new_pc = Initiative(itr, modifier=5, name=None, roll_mode=DiceRollMode.Normal)
         new_pc.d20 = (20, 20)
@@ -148,6 +151,9 @@ class TestInitiativeTracker:
         ), f"Expected 1 initiative after replacement, got {len(result)}"
         assert result[0].modifier == 5, f"Expected modifier 5, got {result[0].modifier}"
         assert result[0].d20[0] == 20, f"Expected d20 value 20, got {result[0].d20[0]}"
+        assert (
+            success is True
+        ), f"Succesful initiative add should return True, returned {success}"
 
     def test_clear_initiatives(self, tracker, itr, npc_initiative):
         tracker.add(itr, npc_initiative)
@@ -266,3 +272,41 @@ class TestInitiativeTracker:
         _, success = tracker.remove(itr, pc_initiative.name)  # Remove wrong name
         assert len(tracker.get(itr)) == 1, "Expected 1 initiative after failed removal"
         assert success is False, "Expected unsuccessful removal of initiative"
+
+    def test_initiative_limit_add(self, tracker, itr, npc_initiative, pc_initiative):
+        limit = tracker.INITIATIVE_LIMIT
+        mod = npc_initiative.modifier
+        name = npc_initiative.name
+        tracker.add_bulk(itr, mod, name, limit, DiceRollMode.Normal, False)
+
+        pre_count = len(tracker.get(itr))
+        assert (
+            not pre_count > limit
+        ), f"Initiatives should not exceed the initiative limit: {pre_count}/{limit}"
+
+        success = tracker.add(itr, pc_initiative)
+        count = len(tracker.get(itr))
+        assert (
+            pre_count == count
+        ), f"InitiativeTracker add() should not be able to add to a full initiative list: is {count}, should be {pre_count}"
+        assert (
+            not success
+        ), f"InitiativeTracker add() should return False on failure, returned {success}"
+
+    def test_initiative_limit_bulk_add(self, tracker, itr, npc_initiative):
+        limit = tracker.INITIATIVE_LIMIT
+        amount = limit + 1  # Exceed limit
+        mod = npc_initiative.modifier
+        name = npc_initiative.name
+        title, description, success = tracker.add_bulk(
+            itr, mod, name, amount, DiceRollMode.Normal, False
+        )
+
+        count = len(tracker.get(itr))
+        assert count < limit, f"Bulk-add should not exceed limit: {count}/{limit}"
+        assert (
+            count == 0
+        ), f"Bulk-add may not add initiatives if it's going to exceed the limit, added {count}, should be 0"
+        assert (
+            success is False
+        ), f"Bulk-add should return False on failed add, returned {success}"

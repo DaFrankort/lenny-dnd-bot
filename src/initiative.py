@@ -95,6 +95,7 @@ class Initiative:
 
 class InitiativeTracker:
     server_initiatives: dict[int, list[Initiative]]
+    INITIATIVE_LIMIT = 30  # 4096/128 = 32 | 4096 Chars per description, max-name-length is 128 => lowered to 30 for safety.
 
     def __init__(self):
         self.server_initiatives = {}
@@ -107,17 +108,29 @@ class InitiativeTracker:
         guild_id = int(itr.guild_id)
         return self.server_initiatives.get(guild_id, [])
 
-    def add(self, itr: Interaction, initiative: Initiative):
+    def add(self, itr: Interaction, initiative: Initiative) -> bool:
+        """Adds an initiative to the tracker. Returns True if added successfully, otherwise False."""
         guild_id = int(itr.guild_id)
         if guild_id not in self.server_initiatives:
             self.server_initiatives[guild_id] = [initiative]
-            return
+            return True
 
+        existing = [
+            s_initiative
+            for s_initiative in self.server_initiatives[guild_id]
+            if s_initiative.name == initiative.name
+        ]
         self.server_initiatives[guild_id] = [  # Enforce unique names
             s_initiative
             for s_initiative in self.server_initiatives[guild_id]
             if not (s_initiative.name == initiative.name)
         ]
+
+        # Limit protection (only if initiative is a new creature)
+        is_new_entry = not existing
+        exceeds_limit = len(self.server_initiatives[guild_id]) >= self.INITIATIVE_LIMIT
+        if is_new_entry and exceeds_limit:
+            return False
 
         insert_index = -1
         for i, s_initiative in enumerate(self.server_initiatives[guild_id]):
@@ -129,6 +142,7 @@ class InitiativeTracker:
             self.server_initiatives[guild_id].append(initiative)
         else:
             self.server_initiatives[guild_id].insert(insert_index, initiative)
+        return True
 
     def clear(self, itr: Interaction):
         guild_id = int(itr.guild_id)
@@ -264,12 +278,16 @@ class InitiativeTracker:
         amount: int,
         roll_mode: DiceRollMode,
         shared: bool,
-    ) -> tuple[str, str]:
-        """Adds many initiatives to a server. Returns a title and description for the embed."""
-        title = f"{itr.user.display_name} rolled Initiative for {amount} {name.strip().title()}(s)"
-        title += " with Advantage" if roll_mode == DiceRollMode.Advantage else ""
-        title += " with Disadvantage" if roll_mode == DiceRollMode.Disadvantage else ""
-        title += "!"
+    ) -> tuple[str, str, bool]:
+        """Adds many initiatives to a server. Returns a title and description for the embed and a boolean to signify if everything was added succesfully."""
+        guild_id = itr.guild_id
+        initiative_count = amount + len(self.server_initiatives.get(guild_id, []))
+        if initiative_count > self.INITIATIVE_LIMIT:
+            return (
+                "Bulk-add failed!",
+                f"You attempted to add too many initiatives, max limit is {self.INITIATIVE_LIMIT}!",
+                False,
+            )
 
         initiatives = []
         for i in range(amount):
@@ -286,7 +304,12 @@ class InitiativeTracker:
             description += f"- ``{total:>2}`` - {initiative.name}\n"
             self.add(itr, initiative)
 
-        return title, description
+        title = f"{itr.user.display_name} rolled Initiative for {amount} {name.strip().title()}(s)"
+        title += " with Advantage" if roll_mode == DiceRollMode.Advantage else ""
+        title += " with Disadvantage" if roll_mode == DiceRollMode.Disadvantage else ""
+        title += "!"
+
+        return title, description, True
 
 
 class _InitiativeModal(discord.ui.Modal):
@@ -308,6 +331,8 @@ class _InitiativeModal(discord.ui.Modal):
 
     async def on_error(self, itr: Interaction, error: Exception):
         self.log_inputs(itr)
+        raise error
+
         await itr.response.send_message(
             "Something went wrong! Please try again later.", ephemeral=True
         )
@@ -377,7 +402,19 @@ class InitiativeRollModal(_InitiativeModal, title="Rolling for Initiative"):
             {"a": DiceRollMode.Advantage, "d": DiceRollMode.Disadvantage},
         )
         initiative = Initiative(itr, modifier, name, mode)
-        self.tracker.add(itr, initiative)
+        success = self.tracker.add(itr, initiative)
+
+        if not success:
+            await itr.response.send_message(
+                embed=SuccessEmbed(
+                    title_success="",
+                    title_fail="Failed to add initiative!",
+                    description=f"Can't add more initiatives to the tracker, max limit of {self.tracker.INITIATIVE_LIMIT} reached.",
+                    success=False,
+                ),
+                ephemeral=True,
+            )
+            return
 
         embed = InitiativeEmbed(itr, self.tracker)
         await itr.response.edit_message(embed=embed, view=embed.view)
@@ -505,9 +542,22 @@ class InitiativeBulkModal(_InitiativeModal, title="Adding Initiatives in Bulk"):
         )
         shared = self.get_choice(self.shared, False, {"t": True})
 
-        title, description = self.tracker.add_bulk(
+        title, description, success = self.tracker.add_bulk(
             itr, modifier, name, amount, mode, shared
         )
+
+        if not success:
+            await itr.response.send_message(
+                embed=SuccessEmbed(
+                    title_success="",
+                    title_fail=title,
+                    description=description,
+                    success=False,
+                ),
+                ephemeral=True,
+            )
+            return
+
         embed = InitiativeEmbed(itr, self.tracker)
         await itr.response.edit_message(embed=embed, view=embed.view)
         await itr.followup.send(

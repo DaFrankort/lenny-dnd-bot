@@ -352,12 +352,10 @@ class DiceExpressionCache:
         cls._save_data()
 
     @classmethod
-    def get_last(
-        cls, itr: Interaction, query: str, fuzzy_threshold: float = 75
-    ) -> list[Choice[str]]:
+    def get_last(cls, itr: Interaction, query: str) -> list[Choice[str]]:
         """Returns auto-complete choices for the last roll expressions a user used."""
         user_id = str(itr.user.id)
-        user_exprs = cls._load_data().get(user_id, [])  # Reversed, last should be shown first.
+        user_exprs = cls._load_data().get(user_id, [])
 
         if len(user_exprs) == 0:
             return []
@@ -366,10 +364,6 @@ class DiceExpressionCache:
         if query == "":
             return [Choice(name=expr, value=expr) for expr in reversed(user_exprs)]
 
-        choices = []
-        for expr in reversed(user_exprs):
-            expr_clean: str = expr.strip().lower().replace(" ", "")
-
-            if expr_clean.startswith(query):
-                choices.append(Choice(name=expr, value=expr))
-        return choices
+        # Autocompleting a user's expression can be intrusive, since it will overwrite the user's input.
+        # If a user rolls 1d20+6, and then afterwards wants to roll a 1d20, the autocomplete would overwrite 1d20 to be 1d20+6 when they hit enter, this is counter-intuitive and thus undesired.
+        return []

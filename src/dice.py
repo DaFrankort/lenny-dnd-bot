@@ -302,7 +302,6 @@ class DiceExpression(object):
 
 class DiceExpressionCache:
     PATH = Path("./temp/dice_cache.json")
-    MAX_EXPRESSIONS = 5
     _data = None  # cache in memory to avoid frequent file reads
 
     @classmethod
@@ -347,7 +346,7 @@ class DiceExpressionCache:
             user_notations.remove(notation)
 
         user_notations.append(notation)
-        user_notations = user_notations[-cls.MAX_EXPRESSIONS :]
+        user_notations = user_notations[-5:]  # Store max 5 expressions
         data[user_id] = user_notations
         cls._save_data()
 

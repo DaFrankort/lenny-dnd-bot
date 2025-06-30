@@ -328,7 +328,9 @@ class DiceExpressionCache:
             json.dump(cls._data, f, indent=4)
 
     @classmethod
-    def store_expression(cls, itr: Interaction, expression: DiceExpression, typed_notation: str):
+    def store_expression(
+        cls, itr: Interaction, expression: DiceExpression, typed_notation: str
+    ):
         """Stores a user's used diceroll input to the cache, if it is without errors."""
         if len(expression.roll.errors) > 0:
             return

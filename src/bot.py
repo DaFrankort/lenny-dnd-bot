@@ -206,7 +206,9 @@ class Bot(discord.Client):
         async def advantage(itr: Interaction, diceroll: str, reason: str = None):
             log_cmd(itr)
             dice_notation, reason = _get_diceroll_shortcut(itr, diceroll, reason)
-            expression = DiceExpression(dice_notation, DiceRollMode.Advantage, reason=reason)
+            expression = DiceExpression(
+                dice_notation, DiceRollMode.Advantage, reason=reason
+            )
             DiceExpressionCache.store_expression(itr, expression, diceroll)
 
             await itr.response.send_message(

@@ -349,7 +349,8 @@ class DiceExpressionCache:
             last_used.remove(notation)
 
         last_used.append(notation)
-        last_used = last_used[-5:]  # Store max 5 expressions
+        limit = 5
+        last_used = last_used[-limit:]  # Store max 5 expressions
 
         user_data["last_used"] = last_used
         data[user_id] = user_data

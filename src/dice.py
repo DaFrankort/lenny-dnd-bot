@@ -360,6 +360,9 @@ class DiceExpressionCache:
         user_id = str(itr.user.id)
         user_exprs = cls._load_data().get(user_id, [])
 
+        if len(user_exprs) == 0:
+            return []
+
         query = query.strip().lower().replace(" ", "")
         if query == "":
             last_used_expr = user_exprs[-1]

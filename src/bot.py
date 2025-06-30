@@ -72,7 +72,6 @@ class Bot(discord.Client):
         await self._attempt_sync_guild()
         await self.tree.sync()
         Sounds.init_folders()
-        DiceExpressionCache.init()
         if self.voice_enabled:
             VC.check_ffmpeg()
         else:
@@ -218,7 +217,7 @@ class Bot(discord.Client):
         async def autocomplete_roll_expression(
             itr: Interaction, current: str
         ) -> list[app_commands.Choice[str]]:
-            return DiceExpressionCache.get_last(itr, current)
+            return DiceExpressionCache.get_autocomplete_suggestions(itr, current)
 
         @roll.autocomplete("reason")
         @advantage.autocomplete("reason")

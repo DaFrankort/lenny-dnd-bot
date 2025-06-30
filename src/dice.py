@@ -306,15 +306,6 @@ class DiceExpressionCache:
     _data = None  # cache in memory to avoid frequent file reads
 
     @classmethod
-    def init(cls):
-        if cls.PATH.exists():
-            cls._load_data()
-            return
-
-        cls._data = {}
-        cls._save_data()
-
-    @classmethod
     def _load_data(cls):
         if cls._data is not None:
             return cls._data
@@ -352,7 +343,9 @@ class DiceExpressionCache:
         cls._save_data()
 
     @classmethod
-    def get_last(cls, itr: Interaction, query: str) -> list[Choice[str]]:
+    def get_autocomplete_suggestions(
+        cls, itr: Interaction, query: str
+    ) -> list[Choice[str]]:
         """Returns auto-complete choices for the last roll expressions a user used."""
         user_id = str(itr.user.id)
         user_exprs = cls._load_data().get(user_id, [])

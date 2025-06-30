@@ -2,8 +2,7 @@ import logging
 import random
 import time
 import discord
-from discord import Interaction
-from discord import NotFound
+from discord import Interaction, Message, NotFound
 
 from dice import DiceRollMode
 from embeds import SimpleEmbed, SuccessEmbed, UserActionEmbed, log_button_press
@@ -13,8 +12,8 @@ from discord.app_commands import Choice
 from voice_chat import VC, SoundType
 
 
-async def try_delete_old_message(message: discord.Message, MAX_AGE: int = 300):
-    """Attempts to remove a discord.Message, but only if it's older than MAX_AGE (in seconds), defaults to 5 minutes."""
+async def try_delete_old_message(message: Message, MAX_AGE: int = 600):
+    """Attempts to remove a discord.Message, but only if it's older than MAX_AGE (in seconds), defaults to 10 minutes."""
     now = time.time()
     timestamp = message.created_at.timestamp()
     age = int(now - timestamp)
@@ -112,7 +111,7 @@ class Initiative:
 
 class InitiativeTracker:
     server_initiatives: dict[int, list[Initiative]]
-    server_messages: dict[int, discord.Message]
+    server_messages: dict[int, Message]
     INITIATIVE_LIMIT = 30  # 4096/128 = 32 | 4096 Chars per description, max-name-length is 128 => lowered to 30 for safety.
 
     def __init__(self):
@@ -123,7 +122,7 @@ class InitiativeTracker:
         """Used to make name-comparisons less strict. (Case insensitive, no spaces)"""
         return name.strip().lower()
 
-    async def set_message(self, itr: Interaction, message: discord.Message):
+    async def set_message(self, itr: Interaction, message: Message):
         guild_id = int(itr.guild_id)
         prev_message = self.server_messages.get(guild_id, None)
         if prev_message is None:

@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from help import HelpEmbed
 from i18n import t
 
-from dice import DiceExpression, DiceRollMode
+from dice import DiceExpression, DiceExpressionCache, DiceRollMode
 from dnd import DNDData, DNDObject
 from embeds import (
     NoResultsFoundEmbed,
@@ -157,6 +157,8 @@ class Bot(discord.Client):
             expression = DiceExpression(
                 diceroll, mode=DiceRollMode.Normal, reason=reason
             )
+            DiceExpressionCache.store(itr, expression)
+
             await itr.response.send_message(
                 embed=UserActionEmbed(
                     itr=itr,
@@ -217,6 +219,14 @@ class Bot(discord.Client):
                 ephemeral=expression.ephemeral,
             )
             await VC.play_dice_roll(itr, expression, reason)
+
+        @roll.autocomplete("diceroll")
+        @advantage.autocomplete("diceroll")
+        @disadvantage.autocomplete("diceroll")
+        async def autocomplete_roll_expression(
+            itr: Interaction, current: str
+        ) -> list[app_commands.Choice[str]]:
+            return DiceExpressionCache.get_autocomplete_suggestions(itr, current)
 
         @roll.autocomplete("reason")
         @advantage.autocomplete("reason")

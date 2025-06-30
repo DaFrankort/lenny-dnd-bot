@@ -328,13 +328,17 @@ class DiceExpressionCache:
             json.dump(cls._data, f, indent=4)
 
     @classmethod
-    def store_expression(cls, itr: Interaction, expression: DiceExpression):
-        """Stores a user's used expression to the cache, if it is without errors."""
+    def store_expression(cls, itr: Interaction, expression: DiceExpression, typed_notation: str):
+        """Stores a user's used diceroll input to the cache, if it is without errors."""
         if len(expression.roll.errors) > 0:
             return
 
+        notation = typed_notation
+        if expression.roll.expression == typed_notation.strip().lower():
+            # Shortcut used
+            notation = expression.roll.expression
+
         user_id = str(itr.user.id)
-        notation = expression.roll.expression
         data = cls._load_data()
         user_data = data.get(user_id, cls._get_user_data_template())
 

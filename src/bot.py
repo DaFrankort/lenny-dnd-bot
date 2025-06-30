@@ -168,11 +168,11 @@ class Bot(discord.Client):
         )
         async def roll(itr: Interaction, diceroll: str, reason: str = None):
             log_cmd(itr)
-            diceroll, reason = _get_diceroll_shortcut(itr, diceroll, reason)
+            dice_notation, reason = _get_diceroll_shortcut(itr, diceroll, reason)
             expression = DiceExpression(
-                diceroll, mode=DiceRollMode.Normal, reason=reason
+                dice_notation, mode=DiceRollMode.Normal, reason=reason
             )
-            DiceExpressionCache.store_expression(itr, expression)
+            DiceExpressionCache.store_expression(itr, expression, diceroll)
 
             await itr.response.send_message(
                 embed=UserActionEmbed(
@@ -205,9 +205,9 @@ class Bot(discord.Client):
         )
         async def advantage(itr: Interaction, diceroll: str, reason: str = None):
             log_cmd(itr)
-            diceroll, reason = _get_diceroll_shortcut(itr, diceroll, reason)
-            expression = DiceExpression(diceroll, DiceRollMode.Advantage, reason=reason)
-            DiceExpressionCache.store_expression(itr, expression)
+            dice_notation, reason = _get_diceroll_shortcut(itr, diceroll, reason)
+            expression = DiceExpression(dice_notation, DiceRollMode.Advantage, reason=reason)
+            DiceExpressionCache.store_expression(itr, expression, diceroll)
 
             await itr.response.send_message(
                 embed=UserActionEmbed(
@@ -225,11 +225,11 @@ class Bot(discord.Client):
         )
         async def disadvantage(itr: Interaction, diceroll: str, reason: str = None):
             log_cmd(itr)
-            diceroll, reason = _get_diceroll_shortcut(itr, diceroll, reason)
+            dice_notation, reason = _get_diceroll_shortcut(itr, diceroll, reason)
             expression = DiceExpression(
-                diceroll, DiceRollMode.Disadvantage, reason=reason
+                dice_notation, DiceRollMode.Disadvantage, reason=reason
             )
-            DiceExpressionCache.store_expression(itr, expression)
+            DiceExpressionCache.store_expression(itr, expression, diceroll)
 
             await itr.response.send_message(
                 embed=UserActionEmbed(

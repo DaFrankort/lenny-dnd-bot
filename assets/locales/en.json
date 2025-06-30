@@ -199,6 +199,14 @@
             "- ``Lock``: Disables all the other buttons, to prevent users from accidentally pressing any more buttons.",
             "- ``Clear Rolls``: Clears all the initiatives, to be used after combat."
           ]
+        },
+        {
+          "name": "Notes",
+          "info": [
+            "Upon calling ``/initiative`` it will assure other initiative messages won't get interacted with.",
+            "- If the previous message is younger than 10 minutes it will be deleted.",
+            "- If it is older, the buttons to interact with it will be deleted."
+          ]
         }
       ]
     },

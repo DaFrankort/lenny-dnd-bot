@@ -549,6 +549,9 @@ class Bot(discord.Client):
             embed = InitiativeEmbed(itr, self.initiatives)
             await itr.response.send_message(embed=embed, view=embed.view)
 
+            message = await itr.original_response()
+            await self.initiatives.set_message(itr, message)
+
         @self.tree.command(
             name=t("commands.help.name"), description=t("commands.help.desc")
         )

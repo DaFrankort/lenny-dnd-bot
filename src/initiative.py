@@ -1,14 +1,30 @@
 import logging
 import random
+import time
 import discord
-from discord import Interaction
+from discord import Interaction, Message, NotFound
 
 from dice import DiceRollMode
 from embeds import SimpleEmbed, SuccessEmbed, UserActionEmbed, log_button_press
 from rapidfuzz import fuzz
 from discord.app_commands import Choice
-
 from voice_chat import VC, SoundType
+
+
+async def clean_up_old_message(message: Message, MAX_AGE: int = 600):
+    """Cleans up old discord.Message objects, removing any that are younger than MAX_AGE (default = 10min) and removing the view of those that are older."""
+    now = time.time()
+    timestamp = message.created_at.timestamp()
+    age = int(now - timestamp)
+
+    if age > MAX_AGE:
+        await message.edit(view=None)
+        return
+
+    try:
+        await message.delete()
+    except NotFound:
+        logging.debug("Previous message was already been deleted!")
 
 
 class Initiative:
@@ -95,14 +111,28 @@ class Initiative:
 
 class InitiativeTracker:
     server_initiatives: dict[int, list[Initiative]]
+    server_messages: dict[int, Message]
     INITIATIVE_LIMIT = 30  # 4096/128 = 32 | 4096 Chars per description, max-name-length is 128 => lowered to 30 for safety.
 
     def __init__(self):
         self.server_initiatives = {}
+        self.server_messages = {}
 
     def _sanitize_name(self, name: str) -> str:
         """Used to make name-comparisons less strict. (Case insensitive, no spaces)"""
         return name.strip().lower()
+
+    async def set_message(self, itr: Interaction, message: Message):
+        guild_id = int(itr.guild_id)
+        prev_message = self.server_messages.get(guild_id, None)
+        if prev_message is None:
+            self.server_messages[guild_id] = message
+            return
+
+        is_new_message = prev_message != message
+        if is_new_message:
+            await clean_up_old_message(prev_message)
+            self.server_messages[guild_id] = message
 
     def get(self, itr: Interaction) -> list[Initiative]:
         guild_id = int(itr.guild_id)

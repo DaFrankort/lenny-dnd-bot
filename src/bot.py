@@ -311,6 +311,14 @@ class Bot(discord.Client):
                         )
                         return
 
+                    expression = DiceExpression(name)
+                    if len(expression.roll.errors) == 0:
+                        await itr.response.send_message(
+                            f"Can't use `{name}` as shortcut name, can be interpreted as a diceroll!",
+                            ephemeral=True,
+                        )
+                        return
+
                     await itr.response.send_modal(DiceShortcutAddModal(itr, name))
 
                 case "EDIT":

@@ -36,7 +36,8 @@ if __name__ == "__main__":
     logger.addHandler(handler)
 
     removeme_list = [1, 2, 3]
-    force_flake8black_error = removeme_list[len(removeme_list) - 1 :]
+    index = 2
+    force_flake8black_error = removeme_list[index:]
 
     if args.verbose:
         logger.setLevel(logging.DEBUG)

@@ -399,10 +399,17 @@ class DiceExpressionCache:
 
     @classmethod
     def get_shortcut(cls, itr: Interaction, name: str) -> object | None:
-        """Gets a user's shortcut, case-sensitive."""
+        """Gets a user's shortcut by name, case-sensitive."""
         user_id = str(itr.user.id)
         data = cls._load_data()
         return data.get(user_id, {}).get("shortcuts", {}).get(name, None)
+
+    @classmethod
+    def get_user_shortcuts(cls, itr: Interaction) -> object | None:
+        """Returns a dict with all of the user's shortcuts"""
+        user_id = str(itr.user.id)
+        data = cls._load_data()
+        return data.get(user_id, {}).get("shortcuts", None)
 
     @classmethod
     def get_autocomplete_suggestions(

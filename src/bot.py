@@ -356,6 +356,33 @@ class Bot(discord.Client):
                 itr, current
             )
 
+        @self.tree.command(name="showshortcuts", description="View all your shortcuts!")
+        async def show_shortcuts(itr: Interaction):
+            shortcuts = DiceExpressionCache.get_user_shortcuts(itr)
+            description = "*You don't have any shortcuts*"
+
+            if shortcuts:
+                descriptions = []
+                for key in shortcuts:
+                    shortcut = shortcuts[key]
+                    expression = shortcut["expression"]
+                    reason = shortcut["reason"]
+                    text = f"- **{key}:** {expression}"
+                    if reason:
+                        text += f" ({reason})"
+                    descriptions.append(text)
+
+                description = "\n".join(descriptions)
+
+            await itr.response.send_message(
+                embed=UserActionEmbed(
+                    itr=itr,
+                    title=f"{itr.user.display_name}'s Shortcuts",
+                    description=description,
+                ),
+                ephemeral=True,
+            )
+
         @self.tree.command(
             name=t("commands.spell.name"), description=t("commands.spell.desc")
         )

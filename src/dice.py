@@ -368,8 +368,8 @@ class DiceExpressionCache:
 
         choices = []
         for expr in reversed(user_exprs):
-            expr_clean = expr.strip().lower().replace(" ", "")
+            expr_clean: str = expr.strip().lower().replace(" ", "")
 
-            if query in expr_clean:
+            if expr_clean.startswith(query):
                 choices.append(Choice(name=expr, value=expr))
         return choices

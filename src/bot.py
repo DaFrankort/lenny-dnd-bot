@@ -290,8 +290,8 @@ class Bot(discord.Client):
             ]
 
         @self.tree.command(
-            name="shortcut",
-            description="Create & edit roll shortcuts, ideal for people who can't read character sheets!",
+            name=t("commands.shortcut.name"),
+            description=t("commands.shortcut.desc"),
         )
         @app_commands.choices(
             action=[

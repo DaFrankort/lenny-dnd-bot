@@ -6,7 +6,7 @@ Powered by [5e.tools](https://5e.tools/) for up-to-date 5e data.
 
 ## Features
 
-- **Dice Roll Commands**: Roll dice with custom parameters (e.g., `/roll 2d6`, `/advantage 1d20+1` or `/disadvantage 3d20+4`).
+- **Dice Roll Commands**: Easily roll dice with flexible expressions, such as `/roll 2d6`, `/advantage 1d20+1`, or `/disadvantage 3d20+4`. Create and use custom shortcuts for your favorite or most-used rolls.
 - **D&D Data Lookup**: Look up D&D data and get detailed information about them directly in Discord, powered by [5e.tools](https://5e.tools/).
 - **Customizable Color Embeds**: Customize the colors of your dice roll embeds for better visual appeal and easy identification, auto-generated if not specified.
 - **Character Stat Rolling**: Automatically roll and generate D&D character stats.
@@ -65,10 +65,11 @@ Once the bot is added to your server, you can use the following commands:
 
 Roll D&D dice using dice-expressions (e.g. `2d6` / `1d20+2`).
 
-- `/roll <dice> [reason]` – Roll a single dice expression, optionally specify a reason for the roll (e.g. Acrobatics)
-- `/advantage <dice> [reason]` – Rolls twice, highlights the highest result.
-- `/disadvantage <dice> [reason]` – Rolls twice, highlights the lowest result.
+- `/roll <dice-expression> [reason]` – Roll a single dice expression, optionally specify a reason for the roll (e.g. Acrobatics)
+- `/advantage <dice-expression> [reason]` – Rolls twice, highlights the highest result.
+- `/disadvantage <dice-expression> [reason]` – Rolls twice, highlights the lowest result.
 - `/d20` - Rolls a basic 1d20 without any modifiers.
+- `/shortcut <action> <shortcut-name>` – Manage your own dice expression shortcuts. Create, edit, or remove shortcuts to quickly roll complex or frequently used expressions. For example, save a shortcut named "Fire Bolt" with the expression **1d10** and reason **Fire**. Later, simply use `/roll "Fire Bolt"` to roll with your saved settings.
 
 ### D&D Data lookup
 

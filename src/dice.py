@@ -358,17 +358,21 @@ class DiceExpressionCache:
     ) -> list[Choice[str]]:
         """Returns auto-complete choices for the last roll expressions a user used."""
         user_id = str(itr.user.id)
-        user_exprs = cls._load_data().get(user_id, [])
+        user_exprs = cls._load_data().get(user_id, [])  # Reversed, last should be shown first.
 
         if len(user_exprs) == 0:
             return []
 
         query = query.strip().lower().replace(" ", "")
         if query == "":
-            last_used_expr = user_exprs[-1]
-            return [
-                Choice(name=f"[Previous] {last_used_expr}", value=last_used_expr)
-            ]  # Return last roll by default
+            choices = []
+            for i, expr in enumerate(reversed(user_exprs)):
+                if i == 0:
+                    # Mark the last-used expression
+                    choices.append(Choice(name=f"{expr} [Last Rolled]", value=expr))
+                else:
+                    choices.append(Choice(name=expr, value=expr))
+            return choices
 
         choices = []
         for expr in reversed(user_exprs):

@@ -1,6 +1,10 @@
 from enum import Enum
+import json
 import logging
+from pathlib import Path
 import d20
+from discord import Interaction
+from discord.app_commands import Choice
 
 
 class DiceStringifier(d20.Stringifier):
@@ -221,7 +225,6 @@ class DiceRollMode(Enum):
 class DiceExpression(object):
     roll: DiceRoll
     rolls: list[DiceRoll]
-    errors: list[str]
     mode: DiceRollMode
     title: str
     description: str
@@ -230,11 +233,11 @@ class DiceExpression(object):
     def __init__(self, expression: str, mode=DiceRollMode.Normal, reason: str = None):
         self.rolls = []
         self.result = 0
-        self.errors = []
         self.mode = mode
         self.title = ""
         self.description = ""
         self.ephemeral = False
+        expression = expression.lower()  # d20 library requires lowercase expressions.
 
         if mode == DiceRollMode.Normal:
             roll = DiceRoll(expression)
@@ -295,3 +298,66 @@ class DiceExpression(object):
     @property
     def is_valid(self) -> bool:
         return self.roll.roll is not None
+
+
+class DiceExpressionCache:
+    PATH = Path("./temp/dice_cache.json")
+    MAX_EXPRESSIONS = 5
+    _data = None  # cache in memory to avoid frequent file reads
+
+    @classmethod
+    def init(cls):
+        if cls.PATH.exists():
+            cls._load_data()
+            return
+
+        cls._data = {}
+        cls._save_data()
+
+    @classmethod
+    def _load_data(cls):
+        if cls._data is not None:
+            return cls._data
+        if cls.PATH.exists():
+            with cls.PATH.open("r") as f:
+                cls._data = json.load(f)
+        else:
+            cls._data = {}
+        return cls._data
+
+    @classmethod
+    def _save_data(cls):
+        if cls._data is None:
+            return
+        with cls.PATH.open("w") as f:
+            json.dump(cls._data, f, indent=4)
+
+    @classmethod
+    def store(cls, itr: Interaction, expression: DiceExpression):
+        """Stores a user's used expression to the cache, if it is without errors."""
+        if len(expression.roll.errors) > 0:
+            return
+
+        user_id = str(itr.user.id)
+        notation = expression.roll.expression
+        data = cls._load_data()
+        user_notations = data.get(user_id, [])
+
+        if notation in user_notations:
+            user_notations.remove(notation)
+
+        user_notations.append(notation)
+        user_notations = user_notations[-cls.MAX_EXPRESSIONS :]
+        data[user_id] = user_notations
+        cls._save_data()
+
+    @classmethod
+    def get_last(cls, itr: Interaction) -> list[Choice[str]]:
+        """Returns auto-complete choices for the last roll expressions a user used."""
+        user_id = str(itr.user.id)
+        data = cls._load_data()
+        user_exprs = data.get(user_id, [])
+
+        return [
+            Choice(name=expr, value=expr) for expr in reversed(user_exprs)
+        ]  # Return newest first for convenience

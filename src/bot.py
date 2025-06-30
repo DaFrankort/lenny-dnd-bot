@@ -356,7 +356,10 @@ class Bot(discord.Client):
                 itr, current
             )
 
-        @self.tree.command(name="showshortcuts", description="View all your shortcuts!")
+        @self.tree.command(
+            name=t("commands.showshortcuts.name"),
+            description=t("commands.showshortcuts.desc"),
+        )
         async def show_shortcuts(itr: Interaction):
             shortcuts = DiceExpressionCache.get_user_shortcuts(itr)
             description = "*You don't have any shortcuts*"

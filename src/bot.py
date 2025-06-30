@@ -218,7 +218,7 @@ class Bot(discord.Client):
         async def autocomplete_roll_expression(
             itr: Interaction, current: str
         ) -> list[app_commands.Choice[str]]:
-            return DiceExpressionCache.get_last(itr)
+            return DiceExpressionCache.get_last(itr, current)
 
         @roll.autocomplete("reason")
         @advantage.autocomplete("reason")

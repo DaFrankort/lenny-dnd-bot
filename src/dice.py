@@ -1,8 +1,10 @@
-from enum import Enum
 import json
 import logging
-from pathlib import Path
 import d20
+
+from enum import Enum
+from pathlib import Path
+from rapidfuzz import fuzz
 from discord import Interaction
 from discord.app_commands import Choice
 
@@ -351,12 +353,22 @@ class DiceExpressionCache:
         cls._save_data()
 
     @classmethod
-    def get_last(cls, itr: Interaction) -> list[Choice[str]]:
+    def get_last(cls, itr: Interaction, query: str, fuzzy_threshold: float = 75) -> list[Choice[str]]:
         """Returns auto-complete choices for the last roll expressions a user used."""
         user_id = str(itr.user.id)
-        data = cls._load_data()
-        user_exprs = data.get(user_id, [])
+        user_exprs = cls._load_data().get(user_id, [])
 
-        return [
-            Choice(name=expr, value=expr) for expr in reversed(user_exprs)
-        ]  # Return newest first for convenience
+        query = query.strip().lower().replace(" ", "")
+        if query == "":
+            last_used_expr = user_exprs[-1]
+            return [Choice(name=f"[Previous] {last_used_expr}", value=last_used_expr)]  # Return last roll by default
+
+        choices = []
+        for expr in reversed(user_exprs):
+            expr_clean = expr.strip().lower().replace(" ", '')
+
+            score = fuzz.partial_ratio(query, expr_clean)
+            if score > fuzzy_threshold:
+                choices.append(Choice(name=expr, value=expr))
+
+        return choices

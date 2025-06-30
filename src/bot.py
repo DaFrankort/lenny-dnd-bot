@@ -276,17 +276,17 @@ class Bot(discord.Client):
             description="Create & edit roll shortcuts, ideal for people who can't read character sheets!",
         )
         @app_commands.choices(
-            mode=[
-                app_commands.Choice(name="Add", value="ADD"),
-                app_commands.Choice(name="Edit", value="EDIT"),
-                app_commands.Choice(name="Remove", value="REMOVE"),
+            action=[
+                app_commands.Choice(name="Add", value="Add"),
+                app_commands.Choice(name="Edit", value="Edit"),
+                app_commands.Choice(name="Remove", value="Remove"),
             ]
         )
-        async def shortcut(itr: Interaction, mode: str, name: str):
+        async def shortcut(itr: Interaction, action: str, name: str):
             log_cmd(itr)
             shortcut = DiceExpressionCache.get_shortcut(itr, name)
 
-            match mode:
+            match action.upper():
                 case "ADD":
                     if shortcut:
                         await itr.response.send_message(
@@ -321,6 +321,12 @@ class Bot(discord.Client):
                     await itr.response.send_message(
                         f"Removed shortcut '{name}'!", ephemeral=True
                     )
+
+        @shortcut.autocomplete("name")
+        async def shortcut_autocomplete(
+            itr: discord.Interaction, current: str
+        ) -> list[app_commands.Choice[str]]:
+            return DiceExpressionCache.get_shortcut_autocomplete_suggestions(itr, current)
 
         @self.tree.command(
             name=t("commands.spell.name"), description=t("commands.spell.desc")

@@ -365,14 +365,7 @@ class DiceExpressionCache:
 
         query = query.strip().lower().replace(" ", "")
         if query == "":
-            choices = []
-            for i, expr in enumerate(reversed(user_exprs)):
-                if i == 0:
-                    # Mark the last-used expression
-                    choices.append(Choice(name=f"{expr} [Last Rolled]", value=expr))
-                else:
-                    choices.append(Choice(name=expr, value=expr))
-            return choices
+            return [Choice(name=expr, value=expr) for expr in reversed(user_exprs)]
 
         choices = []
         for expr in reversed(user_exprs):

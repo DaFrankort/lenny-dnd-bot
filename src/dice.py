@@ -307,10 +307,7 @@ class DiceExpressionCache:
 
     @classmethod
     def _get_user_data_template(cls) -> object:
-        return {
-            "last_used": [],
-            "shortcuts": {}
-        }
+        return {"last_used": [], "shortcuts": {}}
 
     @classmethod
     def _load_data(cls):
@@ -351,6 +348,55 @@ class DiceExpressionCache:
         user_data["last_used"] = last_used
         data[user_id] = user_data
         cls._save_data()
+
+    @classmethod
+    def store_shortcut(
+        cls, itr: Interaction, name: str, dice_notation: str, reason: str | None
+    ) -> tuple[str, bool]:
+        """
+        Stores a new roll-shortcut, overwrites it if the name already exists.
+        Returns a description and a boolean indicating success.
+        """
+        expression = DiceExpression(dice_notation, DiceRollMode.Normal, reason)
+        if len(expression.roll.errors) > 0:
+            return expression.description, False  # Only insert valid notations
+
+        user_id = str(itr.user.id)
+        data = cls._load_data()
+        user_data = data.get(user_id, cls._get_user_data_template())
+
+        user_data["shortcuts"][name] = {"expression": dice_notation, "reason": reason}
+
+        data[user_id] = user_data
+        cls._save_data()
+
+        if not reason:
+            return f"- Expression: ``{dice_notation}``", True
+        return f"- Expression: {dice_notation}\n- Reason: {reason}", True
+
+    @classmethod
+    def remove_shortcut(cls, itr: Interaction, name: str) -> bool:
+        """Removes a shortcut for a user."""
+        user_id = str(itr.user.id)
+        data = cls._load_data()
+        user_data = data.get(user_id)
+
+        if not user_data or "shortcuts" not in user_data:
+            return False  # No shortcuts to remove
+
+        if name not in user_data["shortcuts"]:
+            return False  # Shortcut doesn't exist
+
+        del user_data["shortcuts"][name]
+        cls._save_data()
+        return True
+
+    @classmethod
+    def get_shortcut(cls, itr: Interaction, name: str) -> object | None:
+        """Gets a user's shortcut, case-sensitive."""
+        user_id = str(itr.user.id)
+        data = cls._load_data()
+        return data.get(user_id, {}).get("shortcuts", {}).get(name, None)
 
     @classmethod
     def get_autocomplete_suggestions(

@@ -18,6 +18,7 @@ from initiative import (
     InitiativeEmbed,
     InitiativeTracker,
 )
+from modals import DiceShortcutAddModal, DiceShortcutEditModal
 from search import SearchEmbed, search_from_query
 from stats import Stats
 from token_gen import (
@@ -269,6 +270,57 @@ class Bot(discord.Client):
                 app_commands.Choice(name=reason, value=reason)
                 for reason in filtered_reasons[:25]
             ]
+
+        @self.tree.command(
+            name="shortcut",
+            description="Create & edit roll shortcuts, ideal for people who can't read character sheets!",
+        )
+        @app_commands.choices(
+            mode=[
+                app_commands.Choice(name="Add", value="ADD"),
+                app_commands.Choice(name="Edit", value="EDIT"),
+                app_commands.Choice(name="Remove", value="REMOVE"),
+            ]
+        )
+        async def shortcut(itr: Interaction, mode: str, name: str):
+            log_cmd(itr)
+            shortcut = DiceExpressionCache.get_shortcut(itr, name)
+
+            match mode:
+                case "ADD":
+                    if shortcut:
+                        await itr.response.send_message(
+                            f"You already have a shortcut called {name}!",
+                            ephemeral=True,
+                        )
+                        return
+
+                    await itr.response.send_modal(DiceShortcutAddModal(itr, name))
+
+                case "EDIT":
+                    if not shortcut:
+                        await itr.response.send_message(
+                            f"You don't have a shortcut named '{name}'...",
+                            ephemeral=True,
+                        )
+                        return
+
+                    await itr.response.send_modal(
+                        DiceShortcutEditModal(itr, name, shortcut)
+                    )
+
+                case "REMOVE":
+                    if not shortcut:
+                        await itr.response.send_message(
+                            f"You don't have a shortcut named '{name}'...",
+                            ephemeral=True,
+                        )
+                        return
+
+                    DiceExpressionCache.remove_shortcut(itr, name)
+                    await itr.response.send_message(
+                        f"Removed shortcut '{name}'!", ephemeral=True
+                    )
 
         @self.tree.command(
             name=t("commands.spell.name"), description=t("commands.spell.desc")

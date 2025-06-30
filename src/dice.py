@@ -419,7 +419,9 @@ class DiceExpressionCache:
         return []
 
     @classmethod
-    def get_shortcut_autocomplete_suggestions(cls, itr: Interaction, query: str) -> list[Choice[str]]:
+    def get_shortcut_autocomplete_suggestions(
+        cls, itr: Interaction, query: str
+    ) -> list[Choice[str]]:
         action = itr.namespace.action if hasattr(itr.namespace, "action") else None
         if action.upper() not in ["EDIT", "REMOVE"]:
             return []  # Don't autocomplete for actions that are not edit or delete.
@@ -430,9 +432,7 @@ class DiceExpressionCache:
 
         query = query.strip().lower()
         choices = [
-            Choice(name=k, value=k)
-            for k in shortcuts.keys()
-            if query in k.lower()
+            Choice(name=k, value=k) for k in shortcuts.keys() if query in k.lower()
         ]
 
         return choices[:25]

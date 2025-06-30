@@ -326,7 +326,9 @@ class Bot(discord.Client):
         async def shortcut_autocomplete(
             itr: discord.Interaction, current: str
         ) -> list[app_commands.Choice[str]]:
-            return DiceExpressionCache.get_shortcut_autocomplete_suggestions(itr, current)
+            return DiceExpressionCache.get_shortcut_autocomplete_suggestions(
+                itr, current
+            )
 
         @self.tree.command(
             name=t("commands.spell.name"), description=t("commands.spell.desc")

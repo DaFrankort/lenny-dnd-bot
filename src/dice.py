@@ -418,16 +418,15 @@ class DiceExpressionCache:
         if query == "":
             return [Choice(name=expr, value=expr) for expr in reversed(last_used)]
 
-        # Autocompleting a user's expression can be intrusive, since it will overwrite the user's input.
-        # If a user rolls 1d20+6, and then afterwards wants to roll a 1d20, the autocomplete would overwrite 1d20 to be 1d20+6 when they hit enter, this is counter-intuitive and thus undesired.
-        return []
+        # Autocompleting a user's expression to last_used can be intrusive, as it will overwrite what they typed (e.g. if a user typed 1d20+6, then typed 1d20, it would autocorrect it to 1d20+6, which may not be what the player wanted)
+        return cls.get_shortcut_autocomplete_suggestions(itr, query)
 
     @classmethod
     def get_shortcut_autocomplete_suggestions(
         cls, itr: Interaction, query: str
     ) -> list[Choice[str]]:
         action = itr.namespace.action if hasattr(itr.namespace, "action") else None
-        if action.upper() not in ["EDIT", "REMOVE"]:
+        if action and action.upper() not in ["EDIT", "REMOVE"]:
             return []  # Don't autocomplete for actions that are not edit or delete.
 
         user_id = str(itr.user.id)

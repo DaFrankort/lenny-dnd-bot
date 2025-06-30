@@ -134,6 +134,19 @@ class Bot(discord.Client):
                     return
                 await itr.response.send_message(embed=embed)
 
+        def _get_diceroll_shortcut(
+            itr: Interaction, diceroll: str, reason: str | None
+        ) -> tuple[str, str | None]:
+            shortcut = DiceExpressionCache.get_shortcut(itr, diceroll)
+            if not shortcut:
+                return diceroll, reason
+
+            new_diceroll = shortcut["expression"]
+            new_reason = (
+                reason or shortcut["reason"]
+            )  # User can overwrite pre-specified reason.
+            return new_diceroll, new_reason
+
         TokenGenHorAlignmentChoices = [
             app_commands.Choice(name="Left", value=AlignH.LEFT.value),
             app_commands.Choice(name="Center", value=AlignH.CENTER.value),
@@ -155,6 +168,7 @@ class Bot(discord.Client):
         )
         async def roll(itr: Interaction, diceroll: str, reason: str = None):
             log_cmd(itr)
+            diceroll, reason = _get_diceroll_shortcut(itr, diceroll, reason)
             expression = DiceExpression(
                 diceroll, mode=DiceRollMode.Normal, reason=reason
             )
@@ -191,6 +205,7 @@ class Bot(discord.Client):
         )
         async def advantage(itr: Interaction, diceroll: str, reason: str = None):
             log_cmd(itr)
+            diceroll, reason = _get_diceroll_shortcut(itr, diceroll, reason)
             expression = DiceExpression(diceroll, DiceRollMode.Advantage, reason=reason)
             DiceExpressionCache.store_expression(itr, expression)
 
@@ -210,6 +225,7 @@ class Bot(discord.Client):
         )
         async def disadvantage(itr: Interaction, diceroll: str, reason: str = None):
             log_cmd(itr)
+            diceroll, reason = _get_diceroll_shortcut(itr, diceroll, reason)
             expression = DiceExpression(
                 diceroll, DiceRollMode.Disadvantage, reason=reason
             )

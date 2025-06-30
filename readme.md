@@ -6,7 +6,7 @@ Powered by [5e.tools](https://5e.tools/) for up-to-date 5e data.
 
 ## Features
 
-- **Dice Roll Commands**: Easily roll dice with flexible expressions, such as `/roll 2d6`, `/advantage 1d20+1`, or `/disadvantage 3d20+4`. Create and use custom shortcuts for your favorite or most-used rolls.
+- **Dice Roll Commands**: Easily roll dice with flexible expressions, such as `2d6`, `1d20+6`, or `1d8+4+2d6`. Create and use custom shortcuts for your favorite or most-used rolls.
 - **D&D Data Lookup**: Look up D&D data and get detailed information about them directly in Discord, powered by [5e.tools](https://5e.tools/).
 - **Customizable Color Embeds**: Customize the colors of your dice roll embeds for better visual appeal and easy identification, auto-generated if not specified.
 - **Character Stat Rolling**: Automatically roll and generate D&D character stats.

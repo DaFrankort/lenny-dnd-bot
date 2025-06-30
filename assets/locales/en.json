@@ -139,12 +139,12 @@
       ]
     },
     "roll": {
-      "name": "Dice Notations",
+      "name": "Roll",
       "commands": ["roll", "d20", "advantage", "disadvantage", "shortcut"],
       "text:": "You can roll dice using the following commands:",
       "info": [
         {
-          "name": "Roll",
+          "name": "Dice Notations",
           "info": [
             "To roll dice, you need to use dice notations, these follow the format `XdY + Z`.",
             "For example, ``1d20 + 6`` rolls a single 20-sided die and adds 6 to the result, these notations are expandable to combine a large number of dice.",

@@ -47,7 +47,10 @@ class Bot(discord.Client):
         intents = discord.Intents.default()
         intents.members = True
         intents.message_content = True
-        super().__init__(intents=intents)
+        super().__init__(
+            intents=intents,
+            status=discord.Status.do_not_disturb,  # Set to online in on_ready
+        )
 
         self.tree = app_commands.CommandTree(self)
         self.token = os.getenv("DISCORD_BOT_TOKEN")
@@ -68,6 +71,7 @@ class Bot(discord.Client):
         """Runs automatically when the bot is online"""
         logging.info("Initializing")
         logging.info(f"Logged in as {self.user} (ID: {self.user.id})")
+
         self._register_commands()
         await self._attempt_sync_guild()
         await self.tree.sync()
@@ -76,6 +80,11 @@ class Bot(discord.Client):
             VC.check_ffmpeg()
         else:
             VC.disable_vc()
+
+        await self.change_presence(
+            activity=discord.CustomActivity(name="Rolling d20s!"),
+            status=discord.Status.online,
+        )
         logging.info("Finished initialization")
 
     async def _attempt_sync_guild(self):

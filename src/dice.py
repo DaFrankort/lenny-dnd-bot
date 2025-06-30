@@ -303,6 +303,7 @@ class DiceExpression(object):
 
 class DiceExpressionCache:
     PATH = Path("./temp/dice_cache.json")
+    limit = 5
     _data = None  # cache in memory to avoid frequent file reads
 
     @classmethod
@@ -349,8 +350,7 @@ class DiceExpressionCache:
             last_used.remove(notation)
 
         last_used.append(notation)
-        limit = 5
-        last_used = last_used[-limit:]  # Store max 5 expressions
+        last_used = last_used[-cls.limit:]  # Store max 5 expressions
 
         user_data["last_used"] = last_used
         data[user_id] = user_data

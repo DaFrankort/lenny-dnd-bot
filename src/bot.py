@@ -157,7 +157,7 @@ class Bot(discord.Client):
             expression = DiceExpression(
                 diceroll, mode=DiceRollMode.Normal, reason=reason
             )
-            DiceExpressionCache.store(itr, expression)
+            DiceExpressionCache.store_expression(itr, expression)
 
             await itr.response.send_message(
                 embed=UserActionEmbed(
@@ -191,6 +191,8 @@ class Bot(discord.Client):
         async def advantage(itr: Interaction, diceroll: str, reason: str = None):
             log_cmd(itr)
             expression = DiceExpression(diceroll, DiceRollMode.Advantage, reason=reason)
+            DiceExpressionCache.store_expression(itr, expression)
+
             await itr.response.send_message(
                 embed=UserActionEmbed(
                     itr=itr,
@@ -210,6 +212,8 @@ class Bot(discord.Client):
             expression = DiceExpression(
                 diceroll, DiceRollMode.Disadvantage, reason=reason
             )
+            DiceExpressionCache.store_expression(itr, expression)
+
             await itr.response.send_message(
                 embed=UserActionEmbed(
                     itr=itr,

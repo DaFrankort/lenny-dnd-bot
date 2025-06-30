@@ -306,6 +306,13 @@ class DiceExpressionCache:
     _data = None  # cache in memory to avoid frequent file reads
 
     @classmethod
+    def _get_user_data_template(cls) -> object:
+        return {
+            "last_used": [],
+            "shortcuts": {}
+        }
+
+    @classmethod
     def _load_data(cls):
         if cls._data is not None:
             return cls._data
@@ -324,7 +331,7 @@ class DiceExpressionCache:
             json.dump(cls._data, f, indent=4)
 
     @classmethod
-    def store(cls, itr: Interaction, expression: DiceExpression):
+    def store_expression(cls, itr: Interaction, expression: DiceExpression):
         """Stores a user's used expression to the cache, if it is without errors."""
         if len(expression.roll.errors) > 0:
             return
@@ -332,14 +339,17 @@ class DiceExpressionCache:
         user_id = str(itr.user.id)
         notation = expression.roll.expression
         data = cls._load_data()
-        user_notations = data.get(user_id, [])
+        user_data = data.get(user_id, cls._get_user_data_template())
 
-        if notation in user_notations:
-            user_notations.remove(notation)
+        last_used = user_data.get("last_used", [])
+        if notation in last_used:
+            last_used.remove(notation)
 
-        user_notations.append(notation)
-        user_notations = user_notations[-5:]  # Store max 5 expressions
-        data[user_id] = user_notations
+        last_used.append(notation)
+        last_used = last_used[-5:]  # Store max 5 expressions
+
+        user_data["last_used"] = last_used
+        data[user_id] = user_data
         cls._save_data()
 
     @classmethod
@@ -348,14 +358,15 @@ class DiceExpressionCache:
     ) -> list[Choice[str]]:
         """Returns auto-complete choices for the last roll expressions a user used."""
         user_id = str(itr.user.id)
-        user_exprs = cls._load_data().get(user_id, [])
+        user_data = cls._load_data().get(user_id, cls._get_user_data_template())
+        last_used = user_data.get("last_used", [])
 
-        if len(user_exprs) == 0:
+        if len(last_used) == 0:
             return []
 
         query = query.strip().lower().replace(" ", "")
         if query == "":
-            return [Choice(name=expr, value=expr) for expr in reversed(user_exprs)]
+            return [Choice(name=expr, value=expr) for expr in reversed(last_used)]
 
         # Autocompleting a user's expression can be intrusive, since it will overwrite the user's input.
         # If a user rolls 1d20+6, and then afterwards wants to roll a 1d20, the autocomplete would overwrite 1d20 to be 1d20+6 when they hit enter, this is counter-intuitive and thus undesired.

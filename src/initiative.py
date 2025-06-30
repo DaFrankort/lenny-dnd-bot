@@ -1,5 +1,6 @@
 import logging
 import random
+import time
 import discord
 from discord import Interaction
 from discord import NotFound
@@ -10,6 +11,21 @@ from rapidfuzz import fuzz
 from discord.app_commands import Choice
 
 from voice_chat import VC, SoundType
+
+
+async def try_delete_old_message(message: discord.Message, MAX_AGE: int = 300):
+    """Attempts to remove a discord.Message, but only if it's older than MAX_AGE (in seconds), defaults to 5 minutes."""
+    now = time.time()
+    timestamp = message.created_at.timestamp()
+    age = int(now - timestamp)
+
+    if age > MAX_AGE:
+        return
+
+    try:
+        await message.delete()
+    except NotFound:
+        logging.debug("Previous message was already been deleted!")
 
 
 class Initiative:
@@ -116,10 +132,7 @@ class InitiativeTracker:
 
         is_new_message = prev_message != message
         if is_new_message:
-            try:
-                await prev_message.delete()
-            except NotFound:
-                logging.debug("Previous initiative-message has already been deleted!")
+            await try_delete_old_message(prev_message)
             self.server_messages[guild_id] = message
 
     def get(self, itr: Interaction) -> list[Initiative]:

@@ -4,7 +4,6 @@ import d20
 
 from enum import Enum
 from pathlib import Path
-from rapidfuzz import fuzz
 from discord import Interaction
 from discord.app_commands import Choice
 
@@ -371,8 +370,6 @@ class DiceExpressionCache:
         for expr in reversed(user_exprs):
             expr_clean = expr.strip().lower().replace(" ", "")
 
-            score = fuzz.partial_ratio(query, expr_clean)
-            if score > fuzzy_threshold:
+            if query in expr_clean:
                 choices.append(Choice(name=expr, value=expr))
-
         return choices

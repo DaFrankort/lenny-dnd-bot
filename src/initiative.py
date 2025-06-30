@@ -8,17 +8,17 @@ from dice import DiceRollMode
 from embeds import SimpleEmbed, SuccessEmbed, UserActionEmbed, log_button_press
 from rapidfuzz import fuzz
 from discord.app_commands import Choice
-
 from voice_chat import VC, SoundType
 
 
-async def try_delete_old_message(message: Message, MAX_AGE: int = 600):
-    """Attempts to remove a discord.Message, but only if it's older than MAX_AGE (in seconds), defaults to 10 minutes."""
+async def clean_up_old_message(message: Message, MAX_AGE: int = 600):
+    """Cleans up old discord.Message objects, removing any that are younger than MAX_AGE (default = 10min) and removing the view of those that are older."""
     now = time.time()
     timestamp = message.created_at.timestamp()
     age = int(now - timestamp)
 
     if age > MAX_AGE:
+        await message.edit(view=None)
         return
 
     try:
@@ -131,7 +131,7 @@ class InitiativeTracker:
 
         is_new_message = prev_message != message
         if is_new_message:
-            await try_delete_old_message(prev_message)
+            await clean_up_old_message(prev_message)
             self.server_messages[guild_id] = message
 
     def get(self, itr: Interaction) -> list[Initiative]:

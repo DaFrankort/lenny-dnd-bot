@@ -372,7 +372,7 @@ class DiceExpressionCache:
         data = cls._load_data()
         user_data = data.get(user_id, cls._get_user_data_template())
 
-        user_data["shortcuts"][name] = {"expression": dice_notation, "reason": reason}
+        user_data["shortcuts"][name] = {"expression": dice_notation, "reason": reason.title()}
 
         data[user_id] = user_data
         cls._save_data()

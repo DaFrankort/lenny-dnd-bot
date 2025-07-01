@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 import d20
 
 from enum import Enum
@@ -415,7 +416,10 @@ class DiceExpressionCache:
     def get_autocomplete_suggestions(
         cls, itr: Interaction, query: str
     ) -> list[Choice[str]]:
-        """Returns auto-complete choices for the last roll expressions a user used."""
+        """
+        Returns auto-complete choices for the last roll expressions a user used when no query is given.
+        If query is given, will try to suggest user's shortcuts, using smart-append.
+        """
         user_id = str(itr.user.id)
         user_data = cls._load_data().get(user_id, cls._get_user_data_template())
         last_used = user_data.get("last_used", [])
@@ -428,12 +432,17 @@ class DiceExpressionCache:
             return [Choice(name=expr, value=expr) for expr in reversed(last_used)]
 
         # Autocompleting a user's expression to last_used can be intrusive, as it will overwrite what they typed (e.g. if a user typed 1d20+6, then typed 1d20, it would autocorrect it to 1d20+6, which may not be what the player wanted)
-        return cls.get_shortcut_autocomplete_suggestions(itr, query)
+        return cls.get_shortcut_autocomplete_suggestions(itr, query, True)
 
     @classmethod
     def get_shortcut_autocomplete_suggestions(
-        cls, itr: Interaction, query: str
+        cls, itr: Interaction, query: str, smart_suggest=False
     ) -> list[Choice[str]]:
+        """
+        Returns a list of `Choice[str]` objects for autocomplete, based on the user's saved shortcuts.
+        If `smart_suggest` is True, suggests shortcuts as part of a dice expression (e.g., after an operator).
+        Only provides suggestions for "EDIT" or "REMOVE" actions, if action argument is found within the interaction.
+        """
         action = itr.namespace.action if hasattr(itr.namespace, "action") else None
         if action and action.upper() not in ["EDIT", "REMOVE"]:
             return []  # Don't autocomplete for actions that are not edit or delete.
@@ -442,9 +451,20 @@ class DiceExpressionCache:
         data = DiceExpressionCache._load_data()
         shortcuts = data.get(user_id, {}).get("shortcuts", {})
 
-        query = query.strip().lower()
-        choices = [
-            Choice(name=k, value=k) for k in shortcuts.keys() if query in k.lower()
-        ]
+        if not smart_suggest:
+            query = query.strip().lower()
+            choices = [
+                Choice(name=k, value=k) for k in shortcuts.keys() if query in k.lower()
+            ]
+            return choices[:25]
 
+        # Smart Suggest
+        parts = re.split(r"([+\-*/()])", query)
+        query = parts[-1].strip().lower()
+        choices = []
+        for key in shortcuts.keys():
+            if query in key.lower():
+                parts[-1] = key
+                suggestion = "".join(parts)
+                choices.append(Choice(name=suggestion, value=suggestion))
         return choices[:25]

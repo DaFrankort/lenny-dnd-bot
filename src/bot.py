@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 import discord
 from discord import app_commands
 from discord import Interaction
@@ -137,15 +138,23 @@ class Bot(discord.Client):
         def _get_diceroll_shortcut(
             itr: Interaction, diceroll: str, reason: str | None
         ) -> tuple[str, str | None]:
-            shortcut = DiceExpressionCache.get_shortcut(itr, diceroll)
-            if not shortcut:
+            shortcuts = DiceExpressionCache.get_user_shortcuts(itr)
+            if not shortcuts:
                 return diceroll, reason
 
-            new_diceroll = shortcut["expression"]
-            new_reason = (
-                reason or shortcut["reason"]
-            )  # User can overwrite pre-specified reason.
-            return new_diceroll, new_reason
+            parts = re.split(r"([+\-*/()])", diceroll)
+            shortcut_reason = None
+            for part in parts:
+                part = part.strip()
+
+                if part in shortcuts:
+                    shortcut = shortcuts[part]
+                    expression = shortcut["expression"]
+                    reason = shortcut["reason"]
+                    diceroll = diceroll.replace(part, expression)
+                    shortcut_reason = reason
+
+            return diceroll, reason or shortcut_reason
 
         TokenGenHorAlignmentChoices = [
             app_commands.Choice(name="Left", value=AlignH.LEFT.value),

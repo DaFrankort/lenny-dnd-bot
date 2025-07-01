@@ -36,6 +36,12 @@
       "help": "Create, edit and remove roll-shortcuts, which can be referred to in dice-roll commands.",
       "command": "/shortcut <action> <name>"
     },
+    "showshortcuts": {
+      "name": "showshortcuts",
+      "desc": "View all your shortcuts!",
+      "help": "Get an overview of all the shortcuts you've created.",
+      "command": "/showshortcuts"
+    },
     "spell": {
       "name": "spell",
       "desc": "Get the details for a spell.",
@@ -140,7 +146,7 @@
     },
     "roll": {
       "name": "Roll",
-      "commands": ["roll", "d20", "advantage", "disadvantage", "shortcut"],
+      "commands": ["roll", "d20", "advantage", "disadvantage", "shortcut", "showshortcuts"],
       "text:": "You can roll dice using the following commands:",
       "info": [
         {

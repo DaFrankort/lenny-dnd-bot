@@ -305,63 +305,7 @@ class Bot(discord.Client):
         async def shortcut(itr: Interaction):
             log_cmd(itr)
             embed = ShortcutEmbed(itr)
-            await itr.response.send_message(
-                embed=embed, view=embed.view, ephemeral=True
-            )
-
-            # shortcut = DiceExpressionCache.get_shortcut(itr, name)
-
-            # match action.upper():
-            #     case "ADD":
-            #         if shortcut:
-            #             await itr.response.send_message(
-            #                 f"You already have a shortcut called {name}!",
-            #                 ephemeral=True,
-            #             )
-            #             return
-
-            #         expression = DiceExpression(name)
-            #         if len(expression.roll.errors) == 0:
-            #             await itr.response.send_message(
-            #                 f"Can't use `{name}` as shortcut name, can be interpreted as a diceroll!",
-            #                 ephemeral=True,
-            #             )
-            #             return
-
-            #         await itr.response.send_modal(DiceShortcutAddModal(itr, name))
-
-            #     case "EDIT":
-            #         if not shortcut:
-            #             await itr.response.send_message(
-            #                 f"You don't have a shortcut named '{name}'...",
-            #                 ephemeral=True,
-            #             )
-            #             return
-
-            #         await itr.response.send_modal(
-            #             DiceShortcutEditModal(itr, name, shortcut)
-            #         )
-
-            #     case "REMOVE":
-            #         if not shortcut:
-            #             await itr.response.send_message(
-            #                 f"You don't have a shortcut named '{name}'...",
-            #                 ephemeral=True,
-            #             )
-            #             return
-
-            #         DiceExpressionCache.remove_shortcut(itr, name)
-            #         await itr.response.send_message(
-            #             f"Removed shortcut '{name}'!", ephemeral=True
-            #         )
-
-        # @shortcut.autocomplete("name")
-        # async def shortcut_autocomplete(
-        #     itr: discord.Interaction, current: str
-        # ) -> list[app_commands.Choice[str]]:
-        #     return DiceExpressionCache.get_shortcut_autocomplete_suggestions(
-        #         itr, current
-        #     )
+            await itr.response.send_message(embed=embed, view=embed.view)
 
         @self.tree.command(
             name=t("commands.spell.name"), description=t("commands.spell.desc")

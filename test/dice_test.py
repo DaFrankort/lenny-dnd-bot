@@ -1,9 +1,12 @@
 import math
+from unittest.mock import MagicMock
 import pytest
 from dice import (
     DiceExpression,
+    DiceExpressionCache,
     DiceRollMode,
 )
+from utils.mock_discord_interaction import MockInteraction
 
 
 class TestDiceExpression:
@@ -112,3 +115,126 @@ class TestDiceExpression:
 
         assert "Expression contains no dice." not in dice1.description
         assert "Expression contains no dice." in dice2.description
+
+
+class TestDiceExpressionCache:
+    @pytest.fixture(autouse=True)
+    def setup(self, tmp_path):
+        self.test_path = tmp_path / "dice_cache.json"
+        DiceExpressionCache.PATH = self.test_path
+        DiceExpressionCache._data = {}  # Reset cache before each test
+
+    @pytest.fixture
+    def itr(self):
+        return MockInteraction()
+
+    @pytest.fixture
+    def valid_expression(self):
+        mock_expr = MagicMock()
+        mock_expr.roll.errors = []
+        mock_expr.roll.expression = "1d20+5"
+        mock_expr.description = "A valid roll"
+        return mock_expr
+
+    @pytest.fixture
+    def invalid_expression(self):
+        mock_expr = MagicMock()
+        mock_expr.roll.errors = ["error"]
+        mock_expr.description = "An invalid roll"
+        return mock_expr
+
+    def test_store_expression_adds_to_cache(self, itr, valid_expression):
+        DiceExpressionCache.store_expression(itr, valid_expression, "1d20+5")
+        user_id = str(itr.user.id)
+        data = DiceExpressionCache._data
+
+        assert user_id in data, f"User ID {user_id} should be in cache data."
+        assert "1d20+5" in data[user_id]["last_used"], "'1d20+5' should be in last_used for user."
+
+    def test_store_expression_does_not_add_invalid(self, itr, invalid_expression):
+        DiceExpressionCache.store_expression(itr, invalid_expression, "2d6")
+        user_id = str(itr.user.id)
+
+        assert user_id not in DiceExpressionCache._data, f"User ID {user_id} should not be in cache for invalid expression."
+
+    def test_store_shortcut_valid(self, mock_expr_class, itr):
+        mock_expr = MagicMock()
+        mock_expr.roll.errors = []
+        mock_expr.description = "Valid shortcut"
+        mock_expr_class.return_value = mock_expr
+
+        result, success = DiceExpressionCache.store_shortcut(
+            itr, "quickattack", "1d6+3", "Fast strike"
+        )
+
+        user_data = DiceExpressionCache._data[str(itr.user.id)]
+        assert "quickattack" in user_data["shortcuts"], "'quickattack' should be in user's shortcuts."
+        assert success is True, "Success should be True for valid shortcut."
+        assert "Fast strike" in result, "'Fast strike' should be in result message."
+
+    def test_store_shortcut_invalid(self, mock_expr_class, itr):
+        mock_expr = MagicMock()
+        mock_expr.roll.errors = ["invalid"]
+        mock_expr.description = "Error"
+        mock_expr_class.return_value = mock_expr
+
+        result, success = DiceExpressionCache.store_shortcut(
+            itr, "failshot", "bad-input", None
+        )
+
+        assert success is False, "Success should be False for invalid shortcut."
+        assert "Error" in result, "'Error' should be in result message."
+
+    def test_remove_shortcut_success(self, itr):
+        DiceExpressionCache._data = {
+            str(itr.user.id): {
+                "shortcuts": {"fireball": {"expression": "8d6", "reason": "big boom"}}
+            }
+        }
+
+        removed = DiceExpressionCache.remove_shortcut(itr, "fireball")
+        assert removed is True, "Shortcut should be removed successfully."
+        assert "fireball" not in DiceExpressionCache._data[str(itr.user.id)]["shortcuts"], "'fireball' should not be in user's shortcuts after removal."
+
+    def test_remove_shortcut_fail(self, itr):
+        DiceExpressionCache._data = {}
+        removed = DiceExpressionCache.remove_shortcut(itr, "doesnotexist")
+        assert removed is False, "Should return False when trying to remove non-existent shortcut."
+
+    def test_get_shortcut_found(self, itr):
+        user_id = str(itr.user.id)
+        DiceExpressionCache._data = {
+            user_id: {"shortcuts": {"blast": {"expression": "2d10", "reason": "boom"}}}
+        }
+
+        result = DiceExpressionCache.get_shortcut(itr, "blast")
+        assert result["expression"] == "2d10", "Should return correct expression for found shortcut."
+
+    def test_get_shortcut_not_found(self, itr):
+        DiceExpressionCache._data = {}
+        result = DiceExpressionCache.get_shortcut(itr, "nothing")
+        assert result is None, "Should return None for non-existent shortcut."
+
+    def test_get_autocomplete_suggestions_empty(self, itr):
+        DiceExpressionCache._data = {}
+        suggestions = DiceExpressionCache.get_autocomplete_suggestions(itr, "")
+        assert suggestions == [], "Suggestions should be empty when no data is present."
+
+    def test_get_shortcut_autocomplete_suggestions_match(self, itr):
+        itr.namespace.action = "REMOVE"
+        user_id = str(itr.user.id)
+
+        DiceExpressionCache._data = {
+            user_id: {
+                "shortcuts": {
+                    "attack": {"expression": "1d20+3", "reason": None},
+                    "defend": {"expression": "1d20+2", "reason": None},
+                }
+            }
+        }
+
+        suggestions = DiceExpressionCache.get_shortcut_autocomplete_suggestions(
+            itr, "att"
+        )
+        assert len(suggestions) == 1, "Should return one suggestion matching 'att'."
+        assert suggestions[0].name == "attack", "Suggestion name should be 'attack'."

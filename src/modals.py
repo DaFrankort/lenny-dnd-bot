@@ -1,8 +1,6 @@
 import logging
 from discord import Interaction
 from discord.ui import TextInput, Modal
-from dice import DiceExpressionCache
-from embeds import SuccessEmbed
 
 
 class SimpleModal(Modal):
@@ -57,80 +55,3 @@ class SimpleModal(Modal):
                 break
 
         return choice
-
-
-class DiceShortcutAddModal(SimpleModal):
-    name: str
-    notation = TextInput(
-        label="Dice expression",
-        placeholder="1d20+6",
-    )
-    reason = TextInput(
-        label="Roll Reason (Optional)",
-        placeholder="Attack / Damage / Fire / ...",
-        required=False,
-    )
-
-    def __init__(self, itr: Interaction, name: str):
-        super().__init__(itr, title=f"Adding shortcut: '{name}'")
-        self.name = name
-
-    async def on_submit(self, itr: Interaction):
-        self.log_inputs(itr)
-
-        notation = self.get_str(self.notation)
-        reason = self.get_str(self.reason)
-
-        description, success = DiceExpressionCache.store_shortcut(
-            itr, self.name, notation, reason
-        )
-        await itr.response.send_message(
-            embed=SuccessEmbed(
-                title_success=f"Added roll-shortcut {self.name}!",
-                title_fail=f"Failed to add {self.name}...",
-                description=description,
-                success=success,
-            ),
-            ephemeral=True,
-        )
-
-
-class DiceShortcutEditModal(SimpleModal):
-    name: str
-    notation = TextInput(
-        label="Dice expression",
-    )
-    reason = TextInput(
-        label="Roll Reason (Optional)",
-        required=False,
-    )
-
-    def __init__(self, itr: Interaction, name: str, shortcut: object):
-        super().__init__(itr, title=f"Editing shortcut: '{name}'")
-        self.name = name
-        expression = shortcut["expression"]
-        reason = shortcut["reason"]
-
-        self.notation.default = expression
-        self.notation.placeholder = expression
-        self.reason.default = reason
-        self.reason.placeholder = reason or "Attack / Damage / Fire / ..."
-
-    async def on_submit(self, itr: Interaction):
-        self.log_inputs(itr)
-
-        notation = self.get_str(self.notation)
-        reason = self.get_str(self.reason)
-
-        description, success = DiceExpressionCache.store_shortcut(
-            itr, self.name, notation, reason
-        )
-        await itr.response.send_message(
-            embed=SuccessEmbed(
-                title_success=f"Edited roll-shortcut {self.name}!",
-                title_fail=f"Failed to edit {self.name}...",
-                description=description,
-                success=success,
-            ),
-            ephemeral=True,
-        )

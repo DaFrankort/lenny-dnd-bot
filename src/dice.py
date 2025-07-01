@@ -372,7 +372,10 @@ class DiceExpressionCache:
         data = cls._load_data()
         user_data = data.get(user_id, cls._get_user_data_template())
 
-        user_data["shortcuts"][name] = {"expression": dice_notation, "reason": reason}
+        user_data["shortcuts"][name] = {
+            "expression": dice_notation,
+            "reason": reason.title(),
+        }
 
         data[user_id] = user_data
         cls._save_data()
@@ -382,21 +385,24 @@ class DiceExpressionCache:
         return f"- Expression: {dice_notation}\n- Reason: {reason}", True
 
     @classmethod
-    def remove_shortcut(cls, itr: Interaction, name: str) -> bool:
-        """Removes a shortcut for a user."""
+    def remove_shortcut(cls, itr: Interaction, name: str) -> tuple[str, bool]:
+        """Removes a shortcut for a user. Returns a description and a success bool."""
         user_id = str(itr.user.id)
         data = cls._load_data()
         user_data = data.get(user_id)
 
         if not user_data or "shortcuts" not in user_data:
-            return False  # No shortcuts to remove
+            return "You don't have any shortcuts...", False
 
         if name not in user_data["shortcuts"]:
-            return False  # Shortcut doesn't exist
+            return (
+                f"Shortcut by name {name} could not be found, already deleted?",
+                False,
+            )
 
         del user_data["shortcuts"][name]
         cls._save_data()
-        return True
+        return f"Removed shortcut ``{name}`` from your shortcuts!", True
 
     @classmethod
     def get_shortcut(cls, itr: Interaction, name: str) -> object | None:

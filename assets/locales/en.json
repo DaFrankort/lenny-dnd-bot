@@ -34,13 +34,7 @@
       "name": "shortcut",
       "desc": "Create & edit roll shortcuts, ideal for people who can't read character sheets!",
       "help": "Create, edit and remove roll-shortcuts, which can be referred to in dice-roll commands.",
-      "command": "/shortcut <action> <name>"
-    },
-    "showshortcuts": {
-      "name": "showshortcuts",
-      "desc": "View all your shortcuts!",
-      "help": "Get an overview of all the shortcuts you've created.",
-      "command": "/showshortcuts"
+      "command": "/shortcut"
     },
     "spell": {
       "name": "spell",
@@ -146,7 +140,7 @@
     },
     "roll": {
       "name": "Roll",
-      "commands": ["roll", "d20", "advantage", "disadvantage", "shortcut", "showshortcuts"],
+      "commands": ["roll", "d20", "advantage", "disadvantage", "shortcut"],
       "text:": "You can roll dice using the following commands:",
       "info": [
         {
@@ -161,10 +155,11 @@
         {
           "name": "Shortcuts",
           "info": [
-            "Shortcuts let you save dice rolls you use frequently under a custom name, so you don't have to type out the full notation each time.",
-            "- For example, if you often roll **1d8+3+1d6** for a sneak attack, you can create a shortcut called \"Sneak Attack\".",
-            "- Once you've saved a shortcut, you can use it in any dice command by typing the shortcut's name ``/roll \"Sneak Attack\"`` instead of the full notation.",
-            "- Shortcuts can also have default roll reasons. If you don't specify a reason when rolling, the shortcut's default will be used automatically."
+            "Shortcuts let you save dice rolls or modifiers you use frequently under a custom name, so you don't have to type out the full notation each time.",
+            "- For example, if you often roll **1d8+3+2d6** for a sneak attack, you can create a shortcut called \"SNEAK\".",
+            "- Once you've saved a shortcut, you can use it in any dice expression like so ``/roll \"SNEAK\"``.",
+            "- You can also use your shortcuts within expressions, like so: ``/roll \"SNEAK+5\"``, this will evaluate to **1d8+3+1d6__+5__**",
+            "- Shortcuts can also have default roll reasons. This reason will be used whenever you use the shortcut, unless you specify another reason."
           ]
         },
         {

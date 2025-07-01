@@ -6,11 +6,11 @@ from modals import SimpleModal
 
 async def update_shortcut_embed(itr: Interaction, view: ui.View | None = None):
     """Updates the ShortcutEmbed, if no view is specified defaults to ShortcutBaseView"""
+    embed = ShortcutEmbed(itr)
     if view is None:
-        shortcuts = DiceExpressionCache.get_user_shortcuts(itr)
-        view = ShortcutBaseView(shortcuts)
+        view = embed.view
 
-    await itr.response.edit_message(content=None, embed=ShortcutEmbed(itr), view=view)
+    await itr.response.edit_message(content=None, embed=embed, view=view)
 
 
 def get_shortcut_options(shortcuts: object) -> list[SelectOption]:
@@ -121,15 +121,15 @@ class ShortcutBaseView(ui.View):
         super().__init__()
         self.shortcuts = shortcuts
 
-    @ui.button(label="Add", style=ButtonStyle.success)
+    @ui.button(label="Add", style=ButtonStyle.success, custom_id='add_btn')
     async def add(self, itr: Interaction, _: Button):
         await itr.response.send_modal(DiceShortcutAddModal(itr))
 
-    @ui.button(label="Edit", style=ButtonStyle.primary)
+    @ui.button(label="Edit", style=ButtonStyle.primary, custom_id='edit_btn')
     async def edit(self, itr: Interaction, _: Button):
         await update_shortcut_embed(itr, ShortcutEditView(self.shortcuts))
 
-    @ui.button(label="Remove", style=ButtonStyle.danger)
+    @ui.button(label="Remove", style=ButtonStyle.danger, custom_id='remove_btn')
     async def remove(self, itr: Interaction, _: Button):
         await update_shortcut_embed(itr, ShortcutRemoveView(self.shortcuts))
 

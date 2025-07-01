@@ -392,7 +392,10 @@ class DiceExpressionCache:
             return "You don't have any shortcuts...", False
 
         if name not in user_data["shortcuts"]:
-            return f"Shortcut by name {name} could not be found, already deleted?", False
+            return (
+                f"Shortcut by name {name} could not be found, already deleted?",
+                False,
+            )
 
         del user_data["shortcuts"][name]
         cls._save_data()

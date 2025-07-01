@@ -10,25 +10,17 @@ async def update_shortcut_embed(itr: Interaction, view: ui.View | None = None):
         shortcuts = DiceExpressionCache.get_user_shortcuts(itr)
         view = ShortcutBaseView(shortcuts)
 
-    await itr.response.edit_message(
-        content=None,
-        embed=ShortcutEmbed(itr),
-        view=view
-    )
+    await itr.response.edit_message(content=None, embed=ShortcutEmbed(itr), view=view)
 
 
 def get_shortcut_options(shortcuts: object) -> list[SelectOption]:
     options = []
     for key in shortcuts:
         shortcut = shortcuts[key]
-        expr = shortcut['expression']
-        reason = shortcut['reason']
+        expr = shortcut["expression"]
+        reason = shortcut["reason"]
         desc = expr if not reason else f"{expr} ({reason})"
-        options.append(SelectOption(
-            label=key,
-            description=desc,
-            value=key
-        ))
+        options.append(SelectOption(label=key, description=desc, value=key))
 
     return options
 
@@ -148,7 +140,7 @@ class ShortcutEditSelect(ui.Select):
             placeholder="Shortcut to edit",
             options=get_shortcut_options(shortcuts),
             min_values=1,
-            max_values=1
+            max_values=1,
         )
         self.shortcuts = shortcuts
 
@@ -156,9 +148,7 @@ class ShortcutEditSelect(ui.Select):
         name = str(self.values[0])
         shortcut = DiceExpressionCache.get_shortcut(itr, name)
 
-        await itr.response.send_modal(
-            DiceShortcutEditModal(itr, name, shortcut)
-        )
+        await itr.response.send_modal(DiceShortcutEditModal(itr, name, shortcut))
 
 
 class ShortcutEditView(ui.View):
@@ -178,7 +168,7 @@ class ShortcutRemoveSelect(ui.Select):
             placeholder="Shortcuts to remove",
             options=get_shortcut_options(shortcuts),
             min_values=1,
-            max_values=1
+            max_values=1,
         )
 
     async def callback(self, itr: Interaction):
@@ -195,9 +185,9 @@ class ShortcutRemoveSelect(ui.Select):
                 title_success="",
                 title_fail="Failed to remove shortcut...",
                 description=description,
-                success=success
+                success=success,
             ),
-            ephemeral=True
+            ephemeral=True,
         )
 
 
@@ -232,10 +222,6 @@ class ShortcutEmbed(UserActionEmbed):
 
             description = "\n".join(descriptions)
 
-        super().__init__(
-            itr,
-            title=title,
-            description=description
-        )
+        super().__init__(itr, title=title, description=description)
 
         self.view = ShortcutBaseView(shortcuts)

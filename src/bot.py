@@ -305,7 +305,9 @@ class Bot(discord.Client):
         async def shortcut(itr: Interaction):
             log_cmd(itr)
             embed = ShortcutEmbed(itr)
-            await itr.response.send_message(embed=embed, view=embed.view, ephemeral=True)
+            await itr.response.send_message(
+                embed=embed, view=embed.view, ephemeral=True
+            )
 
             # shortcut = DiceExpressionCache.get_shortcut(itr, name)
 

@@ -131,15 +131,15 @@ class ShortcutBaseView(ui.View):
                     child.disabled = True
                     child.style = ButtonStyle.secondary
 
-    @ui.button(label="Add", style=ButtonStyle.success, custom_id='add_btn')
+    @ui.button(label="Add", style=ButtonStyle.success, custom_id="add_btn")
     async def add(self, itr: Interaction, _: Button):
         await itr.response.send_modal(DiceShortcutAddModal(itr))
 
-    @ui.button(label="Edit", style=ButtonStyle.primary, custom_id='edit_btn')
+    @ui.button(label="Edit", style=ButtonStyle.primary, custom_id="edit_btn")
     async def edit(self, itr: Interaction, _: Button):
         await update_shortcut_embed(itr, ShortcutEditView(self.shortcuts))
 
-    @ui.button(label="Remove", style=ButtonStyle.danger, custom_id='remove_btn')
+    @ui.button(label="Remove", style=ButtonStyle.danger, custom_id="remove_btn")
     async def remove(self, itr: Interaction, _: Button):
         await update_shortcut_embed(itr, ShortcutRemoveView(self.shortcuts))
 

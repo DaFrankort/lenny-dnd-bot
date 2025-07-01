@@ -121,6 +121,16 @@ class ShortcutBaseView(ui.View):
         super().__init__()
         self.shortcuts = shortcuts
 
+        has_shortcuts = bool(shortcuts)
+        if has_shortcuts:
+            return
+
+        for child in self.children:
+            if isinstance(child, ui.Button):
+                if child.custom_id in ("edit_btn", "remove_btn"):
+                    child.disabled = True
+                    child.style = ButtonStyle.secondary
+
     @ui.button(label="Add", style=ButtonStyle.success, custom_id='add_btn')
     async def add(self, itr: Interaction, _: Button):
         await itr.response.send_modal(DiceShortcutAddModal(itr))

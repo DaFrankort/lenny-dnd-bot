@@ -186,17 +186,17 @@ class TestDiceExpressionCache:
             }
         }
 
-        removed = DiceExpressionCache.remove_shortcut(itr, "fireball")
-        assert removed is True, "Shortcut should be removed successfully."
+        desc, success = DiceExpressionCache.remove_shortcut(itr, "fireball")
+        assert success is True, "Shortcut should be removed successfully."
         assert (
             "fireball" not in DiceExpressionCache._data[str(itr.user.id)]["shortcuts"]
         ), "'fireball' should not be in user's shortcuts after removal."
 
     def test_remove_shortcut_fail(self, itr):
         DiceExpressionCache._data = {}
-        removed = DiceExpressionCache.remove_shortcut(itr, "doesnotexist")
+        desc, success = DiceExpressionCache.remove_shortcut(itr, "doesnotexist")
         assert (
-            removed is False
+            success is False
         ), "Should return False when trying to remove non-existent shortcut."
 
     def test_get_shortcut_found(self, itr):

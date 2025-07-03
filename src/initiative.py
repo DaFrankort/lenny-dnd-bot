@@ -1,14 +1,31 @@
 import logging
 import random
+import time
 import discord
-from discord import Interaction
+from discord import Interaction, Message, NotFound
 
 from dice import DiceRollMode
 from embeds import SimpleEmbed, SuccessEmbed, UserActionEmbed, log_button_press
 from rapidfuzz import fuzz
 from discord.app_commands import Choice
-
+from modals import SimpleModal
 from voice_chat import VC, SoundType
+
+
+async def clean_up_old_message(message: Message, MAX_AGE: int = 600):
+    """Cleans up old discord.Message objects, removing any that are younger than MAX_AGE (default = 10min) and removing the view of those that are older."""
+    now = time.time()
+    timestamp = message.created_at.timestamp()
+    age = int(now - timestamp)
+
+    if age > MAX_AGE:
+        await message.edit(view=None)
+        return
+
+    try:
+        await message.delete()
+    except NotFound:
+        logging.debug("Previous message was already been deleted!")
 
 
 class Initiative:
@@ -95,14 +112,28 @@ class Initiative:
 
 class InitiativeTracker:
     server_initiatives: dict[int, list[Initiative]]
+    server_messages: dict[int, Message]
     INITIATIVE_LIMIT = 30  # 4096/128 = 32 | 4096 Chars per description, max-name-length is 128 => lowered to 30 for safety.
 
     def __init__(self):
         self.server_initiatives = {}
+        self.server_messages = {}
 
     def _sanitize_name(self, name: str) -> str:
         """Used to make name-comparisons less strict. (Case insensitive, no spaces)"""
         return name.strip().lower()
+
+    async def set_message(self, itr: Interaction, message: Message):
+        guild_id = int(itr.guild_id)
+        prev_message = self.server_messages.get(guild_id, None)
+        if prev_message is None:
+            self.server_messages[guild_id] = message
+            return
+
+        is_new_message = prev_message != message
+        if is_new_message:
+            await clean_up_old_message(prev_message)
+            self.server_messages[guild_id] = message
 
     def get(self, itr: Interaction) -> list[Initiative]:
         guild_id = int(itr.guild_id)
@@ -312,63 +343,13 @@ class InitiativeTracker:
         return title, description, True
 
 
-class _InitiativeModal(discord.ui.Modal):
-    def __init__(self, itr: Interaction, tracker: InitiativeTracker):
-        super().__init__()
-        self.itr = itr
+class _InitiativeModal(SimpleModal):
+    def __init__(self, itr: Interaction, title: str, tracker: InitiativeTracker):
+        super().__init__(itr, title)
         self.tracker = tracker
 
-    def log_inputs(self, itr: Interaction):
-        """Logs all text input values."""
-        input_values = {
-            child.label: str(child)
-            for child in self.children
-            if isinstance(child, discord.ui.TextInput) and str(child) != ""
-        }
 
-        username = itr.user.name
-        logging.info(f"{username} submitted modal => {input_values}")
-
-    async def on_error(self, itr: Interaction, error: Exception):
-        self.log_inputs(itr)
-        raise error
-
-        await itr.response.send_message(
-            "Something went wrong! Please try again later.", ephemeral=True
-        )
-
-    def get_str(self, text_input: discord.ui.TextInput) -> str | None:
-        """Safely parse string from TextInput. Returns None if input is empty or only spaces."""
-        text = str(text_input).strip()
-        return text if text else None
-
-    def get_int(self, text_input: discord.ui.TextInput) -> int | None:
-        """Safely parse integer from TextInput. Returns None on failure, defaults to 0 if input is ''"""
-        text = str(text_input).strip()
-        if text == "":
-            return 0
-        try:
-            return int(text)
-        except ValueError:
-            return None
-
-    def get_choice(
-        self, text_input: discord.ui.TextInput, default: any, choices: dict[str, any]
-    ) -> any:
-        """Used to simulate selection-menu functionality, allowing a user to select a certain option."""
-        choice = default
-        user_input = str(text_input).lower()
-
-        for key in choices:
-            choice_value = choices[key]
-            if user_input.startswith(key.lower()):
-                choice = choice_value
-                break
-
-        return choice
-
-
-class InitiativeRollModal(_InitiativeModal, title="Rolling for Initiative"):
+class InitiativeRollModal(_InitiativeModal):
     modifier = discord.ui.TextInput(
         label="Your Initiative Modifier", placeholder="0", max_length=2, required=False
     )
@@ -384,6 +365,9 @@ class InitiativeRollModal(_InitiativeModal, title="Rolling for Initiative"):
         required=False,
         max_length=12,
     )
+
+    def __init__(self, itr: Interaction, tracker: InitiativeTracker):
+        super().__init__(itr, title="Rolling for Initiative", tracker=tracker)
 
     async def on_submit(self, itr: Interaction):
         self.log_inputs(itr)
@@ -428,7 +412,7 @@ class InitiativeRollModal(_InitiativeModal, title="Rolling for Initiative"):
         )
 
 
-class InitiativeSetModal(_InitiativeModal, title="Setting your Initiative value"):
+class InitiativeSetModal(_InitiativeModal):
     value = discord.ui.TextInput(
         label="Initiative value", placeholder="20", max_length=3
     )
@@ -438,6 +422,9 @@ class InitiativeSetModal(_InitiativeModal, title="Setting your Initiative value"
         required=False,
         max_length=128,
     )
+
+    def __init__(self, itr: Interaction, tracker: InitiativeTracker):
+        super().__init__(itr, title="Setting your Initiative value", tracker=tracker)
 
     async def on_submit(self, itr: Interaction):
         self.log_inputs(itr)
@@ -465,13 +452,16 @@ class InitiativeSetModal(_InitiativeModal, title="Setting your Initiative value"
         )
 
 
-class InitiativeDeleteModal(_InitiativeModal, title="Remove an Initiative"):
+class InitiativeDeleteModal(_InitiativeModal):
     name = discord.ui.TextInput(
         label="Name (Username by default)",
         placeholder="Goblin",
         required=False,
         max_length=128,
     )
+
+    def __init__(self, itr: Interaction, tracker: InitiativeTracker):
+        super().__init__(itr, title="Remove an Initiative", tracker=tracker)
 
     async def on_submit(self, itr: Interaction):
         self.log_inputs(itr)
@@ -495,7 +485,7 @@ class InitiativeDeleteModal(_InitiativeModal, title="Remove an Initiative"):
         )
 
 
-class InitiativeBulkModal(_InitiativeModal, title="Adding Initiatives in Bulk"):
+class InitiativeBulkModal(_InitiativeModal):
     modifier = discord.ui.TextInput(
         label="Creature's Initiative Modifier",
         placeholder="0",
@@ -520,6 +510,9 @@ class InitiativeBulkModal(_InitiativeModal, title="Adding Initiatives in Bulk"):
         required=False,
         max_length=5,
     )
+
+    def __init__(self, itr: Interaction, tracker: InitiativeTracker):
+        super().__init__(itr, title="Adding Initiatives in bulk!", tracker=tracker)
 
     async def on_submit(self, itr: Interaction):
         self.log_inputs(itr)
@@ -573,10 +566,11 @@ class InitiativeBulkModal(_InitiativeModal, title="Adding Initiatives in Bulk"):
         )
 
 
-class InitiativeClearConfirmModal(
-    _InitiativeModal, title="Are you sure you want to clear?"
-):
+class InitiativeClearConfirmModal(_InitiativeModal):
     confirm = discord.ui.TextInput(label="Type 'CLEAR' to confirm", placeholder="CLEAR")
+
+    def __init__(self, itr: Interaction, tracker: InitiativeTracker):
+        super().__init__(itr, title="Are you sure you want to clear?", tracker=tracker)
 
     async def on_submit(self, itr: Interaction):
         self.log_inputs(itr)

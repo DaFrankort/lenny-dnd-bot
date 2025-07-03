@@ -30,6 +30,12 @@
       "help": "Roll the expression twice, use the lowest result.",
       "command": "/disadvantage <dice notation> [reason]"
     },
+    "shortcut": {
+      "name": "shortcut",
+      "desc": "Create & edit roll shortcuts, ideal for people who can't read character sheets!",
+      "help": "Create, edit and remove roll-shortcuts, which can be referred to in dice-roll commands.",
+      "command": "/shortcut"
+    },
     "spell": {
       "name": "spell",
       "desc": "Get the details for a spell.",
@@ -134,15 +140,26 @@
     },
     "roll": {
       "name": "Roll",
-      "commands": ["roll", "d20", "advantage", "disadvantage"],
+      "commands": ["roll", "d20", "advantage", "disadvantage", "shortcut"],
       "text:": "You can roll dice using the following commands:",
       "info": [
         {
-          "name": "Roll",
+          "name": "Dice Notations",
           "info": [
             "To roll dice, you need to use dice notations, these follow the format `XdY + Z`.",
             "For example, ``1d20 + 6`` rolls a single 20-sided die and adds 6 to the result, these notations are expandable to combine a large number of dice.",
-            "Besides basic math operators (``+``, ``-``, ``/``, ``*``), ``NdN`` and numbers, you can also use modifiers [documented on this site.](https://d20.readthedocs.io/en/latest/start.html#grammar)"
+            "Besides basic math operators (``+``, ``-``, ``/``, ``*``), ``NdN`` and numbers, you can also use modifiers [documented on this site.](https://d20.readthedocs.io/en/latest/start.html#grammar)",
+            "*Note: Dice notations are sometimes referred to as dice expressions instead.*"
+          ]
+        },
+        {
+          "name": "Shortcuts",
+          "info": [
+            "Shortcuts let you save dice rolls or modifiers you use frequently under a custom name, so you don't have to type out the full notation each time.",
+            "- For example, if you often roll **1d8+3+2d6** for a sneak attack, you can create a shortcut called \"SNEAK\".",
+            "- Once you've saved a shortcut, you can use it in any dice expression like so ``/roll \"SNEAK\"``.",
+            "- You can also use your shortcuts within expressions, like so: ``/roll \"SNEAK+5\"``, this will evaluate to **1d8+3+1d6__+5__**",
+            "- Shortcuts can also have default roll reasons. This reason will be used whenever you use the shortcut, unless you specify another reason."
           ]
         },
         {
@@ -198,6 +215,14 @@
             "- ``Bulk``: Roll Initiatives in bulk for multiple creatures by specifying their __modifiers__, __names__ and the __amount__ of creatures to add. Optionally can roll with Advantage or Disadvantage or specify to use the same initiative value for all the creatures.",
             "- ``Lock``: Disables all the other buttons, to prevent users from accidentally pressing any more buttons.",
             "- ``Clear Rolls``: Clears all the initiatives, to be used after combat."
+          ]
+        },
+        {
+          "name": "Notes",
+          "info": [
+            "Upon calling ``/initiative`` it will assure other initiative messages won't get interacted with.",
+            "- If the previous message is younger than 10 minutes it will be deleted.",
+            "- If it is older, the buttons to interact with it will be deleted."
           ]
         }
       ]

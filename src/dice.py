@@ -374,7 +374,7 @@ class DiceExpressionCache:
 
         user_data["shortcuts"][name] = {
             "expression": dice_notation,
-            "reason": reason.title(),
+            "reason": reason.title() if reason else None,
         }
 
         data[user_id] = user_data

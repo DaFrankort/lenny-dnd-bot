@@ -21,13 +21,11 @@ class TestDndData:
                 try:
                     data.search(query)
                 except Exception:
-                    assert (
-                        False is True
-                    ), f"{data.entries[0].object_type} DNDDataList failed search()"
+                    assert False, f"{data.entries[0].object_type} DNDDataList failed search()"
 
     def test_search_from_query(self):
         for query in self.queries:
             try:
                 search_from_query(query, self.dnd_data)
             except Exception:
-                assert False is True, "search_from_query threw an error."
+                assert False, "search_from_query threw an error."

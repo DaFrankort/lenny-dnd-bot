@@ -15,7 +15,7 @@ class TestDndData:
         "ABCDF",
     ]
 
-    def test_dnd_subclass_search(self):
+    def test_dnddatalist_search(self):
         for query in self.queries:
             for data in self.dnd_data:
                 no_error = True
@@ -25,7 +25,7 @@ class TestDndData:
                     no_error = False
 
                 assert (
-                    no_error is True
+                    no_error
                 ), f"{data.entries[0].object_type} DNDDataList failed search()"
 
     def test_search_from_query(self):
@@ -37,4 +37,4 @@ class TestDndData:
             except Exception:
                 no_error = False
 
-            assert no_error is True, "search_from_query threw an error."
+            assert no_error, "search_from_query threw an error."

@@ -3,7 +3,6 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock
 
 from bot import Bot
-from help import HelpEmbed
 import i18n
 from i18n import t
 

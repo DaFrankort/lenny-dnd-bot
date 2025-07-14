@@ -1,5 +1,6 @@
 import discord
 import pytest
+import pytest_asyncio
 from unittest.mock import AsyncMock, MagicMock
 
 from bot import Bot
@@ -21,7 +22,7 @@ class TestBotCommands:
         print([c.name for c in bot.tree.get_commands()])
         return {cmd.name: cmd for cmd in bot.tree.get_commands()}
 
-    @pytest.fixture(autouse=True)
+    @pytest_asyncio.fixture(autouse=True)
     def setup(self):
         self.mock_interaction = MagicMock(spec=discord.Interaction)
         self.mock_interaction.user = MagicMock(spec=discord.User)

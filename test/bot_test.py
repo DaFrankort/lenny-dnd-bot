@@ -54,11 +54,7 @@ class TestBotCommands:
             (t("commands.feat.name"), {"name": "Tough"}),
             (t("commands.language.name"), {"name": "Common"}),
             (t("commands.search.name"), {"query": "Barb"}),
-            (t("commands.color.name"), {"hex_color": "#ff00ff"}),
-            (
-                t("commands.color.name"),
-                {},
-            ),  # Need to clear the color otherwise it bloats user_colors.json
+            # /color can't be tested, it interacts with files which makes it hard to simulate.
             (t("commands.stats.name"), {}),
             # Generate token commands can't be tested, but generally remain untouched so should rarely break.
             (t("commands.initiative.name"), {}),

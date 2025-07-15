@@ -78,6 +78,9 @@ class VC:
     @staticmethod
     async def play(itr: discord.Interaction, sound_type: SoundType):
         """Play an audio file in the voice channel."""
+        if not VC.voice_available:
+            return
+
         if not itr.guild or not itr.user.voice:
             return  # User in DMs or not in voice chat
 

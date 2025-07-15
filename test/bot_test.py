@@ -1,4 +1,3 @@
-import os
 import discord
 import pytest
 import pytest_asyncio

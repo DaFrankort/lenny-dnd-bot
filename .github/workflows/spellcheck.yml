@@ -1,4 +1,4 @@
-name: Spell Check README and Locales
+name: SPELLCHECK
 
 on:
   push:

@@ -52,7 +52,7 @@ GUILD_ID=0
 
 ### 4. (Optional) Install FFMPEG
 
-_If you don't wish for the bot to play immersive sound effects on dicerolls and initiative rolls, you can skip this step._
+_If you don't wish for the bot to play immersive sound effects on dice rolls and initiative rolls, you can skip this step._
 
 For voice chat capabilities [FFMPEG](https://ffmpeg.org/download.html) is required.
 You can follow [this tutorial](https://www.hostinger.com/tutorials/how-to-install-ffmpeg#How_to_install_FFmpeg_on_Windows) for help with installing it.

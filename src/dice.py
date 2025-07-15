@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 import re
 import d20
 
@@ -318,6 +319,7 @@ class DiceExpressionCache:
             with cls.PATH.open("r") as f:
                 cls._data = json.load(f)
         else:
+            os.makedirs(os.path.dirname(cls.PATH), exist_ok=True)
             cls._data = {}
         return cls._data
 
@@ -374,7 +376,7 @@ class DiceExpressionCache:
 
         user_data["shortcuts"][name] = {
             "expression": dice_notation,
-            "reason": reason.title(),
+            "reason": reason.title() if reason else None,
         }
 
         data[user_id] = user_data

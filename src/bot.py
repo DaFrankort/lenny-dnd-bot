@@ -1,3 +1,4 @@
+import datetime
 import logging
 import os
 import re
@@ -614,11 +615,18 @@ class Bot(discord.Client):
             message = await itr.original_response()
             await self.initiatives.set_message(itr, message)
 
+        @self.tree.command(name="plansession", description="Decide when to host the next session!")
+        async def plan_session(itr: Interaction):
+            poll = discord.Poll(question="Do you like me?", duration=datetime.timedelta(minutes=30), multiple=True)
+            poll.add_answer(text="Yes!", emoji="☺️")
+            poll.add_answer(text="No...", emoji="🙁")
+            await itr.channel.send(poll=poll)
+
         @self.tree.command(
             name=t("commands.help.name"), description=t("commands.help.desc")
         )
         @app_commands.choices(tab=HelpEmbed.get_tab_choices())
-        async def help(itr: discord.Interaction, tab: str = None):
+        async def help(itr: Interaction, tab: str = None):
             log_cmd(itr)
             embed = HelpEmbed(tab)
             await itr.response.send_message(

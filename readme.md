@@ -4,8 +4,6 @@ A Discord bot for Dungeons & Dragons players which aims to provide commands usin
 
 Powered by [5e.tools](https://5e.tools/) for up-to-date 5e data.
 
-htis is the bset!
-
 ## Features
 
 - **Dice Roll Commands**: Easily roll dice with flexible expressions, such as `2d6`, `1d20+6`, or `1d8+4+2d6`. Create and use custom shortcuts for your favorite or most-used rolls.

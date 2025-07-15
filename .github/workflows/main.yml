@@ -7,11 +7,13 @@ on:
       - "*.md"
       - "*.bat"
       - ".env.example"
+      - "./.github/**"
   pull_request:
     paths-ignore:
       - "*.md"
       - "*.bat"
       - ".env.example"
+      - "./.github/**"
   workflow_dispatch:
 
 jobs:

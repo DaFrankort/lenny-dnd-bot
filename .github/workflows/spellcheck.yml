@@ -4,11 +4,11 @@ on:
   push:
     paths:
       - "readme.md"
-      - "assets/locales/*.json"
+      - "./assets/locales/*.json"
   pull_request:
     paths:
       - "readme.md"
-      - "assets/locales/*.json"
+      - "./assets/locales/*.json"
   workflow_dispatch:
 
 jobs:

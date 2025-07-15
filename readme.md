@@ -4,6 +4,8 @@ A Discord bot for Dungeons & Dragons players which aims to provide commands usin
 
 Powered by [5e.tools](https://5e.tools/) for up-to-date 5e data.
 
+htis
+
 ## Features
 
 - **Dice Roll Commands**: Easily roll dice with flexible expressions, such as `2d6`, `1d20+6`, or `1d8+4+2d6`. Create and use custom shortcuts for your favorite or most-used rolls.
@@ -52,7 +54,7 @@ GUILD_ID=0
 
 ### 4. (Optional) Install FFMPEG
 
-*If you don't wish for the bot to play immersive sound effects on dicerolls and initiative rolls, you can skip this step.*
+_If you don't wish for the bot to play immersive sound effects on dicerolls and initiative rolls, you can skip this step._
 
 For voice chat capabilities [FFMPEG](https://ffmpeg.org/download.html) is required.
 You can follow [this tutorial](https://www.hostinger.com/tutorials/how-to-install-ffmpeg#How_to_install_FFmpeg_on_Windows) for help with installing it.
@@ -66,8 +68,9 @@ py -3 ./src/main.py
 ```
 
 You can add the following arguments if you wish:
-- ``--verbose`` - Run with debug-logging.
-- ``--voice`` - Run without voice-chat functionalities.
+
+- `--verbose` - Run with debug-logging.
+- `--voice` - Run without voice-chat functionalities.
 
 Alternatively you can run the provided `run.bat` file (on Windows), which will always enforce the latest version with the latest submodule-versions.
 The bot should now be online, don't forget to invite it to your servers!

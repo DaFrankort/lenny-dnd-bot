@@ -6,8 +6,18 @@ from unittest.mock import AsyncMock, MagicMock
 from bot import Bot
 import i18n
 from i18n import t
+from token_gen import AlignH, AlignV
 
 i18n.set_locale("./assets/locales/en.json")
+img_url = r"https://img.lovepik.com/element/40116/9419.png_1200.png"
+
+
+def mock_image() -> discord.Attachment:
+    image = MagicMock(spec=discord.Attachment)
+    image.url = img_url
+    image.content_type = MagicMock()
+    image.content_type = "image"
+    return image
 
 
 class TestBotCommands:
@@ -34,6 +44,8 @@ class TestBotCommands:
         self.mock_interaction.channel = MagicMock(spec=discord.TextChannel)
         self.mock_interaction.response = MagicMock()
         self.mock_interaction.response.send_message = AsyncMock()
+        self.mock_interaction.response.defer = AsyncMock()
+        self.mock_interaction.followup = AsyncMock()
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
@@ -90,7 +102,19 @@ class TestBotCommands:
                 {"hex_color": ""},
             ),  # Run clear last, to remove useless data from files.
             (t("commands.stats.name"), {}),
-            # Generate token commands can't be tested, but generally remain untouched so should rarely break.
+            (t("commands.tokengen.name"), [
+                {"image": mock_image()},
+                {"image": mock_image(), "frame_hue": -180},
+                {"image": mock_image(), "h_alignment": AlignH.RIGHT.value},
+                {"image": mock_image(), "v_alignment": AlignV.BOTTOM.value},
+                ]),
+            (t("commands.tokengenurl.name"), [
+                {"url": img_url},
+                {"url": img_url, "frame_hue": 180},
+                {"url": img_url, "h_alignment": AlignH.LEFT.value},
+                {"url": img_url, "v_alignment": AlignV.TOP.value},
+                {"url": "NotAUrl"}
+                ]),
             (t("commands.initiative.name"), {}),
             (t("commands.help.name"), {}),
             # ("", {"": "", "": ""}),

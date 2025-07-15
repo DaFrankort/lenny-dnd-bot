@@ -23,7 +23,6 @@ jobs:
           ignore: "W503"
           max-line-length: 999
           path: src test
-          plugins: "flake8-black"
 
   black-lints:
     runs-on: ubuntu-latest

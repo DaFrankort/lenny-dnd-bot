@@ -24,4 +24,4 @@ jobs:
         run: npm install -g cspell
 
       - name: Run spell check
-        run: cspell --config cspell.json README.md assets/locales/en.json
+        run: cspell --config cspell.json readme.md assets/locales/en.json

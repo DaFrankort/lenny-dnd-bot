@@ -55,11 +55,9 @@ class TestBotCommands:
             (t("commands.feat.name"), {"name": "Tough"}),
             (t("commands.language.name"), {"name": "Common"}),
             (t("commands.search.name"), {"query": "Barb"}),
+            # /color is ran twice, to clear the useless data it puts inside of user_colors.json
             (t("commands.color.name"), {"hex_color": "#ff00ff"}),
-            (
-                t("commands.color.name"),
-                {},
-            ),  # Clear color, to not bloat files with useless data
+            (t("commands.color.name"), {"hex_color": None}),
             (t("commands.stats.name"), {}),
             # Generate token commands can't be tested, but generally remain untouched so should rarely break.
             (t("commands.initiative.name"), {}),

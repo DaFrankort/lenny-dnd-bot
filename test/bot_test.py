@@ -1,3 +1,4 @@
+import os
 import discord
 import pytest
 import pytest_asyncio
@@ -8,7 +9,6 @@ import i18n
 from i18n import t
 
 i18n.set_locale("./assets/locales/en.json")
-
 
 class TestBotCommands:
     @pytest.fixture()
@@ -54,7 +54,8 @@ class TestBotCommands:
             (t("commands.feat.name"), {"name": "Tough"}),
             (t("commands.language.name"), {"name": "Common"}),
             (t("commands.search.name"), {"query": "Barb"}),
-            # /color can't be tested, it interacts with files which makes it hard to simulate.
+            (t("commands.color.name"), {"hex_color": "#ff00ff"}),
+            (t("commands.color.name"), {}),  # Clear color, to not bloat files with useless data
             (t("commands.stats.name"), {}),
             # Generate token commands can't be tested, but generally remain untouched so should rarely break.
             (t("commands.initiative.name"), {}),

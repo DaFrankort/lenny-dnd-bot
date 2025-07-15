@@ -1,3 +1,4 @@
+import os
 import discord
 import json
 import re
@@ -22,6 +23,7 @@ class UserColor:
             with open(UserColor.FILE_PATH, "r") as file:
                 data = json.load(file)
         except FileNotFoundError:
+            os.makedirs(os.path.dirname(UserColor.FILE_PATH), exist_ok=True)
             data = {}
 
         data[str(interaction.user.id)] = color

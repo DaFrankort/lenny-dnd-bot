@@ -1,7 +1,8 @@
-name: Spell Check README and Locales
+name: SPELLCHECK
 
 on:
   push:
+    branches: [main]
     paths:
       - "readme.md"
       - "./assets/locales/en.json" # cspell supports english by default
@@ -23,4 +24,4 @@ jobs:
         run: npm install -g cspell
 
       - name: Run spell check
-        run: cspell --config cspell.json README.md assets/locales/en.json
+        run: cspell --config cspell.json readme.md assets/locales/en.json

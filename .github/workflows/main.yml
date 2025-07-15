@@ -8,12 +8,14 @@ on:
       - "*.bat"
       - ".env.example"
       - "./.github/**"
+      - "cspell.json"
   pull_request:
     paths-ignore:
       - "*.md"
       - "*.bat"
       - ".env.example"
       - "./.github/**"
+      - "cspell.json"
   workflow_dispatch:
 
 jobs:

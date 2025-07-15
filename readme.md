@@ -36,17 +36,28 @@ cd lenny-dnd-bot
 pip install -r requirements.txt
 ```
 
-### 3. Set Up the Bot
+### 3. Setup .env File
 
-Create a new file named `.env` in the project root and add your bot token:
+Copy `.env.example` and rename it to `.env`, make sure it's in the project root folder.
+Add your discord-bot token and optionally add a guild ID:
 
 ```plaintext
-DISCORD_TOKEN=your-bot-token-here
+DISCORD_BOT_TOKEN="your-token-here"
+GUILD_ID=0
 ```
 
-If you don't have a bot token, you can create one by following [Discord's bot creation guide](https://discordpy.readthedocs.io/en/stable/discord.html).
+- If you don't have a bot token, you can create one by following [Discord's bot creation guide](https://discordpy.readthedocs.io/en/stable/discord.html).
+- To get a guild ID, enable [developer mode](https://help.mee6.xyz/support/solutions/articles/101000482629-how-to-enable-developer-mode) on discord.
+  Afterwards you can right click on your server of choice and select `Copy Server ID`
 
-### 4. Run the Bot
+### 4. (Optional) Install FFMPEG
+
+*If you don't wish for the bot to play immersive sound effects on dicerolls and initiative rolls, you can skip this step.*
+
+For voice chat capabilities [FFMPEG](https://ffmpeg.org/download.html) is required.
+You can follow [this tutorial](https://www.hostinger.com/tutorials/how-to-install-ffmpeg#How_to_install_FFmpeg_on_Windows) for help with installing it.
+
+### 5. Run the Bot
 
 To start the bot, simply run the following command:
 
@@ -54,8 +65,12 @@ To start the bot, simply run the following command:
 py -3 ./src/main.py
 ```
 
-Or alternatively run the provided `run.bat` file.
-The bot should now be running on your Discord server.
+You can add the following arguments if you wish:
+- ``--verbose`` - Run with debug-logging.
+- ``--voice`` - Run without voice-chat functionalities.
+
+Alternatively you can run the provided `run.bat` file (on Windows), which will always enforce the latest version with the latest submodule-versions.
+The bot should now be online, don't forget to invite it to your servers!
 
 ## Usage
 

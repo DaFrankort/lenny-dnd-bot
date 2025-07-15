@@ -3,7 +3,15 @@ name: MAIN
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - "*.md"
+      - "*.bat"
+      - ".env.example"
   pull_request:
+    paths-ignore:
+      - "*.md"
+      - "*.bat"
+      - ".env.example"
   workflow_dispatch:
 
 jobs:

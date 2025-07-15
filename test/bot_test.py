@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock
 from bot import Bot
 import i18n
 from i18n import t
-from utils.functions import listify
+from utils.test_utils import listify
 from token_gen import AlignH, AlignV
 
 i18n.set_locale("./assets/locales/en.json")

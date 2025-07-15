@@ -4,11 +4,11 @@ on:
   push:
     paths:
       - "readme.md"
-      - "./assets/locales/*.json"
+      - "./assets/locales/en.json" # cspell supports english by default
   pull_request:
     paths:
       - "readme.md"
-      - "./assets/locales/*.json"
+      - "./assets/locales/en.json" # cspell supports english by default
   workflow_dispatch:
 
 jobs:

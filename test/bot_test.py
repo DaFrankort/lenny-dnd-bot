@@ -191,7 +191,7 @@ class TestBotCommands:
         ), f"No autocomplete function set for parameter '{param_name}' in {cmd_name}"
 
         if not isinstance(queries, list):
-            current = [queries]
+            queries = [queries]
 
         for current in queries:
             try:

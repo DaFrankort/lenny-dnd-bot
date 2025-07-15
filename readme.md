@@ -4,7 +4,7 @@ A Discord bot for Dungeons & Dragons players which aims to provide commands usin
 
 Powered by [5e.tools](https://5e.tools/) for up-to-date 5e data.
 
-htis
+htis is the bset!
 
 ## Features
 

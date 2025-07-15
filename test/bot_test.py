@@ -6,6 +6,7 @@ from unittest.mock import AsyncMock, MagicMock
 from bot import Bot
 import i18n
 from i18n import t
+from utils.functions import listify
 from token_gen import AlignH, AlignV
 
 i18n.set_locale("./assets/locales/en.json")
@@ -134,8 +135,7 @@ class TestBotCommands:
         cmd = commands.get(cmd_name)
         assert cmd is not None, f"{cmd_name} command not found"
 
-        if not isinstance(arguments, list):
-            arguments = [arguments]  # List required
+        arguments = listify(arguments)
 
         for args in arguments:
             try:
@@ -190,8 +190,7 @@ class TestBotCommands:
             autocomplete_fn, bool
         ), f"No autocomplete function set for parameter '{param_name}' in {cmd_name}"
 
-        if not isinstance(queries, list):
-            queries = [queries]
+        queries = listify(queries)
 
         for current in queries:
             try:

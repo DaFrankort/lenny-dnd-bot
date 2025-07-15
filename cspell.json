@@ -2,5 +2,5 @@
   "version": "0.2",
   "language": "en",
   "dictionaries": ["python", "softwareTerms"],
-  "words": ["Githyanki", "tokengenurl", "tokengen"]
+  "words": ["tokengenurl", "tokengen", "etools"]
 }

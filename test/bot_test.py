@@ -30,7 +30,6 @@ class TestBotCommands:
 
     @pytest.fixture()
     def commands(self, bot):
-        print([c.name for c in bot.tree.get_commands()])
         return {cmd.name: cmd for cmd in bot.tree.get_commands()}
 
     @pytest_asyncio.fixture(autouse=True)
@@ -170,7 +169,7 @@ class TestBotCommands:
         cmd = commands.get(cmd_name)
         assert cmd is not None, f"{cmd_name} command not found"
 
-        if isinstance(arguments, dict):
+        if not isinstance(arguments, list):
             arguments = [arguments]  # List required
 
         for arg_set in arguments:

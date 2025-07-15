@@ -134,7 +134,7 @@ class TestBotCommands:
         cmd = commands.get(cmd_name)
         assert cmd is not None, f"{cmd_name} command not found"
 
-        if isinstance(arguments, dict):
+        if not isinstance(arguments, list):
             arguments = [arguments]  # List required
 
         for args in arguments:

@@ -144,3 +144,59 @@ class TestBotCommands:
                 pytest.fail(
                     f"Error while running command /{cmd_name} with args {args}: {e}"
                 )
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "cmd_name, param_name, queries",
+        [
+            (t("commands.roll.name"), "diceroll", ["", "1d20"]),
+            (t("commands.advantage.name"), "diceroll", ["", "1d20"]),
+            (t("commands.disadvantage.name"), "diceroll", ["", "1d20"]),
+            (t("commands.roll.name"), "reason", ["", "Att"]),
+            (t("commands.advantage.name"), "reason", ["", "Dam"]),
+            (t("commands.disadvantage.name"), "reason", ["", "Ste"]),
+            (t("commands.spell.name"), "name", ["", "Fireb"]),
+            (t("commands.item.name"), "name", ["", "Dag"]),
+            (t("commands.condition.name"), "name", ["", "Poi"]),
+            (t("commands.creature.name"), "name", ["", "Gobl"]),
+            (t("commands.class.name"), "name", ["", "Bar"]),
+            (t("commands.rule.name"), "name", ["", "Adv"]),
+            (t("commands.action.name"), "name", ["", "Att"]),
+            (t("commands.feat.name"), "name", ["", "Tou"]),
+            (t("commands.language.name"), "name", ["", "Comm"]),
+            # ('', '', ''),
+        ],
+    )
+    async def test_autocomplete_suggestions(
+        self,
+        commands: list[discord.app_commands.Command],
+        cmd_name: str,
+        param_name: str,
+        queries: str | list[str],
+    ):
+        cmd = commands.get(cmd_name)
+        assert cmd is not None, f"Command {cmd_name} not found"
+
+        param = cmd._params.get(param_name)
+        assert (
+            param is not None
+        ), f"Parameter '{param_name}' not found in command '{cmd_name}'"
+
+        autocomplete_fn = param.autocomplete
+        assert (
+            autocomplete_fn is not None
+        ), f"No autocomplete function set for parameter '{param_name}' in {cmd_name}"
+        assert not isinstance(
+            autocomplete_fn, bool
+        ), f"No autocomplete function set for parameter '{param_name}' in {cmd_name}"
+
+        if not isinstance(queries, list):
+            current = [queries]
+
+        for current in queries:
+            try:
+                await autocomplete_fn(self.mock_interaction, current)
+            except Exception as e:
+                pytest.fail(
+                    f"Error while autocompleting '{param_name}' for /{cmd_name} with query '{current}': {e}"
+                )

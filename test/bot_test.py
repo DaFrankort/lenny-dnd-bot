@@ -102,19 +102,25 @@ class TestBotCommands:
                 {"hex_color": ""},
             ),  # Run clear last, to remove useless data from files.
             (t("commands.stats.name"), {}),
-            (t("commands.tokengen.name"), [
-                {"image": mock_image()},
-                {"image": mock_image(), "frame_hue": -180},
-                {"image": mock_image(), "h_alignment": AlignH.RIGHT.value},
-                {"image": mock_image(), "v_alignment": AlignV.BOTTOM.value},
-                ]),
-            (t("commands.tokengenurl.name"), [
-                {"url": img_url},
-                {"url": img_url, "frame_hue": 180},
-                {"url": img_url, "h_alignment": AlignH.LEFT.value},
-                {"url": img_url, "v_alignment": AlignV.TOP.value},
-                {"url": "NotAUrl"}
-                ]),
+            (
+                t("commands.tokengen.name"),
+                [
+                    {"image": mock_image()},
+                    {"image": mock_image(), "frame_hue": -180},
+                    {"image": mock_image(), "h_alignment": AlignH.RIGHT.value},
+                    {"image": mock_image(), "v_alignment": AlignV.BOTTOM.value},
+                ],
+            ),
+            (
+                t("commands.tokengenurl.name"),
+                [
+                    {"url": img_url},
+                    {"url": img_url, "frame_hue": 180},
+                    {"url": img_url, "h_alignment": AlignH.LEFT.value},
+                    {"url": img_url, "v_alignment": AlignV.TOP.value},
+                    {"url": "NotAUrl"},
+                ],
+            ),
             (t("commands.initiative.name"), {}),
             (t("commands.help.name"), {}),
             # ("", {"": "", "": ""}),

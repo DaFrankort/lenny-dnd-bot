@@ -29,7 +29,6 @@ class TestBotCommands:
 
     @pytest.fixture()
     def commands(self, bot):
-        print([c.name for c in bot.tree.get_commands()])
         return {cmd.name: cmd for cmd in bot.tree.get_commands()}
 
     @pytest_asyncio.fixture(autouse=True)

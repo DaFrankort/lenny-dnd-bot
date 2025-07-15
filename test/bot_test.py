@@ -10,6 +10,7 @@ from i18n import t
 
 i18n.set_locale("./assets/locales/en.json")
 
+
 class TestBotCommands:
     @pytest.fixture()
     def bot(self):
@@ -55,7 +56,10 @@ class TestBotCommands:
             (t("commands.language.name"), {"name": "Common"}),
             (t("commands.search.name"), {"query": "Barb"}),
             (t("commands.color.name"), {"hex_color": "#ff00ff"}),
-            (t("commands.color.name"), {}),  # Clear color, to not bloat files with useless data
+            (
+                t("commands.color.name"),
+                {},
+            ),  # Clear color, to not bloat files with useless data
             (t("commands.stats.name"), {}),
             # Generate token commands can't be tested, but generally remain untouched so should rarely break.
             (t("commands.initiative.name"), {}),

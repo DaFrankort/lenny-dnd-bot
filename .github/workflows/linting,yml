@@ -1,0 +1,45 @@
+name: LINTING
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "test/**"
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "test/**"
+  workflow_dispatch:
+
+jobs:
+  flake8-lint:
+    runs-on: ubuntu-latest
+    name: flake8
+    steps:
+      - name: Check out source repository
+        uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup
+
+      - name: flake8 Lint
+        uses: py-actions/flake8@v2
+        with:
+          ignore: "W503"
+          max-line-length: 999
+          path: src test
+
+  black-lints:
+    runs-on: ubuntu-latest
+    name: black
+    steps:
+      - name: Check out source repository
+        uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup
+
+      - name: Black linter
+        uses: psf/black@stable
+        with:
+          options: "--check --verbose src test"

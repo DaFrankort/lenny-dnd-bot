@@ -4,40 +4,9 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
   workflow_dispatch:
 
 jobs:
-  flake8-lint:
-    runs-on: ubuntu-latest
-    name: flake8
-    steps:
-      - name: Check out source repository
-        uses: actions/checkout@v4
-
-      - uses: ./.github/actions/setup
-
-      - name: flake8 Lint
-        uses: py-actions/flake8@v2
-        with:
-          ignore: "W503"
-          max-line-length: 999
-          path: src test
-
-  black-lints:
-    runs-on: ubuntu-latest
-    name: black
-    steps:
-      - name: Check out source repository
-        uses: actions/checkout@v4
-
-      - uses: ./.github/actions/setup
-
-      - name: Black linter
-        uses: psf/black@stable
-        with:
-          options: "--check --verbose src test"
-
   unit-test:
     runs-on: ubuntu-latest
     name: pytest
@@ -48,7 +17,7 @@ jobs:
       - uses: ./.github/actions/setup
 
       - name: Run unit-tests
-        run: python -m pytest
+        run: python -m pytest -rs
 
   requirements:
     runs-on: ubuntu-latest

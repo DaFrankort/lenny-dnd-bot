@@ -3,11 +3,11 @@ name: Spell Check README and Locales
 on:
   push:
     paths:
-      - "README.md"
+      - "readme.md"
       - "assets/locales/*.json"
   pull_request:
     paths:
-      - "README.md"
+      - "readme.md"
       - "assets/locales/*.json"
   workflow_dispatch:
 

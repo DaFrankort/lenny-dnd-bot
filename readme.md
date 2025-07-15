@@ -69,7 +69,7 @@ Roll D&D dice using dice-expressions (e.g. `2d6` / `1d20+2`).
 - `/advantage <dice-expression> [reason]` – Rolls twice, highlights the highest result.
 - `/disadvantage <dice-expression> [reason]` – Rolls twice, highlights the lowest result.
 - `/d20` - Rolls a basic 1d20 without any modifiers.
-- `/shortcut <action> <shortcut-name>` – Manage your own dice expression shortcuts. Create, edit, or remove shortcuts to quickly roll complex or frequently used expressions. For example, save a shortcut named "Fire Bolt" with the expression **1d10** and reason **Fire**. Later, simply use `/roll "Fire Bolt"` to roll with your saved settings.
+- `/shortcut` – Manage your own dice expression shortcuts. Create, edit, or remove shortcuts to quickly roll complex or frequently used expressions. For example, save a shortcut named "Fire Bolt" with the expression **1d10** and reason **Fire**. Later, simply use `/roll "Fire Bolt"` to roll with your saved settings.
 
 ### D&D Data lookup
 

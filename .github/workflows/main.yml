@@ -7,7 +7,6 @@ on:
       - "*.md"
       - "*.bat"
       - ".env.example"
-      - "./.github/**"
   pull_request:
     paths-ignore:
       - "*.md"

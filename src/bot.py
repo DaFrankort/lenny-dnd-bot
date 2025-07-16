@@ -1,4 +1,3 @@
-import datetime
 import logging
 import os
 import re
@@ -617,7 +616,11 @@ class Bot(discord.Client):
             await self.initiatives.set_message(itr, message)
 
         @self.tree.command(
-            name="plansession", description="Decide when to host the next session!"
+            name=t("commands.plansession.name"),
+            description=t("commands.plansession.desc"),
+        )
+        @app_commands.describe(
+            in_weeks="How many weeks from now? (0 = this week, 1 = next week, ...)",
         )
         async def plan_session(
             itr: Interaction, in_weeks: app_commands.Range[int, 0, 48]

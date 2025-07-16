@@ -1,5 +1,5 @@
 import datetime
-from discord import Poll, PollLayoutType
+from discord import Poll
 
 
 class SessionPlanPoll(Poll):
@@ -41,7 +41,7 @@ class SessionPlanPoll(Poll):
                 else:
                     day_offset = (
                         i - today.weekday() - 1 + (in_weeks * 7)
-                    )  # Shift to monday, with offset to account for Earlier option
+                    )  # Shift to monday, with offset to account for 'Earlier' option
 
                 day = today + datetime.timedelta(days=day_offset)
                 day_text = day.strftime("%A %d %b")

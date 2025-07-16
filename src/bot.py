@@ -619,10 +619,17 @@ class Bot(discord.Client):
             name="plansession", description="Decide when to host the next session!"
         )
         async def plan_session(
-            itr: Interaction, weekspan: app_commands.Range[int, 2, 10] = 4
+            itr: Interaction, in_weeks: app_commands.Range[int, 0, 48]
         ):
+            if in_weeks == 0:
+                question = "Session this week, which day works for you?"
+            elif in_weeks == 1:
+                question = f"Session next week, which day works for you?"
+            else:
+                question = f"Session in {in_weeks} weeks, which day works for you?"
+
             poll = discord.Poll(
-                question="When should we host the next session?",
+                question=question,
                 duration=datetime.timedelta(
                     hours=1
                 ),  # Minimum required time is 1 hour.
@@ -630,30 +637,40 @@ class Bot(discord.Client):
             )
 
             today = datetime.date.today()
-            for i in range(weekspan):
-                answer_text = f"In {i} weeks"
-                emoji = "📅"
-                if i == 0:
-                    answer_text = "This Week"  # TODO: Allow to skip 'This Week' (?)
-                    emoji = "🚀"
-                elif i == 1:
-                    answer_text = "Next Week"
-                elif i == weekspan - 1:
-                    emoji = "📆"  # TODO: Add "Later time" option?
 
-                # Append date-range
-                if i == 0:  # Today - This Sunday
-                    week_start = today
-                    days_until_sunday = 6 - today.weekday()
-                    week_end = today + datetime.timedelta(days=days_until_sunday)
-                else:  # Monday - Sunday
-                    week_start = today + datetime.timedelta(
-                        days=-today.weekday(), weeks=i
+            if in_weeks == 0:
+                answer_count = (6 - today.weekday()) + 1  # +1 for later option
+            else:
+                answer_count = 9  # 7 days + earlier/later option
+
+            for i in range(answer_count):
+                relative_text = None
+
+                if i == 0 and in_weeks != 0:
+                    day_text = "Earlier"
+                    emoji = "⬆️"
+                elif i == answer_count - 1:
+                    day_text = "Later"
+                    emoji = "⬇️"
+                else:
+                    if in_weeks == 0:
+                        day_offset = i + 1  # Start from tomorrow
+                    else:
+                        day_offset = (
+                            i - today.weekday() - 1 + (in_weeks * 7)
+                        )  # Shift to monday, with offset to account for Earlier option
+
+                    day = today + datetime.timedelta(days=day_offset)
+                    day_text = day.strftime("%A %d %b")
+                    relative_text = (
+                        f"In {day_offset} days" if day_offset != 1 else "Tomorrow"
                     )
-                    week_end = week_start + datetime.timedelta(days=6, weeks=i)
-                answer_text += f" ({week_start.strftime('%b %d')} - {week_end.strftime('%b %d')})"  # (Jul 16 - Jul 21)
+                    emoji = "📅"
 
-                poll.add_answer(text=answer_text, emoji=emoji)
+                if relative_text is None or in_weeks > 4:
+                    poll.add_answer(text=day_text, emoji=emoji)
+                else:
+                    poll.add_answer(text=f"{day_text} ({relative_text})", emoji=emoji)
 
             await itr.response.send_message(poll=poll)
 

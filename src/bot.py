@@ -615,12 +615,47 @@ class Bot(discord.Client):
             message = await itr.original_response()
             await self.initiatives.set_message(itr, message)
 
-        @self.tree.command(name="plansession", description="Decide when to host the next session!")
-        async def plan_session(itr: Interaction):
-            poll = discord.Poll(question="Do you like me?", duration=datetime.timedelta(minutes=30), multiple=True)
-            poll.add_answer(text="Yes!", emoji="☺️")
-            poll.add_answer(text="No...", emoji="🙁")
-            await itr.channel.send(poll=poll)
+        @self.tree.command(
+            name="plansession", description="Decide when to host the next session!"
+        )
+        async def plan_session(
+            itr: Interaction, weekspan: app_commands.Range[int, 2, 10] = 4
+        ):
+            poll = discord.Poll(
+                question="When should we host the next session?",
+                duration=datetime.timedelta(
+                    hours=1
+                ),  # Minimum required time is 1 hour.
+                multiple=True,
+            )
+
+            today = datetime.date.today()
+            for i in range(weekspan):
+                answer_text = f"In {i} weeks"
+                emoji = "📅"
+                if i == 0:
+                    answer_text = "This Week"  # TODO: Allow to skip 'This Week' (?)
+                    emoji = "🚀"
+                elif i == 1:
+                    answer_text = "Next Week"
+                elif i == weekspan - 1:
+                    emoji = "📆"  # TODO: Add "Later time" option?
+
+                # Append date-range
+                if i == 0:  # Today - This Sunday
+                    week_start = today
+                    days_until_sunday = 6 - today.weekday()
+                    week_end = today + datetime.timedelta(days=days_until_sunday)
+                else:  # Monday - Sunday
+                    week_start = today + datetime.timedelta(
+                        days=-today.weekday(), weeks=i
+                    )
+                    week_end = week_start + datetime.timedelta(days=6, weeks=i)
+                answer_text += f" ({week_start.strftime('%b %d')} - {week_end.strftime('%b %d')})"  # (Jul 16 - Jul 21)
+
+                poll.add_answer(text=answer_text, emoji=emoji)
+
+            await itr.response.send_message(poll=poll)
 
         @self.tree.command(
             name=t("commands.help.name"), description=t("commands.help.desc")

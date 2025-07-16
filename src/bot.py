@@ -620,7 +620,7 @@ class Bot(discord.Client):
             description=t("commands.plansession.desc"),
         )
         @app_commands.describe(
-            in_weeks="How many weeks from now? (0 = this week, 1 = next week, ...)",
+            in_weeks=t("commands.plansession.args.in_weeks"),
         )
         async def plan_session(
             itr: Interaction, in_weeks: app_commands.Range[int, 0, 48]

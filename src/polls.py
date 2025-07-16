@@ -2,7 +2,7 @@ import datetime
 from discord import Poll
 
 from i18n import t
-from utils import when
+from methods import when
 
 
 class SessionPlanPoll(Poll):

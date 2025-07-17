@@ -5,6 +5,7 @@ import discord
 from discord import app_commands
 from discord import Interaction
 from dotenv import load_dotenv
+from googledocs import create_doc_for_server, get_server_doc, init_google_docs
 from help import HelpEmbed
 from i18n import t
 
@@ -78,6 +79,7 @@ class Bot(discord.Client):
         await self._attempt_sync_guild()
         await self.tree.sync()
         Sounds.init_folders()
+        init_google_docs()
         if self.voice_enabled:
             VC.check_ffmpeg()
         else:
@@ -615,10 +617,31 @@ class Bot(discord.Client):
             await self.initiatives.set_message(itr, message)
 
         @self.tree.command(
+            name="lore", description="Document your adventures together!"
+        )
+        async def lore(itr: Interaction):
+            itr.response.defer()
+            new_doc_url = create_doc_for_server(itr)
+            if new_doc_url:
+                await itr.followup.send(new_doc_url, ephemeral=True)
+                return
+
+            doc = get_server_doc(itr)
+            if doc:
+                doc_id = doc["documentId"]
+                url = f"https://docs.google.com/document/d/{doc_id}"
+                await itr.followup.send(url, ephemeral=True)
+                return
+
+            await itr.followup.send(
+                "Could not create or find google doc :(", ephemeral=True
+            )
+
+        @self.tree.command(
             name=t("commands.help.name"), description=t("commands.help.desc")
         )
         @app_commands.choices(tab=HelpEmbed.get_tab_choices())
-        async def help(itr: discord.Interaction, tab: str = None):
+        async def help(itr: Interaction, tab: str = None):
             log_cmd(itr)
             embed = HelpEmbed(tab)
             await itr.response.send_message(

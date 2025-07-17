@@ -5,7 +5,12 @@ import discord
 from discord import app_commands
 from discord import Interaction
 from dotenv import load_dotenv
-from googledocs import create_doc_for_server, get_server_doc, init_google_docs
+from googledocs import (
+    create_doc_for_server,
+    get_server_doc,
+    google_available,
+    init_google_docs,
+)
 from help import HelpEmbed
 from i18n import t
 
@@ -620,7 +625,15 @@ class Bot(discord.Client):
             name="lore", description="Document your adventures together!"
         )
         async def lore(itr: Interaction):
-            itr.response.defer()
+            if not google_available():
+                await itr.response.send_message(
+                    "Sorry! Google Doc functionality is not set up right now...",
+                    ephemeral=True,
+                )
+                return
+
+            await itr.response.defer()
+
             new_doc_url = create_doc_for_server(itr)
             if new_doc_url:
                 await itr.followup.send(new_doc_url, ephemeral=True)
@@ -634,7 +647,7 @@ class Bot(discord.Client):
                 return
 
             await itr.followup.send(
-                "Could not create or find google doc :(", ephemeral=True
+                "Could not create or find Google Doc.", ephemeral=True
             )
 
         @self.tree.command(

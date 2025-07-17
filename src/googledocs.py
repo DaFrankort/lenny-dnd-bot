@@ -21,9 +21,13 @@ TEMPLATE_ID = None
 SERVER_DOCS: dict[str, str] = {}
 
 
+def google_available():
+    return os.path.exists("credentials.json")
+
+
 def init_google_docs():
-    global TEMPLATE_ID
-    if not os.path.exists("credentials.json"):
+    global TEMPLATE_ID, GOOGLE_AVAILABLE
+    if not google_available():
         logging.warning(
             "'credentials.json' not found in root folder. Follow these steps to generate a credentials.json file: https://developers.google.com/workspace/docs/api/quickstart/python"
         )

@@ -8,3 +8,6 @@ pytest-asyncio==1.0.0
 pillow==11.3.0
 numpy==2.3.0
 d20==1.1.2
+google-api-python-client==2.176.0
+google-auth-httplib2==0.2.0
+google-auth-oauthlib==1.2.2

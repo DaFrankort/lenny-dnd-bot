@@ -112,15 +112,6 @@ def _update_server_docs() -> dict:
     SERVER_DOCS = guild_doc_map
 
 
-def check_server_has_doc(itr: discord.Interaction):
-    guild_id = itr.guild_id
-    if not guild_id:
-        return False
-
-    doc_id = SERVER_DOCS.get(str(guild_id), None)
-    return doc_id is not None
-
-
 def create_doc_for_server(itr: discord.Interaction) -> str:
     """Generate a Google Doc from a template or blank, returns a link to the created doc."""
 
@@ -161,7 +152,7 @@ def create_doc_for_server(itr: discord.Interaction) -> str:
         return None
 
 
-def get_server_doc(itr: discord.Interaction) -> dict:
+def get_server_doc(itr: discord.Interaction) -> dict | None:
     """Retrieves a Google Doc as a dictionary"""
     creds = _get_creds()
     guild_id = str(itr.guild_id)

@@ -6,7 +6,6 @@ from discord import app_commands
 from discord import Interaction
 from dotenv import load_dotenv
 from googledocs import (
-    check_server_has_doc,
     create_doc_for_server,
     get_google_doc_url,
     get_server_doc,
@@ -636,8 +635,10 @@ class Bot(discord.Client):
 
             await itr.response.defer()
 
-            doc = get_server_doc(itr) if check_server_has_doc(itr) else None
-            doc_url = get_google_doc_url(doc) if doc else create_doc_for_server(itr)
+            doc = get_server_doc(itr)
+            doc_url = get_google_doc_url(doc)
+            if not doc_url:
+                doc_url = create_doc_for_server(itr)
 
             if not doc_url:
                 await itr.followup.send(

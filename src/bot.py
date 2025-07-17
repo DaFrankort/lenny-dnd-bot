@@ -6,7 +6,9 @@ from discord import app_commands
 from discord import Interaction
 from dotenv import load_dotenv
 from googledocs import (
+    check_server_has_doc,
     create_doc_for_server,
+    get_google_doc_url,
     get_server_doc,
     google_available,
     init_google_docs,
@@ -634,21 +636,16 @@ class Bot(discord.Client):
 
             await itr.response.defer()
 
-            new_doc_url = create_doc_for_server(itr)
-            if new_doc_url:
-                await itr.followup.send(new_doc_url, ephemeral=True)
+            doc = get_server_doc(itr) if check_server_has_doc(itr) else None
+            doc_url = get_google_doc_url(doc) if doc else create_doc_for_server(itr)
+
+            if not doc_url:
+                await itr.followup.send(
+                    "Could not create or retrieve Google Doc for this server...",
+                )
                 return
 
-            doc = get_server_doc(itr)
-            if doc:
-                doc_id = doc["documentId"]
-                url = f"https://docs.google.com/document/d/{doc_id}"
-                await itr.followup.send(url, ephemeral=True)
-                return
-
-            await itr.followup.send(
-                "Could not create or find Google Doc.", ephemeral=True
-            )
+            await itr.followup.send(doc_url)
 
         @self.tree.command(
             name=t("commands.help.name"), description=t("commands.help.desc")

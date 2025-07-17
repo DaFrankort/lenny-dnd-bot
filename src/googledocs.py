@@ -25,6 +25,16 @@ def google_available():
     return os.path.exists("credentials.json")
 
 
+def get_google_doc_url(doc: str | dict) -> str | None:
+    """Generates URL to google doc when provided with doc_id or doc."""
+    doc_id = (
+        doc
+        if isinstance(doc, str)
+        else doc.get("documentId") if isinstance(doc, dict) else None
+    )
+    return f"https://docs.google.com/document/d/{doc_id}" if doc_id else None
+
+
 def init_google_docs():
     global TEMPLATE_ID
     if not google_available():
@@ -102,10 +112,8 @@ def _update_server_docs() -> dict:
     SERVER_DOCS = guild_doc_map
 
 
-def _server_has_doc(guild_id: str | None):
-    """
-    Evaluates if a server has a Google Doc.
-    """
+def check_server_has_doc(itr: discord.Interaction):
+    guild_id = itr.guild_id
     if not guild_id:
         return False
 
@@ -113,14 +121,12 @@ def _server_has_doc(guild_id: str | None):
     return doc_id is not None
 
 
-def create_doc_for_server(itr: discord.Interaction):
+def create_doc_for_server(itr: discord.Interaction) -> str:
+    """Generate a Google Doc from a template or blank, returns a link to the created doc."""
+
     creds = _get_creds()
     guild_id = str(itr.guild_id)
     drive_service = build("drive", "v3", credentials=creds)
-
-    if _server_has_doc(guild_id):
-        logging.debug(f"Server {guild_id} already has a Google Doc!")
-        return None
 
     try:
         new_file_metadata = {
@@ -149,13 +155,14 @@ def create_doc_for_server(itr: discord.Interaction):
         ).execute()
 
         SERVER_DOCS[str(guild_id)] = doc_id  # Add to cache
-        return f"https://docs.google.com/document/d/{doc_id}"
+        return get_google_doc_url(doc_id)
     except HttpError as error:
         logging.ERROR(f"Error whilst creating server google doc: {error}")
         return None
 
 
-def get_server_doc(itr: discord.Interaction):
+def get_server_doc(itr: discord.Interaction) -> dict:
+    """Retrieves a Google Doc as a dictionary"""
     creds = _get_creds()
     guild_id = str(itr.guild_id)
     doc_id = SERVER_DOCS.get(guild_id, None)

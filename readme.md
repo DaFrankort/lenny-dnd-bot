@@ -13,6 +13,7 @@ Powered by [5e.tools](https://5e.tools/) for up-to-date 5e data.
 - **Voice Chat Sound Effects**: The bot can join voice channels to play sound effects for your rolls, including special sounds for natural 1s and 20s, as well as effects for attacks, damage, and fire.
 - **Token-Image Generation** - Generate a 5etools-style token from an image or image-url for your characters or custom creatures.
 - **Initiative Tracking** - Track initiatives for combat easily, with easy-to-use buttons for players and dungeon masters.
+- **Generate shared Google Docs** - Generate shared a google doc and interact with it through discord!
 
 ## Installation
 
@@ -57,7 +58,28 @@ _If you don't wish for the bot to play immersive sound effects on dice rolls and
 For voice chat capabilities [FFMPEG](https://ffmpeg.org/download.html) is required.
 You can follow [this tutorial](https://www.hostinger.com/tutorials/how-to-install-ffmpeg#How_to_install_FFmpeg_on_Windows) for help with installing it.
 
-### 5. Run the Bot
+### 5. (Optional) Set up Google Cloud API
+
+If you want to be able to generate a shared server-doc from Google Docs, you will need to do some setup with the Google Cloud API.
+
+The following steps are derived from this [Google Tutorial](https://developers.google.com/workspace/docs/api/quickstart/python#set-up-environment), if anything is outdated follow the steps in that tutorial instead.
+
+1. Enable the Google API [here.](https://console.cloud.google.com/flows/enableapi?apiid=docs.googleapis.com)
+2. Configure the OAuth consent screen
+   - Go to the [Branding page](https://console.cloud.google.com/auth/branding)
+   - Follow the steps.
+3. Authorize credentials [here](https://console.cloud.google.com/auth/clients)
+   - Create Client
+   - Application type -> Desktop App
+   - **Save the downloaded JSON as `credentials.json` and place it in the root directory**
+4. Add the following scopes [here](https://console.cloud.google.com/auth/scopes)
+   - /auth/documents
+   - /auth/drive
+
+Now your bot will be able to interact & create google docs linked to your google account.
+If you want you can add the document-id of a google doc in `.env` to use it as a template whenever a new server doc is created.
+
+### 6. Run the Bot
 
 To start the bot, simply run the following command:
 

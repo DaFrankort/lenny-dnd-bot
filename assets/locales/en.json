@@ -125,6 +125,12 @@
       "desc": "Turn an image url into a 5e.tools-style token.",
       "help": "Generates a token image from an image url.",
       "command": "/tokengenurl <image-url> [hue-shift] [h_alignment] [v_alignment]"
+    },
+    "lore": {
+      "name": "lore",
+      "desc": "Document your adventures together with a shared Google Doc!",
+      "help": "Generates a Google Doc that can be interacted with through this command.",
+      "command": "/lore"
     }
   },
   "help": {

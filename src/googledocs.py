@@ -26,7 +26,7 @@ def google_available():
 
 
 def init_google_docs():
-    global TEMPLATE_ID, GOOGLE_AVAILABLE
+    global TEMPLATE_ID
     if not google_available():
         logging.warning(
             "'credentials.json' not found in root folder. Follow these steps to generate a credentials.json file: https://developers.google.com/workspace/docs/api/quickstart/python"
@@ -106,7 +106,6 @@ def _server_has_doc(guild_id: str | None):
     """
     Evaluates if a server has a Google Doc.
     """
-    global SERVER_DOCS
     if not guild_id:
         return False
 
@@ -115,7 +114,6 @@ def _server_has_doc(guild_id: str | None):
 
 
 def create_doc_for_server(itr: discord.Interaction):
-    global TEMPLATE_ID
     creds = _get_creds()
     guild_id = str(itr.guild_id)
     drive_service = build("drive", "v3", credentials=creds)
@@ -158,7 +156,6 @@ def create_doc_for_server(itr: discord.Interaction):
 
 
 def get_server_doc(itr: discord.Interaction):
-    global SERVER_DOCS
     creds = _get_creds()
     guild_id = str(itr.guild_id)
     doc_id = SERVER_DOCS.get(guild_id, None)

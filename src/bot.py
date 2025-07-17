@@ -622,7 +622,7 @@ class Bot(discord.Client):
             await self.initiatives.set_message(itr, message)
 
         @self.tree.command(
-            name="lore", description="Document your adventures together!"
+            name=t("commands.lore.name"), description=t("commands.lore.desc")
         )
         async def lore(itr: Interaction):
             if not google_available():

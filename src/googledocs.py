@@ -15,7 +15,7 @@ googleapiclient.discovery._DEFAULT_DISCOVERY_DOC_CACHE = (
 SCOPES = [
     "https://www.googleapis.com/auth/documents",
     "https://www.googleapis.com/auth/drive",
-]  # https://developers.google.com/workspace/docs/api/auth
+]
 TOKEN_PATH = "./temp/google_token.json"
 TEMPLATE_ID = None
 SERVER_DOCS: dict[str, str] = {}

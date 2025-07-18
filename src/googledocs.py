@@ -12,160 +12,167 @@ from googleapiclient.errors import HttpError
 googleapiclient.discovery._DEFAULT_DISCOVERY_DOC_CACHE = (
     False  # Suppress file_cache warning
 )
-SCOPES = [
-    "https://www.googleapis.com/auth/documents",
-    "https://www.googleapis.com/auth/drive",
-]
-TOKEN_PATH = "./temp/google_token.json"
-TEMPLATE_ID = None
-SERVER_DOCS: dict[str, str] = {}
-
-
-def google_available():
-    return os.path.exists("credentials.json")
 
 
 def get_google_doc_url(doc: str | dict) -> str | None:
-    """Generates URL to google doc when provided with doc_id or doc."""
-    doc_id = (
-        doc
-        if isinstance(doc, str)
-        else doc.get("documentId") if isinstance(doc, dict) else None
-    )
-    return f"https://docs.google.com/document/d/{doc_id}" if doc_id else None
+    """Generates URL to Google Doc when provided with doc_id (string) or doc (dict)."""
+    doc_id = doc if isinstance(doc, str) else None
+
+    if isinstance(doc, dict):
+        document_id = doc.get("documentId", None)
+        id = doc.get("id", None)
+        doc_id = document_id if document_id else id
+
+    if not doc_id:
+        return None
+    return f"https://docs.google.com/document/d/{doc_id}"
 
 
-def init_google_docs():
-    global TEMPLATE_ID
-    if not google_available():
-        logging.warning(
-            "'credentials.json' not found in root folder. Follow these steps to generate a credentials.json file: https://developers.google.com/workspace/docs/api/quickstart/python"
-        )
-        return
+class ServerDocs:
+    _cache: dict[str, str] = {}
+    _template_id = None
+    _credential_path = "credentials.json"
+    _token_path = "./temp/google_token.json"
+    _scopes = [
+        "https://www.googleapis.com/auth/documents",
+        "https://www.googleapis.com/auth/drive",
+    ]
 
-    TEMPLATE_ID = os.getenv("GOOGLE_DOC_TEMPLATE_ID")
-    if not TEMPLATE_ID:
-        logging.warning(
-            "No template-ID provided for Google Docs, bot will create docs with basic styling."
-        )
+    @classmethod
+    def available(cls):
+        return os.path.exists(cls._credential_path)
 
-    _get_creds()
-    _update_server_docs()
-    logging.info("Google API initialised.")
-
-
-def _get_creds():
-    """
-    Get credentials for the Google API.
-    Requires credentials.json to be located in the root folder.
-    https://developers.google.com/workspace/docs/api/quickstart/python
-    """
-
-    creds = None
-    if os.path.exists(TOKEN_PATH):
-        creds = Credentials.from_authorized_user_file(TOKEN_PATH, SCOPES)
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file("credentials.json", SCOPES)
-            creds = flow.run_local_server(port=0)
-            with open(TOKEN_PATH, "w") as token:
-                token.write(creds.to_json())
-
-    return creds
-
-
-def _update_server_docs() -> dict:
-    """
-    Checks the Google Drive for any documents with 'discord_guild_id' as property and caches them to memory.
-    """
-    global SERVER_DOCS
-    logging.debug("Updating Google Doc cache")
-    creds = _get_creds()
-    service = build("drive", "v3", credentials=creds)
-
-    page_token = None
-    guild_doc_map = {}
-    while True:
-        results = (
-            service.files()
-            .list(
-                q="mimeType='application/vnd.google-apps.document'",  # Only get google docs
-                pageSize=100,
-                fields="nextPageToken, files(id, name, properties)",
-                pageToken=page_token,
+    @classmethod
+    def init(cls):
+        if not cls.available():
+            logging.warning(
+                f"'{cls._credential_path}' not found. Follow these steps to generate a credentials file: https://developers.google.com/workspace/docs/api/quickstart/python"
             )
-            .execute()
-        )
+            return
 
-        for file in results.get("files", []):
-            props = file.get("properties", {})
-            guild_id = props.get("discord_guild_id")
-            if guild_id:
-                guild_doc_map[str(guild_id)] = file["id"]
+        cls._template_id = os.getenv("GOOGLE_DOC_TEMPLATE_ID")
+        if not cls._template_id:
+            logging.warning(
+                "No template-ID provided for Google Docs, bot will create docs with basic styling."
+            )
 
-        page_token = results.get("nextPageToken", None)
-        if not page_token:
-            break
+        cls._get_creds()
+        cls.sync_cache()
+        logging.info("Google API initialised.")
 
-    SERVER_DOCS = guild_doc_map
+    @classmethod
+    def _get_creds(cls):
+        """
+        Get credentials for the Google API.
+        Requires credentials json file, which you can obtain by following these steps: https://developers.google.com/workspace/docs/api/quickstart/python
+        """
 
+        creds = None
+        if os.path.exists(cls._token_path):
+            creds = Credentials.from_authorized_user_file(cls._token_path, cls._scopes)
+        if not creds or not creds.valid:
+            if creds and creds.expired and creds.refresh_token:
+                creds.refresh(Request())
+            else:
+                flow = InstalledAppFlow.from_client_secrets_file(
+                    cls._credential_path, cls._scopes
+                )
+                creds = flow.run_local_server(port=0)
+                with open(cls._token_path, "w") as token:
+                    token.write(creds.to_json())
 
-def create_doc_for_server(itr: discord.Interaction) -> str:
-    """Generate a Google Doc from a template or blank, returns a link to the created doc."""
+        return creds
 
-    creds = _get_creds()
-    guild_id = str(itr.guild_id)
-    drive_service = build("drive", "v3", credentials=creds)
+    @classmethod
+    def sync_cache(cls):
+        """
+        Checks the Google Drive for any documents with 'discord_guild_id' as property and caches them to memory.
+        """
+        logging.debug("Updating Google Doc cache")
+        creds = cls._get_creds()
+        service = build("drive", "v3", credentials=creds)
 
-    try:
-        new_file_metadata = {
-            "name": f"{itr.guild.name} - Lore",
-            "properties": {"discord_guild_id": guild_id},
-        }
-
-        if TEMPLATE_ID:
-            new_doc = (
-                drive_service.files()
-                .copy(fileId=TEMPLATE_ID, body=new_file_metadata)
+        page_token = None
+        guild_doc_map = {}
+        while True:
+            results = (
+                service.files()
+                .list(
+                    q="mimeType='application/vnd.google-apps.document'",  # Only get google docs
+                    pageSize=100,
+                    fields="nextPageToken, files(id, name, properties)",
+                    pageToken=page_token,
+                )
                 .execute()
             )
-            doc_id = new_doc["id"]
-            logging.info(f"Created Google Doc for server {guild_id}: {doc_id}")
 
-        else:
-            new_file_metadata["mimeType"] = "application/vnd.google-apps.document"
-            blank_doc = drive_service.files().create(body=new_file_metadata).execute()
-            doc_id = blank_doc["id"]
-            logging.info(f"Created blank Google Doc for server {guild_id}: {doc_id}")
+            for file in results.get("files", []):
+                props = file.get("properties", {})
+                guild_id = props.get("discord_guild_id")
+                if guild_id:
+                    guild_doc_map[str(guild_id)] = file["id"]
 
-        # Make editable by anyone with link
-        drive_service.permissions().create(
-            fileId=doc_id, body={"type": "anyone", "role": "writer"}
-        ).execute()
+            page_token = results.get("nextPageToken", None)
+            if not page_token:
+                break
 
-        SERVER_DOCS[str(guild_id)] = doc_id  # Add to cache
-        return get_google_doc_url(doc_id)
-    except HttpError as error:
-        logging.ERROR(f"Error whilst creating server google doc: {error}")
-        return None
+        cls._cache = guild_doc_map
 
+    @classmethod
+    def get(cls, itr: discord.Interactions) -> tuple[dict, str]:
+        """Retrieves a Google Doc as a dictionary and a URL to the doc."""
+        creds = cls._get_creds()
+        guild_id = str(itr.guild_id)
+        doc_id = cls._cache.get(guild_id, None)
 
-def get_server_doc(itr: discord.Interaction) -> dict | None:
-    """Retrieves a Google Doc as a dictionary"""
-    creds = _get_creds()
-    guild_id = str(itr.guild_id)
-    doc_id = SERVER_DOCS.get(guild_id, None)
+        if doc_id is None:
+            return None, None
 
-    if doc_id is None:
-        return None
+        try:
+            service = build("docs", "v1", credentials=creds)
+            doc = service.documents().get(documentId=doc_id).execute()
+            url = get_google_doc_url(doc)
 
-    try:
-        service = build("docs", "v1", credentials=creds)
-        doc = service.documents().get(documentId=doc_id).execute()
-        logging.info(f"Loaded google doc: {doc.get('title')}")
-        return doc
-    except HttpError as err:
-        logging.error(err)
-        return None
+            logging.info(f"Loaded google doc: {doc.get('title')}")
+            return doc, url
+        except HttpError as err:
+            logging.error(err)
+            return None, None
+
+    @classmethod
+    def create(cls, itr: discord.Interaction) -> tuple[dict, str]:
+        """Generate a Google Doc from a template or blank, returns the new doc and a URL to the doc."""
+
+        creds = cls._get_creds()
+        guild_id = str(itr.guild_id)
+        drive_service = build("drive", "v3", credentials=creds)
+
+        try:
+            new_file_metadata = {
+                "name": f"{itr.guild.name} - Lore",
+                "properties": {"discord_guild_id": guild_id},
+            }
+
+            if cls._template_id:
+                new_doc = (
+                    drive_service.files()
+                    .copy(fileId=cls._template_id, body=new_file_metadata)
+                    .execute()
+                )
+
+            else:
+                new_file_metadata["mimeType"] = "application/vnd.google-apps.document"
+                new_doc = drive_service.files().create(body=new_file_metadata).execute()
+
+            doc_id = new_doc.get("id", None)
+            drive_service.permissions().create(
+                fileId=doc_id, body={"type": "anyone", "role": "writer"}
+            ).execute()
+
+            logging.info(f"Created Google Doc for server {itr.guild.name}")
+            cls._cache[str(guild_id)] = doc_id
+            return new_doc, get_google_doc_url(doc_id)
+
+        except HttpError as error:
+            logging.ERROR(f"Error whilst creating google doc for server:\n {error}")
+            return None, None

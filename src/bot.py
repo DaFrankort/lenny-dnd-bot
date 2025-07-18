@@ -5,13 +5,7 @@ import discord
 from discord import app_commands
 from discord import Interaction
 from dotenv import load_dotenv
-from googledocs import (
-    create_doc_for_server,
-    get_google_doc_url,
-    get_server_doc,
-    google_available,
-    init_google_docs,
-)
+from googledocs import ServerDocs
 from help import HelpEmbed
 from i18n import t
 
@@ -85,7 +79,7 @@ class Bot(discord.Client):
         await self._attempt_sync_guild()
         await self.tree.sync()
         Sounds.init_folders()
-        init_google_docs()
+        ServerDocs.init()
         if self.voice_enabled:
             VC.check_ffmpeg()
         else:
@@ -626,7 +620,7 @@ class Bot(discord.Client):
             name=t("commands.lore.name"), description=t("commands.lore.desc")
         )
         async def lore(itr: Interaction):
-            if not google_available():
+            if not ServerDocs.available():
                 await itr.response.send_message(
                     "Sorry! Google Doc functionality is not set up right now...",
                     ephemeral=True,
@@ -635,18 +629,17 @@ class Bot(discord.Client):
 
             await itr.response.defer()
 
-            doc = get_server_doc(itr)
-            doc_url = get_google_doc_url(doc)
-            if not doc_url:
-                doc_url = create_doc_for_server(itr)
+            doc, url = ServerDocs.get(itr)
+            if not url:
+                doc, url = ServerDocs.create(itr)
 
-            if not doc_url:
+            if not url:
                 await itr.followup.send(
                     "Could not create or retrieve Google Doc for this server...",
                 )
                 return
 
-            await itr.followup.send(doc_url)
+            await itr.followup.send(url)
 
         @self.tree.command(
             name=t("commands.help.name"), description=t("commands.help.desc")

@@ -62,19 +62,18 @@ You can follow [this tutorial](https://www.hostinger.com/tutorials/how-to-instal
 
 If you want to be able to generate a shared server-doc from Google Docs, you will need to do some setup with the Google Cloud API.
 
-The following steps are derived from this [Google Tutorial](https://developers.google.com/workspace/docs/api/quickstart/python#set-up-environment), if anything is outdated follow the steps in that tutorial instead.
+To activate the google api for this bot, follow the following steps:
 
-1. Enable the Google API [here.](https://console.cloud.google.com/flows/enableapi?apiid=docs.googleapis.com)
-2. Configure the OAuth consent screen
-   - Go to the [Branding page](https://console.cloud.google.com/auth/branding)
-   - Follow the steps.
-3. Authorize credentials [here](https://console.cloud.google.com/auth/clients)
-   - Create Client
-   - Application type -> Desktop App
-   - **Save the downloaded JSON as `credentials.json` and place it in the root directory**
-4. Add the following scopes [here](https://console.cloud.google.com/auth/scopes)
-   - /auth/documents
-   - /auth/drive
+1. Create a new [Google Cloud project](https://console.cloud.google.com/projectcreate) and select it as your current project.
+2. Enable the [Google Docs API](https://console.cloud.google.com/flows/enableapi?apiid=docs.googleapis.com)
+3. Enable the [Google Drive API](https://console.cloud.google.com/apis/library/drive.googleapis.com)
+4. Follow [these steps](https://cloud.google.com/iam/docs/service-accounts-create) to create a service account.
+   - Enable [IAM API](https://console.cloud.google.com/flows/enableapi?apiid=iam.googleapis.com&redirect=https://console.cloud.google.com)
+   - Create a [service account](https://console.cloud.google.com/projectselector/iam-admin/serviceaccounts/create?walkthrough_id=iam--create-service-account#step_index=1) for your project.
+   - _Give it **Owner** permissions when asked!_
+5. You should now be on the [service accounts page](https://console.cloud.google.com/iam-admin/serviceaccounts), click on the newly created service account.
+   - Navigate to the Keys tab and press **Add key** > **Create new key** > **JSON** > **Create**
+   - It will automatically download a `.json` file, rename this file to `google-service.json` and place it in the root folder.
 
 Now your bot will be able to interact & create google docs linked to your google account.
 If you want you can add the document-id of a google doc in `.env` to use it as a template whenever a new server doc is created.

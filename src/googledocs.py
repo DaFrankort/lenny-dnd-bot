@@ -119,7 +119,7 @@ class ServerDocs:
         cls._cache = guild_doc_map
 
     @classmethod
-    def get(cls, itr: discord.Interactions) -> tuple[dict, str]:
+    def get(cls, itr: discord.Interaction) -> tuple[dict, str]:
         """Retrieves a Google Doc as a dictionary and a URL to the doc."""
         creds = cls._get_creds()
         guild_id = str(itr.guild_id)

@@ -12,7 +12,7 @@ venv
 /temp
 .env
 .flake8
-credentials.json
+google-service.json
 
 # Assets
 assets/sounds/**/*

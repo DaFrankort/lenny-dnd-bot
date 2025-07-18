@@ -3,9 +3,7 @@ import os
 
 import discord
 import googleapiclient
-from google.auth.transport.requests import Request
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
+from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
@@ -31,8 +29,8 @@ def get_google_doc_url(doc: str | dict) -> str | None:
 class ServerDocs:
     _cache: dict[str, str] = {}
     _template_id = None
-    _credential_path = "credentials.json"
-    _token_path = "./temp/google_token.json"
+    _creds = None
+    _credential_path = "google-service.json"
     _scopes = [
         "https://www.googleapis.com/auth/documents",
         "https://www.googleapis.com/auth/drive",
@@ -40,48 +38,35 @@ class ServerDocs:
 
     @classmethod
     def available(cls):
-        return os.path.exists(cls._credential_path)
+        return os.path.exists(cls._credential_path) and cls._creds
 
     @classmethod
     def init(cls):
-        if not cls.available():
+        if not os.path.exists(cls._credential_path):
             logging.warning(
-                f"'{cls._credential_path}' not found. Follow these steps to generate a credentials file: https://developers.google.com/workspace/docs/api/quickstart/python"
+                f"'{cls._credential_path}' not found. Follow these steps to generate a service account file: https://cloud.google.com/iam/docs/service-accounts-create"
             )
             return
 
         cls._template_id = os.getenv("GOOGLE_DOC_TEMPLATE_ID")
         if not cls._template_id:
             logging.warning(
-                "No template-ID provided for Google Docs, bot will create docs with basic styling."
+                "No template-ID provided for Google Docs, bot will create blank docs."
             )
 
-        cls._get_creds()
+        cls._set_creds()
         cls.sync_cache()
         logging.info("Google API initialised.")
 
     @classmethod
-    def _get_creds(cls):
+    def _set_creds(cls):
         """
-        Get credentials for the Google API.
-        Requires credentials json file, which you can obtain by following these steps: https://developers.google.com/workspace/docs/api/quickstart/python
+        Set credentials for a Google API service account.
+        Requires service account json file, which you can obtain by following these steps: https://cloud.google.com/iam/docs/service-accounts-create
         """
-
-        creds = None
-        if os.path.exists(cls._token_path):
-            creds = Credentials.from_authorized_user_file(cls._token_path, cls._scopes)
-        if not creds or not creds.valid:
-            if creds and creds.expired and creds.refresh_token:
-                creds.refresh(Request())
-            else:
-                flow = InstalledAppFlow.from_client_secrets_file(
-                    cls._credential_path, cls._scopes
-                )
-                creds = flow.run_local_server(port=0)
-                with open(cls._token_path, "w") as token:
-                    token.write(creds.to_json())
-
-        return creds
+        cls._creds = service_account.Credentials.from_service_account_file(
+            cls._credential_path, scopes=cls._scopes
+        )
 
     @classmethod
     def sync_cache(cls):
@@ -89,8 +74,7 @@ class ServerDocs:
         Checks the Google Drive for any documents with 'discord_guild_id' as property and caches them to memory.
         """
         logging.debug("Updating Google Doc cache")
-        creds = cls._get_creds()
-        service = build("drive", "v3", credentials=creds)
+        service = build("drive", "v3", credentials=cls._creds)
 
         page_token = None
         guild_doc_map = {}
@@ -121,7 +105,7 @@ class ServerDocs:
     @classmethod
     def get(cls, itr: discord.Interaction) -> tuple[dict, str]:
         """Retrieves a Google Doc as a dictionary and a URL to the doc."""
-        creds = cls._get_creds()
+
         guild_id = str(itr.guild_id)
         doc_id = cls._cache.get(guild_id, None)
 
@@ -129,7 +113,7 @@ class ServerDocs:
             return None, None
 
         try:
-            service = build("docs", "v1", credentials=creds)
+            service = build("docs", "v1", credentials=cls._creds)
             doc = service.documents().get(documentId=doc_id).execute()
             url = get_google_doc_url(doc)
 
@@ -143,9 +127,8 @@ class ServerDocs:
     def create(cls, itr: discord.Interaction) -> tuple[dict, str]:
         """Generate a Google Doc from a template or blank, returns the new doc and a URL to the doc."""
 
-        creds = cls._get_creds()
         guild_id = str(itr.guild_id)
-        drive_service = build("drive", "v3", credentials=creds)
+        drive_service = build("drive", "v3", credentials=cls._creds)
 
         try:
             new_file_metadata = {

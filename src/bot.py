@@ -648,11 +648,11 @@ class Bot(discord.Client):
             section_titles = doc.get_section_titles()
             for title in section_titles:
                 section = doc.get_section_by_title(title)
-                desc.append(f'__**{title.strip()}**__')
+                desc.append(f"__**{title.strip()}**__")
 
                 entry_titles = section.get_entry_titles()
                 for e_title in entry_titles:
-                    desc.append(f'**{e_title.strip()}**')
+                    desc.append(f"**{e_title.strip()}**")
                     entry = section.get_entry_by_title(e_title)
 
                     for p in entry.body_paragraphs:

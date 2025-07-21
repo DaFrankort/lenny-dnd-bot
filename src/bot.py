@@ -14,6 +14,7 @@ from dnd import DNDData, DNDObject
 from embeds import (
     NoResultsFoundEmbed,
     MultiDNDSelectView,
+    SimpleEmbed,
     UserActionEmbed,
 )
 from initiative import (
@@ -619,7 +620,11 @@ class Bot(discord.Client):
         @self.tree.command(
             name=t("commands.lore.name"), description=t("commands.lore.desc")
         )
-        async def lore(itr: Interaction):
+        async def lore(
+            itr: Interaction,
+            # section: str = None,
+            # entry: str = None
+        ):
             if not ServerDocs.available():
                 await itr.response.send_message(
                     "Sorry! Google Doc functionality is not set up right now...",
@@ -629,17 +634,69 @@ class Bot(discord.Client):
 
             await itr.response.defer()
 
-            doc, url = ServerDocs.get(itr)
-            if not url:
-                doc, url = ServerDocs.create(itr)
+            doc = ServerDocs.get(itr)
+            if not doc:
+                doc = ServerDocs.create(itr)
 
-            if not url:
+            if not doc:
                 await itr.followup.send(
                     "Could not create or retrieve Google Doc for this server...",
                 )
                 return
 
-            await itr.followup.send(url)
+            desc = []
+            section_titles = doc.get_section_titles()
+            for title in section_titles:
+                section = doc.get_section_by_title(title)
+                desc.append(f'__**{title.strip()}**__')
+
+                entry_titles = section.get_entry_titles()
+                for e_title in entry_titles:
+                    desc.append(f'**{e_title.strip()}**')
+                    entry = section.get_entry_by_title(e_title)
+
+                    for p in entry.body_paragraphs:
+                        desc.append(p.text)
+
+            embed = SimpleEmbed(
+                title=doc.title,
+                description="\n".join(desc),
+                url=doc.url,
+            )
+
+            await itr.followup.send(embed=embed)
+
+        # TODO: Cache docs, to prevent constant api calls
+
+        # @lore.autocomplete('section')
+        # async def autocomplete_lore_section(
+        #     itr: Interaction, current: str
+        # ) -> list[app_commands.Choice[str]]:
+        #     doc = ServerDocs.get(itr)
+        #     if not doc:
+        #         return []
+
+        #     choices = doc.get_section_titles()
+        #     return get_autocomplete_suggestions_from_list(choices, current)
+
+        # @lore.autocomplete('entry')
+        # async def autocomplete_lore_entry(
+        #     itr: Interaction, current: str
+        # ) -> list[app_commands.Choice[str]]:
+        #     section_value = itr.namespace.get("section")
+        #     if not section_value:
+        #         return []
+
+        #     doc = ServerDocs.get(itr)
+        #     if not doc:
+        #         return []
+
+        #     section = doc.get_section_by_title(section_value)
+        #     if not section:
+        #         return []
+
+        #     choices = section.get_entry_titles()
+        #     return get_autocomplete_suggestions_from_list(choices, current)
 
         @self.tree.command(
             name=t("commands.help.name"), description=t("commands.help.desc")

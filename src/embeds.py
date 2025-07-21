@@ -496,7 +496,11 @@ class LanguageEmbed(_DNDObjectEmbed):
 
 class SimpleEmbed(discord.Embed):
     def __init__(
-        self, title: str, description: str | None, color: discord.Color = None
+        self,
+        title: str,
+        description: str | None,
+        color: discord.Color = None,
+        url: str | None = None,
     ) -> None:
         if not color:
             color = discord.Color.dark_green()
@@ -505,7 +509,7 @@ class SimpleEmbed(discord.Embed):
             color=color,
             title=title,
             type="rich",
-            url=None,
+            url=url,
             description=None,
             timestamp=None,
         ),

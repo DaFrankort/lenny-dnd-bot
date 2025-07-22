@@ -12,6 +12,7 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 from embeds import SimpleEmbed
+from modals import SimpleModal
 
 NamedStyle = Literal[
     "TITLE", "SUBTITLE", "HEADING_1", "HEADING_2", "HEADING_3", "NORMAL_TEXT"
@@ -45,9 +46,14 @@ class Paragraph:
         self.style = style
 
     def get_delete_request(self):
+        trimmed_text = self.text.rstrip()
+        trim_amount = len(self.text) - len(trimmed_text)
+
+        end_index = self.end_index - trim_amount - 1  # Range may not include newline at end of segment.
+        print(repr(self.text))
         return {
             "deleteContentRange": {
-                "range": {"startIndex": self.start_index, "endIndex": self.end_index}
+                "range": {"startIndex": self.start_index, "endIndex": end_index}
             }
         }
 
@@ -221,19 +227,27 @@ class ServerDocs:
         return creds
 
     @classmethod
+    def _drive_service(cls):
+        creds = cls._get_creds()
+        return build("drive", "v3", credentials=creds, cache_discovery=False)
+
+    @classmethod
+    def _docs_service(cls):
+        creds = cls._get_creds()
+        return build("docs", "v1", credentials=creds, cache_discovery=False)
+
+    @classmethod
     def sync_cache(cls):
         """
         Checks the Google Drive for any documents with 'discord_guild_id' as property and caches them to memory.
         """
         logging.debug("Updating Google Doc cache")
-        creds = cls._get_creds()
-        service = build("drive", "v3", credentials=creds, cache_discovery=False)
 
         page_token = None
         guild_doc_map = {}
         while True:
             results = (
-                service.files()
+                cls._drive_service().files()
                 .list(
                     q="mimeType='application/vnd.google-apps.document'",  # Only get google docs
                     pageSize=100,
@@ -267,7 +281,6 @@ class ServerDocs:
         cls, itr: discord.Interaction, allow_refresh_from_drive: bool = True
     ) -> Doc | None:
         """Retrieves a Google Doc as a dictionary and a URL to the doc."""
-        creds = cls._get_creds()
         guild_id = str(itr.guild_id)
 
         doc = cls._cache.get(guild_id, None)
@@ -290,8 +303,7 @@ class ServerDocs:
         )
         doc_id = doc.id if isinstance(doc, Doc) else doc
         try:
-            service = build("docs", "v1", credentials=creds, cache_discovery=False)
-            new_doc = service.documents().get(documentId=doc_id).execute()
+            new_doc = cls._docs_service().documents().get(documentId=doc_id).execute()
             doc = Doc(new_doc, guild_id)
             cls._cache[str(guild_id)] = doc
             return doc
@@ -303,12 +315,8 @@ class ServerDocs:
     @classmethod
     def create(cls, itr: discord.Interaction) -> Doc | None:
         """Generate a Google Doc from a template or blank, returns the new doc and a URL to the doc."""
-
-        creds = cls._get_creds()
         guild_id = str(itr.guild_id)
-        drive_service = build(
-            "drive", "v3", credentials=creds, cache_discovery=False
-        )  # TODO This is always the same, create a property for doc & drive services
+        service = cls._drive_service()
 
         try:
             new_file_metadata = {
@@ -318,17 +326,17 @@ class ServerDocs:
 
             if cls._template_id:
                 new_doc = (
-                    drive_service.files()
+                    service.files()
                     .copy(fileId=cls._template_id, body=new_file_metadata)
                     .execute()
                 )
 
             else:
                 new_file_metadata["mimeType"] = "application/vnd.google-apps.document"
-                new_doc = drive_service.files().create(body=new_file_metadata).execute()
+                new_doc = service.files().create(body=new_file_metadata).execute()
 
             doc_id = new_doc.get("id", None)
-            drive_service.permissions().create(
+            service.permissions().create(
                 fileId=doc_id, body={"type": "anyone", "role": "writer"}
             ).execute()
 
@@ -340,10 +348,107 @@ class ServerDocs:
             logging.ERROR(f"Error whilst creating google doc for server:\n {error}")
             return None
 
+    @classmethod
+    def apply_requests(cls, doc: Doc, requests: list[dict]) -> bool:
+        """
+        Applies a batchUpdate to a Google Doc with the given list of requests.
+
+        Args:
+            doc_id (str): The ID of the Google Document.
+            requests (list[dict]): A list of Google Docs API requests to apply.
+
+        Returns:
+            bool: True if update succeeded, False otherwise.
+        """
+        try:
+            cls._docs_service().documents().batchUpdate(
+                documentId=doc.id, body={"requests": requests}
+            ).execute()
+            logging.info(f"Applied {len(requests)} requests to Google Doc {doc.title}")
+            cls._cache[doc.guild_id] = doc.id  # Enforce cache update on next load
+            return True
+
+        except HttpError as error:
+            logging.error(f"Error applying requests to Google Doc {doc.title}:\n{error}")
+            return False
 
 ###############
 # EMBED CLASSES
 ###############
+
+
+class LoreEditModal(SimpleModal):
+    def __init__(self, itr: Interaction, doc: Doc, section: Section, entry: Entry | None = None):
+        modal_title = "Edit Entry" if entry else "Edit Section"
+        super().__init__(itr, modal_title)
+
+        self.doc = doc
+        self.section = section
+        self.entry = entry
+        title_paragraph = entry.title_para if entry else section.title_para
+        title_placeholder = title_paragraph.text.strip() or "Untitled"
+
+        self.add_item(
+            ui.TextInput(
+                label="Title",
+                placeholder=title_placeholder,
+                default=title_placeholder,
+                style=discord.TextStyle.short,
+                required=True,
+            )
+        )
+
+        if not entry:
+            return
+
+        for para in entry.body_paragraphs:
+            self.add_item(
+                ui.TextInput(
+                    label="Content",
+                    placeholder=para.text or "Lorem Ipsum, dolor sit amet...",
+                    default=para.text or None,
+                    style=discord.TextStyle.long,
+                    required=False,
+                )
+            )
+
+    async def on_submit(self, itr: Interaction):
+        requests = []
+        title_paragraph = self.entry.title_para if self.entry else self.section.title_para
+
+        new_title = self.children[0].value.strip()
+        if not new_title:
+            await itr.response.send_message("Title cannot be empty.", ephemeral=True)
+            return
+        requests.extend(title_paragraph.get_replace_requests(new_title))
+
+        if self.entry:
+            content_inputs = self.children[1:]  # Skip title
+            for i, content_input in enumerate(content_inputs):
+                new_text = content_input.value
+                if i > len(self.entry.body_paragraphs):
+                    break
+
+                para = self.entry.body_paragraphs[i]
+                if new_text == para.text:
+                    continue  # Unchanged, skip
+
+                # Insert new requests at the start, so doc is edited from last to first
+                if not new_text:
+                    requests = para.get_delete_request() + requests
+                else:
+                    requests = para.get_replace_requests(new_text) + requests
+
+        print(requests)
+        ServerDocs.apply_requests(self.doc, requests)
+        doc = ServerDocs.get(itr)
+
+        if self.entry:
+            embed = LoreDocEmbed(doc, section=self.section.title_para.text, entry=new_title)
+        else:
+            embed = LoreDocEmbed(doc, section=new_title)
+
+        await itr.response.edit_message(embed=embed, view=embed.view)
 
 
 class LoreDocView(ui.View):
@@ -385,8 +490,7 @@ class LoreSectionView(ui.View):
     @ui.button(label="Edit", style=discord.ButtonStyle.success, custom_id="edit_btn")
     async def edit(self, itr: Interaction, btn: ui.Button):
         """Button to add a new entry to the document."""
-        await itr.response.send_message("Sorry, not implemented yet.", ephemeral=True)
-        # await itr.response.send_modal(modal=SimpleModal(itr, "Edit Section"))
+        await itr.response.send_modal(LoreEditModal(itr, self.doc, self.section))
 
     @ui.button(label="Delete", style=discord.ButtonStyle.danger, custom_id="delete_btn")
     async def delete(self, itr: Interaction, btn: ui.Button):
@@ -401,16 +505,16 @@ class LoreSectionView(ui.View):
 
 
 class LoreEntryView(ui.View):
-    def __init__(self, doc: Doc, entry: Entry):
+    def __init__(self, doc: Doc, section: Section, entry: Entry):
         super().__init__()
         self.doc = doc
+        self.section = section
         self.entry = entry
 
     @ui.button(label="Edit", style=discord.ButtonStyle.success, custom_id="add_btn")
     async def edit(self, itr: Interaction, btn: ui.Button):
         """Button to add a new entry to the document."""
-        await itr.response.send_message("Sorry, not implemented yet.", ephemeral=True)
-        # await itr.response.send_modal(modal=SimpleModal(itr, "Edit Entry"))
+        await itr.response.send_modal(LoreEditModal(itr, self.doc, self.section, self.entry))
 
     @ui.button(label="Delete", style=discord.ButtonStyle.danger, custom_id="delete_btn")
     async def delete(self, itr: Interaction, btn: ui.Button):
@@ -457,7 +561,7 @@ class LoreDocEmbed(SimpleEmbed):
                 if paragraphs
                 else "*No content found in this entry.*"
             )
-            self.view = LoreEntryView(doc, self.entry)
+            self.view = LoreEntryView(doc, self.section, self.entry)
 
         else:  # Doc Info
             title = doc.title

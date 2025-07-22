@@ -638,6 +638,13 @@ class Bot(discord.Client):
         async def lore(itr: Interaction, section: str = None, entry: str = None):
             log_cmd(itr)
 
+            if not itr.guild:
+                await itr.response.send_message(
+                    "This command can only be used in a server.",
+                    ephemeral=True,
+                )
+                return
+
             if not ServerDocs.available():
                 await itr.response.send_message(
                     "Sorry! Google Doc functionality is not set up right now...",

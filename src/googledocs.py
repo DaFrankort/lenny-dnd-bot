@@ -3,6 +3,7 @@ import logging
 import os
 from typing import Literal
 import discord
+from discord import Interaction
 import discord.ui as ui
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -103,14 +104,16 @@ class Doc:
     _raw: dict
     title: str
     id: str
+    guild_id: str
     url: str
     sections = list[Section]
     created_at: datetime.datetime
 
-    def __init__(self, raw: dict):
+    def __init__(self, raw: dict, guild_id: str):
         self._raw = raw
         self.title = raw.get("title", "Untitled")
         self.id = raw.get("documentId", None)
+        self.guild_id = guild_id
         self.url = get_google_doc_url(self.id)
         self.sections: list[Section] = []
         self.created_at = datetime.datetime.now()
@@ -255,6 +258,11 @@ class ServerDocs:
         cls._cache = guild_doc_map
 
     @classmethod
+    def cache(cls, doc: Doc):
+        """Caches a Google Doc to memory, intended for external use only."""
+        cls._cache[str(doc.guild_id)] = doc
+
+    @classmethod
     def get(
         cls, itr: discord.Interaction, allow_refresh_from_drive: bool = True
     ) -> Doc | None:
@@ -284,7 +292,7 @@ class ServerDocs:
         try:
             service = build("docs", "v1", credentials=creds, cache_discovery=False)
             new_doc = service.documents().get(documentId=doc_id).execute()
-            doc = Doc(new_doc)
+            doc = Doc(new_doc, guild_id)
             cls._cache[str(guild_id)] = doc
             return doc
         except HttpError as err:
@@ -326,7 +334,7 @@ class ServerDocs:
 
             logging.info(f"Created Google Doc for server {itr.guild.name}")
             cls._cache[str(guild_id)] = doc_id
-            return Doc(new_doc)
+            return Doc(new_doc, guild_id)
 
         except HttpError as error:
             logging.ERROR(f"Error whilst creating google doc for server:\n {error}")
@@ -336,6 +344,84 @@ class ServerDocs:
 ###############
 # EMBED CLASSES
 ###############
+
+
+class LoreDocView(ui.View):
+    def __init__(self, doc: Doc):
+        super().__init__()
+        self.doc = doc
+
+        # Section Dropdown Select
+        # Add Section Button
+        # TODO: Nav Buttons (Pagination)
+        # TODO: Doc or Tab Select (Multi-doc support)
+
+    @ui.button(
+        label="Add Section", style=discord.ButtonStyle.success, custom_id="add_btn"
+    )
+    async def add(self, itr: Interaction, btn: ui.Button):
+        """Button to add a new section to the document."""
+        await itr.response.send_message("Sorry, not implemented yet.", ephemeral=True)
+        # await itr.response.send_modal(modal=SimpleModal(itr, "Add New Section"))
+
+
+class LoreSectionView(ui.View):
+    def __init__(self, doc: Doc, section: Section):
+        super().__init__()
+        self.doc = doc
+        self.section = section
+
+        # Entry Dropdown Select
+        # TODO: Nav Buttons (Pagination)
+
+    @ui.button(
+        label="Add Entry", style=discord.ButtonStyle.success, custom_id="add_btn"
+    )
+    async def add(self, itr: Interaction, btn: ui.Button):
+        """Button to add a new entry to the document."""
+        await itr.response.send_message("Sorry, not implemented yet.", ephemeral=True)
+        # await itr.response.send_modal(modal=SimpleModal(itr, "Add New Entry"))
+
+    @ui.button(label="Edit", style=discord.ButtonStyle.success, custom_id="edit_btn")
+    async def edit(self, itr: Interaction, btn: ui.Button):
+        """Button to add a new entry to the document."""
+        await itr.response.send_message("Sorry, not implemented yet.", ephemeral=True)
+        # await itr.response.send_modal(modal=SimpleModal(itr, "Edit Section"))
+
+    @ui.button(label="Delete", style=discord.ButtonStyle.danger, custom_id="delete_btn")
+    async def delete(self, itr: Interaction, btn: ui.Button):
+        """Button to delete the section."""
+        await itr.response.send_message("Sorry, not implemented yet.", ephemeral=True)
+        # await itr.response.send_modal(modal=SimpleModal(itr, "Delete Section"))
+
+    @ui.button(label="Back", style=discord.ButtonStyle.primary, custom_id="back_btn")
+    async def back(self, itr: Interaction, btn: ui.Button):
+        """Button to go back to doc overview."""
+        await itr.response.send_message("Sorry, not implemented yet.", ephemeral=True)
+
+
+class LoreEntryView(ui.View):
+    def __init__(self, doc: Doc, entry: Entry):
+        super().__init__()
+        self.doc = doc
+        self.entry = entry
+
+    @ui.button(label="Edit", style=discord.ButtonStyle.success, custom_id="add_btn")
+    async def edit(self, itr: Interaction, btn: ui.Button):
+        """Button to add a new entry to the document."""
+        await itr.response.send_message("Sorry, not implemented yet.", ephemeral=True)
+        # await itr.response.send_modal(modal=SimpleModal(itr, "Edit Entry"))
+
+    @ui.button(label="Delete", style=discord.ButtonStyle.danger, custom_id="delete_btn")
+    async def delete(self, itr: Interaction, btn: ui.Button):
+        """Button to delete the section."""
+        itr.response.send_message("Sorry, not implemented yet.", ephemeral=True)
+        # await itr.response.send_modal(modal=SimpleModal(itr, "Delete Entry"))
+
+    @ui.button(label="Back", style=discord.ButtonStyle.primary, custom_id="back_btn")
+    async def back(self, itr: Interaction, btn: ui.Button):
+        """Button to go back to section overview."""
+        await itr.response.send_message("Sorry, not implemented yet.", ephemeral=True)
 
 
 class LoreDocEmbed(SimpleEmbed):
@@ -361,7 +447,7 @@ class LoreDocEmbed(SimpleEmbed):
                 else "*No entries found in this section.*"
             )
 
-            self.view = ui.View()
+            self.view = LoreSectionView(doc, self.section)
 
         elif self.section and self.entry:  # Entry Info
             title = f"{self.section.title_para.text.strip().title()} | {self.entry.title_para.text.strip().title()}"
@@ -371,7 +457,7 @@ class LoreDocEmbed(SimpleEmbed):
                 if paragraphs
                 else "*No content found in this entry.*"
             )
-            self.view = ui.View()
+            self.view = LoreEntryView(doc, self.entry)
 
         else:  # Doc Info
             title = doc.title
@@ -381,6 +467,6 @@ class LoreDocEmbed(SimpleEmbed):
                 if sections
                 else "*No sections found in this document.*"
             )
-            self.view = ui.View()
+            self.view = LoreDocView(doc)
 
         super().__init__(title=title, description=description, url=doc.url)

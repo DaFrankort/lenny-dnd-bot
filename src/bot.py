@@ -658,7 +658,7 @@ class Bot(discord.Client):
                 return
 
             embed = LoreDocEmbed(doc, section, entry)
-            await itr.followup.send(embed=embed)
+            await itr.followup.send(embed=embed, view=embed.view)
 
         @lore.autocomplete("section")
         async def autocomplete_lore_section(

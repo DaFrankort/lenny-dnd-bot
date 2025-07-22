@@ -21,6 +21,7 @@ from initiative import (
     InitiativeEmbed,
     InitiativeTracker,
 )
+from polls import SessionPlanPoll
 from search import SearchEmbed, search_from_query
 from shortcuts import ShortcutEmbed
 from stats import Stats
@@ -618,6 +619,20 @@ class Bot(discord.Client):
             await self.initiatives.set_message(itr, message)
 
         @self.tree.command(
+            name=t("commands.plansession.name"),
+            description=t("commands.plansession.desc"),
+        )
+        @app_commands.describe(
+            in_weeks=t("commands.plansession.args.in_weeks"),
+        )
+        async def plan_session(
+            itr: Interaction, in_weeks: app_commands.Range[int, 0, 48]
+        ):
+            log_cmd(itr)
+            poll = SessionPlanPoll(in_weeks)
+            await itr.response.send_message(poll=poll)
+
+        @self.tree.command(
             name=t("commands.lore.name"), description=t("commands.lore.desc")
         )
         async def lore(
@@ -625,6 +640,8 @@ class Bot(discord.Client):
             # section: str = None,
             # entry: str = None
         ):
+            log_cmd(itr)
+
             if not ServerDocs.available():
                 await itr.response.send_message(
                     "Sorry! Google Doc functionality is not set up right now...",

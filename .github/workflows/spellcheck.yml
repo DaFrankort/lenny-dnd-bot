@@ -5,11 +5,11 @@ on:
     branches: [main]
     paths:
       - "readme.md"
-      - "assets/locales/en.json" # cspell supports english by default
+      - "assets/locales/en.json" # cspell config is set to english only
   pull_request:
     paths:
       - "readme.md"
-      - "assets/locales/en.json" # cspell supports english by default
+      - "assets/locales/en.json" # cspell config is set to english only
   workflow_dispatch:
 
 jobs:

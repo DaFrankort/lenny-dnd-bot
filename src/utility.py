@@ -13,7 +13,10 @@ def get_autocomplete_suggestions_from_list(
 
     if query == "":
         if show_results_on_empty_query:
-            return [Choice(name=string.strip().title(), value=string) for string in strings[:limit]]
+            return [
+                Choice(name=string.strip().title(), value=string)
+                for string in strings[:limit]
+            ]
         else:
             return []
 

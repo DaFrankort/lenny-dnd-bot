@@ -243,7 +243,9 @@ class ServerDocs:
                 props = file.get("properties", {})
                 guild_id = props.get("discord_guild_id")
                 if guild_id:
-                    guild_doc_map[str(guild_id)] = file["id"]  # Cache the ID only, we only load docs on demand
+                    guild_doc_map[str(guild_id)] = file[
+                        "id"
+                    ]  # Cache the ID only, we only load docs on demand
 
             page_token = results.get("nextPageToken", None)
             if not page_token:
@@ -252,7 +254,9 @@ class ServerDocs:
         cls._cache = guild_doc_map
 
     @classmethod
-    def get(cls, itr: discord.Interaction, allow_fetch_from_drive: bool = True) -> Doc | None:
+    def get(
+        cls, itr: discord.Interaction, allow_refresh_from_drive: bool = True
+    ) -> Doc | None:
         """Retrieves a Google Doc as a dictionary and a URL to the doc."""
         creds = cls._get_creds()
         guild_id = str(itr.guild_id)
@@ -263,11 +267,18 @@ class ServerDocs:
 
         if isinstance(doc, Doc):
             now = datetime.datetime.now()
-            if now - doc.created_at > datetime.timedelta(minutes=15):
-                logging.debug("Using Google Doc for server {itr.guild.name} from cache")
+            if now - doc.created_at < datetime.timedelta(minutes=15):
+                logging.debug(
+                    f"Loading Google Doc for server {itr.guild.name} from google cache"
+                )
                 return doc
 
-        logging.debug(f"Loading Google Doc for server {itr.guild.name} from google drive")
+            if not allow_refresh_from_drive:
+                return doc
+
+        logging.debug(
+            f"Loading Google Doc for server {itr.guild.name} from google drive"
+        )
         doc_id = doc.id if isinstance(doc, Doc) else doc
         try:
             service = build("docs", "v1", credentials=creds, cache_discovery=False)
@@ -286,7 +297,9 @@ class ServerDocs:
 
         creds = cls._get_creds()
         guild_id = str(itr.guild_id)
-        drive_service = build("drive", "v3", credentials=creds, cache_discovery=False)  # TODO This is always the same, create a property for doc & drive services
+        drive_service = build(
+            "drive", "v3", credentials=creds, cache_discovery=False
+        )  # TODO This is always the same, create a property for doc & drive services
 
         try:
             new_file_metadata = {
@@ -329,13 +342,15 @@ class LoreDocEmbed(SimpleEmbed):
         self.doc = doc
 
         self.section = doc.get_section_by_title(section) if section else None
-        self.entry = self.section.get_entry_by_title(entry) if entry and self.section else None
+        self.entry = (
+            self.section.get_entry_by_title(entry) if entry and self.section else None
+        )
 
         if self.section and not self.entry:  # Section Info
             title = self.section.title_para.text.strip().title()
             entries = self.section.get_entry_titles()
             description = (
-                '**Sections:**\n - ' + '\n - '.join(entries)
+                "**Entries:**\n - " + "\n - ".join(entries)
                 if entries
                 else "*No entries found in this section.*"
             )
@@ -346,7 +361,7 @@ class LoreDocEmbed(SimpleEmbed):
             title = f"{self.section.title_para.text.strip().title()} | {self.entry.title_para.text.strip().title()}"
             paragraphs = self.entry.body_paragraphs
             description = (
-                '\n'.join(paragraph.text.strip() for paragraph in paragraphs)
+                "\n".join(paragraph.text.strip() for paragraph in paragraphs)
                 if paragraphs
                 else "*No content found in this entry.*"
             )
@@ -356,14 +371,10 @@ class LoreDocEmbed(SimpleEmbed):
             title = doc.title
             sections = doc.get_section_titles()
             description = (
-                '**Entries:**\n - ' + '\n - '.join(sections)
+                "**Sections:**\n - " + "\n - ".join(sections)
                 if sections
                 else "*No sections found in this document.*"
             )
             self.view = discord.ui.View()
 
-        super().__init__(
-            title=title,
-            description=description,
-            url=doc.url
-        )
+        super().__init__(title=title, description=description, url=doc.url)

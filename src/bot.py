@@ -635,11 +635,7 @@ class Bot(discord.Client):
         @self.tree.command(
             name=t("commands.lore.name"), description=t("commands.lore.desc")
         )
-        async def lore(
-            itr: Interaction,
-            section: str = None,
-            entry: str = None
-        ):
+        async def lore(itr: Interaction, section: str = None, entry: str = None):
             log_cmd(itr)
 
             if not ServerDocs.available():
@@ -664,7 +660,7 @@ class Bot(discord.Client):
             embed = LoreDocEmbed(doc, section, entry)
             await itr.followup.send(embed=embed)
 
-        @lore.autocomplete('section')
+        @lore.autocomplete("section")
         async def autocomplete_lore_section(
             itr: Interaction, current: str
         ) -> list[app_commands.Choice[str]]:
@@ -673,9 +669,11 @@ class Bot(discord.Client):
                 return []
 
             choices = doc.get_section_titles()
-            return get_autocomplete_suggestions_from_list(strings=choices, query=current, show_results_on_empty_query=True)
+            return get_autocomplete_suggestions_from_list(
+                strings=choices, query=current, show_results_on_empty_query=True
+            )
 
-        @lore.autocomplete('entry')
+        @lore.autocomplete("entry")
         async def autocomplete_lore_entry(
             itr: Interaction, current: str
         ) -> list[app_commands.Choice[str]]:
@@ -692,7 +690,9 @@ class Bot(discord.Client):
                 return []
 
             choices = section.get_entry_titles()
-            return get_autocomplete_suggestions_from_list(strings=choices, query=current, show_results_on_empty_query=True)
+            return get_autocomplete_suggestions_from_list(
+                strings=choices, query=current, show_results_on_empty_query=True
+            )
 
         @self.tree.command(
             name=t("commands.help.name"), description=t("commands.help.desc")

@@ -10,6 +10,8 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
+from src.embeds import SimpleEmbed
+
 googleapiclient.discovery._DEFAULT_DISCOVERY_DOC_CACHE = (
     False  # Suppress file_cache warning
 )
@@ -312,16 +314,51 @@ class ServerDocs:
             return None
 
 
-# class LoreDocEmbed(SimpleEmbed):
-#     doc: Doc
-#     view: LoreDocView
-#     section: str | None = None
-#     entry: str | None = None
+class LoreDocEmbed(SimpleEmbed):
+    doc: Doc
+    view: discord.ui.View
+    section: str | None = None
+    entry: str | None = None
 
-#     def __init__(self, doc: Doc):
-#         self.doc = doc
-#         super().__init__(
-#             title=doc.title,
-#             description=None,
-#             url=doc.url
-#         )
+    def __init__(self, doc: Doc, section: str | None = None, entry: str | None = None):
+        self.doc = doc
+
+        self.section = doc.get_section_by_title(section) if section else None
+        self.entry = section.get_entry_by_title(entry) if entry and self.section else None
+
+        if self.section:  # Section Info
+            title = self.section.title_para.text.strip().title()
+            entries = self.section.get_entry_titles()
+            description = (
+                '\n - '.join(entries)
+                if entries
+                else "*No entries found in this section.*"
+            )
+
+            self.view = discord.ui.View()
+
+        elif self.section and self.entry:  # Entry Info
+            title = f"{self.section.title_para.text.strip().upper()} - {self.entry.title_para.text.strip().title()}"
+            paragraphs = self.entry.body_paragraphs
+            description = (
+                '\n'.join(paragraph.text.strip() for paragraph in paragraphs)
+                if paragraphs
+                else "*No content found in this entry.*"
+            )
+            self.view = discord.ui.View()
+
+        else:  # Doc Info
+            title = doc.title
+            sections = doc.get_section_titles()
+            description = (
+                '\n - '.join(sections)
+                if sections
+                else "*No sections found in this document.*"
+            )
+            self.view = discord.ui.View()
+
+        super().__init__(
+            title=title,
+            description=description,
+            url=doc.url
+        )

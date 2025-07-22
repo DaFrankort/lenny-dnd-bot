@@ -5,7 +5,7 @@ import discord
 from discord import app_commands
 from discord import Interaction
 from dotenv import load_dotenv
-from googledocs import ServerDocs
+from googledocs import LoreDocEmbed, ServerDocs
 from help import HelpEmbed
 from i18n import t
 
@@ -14,7 +14,6 @@ from dnd import DNDData, DNDObject
 from embeds import (
     NoResultsFoundEmbed,
     MultiDNDSelectView,
-    SimpleEmbed,
     UserActionEmbed,
 )
 from initiative import (
@@ -637,8 +636,8 @@ class Bot(discord.Client):
         )
         async def lore(
             itr: Interaction,
-            # section: str = None,
-            # entry: str = None
+            section: str = None,
+            entry: str = None
         ):
             log_cmd(itr)
 
@@ -661,26 +660,7 @@ class Bot(discord.Client):
                 )
                 return
 
-            desc = []
-            section_titles = doc.get_section_titles()
-            for title in section_titles:
-                section = doc.get_section_by_title(title)
-                desc.append(f"__**{title.strip()}**__")
-
-                entry_titles = section.get_entry_titles()
-                for e_title in entry_titles:
-                    desc.append(f"**{e_title.strip()}**")
-                    entry = section.get_entry_by_title(e_title)
-
-                    for p in entry.body_paragraphs:
-                        desc.append(p.text)
-
-            embed = SimpleEmbed(
-                title=doc.title,
-                description="\n".join(desc),
-                url=doc.url,
-            )
-
+            embed = LoreDocEmbed(doc, section, entry)
             await itr.followup.send(embed=embed)
 
         # TODO: Cache docs, to prevent constant api calls

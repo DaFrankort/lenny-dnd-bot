@@ -10,7 +10,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-from src.embeds import SimpleEmbed
+from embeds import SimpleEmbed
 
 googleapiclient.discovery._DEFAULT_DISCOVERY_DOC_CACHE = (
     False  # Suppress file_cache warning
@@ -324,13 +324,13 @@ class LoreDocEmbed(SimpleEmbed):
         self.doc = doc
 
         self.section = doc.get_section_by_title(section) if section else None
-        self.entry = section.get_entry_by_title(entry) if entry and self.section else None
+        self.entry = self.section.get_entry_by_title(entry) if entry and self.section else None
 
-        if self.section:  # Section Info
+        if self.section and not self.entry:  # Section Info
             title = self.section.title_para.text.strip().title()
             entries = self.section.get_entry_titles()
             description = (
-                '\n - '.join(entries)
+                '**Sections:**\n - ' + '\n - '.join(entries)
                 if entries
                 else "*No entries found in this section.*"
             )
@@ -338,7 +338,7 @@ class LoreDocEmbed(SimpleEmbed):
             self.view = discord.ui.View()
 
         elif self.section and self.entry:  # Entry Info
-            title = f"{self.section.title_para.text.strip().upper()} - {self.entry.title_para.text.strip().title()}"
+            title = f"{self.section.title_para.text.strip().title()} | {self.entry.title_para.text.strip().title()}"
             paragraphs = self.entry.body_paragraphs
             description = (
                 '\n'.join(paragraph.text.strip() for paragraph in paragraphs)
@@ -351,7 +351,7 @@ class LoreDocEmbed(SimpleEmbed):
             title = doc.title
             sections = doc.get_section_titles()
             description = (
-                '\n - '.join(sections)
+                '**Entries:**\n - ' + '\n - '.join(sections)
                 if sections
                 else "*No sections found in this document.*"
             )

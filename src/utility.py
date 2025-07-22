@@ -5,13 +5,17 @@ from rapidfuzz import fuzz
 def get_autocomplete_suggestions_from_list(
     strings: list[str],
     query: str = "",
+    show_results_on_empty_query: bool = False,
     fuzzy_threshold: float = 75,
     limit: int = 25,
 ) -> list[Choice[str]]:
     query = query.strip().lower().replace(" ", "")
 
     if query == "":
-        return []
+        if show_results_on_empty_query:
+            return [Choice(name=string.strip().title(), value=string) for string in strings[:limit]]
+        else:
+            return []
 
     choices = []
     seen = set()  # Required to avoid duplicate suggestions
@@ -19,7 +23,7 @@ def get_autocomplete_suggestions_from_list(
         if string.strip() in seen:
             continue
 
-        string_clean = string.name.strip().lower().replace(" ", "")
+        string_clean = string.strip().lower().replace(" ", "")
         score = fuzz.partial_ratio(query, string_clean)
         if score > fuzzy_threshold:
             starts_with_query = string_clean.startswith(query)

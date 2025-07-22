@@ -1,9 +1,8 @@
+import datetime
 import logging
 import os
-import json
 from typing import Literal
 import discord
-import googleapiclient
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -12,9 +11,6 @@ from googleapiclient.errors import HttpError
 
 from embeds import SimpleEmbed
 
-googleapiclient.discovery._DEFAULT_DISCOVERY_DOC_CACHE = (
-    False  # Suppress file_cache warning
-)
 NamedStyle = Literal[
     "TITLE", "SUBTITLE", "HEADING_1", "HEADING_2", "HEADING_3", "NORMAL_TEXT"
 ]
@@ -108,6 +104,7 @@ class Doc:
     id: str
     url: str
     sections = list[Section]
+    created_at: datetime.datetime
 
     def __init__(self, raw: dict):
         self._raw = raw
@@ -115,6 +112,7 @@ class Doc:
         self.id = raw.get("documentId", None)
         self.url = get_google_doc_url(self.id)
         self.sections: list[Section] = []
+        self.created_at = datetime.datetime.now()
         self._parse()
 
     def _parse(self):
@@ -164,7 +162,7 @@ class Doc:
 class ServerDocs:
     """Class used to interact with Server's Google Docs"""
 
-    _cache: dict[str, str] = {}
+    _cache: dict[str, Doc | str] = {}
     _template_id = None
     _credential_path = "credentials.json"
     _token_path = "./temp/google_token.json"
@@ -225,7 +223,7 @@ class ServerDocs:
         """
         logging.debug("Updating Google Doc cache")
         creds = cls._get_creds()
-        service = build("drive", "v3", credentials=creds)
+        service = build("drive", "v3", credentials=creds, cache_discovery=False)
 
         page_token = None
         guild_doc_map = {}
@@ -245,7 +243,7 @@ class ServerDocs:
                 props = file.get("properties", {})
                 guild_id = props.get("discord_guild_id")
                 if guild_id:
-                    guild_doc_map[str(guild_id)] = file["id"]
+                    guild_doc_map[str(guild_id)] = file["id"]  # Cache the ID only, we only load docs on demand
 
             page_token = results.get("nextPageToken", None)
             if not page_token:
@@ -254,26 +252,33 @@ class ServerDocs:
         cls._cache = guild_doc_map
 
     @classmethod
-    def get(cls, itr: discord.Interaction) -> Doc | None:
+    def get(cls, itr: discord.Interaction, allow_fetch_from_drive: bool = True) -> Doc | None:
         """Retrieves a Google Doc as a dictionary and a URL to the doc."""
         creds = cls._get_creds()
         guild_id = str(itr.guild_id)
-        doc_id = cls._cache.get(guild_id, None)
 
-        if doc_id is None:
+        doc = cls._cache.get(guild_id, None)
+        if doc is None:
             return None
 
-        try:
-            service = build("docs", "v1", credentials=creds)
-            doc = service.documents().get(documentId=doc_id).execute()
+        if isinstance(doc, Doc):
+            now = datetime.datetime.now()
+            if now - doc.created_at > datetime.timedelta(minutes=15):
+                logging.debug("Using Google Doc for server {itr.guild.name} from cache")
+                return doc
 
-            logging.info(f"Loaded google doc: {doc.get('title')}")
-            with open("output.json", "w", encoding="utf-8") as f:
-                json.dump(doc, f, indent=4, sort_keys=True, ensure_ascii=False)
-            return Doc(doc)
+        logging.debug(f"Loading Google Doc for server {itr.guild.name} from google drive")
+        doc_id = doc.id if isinstance(doc, Doc) else doc
+        try:
+            service = build("docs", "v1", credentials=creds, cache_discovery=False)
+            new_doc = service.documents().get(documentId=doc_id).execute()
+            doc = Doc(new_doc)
+            cls._cache[str(guild_id)] = doc
+            return doc
         except HttpError as err:
             logging.error(err)
-            return None
+
+            return doc  # Return cached
 
     @classmethod
     def create(cls, itr: discord.Interaction) -> Doc | None:
@@ -281,7 +286,7 @@ class ServerDocs:
 
         creds = cls._get_creds()
         guild_id = str(itr.guild_id)
-        drive_service = build("drive", "v3", credentials=creds)
+        drive_service = build("drive", "v3", credentials=creds, cache_discovery=False)  # TODO This is always the same, create a property for doc & drive services
 
         try:
             new_file_metadata = {

@@ -35,6 +35,7 @@ from token_gen import (
     open_image_url,
 )
 from user_colors import UserColor
+from utility import get_autocomplete_suggestions_from_list
 from voice_chat import VC, Sounds
 
 
@@ -663,37 +664,35 @@ class Bot(discord.Client):
             embed = LoreDocEmbed(doc, section, entry)
             await itr.followup.send(embed=embed)
 
-        # TODO: Cache docs, to prevent constant api calls
+        @lore.autocomplete('section')
+        async def autocomplete_lore_section(
+            itr: Interaction, current: str
+        ) -> list[app_commands.Choice[str]]:
+            doc = ServerDocs.get(itr, False)
+            if not doc:
+                return []
 
-        # @lore.autocomplete('section')
-        # async def autocomplete_lore_section(
-        #     itr: Interaction, current: str
-        # ) -> list[app_commands.Choice[str]]:
-        #     doc = ServerDocs.get(itr)
-        #     if not doc:
-        #         return []
+            choices = doc.get_section_titles()
+            return get_autocomplete_suggestions_from_list(strings=choices, query=current, show_results_on_empty_query=True)
 
-        #     choices = doc.get_section_titles()
-        #     return get_autocomplete_suggestions_from_list(choices, current)
+        @lore.autocomplete('entry')
+        async def autocomplete_lore_entry(
+            itr: Interaction, current: str
+        ) -> list[app_commands.Choice[str]]:
+            section_value = getattr(itr.namespace, "section", None)
+            if not section_value:
+                return []
 
-        # @lore.autocomplete('entry')
-        # async def autocomplete_lore_entry(
-        #     itr: Interaction, current: str
-        # ) -> list[app_commands.Choice[str]]:
-        #     section_value = itr.namespace.get("section")
-        #     if not section_value:
-        #         return []
+            doc = ServerDocs.get(itr, False)
+            if not doc:
+                return []
 
-        #     doc = ServerDocs.get(itr)
-        #     if not doc:
-        #         return []
+            section = doc.get_section_by_title(section_value)
+            if not section:
+                return []
 
-        #     section = doc.get_section_by_title(section_value)
-        #     if not section:
-        #         return []
-
-        #     choices = section.get_entry_titles()
-        #     return get_autocomplete_suggestions_from_list(choices, current)
+            choices = section.get_entry_titles()
+            return get_autocomplete_suggestions_from_list(strings=choices, query=current, show_results_on_empty_query=True)
 
         @self.tree.command(
             name=t("commands.help.name"), description=t("commands.help.desc")

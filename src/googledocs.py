@@ -3,6 +3,7 @@ import logging
 import os
 from typing import Literal
 import discord
+import discord.ui as ui
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -332,9 +333,14 @@ class ServerDocs:
             return None
 
 
+###############
+# EMBED CLASSES
+###############
+
+
 class LoreDocEmbed(SimpleEmbed):
     doc: Doc
-    view: discord.ui.View
+    view: ui.View  # TODO
     section: str | None = None
     entry: str | None = None
 
@@ -355,7 +361,7 @@ class LoreDocEmbed(SimpleEmbed):
                 else "*No entries found in this section.*"
             )
 
-            self.view = discord.ui.View()
+            self.view = ui.View()
 
         elif self.section and self.entry:  # Entry Info
             title = f"{self.section.title_para.text.strip().title()} | {self.entry.title_para.text.strip().title()}"
@@ -365,7 +371,7 @@ class LoreDocEmbed(SimpleEmbed):
                 if paragraphs
                 else "*No content found in this entry.*"
             )
-            self.view = discord.ui.View()
+            self.view = ui.View()
 
         else:  # Doc Info
             title = doc.title
@@ -375,6 +381,6 @@ class LoreDocEmbed(SimpleEmbed):
                 if sections
                 else "*No sections found in this document.*"
             )
-            self.view = discord.ui.View()
+            self.view = ui.View()
 
         super().__init__(title=title, description=description, url=doc.url)

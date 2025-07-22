@@ -53,9 +53,9 @@ class HelpEmbed(discord.Embed):
         "roll",
         "dnd",
         "initiative",
-        "color",
         "character",
         "tokengen",
+        "utility",
     ]
     tab: str
     options: list[HelpSelectOption]

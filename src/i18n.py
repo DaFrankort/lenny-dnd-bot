@@ -56,5 +56,6 @@ def get(key: str, **kwargs) -> str | list[str] | None:
     return translation
 
 
-def t(key: str, **kwargs) -> str | list[str] | None:
-    return get(key, **kwargs)
+def t(key: str, x: any = None, **kwargs) -> str | list[str] | None:
+    t = get(key, **kwargs)
+    return t.format(x=x) if x else t

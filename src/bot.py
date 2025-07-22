@@ -627,6 +627,7 @@ class Bot(discord.Client):
         async def plan_session(
             itr: Interaction, in_weeks: app_commands.Range[int, 0, 48]
         ):
+            log_cmd(itr)
             poll = SessionPlanPoll(in_weeks)
             await itr.response.send_message(poll=poll)
 
@@ -634,6 +635,8 @@ class Bot(discord.Client):
             name=t("commands.lore.name"), description=t("commands.lore.desc")
         )
         async def lore(itr: Interaction):
+            log_cmd(itr)
+
             if not ServerDocs.available():
                 await itr.response.send_message(
                     "Sorry! Google Doc functionality is not set up right now...",

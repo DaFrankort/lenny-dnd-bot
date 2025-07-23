@@ -513,7 +513,8 @@ class LoreSectionView(ui.View):
     @ui.button(label="Back", style=discord.ButtonStyle.primary, custom_id="back_btn")
     async def back(self, itr: Interaction, btn: ui.Button):
         """Button to go back to doc overview."""
-        await itr.response.send_message("Sorry, not implemented yet.", ephemeral=True)
+        embed = LoreDocEmbed(self.doc)
+        await itr.response.edit_message(embed=embed, view=embed.view)
 
 
 class LoreEntryView(ui.View):
@@ -539,7 +540,8 @@ class LoreEntryView(ui.View):
     @ui.button(label="Back", style=discord.ButtonStyle.primary, custom_id="back_btn")
     async def back(self, itr: Interaction, btn: ui.Button):
         """Button to go back to section overview."""
-        await itr.response.send_message("Sorry, not implemented yet.", ephemeral=True)
+        embed = LoreDocEmbed(self.doc, section = self.section.title_para.text)
+        await itr.response.edit_message(embed=embed, view=embed.view)
 
 
 class LoreDocEmbed(SimpleEmbed):
@@ -568,7 +570,7 @@ class LoreDocEmbed(SimpleEmbed):
             self.view = LoreSectionView(doc, self.section)
 
         elif self.section and self.entry:  # Entry Info
-            title = f"{self.section.title_para.text.strip()} | {self.entry.title_para.text.strip()}"
+            title = f"{self.entry.title_para.text.strip()} ({self.section.title_para.text.strip()})"
             paragraphs = self.entry.body_paragraphs
             description = (
                 "\n".join(paragraph.text.strip() for paragraph in paragraphs)

@@ -48,9 +48,9 @@ class Paragraph:
     def get_delete_request(self):
         trimmed_text = self.text.rstrip()
         trim_amount = len(self.text) - len(trimmed_text)
+        self.text = trimmed_text  # google automatically adds newline at end, needs to be trimmed to avoid double newlines.
 
         end_index = self.end_index - trim_amount - 1  # Range may not include newline at end of segment.
-        print(repr(self.text))
         return {
             "deleteContentRange": {
                 "range": {"startIndex": self.start_index, "endIndex": end_index}
@@ -439,7 +439,6 @@ class LoreEditModal(SimpleModal):
                 else:
                     requests = para.get_replace_requests(new_text) + requests
 
-        print(requests)
         ServerDocs.apply_requests(self.doc, requests)
         doc = ServerDocs.get(itr)
 

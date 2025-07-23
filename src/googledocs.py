@@ -11,7 +11,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-from embeds import SimpleEmbed
+from embeds import SimpleEmbed, log_button_press
 from modals import SimpleModal
 
 NamedStyle = Literal[
@@ -45,17 +45,24 @@ class Paragraph:
         self.end_index = end_index
         self.style = style
 
-    def get_delete_request(self):
+    def get_delete_request(self, for_replace: bool = False) -> dict:
+        """Use `for_replace = True` when deleting a paragraph that will be replaced by new text. (Handles newline at end differently)"""
         self.text = (
             self.text.rstrip()
         )  # google automatically adds newline at end, needs to be trimmed to avoid double newlines.
+
+        if not for_replace:
+            self.end_index -= (
+                1  # When deleting full text, we need to ignore the newline at the end.
+            )
+
         return {
             "deleteContentRange": {
                 "range": {"startIndex": self.start_index, "endIndex": self.end_index}
             }
         }
 
-    def get_insert_request(self, new_text: str, index: int | None = None):
+    def get_insert_request(self, new_text: str, index: int | None = None) -> dict:
         self.text = new_text
         self.start_index = index if index else self.start_index
         self.end_index = self.start_index + len(self.text) + 1
@@ -66,7 +73,7 @@ class Paragraph:
             }
         }
 
-    def get_style_request(self, style: NamedStyle | None):
+    def get_style_request(self, style: NamedStyle | None) -> dict:
         style = style or self.style
         return {
             "updateParagraphStyle": {
@@ -80,7 +87,7 @@ class Paragraph:
         self, new_text: str, style: NamedStyle | None = None
     ) -> list[dict]:
         return [
-            self.get_delete_request(),
+            self.get_delete_request(for_replace=True),
             self.get_insert_request(new_text),
             self.get_style_request(style),
         ]
@@ -269,6 +276,19 @@ class ServerDocs:
                 break
 
         cls._cache = guild_doc_map
+
+    @classmethod
+    def uncache_doc(cls, doc: Doc):
+        """
+        Removes a document from the cache.
+        This is useful when you want to force a reload of the document from Google Drive.
+        """
+        if not isinstance(doc, Doc):
+            return
+
+        logging.debug(f"Uncaching Google Doc for server {doc.guild_id}")
+        guild_id = str(doc.guild_id)
+        cls._cache[guild_id] = doc.id
 
     @classmethod
     def get(
@@ -507,15 +527,35 @@ class LoreSectionView(ui.View):
     @ui.button(label="Delete", style=discord.ButtonStyle.danger, custom_id="delete_btn")
     async def delete(self, itr: Interaction, btn: ui.Button):
         """Button to delete the section."""
-        await itr.response.send_message("Sorry, not implemented yet.", ephemeral=True)
-        # await itr.response.send_modal(modal=SimpleModal(itr, "Delete Section"))
+        log_button_press(itr, btn, "LoreSectionView.delete")
+        # TODO CONFIRM MODAL
+
+        # TODO move request logic to SECTION class
+        # if not self.section.entries:
+        #     ServerDocs.apply_requests(
+        #         self.doc, [self.section.title_para.get_delete_request()]
+        #     )
+
+        # else:
+        #     requests = []
+        #     for para in self.section.entries:
+        #         requests.append(para.get_delete_request())
+        #     requests.append(self.entry.title_para.get_delete_request())
+        #     ServerDocs.apply_requests(self.doc, requests)
+
+        await self._go_back(itr)
 
     @ui.button(label="Back", style=discord.ButtonStyle.primary, custom_id="back_btn")
     async def back(self, itr: Interaction, btn: ui.Button):
         """Button to go back to doc overview."""
-        embed = LoreDocEmbed(self.doc)
-        await itr.response.edit_message(embed=embed, view=embed.view)
+        log_button_press(itr, btn, "LoreSectionView.back")
+        await self._go_back(itr)
 
+    async def _go_back(self, itr: Interaction):
+        """Helper method to navigate back, call this from delete after deletion."""
+        doc = ServerDocs.get(itr)
+        embed = LoreDocEmbed(doc)
+        await itr.response.edit_message(embed=embed, view=embed.view)
 
 class LoreEntryView(ui.View):
     def __init__(self, doc: Doc, section: Section, entry: Entry):
@@ -534,13 +574,34 @@ class LoreEntryView(ui.View):
     @ui.button(label="Delete", style=discord.ButtonStyle.danger, custom_id="delete_btn")
     async def delete(self, itr: Interaction, btn: ui.Button):
         """Button to delete the section."""
-        itr.response.send_message("Sorry, not implemented yet.", ephemeral=True)
-        # await itr.response.send_modal(modal=SimpleModal(itr, "Delete Entry"))
+        log_button_press(itr, btn, "LoreEntryView.delete")
+        # TODO CONFIRM MODAL
+
+        # TODO move request logic to entry class
+        if not self.entry.body_paragraphs:
+            ServerDocs.apply_requests(
+                self.doc, [self.entry.title_para.get_delete_request()]
+            )
+
+        else:
+            requests = []
+            for para in self.entry.body_paragraphs:
+                requests.append(para.get_delete_request())
+            requests.append(self.entry.title_para.get_delete_request())
+            ServerDocs.apply_requests(self.doc, requests)
+
+        await self._go_back(itr)
 
     @ui.button(label="Back", style=discord.ButtonStyle.primary, custom_id="back_btn")
     async def back(self, itr: Interaction, btn: ui.Button):
         """Button to go back to section overview."""
-        embed = LoreDocEmbed(self.doc, section = self.section.title_para.text)
+        log_button_press(itr, btn, "LoreEntryView.back")
+        await self._go_back(itr)
+
+    async def _go_back(self, itr: Interaction):
+        """Helper method to navigate back, call this from delete after deletion."""
+        doc = ServerDocs.get(itr)
+        embed = LoreDocEmbed(doc, section=self.section.title_para.text)
         await itr.response.edit_message(embed=embed, view=embed.view)
 
 
@@ -553,7 +614,12 @@ class LoreDocEmbed(SimpleEmbed):
     def __init__(self, doc: Doc, section: str | None = None, entry: str | None = None):
         self.doc = doc
 
+        if section and section not in doc.get_section_titles():
+            ServerDocs.uncache_doc(doc)
         self.section = doc.get_section_by_title(section) if section else None
+
+        if entry and self.section and entry not in self.section.get_entry_titles():
+            ServerDocs.uncache_doc(doc)
         self.entry = (
             self.section.get_entry_by_title(entry) if entry and self.section else None
         )

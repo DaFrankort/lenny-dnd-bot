@@ -46,14 +46,12 @@ class Paragraph:
         self.style = style
 
     def get_delete_request(self):
-        trimmed_text = self.text.rstrip()
-        trim_amount = len(self.text) - len(trimmed_text)
-        self.text = trimmed_text  # google automatically adds newline at end, needs to be trimmed to avoid double newlines.
-
-        end_index = self.end_index - trim_amount - 1  # Range may not include newline at end of segment.
+        self.text = (
+            self.text.rstrip()
+        )  # google automatically adds newline at end, needs to be trimmed to avoid double newlines.
         return {
             "deleteContentRange": {
-                "range": {"startIndex": self.start_index, "endIndex": end_index}
+                "range": {"startIndex": self.start_index, "endIndex": self.end_index}
             }
         }
 
@@ -173,10 +171,10 @@ class ServerDocs:
     """Class used to interact with Server's Google Docs"""
 
     _cache: dict[str, Doc | str] = {}
-    _template_id = None
-    _credential_path = "credentials.json"
-    _token_path = "./temp/google_token.json"
-    _scopes = [
+    _template_id: str = None
+    _credential_path: str = "credentials.json"
+    _token_path: str = "./temp/google_token.json"
+    _scopes: list[str] = [
         "https://www.googleapis.com/auth/documents",
         "https://www.googleapis.com/auth/drive",
     ]
@@ -247,7 +245,8 @@ class ServerDocs:
         guild_doc_map = {}
         while True:
             results = (
-                cls._drive_service().files()
+                cls._drive_service()
+                .files()
                 .list(
                     q="mimeType='application/vnd.google-apps.document'",  # Only get google docs
                     pageSize=100,
@@ -270,11 +269,6 @@ class ServerDocs:
                 break
 
         cls._cache = guild_doc_map
-
-    @classmethod
-    def cache(cls, doc: Doc):
-        """Caches a Google Doc to memory, intended for external use only."""
-        cls._cache[str(doc.guild_id)] = doc
 
     @classmethod
     def get(
@@ -344,8 +338,8 @@ class ServerDocs:
             cls._cache[str(guild_id)] = doc_id
             return Doc(new_doc, guild_id)
 
-        except HttpError as error:
-            logging.ERROR(f"Error whilst creating google doc for server:\n {error}")
+        except HttpError as e:
+            logging.error(f"Error whilst creating google doc for server:\n {e}")
             return None
 
     @classmethod
@@ -369,8 +363,11 @@ class ServerDocs:
             return True
 
         except HttpError as error:
-            logging.error(f"Error applying requests to Google Doc {doc.title}:\n{error}")
+            logging.error(
+                f"Error applying requests to Google Doc {doc.title}:\n{error}"
+            )
             return False
+
 
 ###############
 # EMBED CLASSES
@@ -378,7 +375,9 @@ class ServerDocs:
 
 
 class LoreEditModal(SimpleModal):
-    def __init__(self, itr: Interaction, doc: Doc, section: Section, entry: Entry | None = None):
+    def __init__(
+        self, itr: Interaction, doc: Doc, section: Section, entry: Entry | None = None
+    ):
         modal_title = "Edit Entry" if entry else "Edit Section"
         super().__init__(itr, modal_title)
 
@@ -387,6 +386,8 @@ class LoreEditModal(SimpleModal):
         self.entry = entry
         title_paragraph = entry.title_para if entry else section.title_para
         title_placeholder = title_paragraph.text.strip() or "Untitled"
+        if len(title_placeholder) > 100:  # Placeholder max length is 100
+            title_placeholder = title_placeholder[:97] + "..."
 
         self.add_item(
             ui.TextInput(
@@ -402,10 +403,14 @@ class LoreEditModal(SimpleModal):
             return
 
         for para in entry.body_paragraphs:
+            para_placeholder = para.text.strip() or "Lorem Ipsum, dolor sit amet..."
+            if len(para_placeholder) > 100:  # Placeholder max length is 100
+                para_placeholder = para_placeholder[:97] + "..."
+
             self.add_item(
                 ui.TextInput(
                     label="Content",
-                    placeholder=para.text or "Lorem Ipsum, dolor sit amet...",
+                    placeholder=para_placeholder,
                     default=para.text or None,
                     style=discord.TextStyle.long,
                     required=False,
@@ -414,7 +419,9 @@ class LoreEditModal(SimpleModal):
 
     async def on_submit(self, itr: Interaction):
         requests = []
-        title_paragraph = self.entry.title_para if self.entry else self.section.title_para
+        title_paragraph = (
+            self.entry.title_para if self.entry else self.section.title_para
+        )
 
         new_title = self.children[0].value.strip()
         if not new_title:
@@ -435,15 +442,21 @@ class LoreEditModal(SimpleModal):
 
                 # Insert new requests at the start, so doc is edited from last to first
                 if not new_text:
-                    requests = para.get_delete_request() + requests
+                    requests = [para.get_delete_request()] + requests
                 else:
                     requests = para.get_replace_requests(new_text) + requests
+
+        if not requests:
+            await itr.response.send_message("No changes made.", ephemeral=True)
+            return
 
         ServerDocs.apply_requests(self.doc, requests)
         doc = ServerDocs.get(itr)
 
         if self.entry:
-            embed = LoreDocEmbed(doc, section=self.section.title_para.text, entry=new_title)
+            embed = LoreDocEmbed(
+                doc, section=self.section.title_para.text, entry=new_title
+            )
         else:
             embed = LoreDocEmbed(doc, section=new_title)
 
@@ -513,7 +526,9 @@ class LoreEntryView(ui.View):
     @ui.button(label="Edit", style=discord.ButtonStyle.success, custom_id="add_btn")
     async def edit(self, itr: Interaction, btn: ui.Button):
         """Button to add a new entry to the document."""
-        await itr.response.send_modal(LoreEditModal(itr, self.doc, self.section, self.entry))
+        await itr.response.send_modal(
+            LoreEditModal(itr, self.doc, self.section, self.entry)
+        )
 
     @ui.button(label="Delete", style=discord.ButtonStyle.danger, custom_id="delete_btn")
     async def delete(self, itr: Interaction, btn: ui.Button):
@@ -542,7 +557,7 @@ class LoreDocEmbed(SimpleEmbed):
         )
 
         if self.section and not self.entry:  # Section Info
-            title = self.section.title_para.text.strip().title()
+            title = self.section.title_para.text.strip()
             entries = self.section.get_entry_titles()
             description = (
                 "**Entries:**\n - " + "\n - ".join(entries)
@@ -553,7 +568,7 @@ class LoreDocEmbed(SimpleEmbed):
             self.view = LoreSectionView(doc, self.section)
 
         elif self.section and self.entry:  # Entry Info
-            title = f"{self.section.title_para.text.strip().title()} | {self.entry.title_para.text.strip().title()}"
+            title = f"{self.section.title_para.text.strip()} | {self.entry.title_para.text.strip()}"
             paragraphs = self.entry.body_paragraphs
             description = (
                 "\n".join(paragraph.text.strip() for paragraph in paragraphs)

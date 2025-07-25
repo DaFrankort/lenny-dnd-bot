@@ -629,6 +629,39 @@ class Bot(discord.Client):
             await itr.response.send_message(poll=poll)
 
         @self.tree.command(
+            name="playsound",
+            description="Play a sound in a voice channel.",
+        )
+        async def play_sound(itr: Interaction, sound: discord.Attachment):
+            log_cmd(itr)
+
+            if not VC.voice_available:
+                await itr.response.send_message(
+                    "❌ Voice chat is not enabled on this bot. ❌", ephemeral=True
+                )
+                return
+
+            if not sound.content_type.startswith("audio"):
+                await itr.response.send_message(
+                    "❌ Attachment must be an audio file! ❌", ephemeral=True
+                )
+                return
+
+            if not itr.user.voice or not itr.guild:
+                await itr.response.send_message(
+                    "❌ You must be in a server voice channel to play sounds! ❌",
+                    ephemeral=True,
+                )
+                return
+
+            channel_mention = itr.user.voice.channel.mention
+            await itr.response.send_message(
+                f"▶️ Playing sound: {sound.filename} in {channel_mention}... ◀️",
+                ephemeral=True,
+            )
+            await VC.play_attachment(itr, sound)
+
+        @self.tree.command(
             name=t("commands.help.name"), description=t("commands.help.desc")
         )
         @app_commands.choices(tab=HelpEmbed.get_tab_choices())

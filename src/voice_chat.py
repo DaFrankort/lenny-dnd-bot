@@ -1,6 +1,7 @@
 import asyncio
 from enum import Enum
 import logging
+import os
 from pathlib import Path
 import random
 import shutil
@@ -125,6 +126,35 @@ class VC:
             sound_type = SoundType.NAT_1
 
         await VC.play(itr, sound_type)
+
+    async def play_attachment(
+        self, itr: discord.Interaction, attachment: discord.Attachment
+    ):
+        """Play an audio file from an attachment."""
+        if not VC.voice_available:
+            return
+        if not attachment.content_type.startswith("audio"):
+            return
+        if not itr.guild or not itr.user.voice:
+            return
+
+        await VC.join(itr)
+
+        client = VC.clients.get(itr.guild_id)
+        if not client:
+            return
+
+        if client.is_playing():
+            client.stop()
+
+        temp_file = Path("./temp/sounds") / f"{itr.user.id}_{attachment.filename}"
+        await attachment.save(temp_file)
+        audio_source = discord.FFmpegPCMAudio(source=str(temp_file))
+
+        client.play(
+            audio_source,
+            after=lambda e: os.remove(temp_file) if os.path.exists(temp_file) else None,
+        )
 
     @staticmethod
     async def monitor_vc(guild_id: int):

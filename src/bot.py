@@ -13,6 +13,7 @@ from dnd import DNDData, DNDObject
 from embeds import (
     NoResultsFoundEmbed,
     MultiDNDSelectView,
+    SuccessEmbed,
     UserActionEmbed,
 )
 from initiative import (
@@ -634,32 +635,14 @@ class Bot(discord.Client):
         )
         async def play_sound(itr: Interaction, sound: discord.Attachment):
             log_cmd(itr)
-
-            if not VC.voice_available:
-                await itr.response.send_message(
-                    "❌ Voice chat is not enabled on this bot. ❌", ephemeral=True
-                )
-                return
-
-            if not sound.content_type.startswith("audio"):
-                await itr.response.send_message(
-                    "❌ Attachment must be an audio file! ❌", ephemeral=True
-                )
-                return
-
-            if not itr.user.voice or not itr.guild:
-                await itr.response.send_message(
-                    "❌ You must be in a server voice channel to play sounds! ❌",
-                    ephemeral=True,
-                )
-                return
-
-            channel_mention = itr.user.voice.channel.mention
-            await itr.response.send_message(
-                f"▶️ Playing sound: {sound.filename} in {channel_mention}... ◀️",
-                ephemeral=True,
+            description, success = await VC.play_attachment(itr, sound)
+            embed = SuccessEmbed(
+                title_success=f"Playing {sound.filename}!",
+                title_error=f"Failed to play {sound.filename}...",
+                description=description,
+                success=success,
             )
-            await VC.play_attachment(itr, sound)
+            await itr.response.send_message(embed=embed, ephemeral=True)
 
         @self.tree.command(
             name=t("commands.help.name"), description=t("commands.help.desc")

@@ -99,7 +99,7 @@
     "color": {
       "name": "color",
       "desc": "Set a preferred color using a hex-value. Leave hex_color empty to use auto-generated colors.",
-      "help": "Set a custom color for yourself by providing a hex value. Using the command without a hex-value defaults the user's color back to an auto-generated one.",
+      "help": "Set a custom color for yourself by providing a hex value. Using the command without a hex-value defaults your color back to an auto-generated one.",
       "command": "/color [color]"
     },
     "stats": {
@@ -125,6 +125,15 @@
       "desc": "Turn an image url into a 5e.tools-style token.",
       "help": "Generates a token image from an image url.",
       "command": "/tokengenurl <image-url> [hue-shift] [h_alignment] [v_alignment]"
+    },
+    "plansession": {
+      "name": "plansession",
+      "desc": "Stop squandering and poll your party's availability in x weeks!",
+      "help": "Creates a poll for players to select their availability in x weeks. Generates poll-answers from Monday - Sunday, along with an 'Earlier' and 'Later' option. If 0 is specified it will poll for the remaining days in the current week.",
+      "command": "/plansession <in-weeks>",
+      "args": {
+        "in_weeks": "How many weeks from now? (0 = this week, 1 = next week, ...)"
+      }
     }
   },
   "help": {
@@ -176,11 +185,19 @@
         }
       ]
     },
-    "color": {
-      "name": "User Color",
-      "commands": ["color"],
-      "text": "By default, a random color is generated depending on the user's display name, however you can set a custom color using the following command:",
-      "info": []
+    "utility": {
+      "name": "Discord Utilities",
+      "commands": ["color", "plansession"],
+      "text": "",
+      "info": [
+        {
+          "name": "User Colors",
+          "info": [
+            "By default, a random color is generated depending on the user's display name.",
+            "These colors are used in action commands (e.g. /roll), making it quicker to discern which player did which action."
+          ]
+        }
+      ]
     },
     "character": {
       "name": "Character",
@@ -244,5 +261,15 @@
         }
       ]
     }
+  },
+  "common": {
+    "earlier": "Earlier",
+    "later": "Later",
+    "tomorrow": "Tomorrow",
+    "in_x_days": "In {x} days",
+    "this_week": "this week",
+    "next_week": "next week",
+    "in_x_weeks": "in {x} weeks",
+    "week_x_question": "Session {x}, which days work for you?"
   }
 }

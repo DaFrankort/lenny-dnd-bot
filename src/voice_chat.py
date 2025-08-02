@@ -22,6 +22,7 @@ class SoundType(Enum):
 class VC:
     clients: dict[int, discord.VoiceClient] = {}
     voice_available: bool = False
+    TEMP_PATH = Path("./temp/sounds")
 
     @staticmethod
     def check_ffmpeg():
@@ -127,8 +128,9 @@ class VC:
 
         await VC.play(itr, sound_type)
 
+    @staticmethod
     async def play_attachment(
-        self, itr: discord.Interaction, attachment: discord.Attachment
+        itr: discord.Interaction, attachment: discord.Attachment
     ) -> tuple[str, True]:
         """Play an audio file from an attachment. Returns a tuple with a description and a boolean for success."""
         if not VC.voice_available:
@@ -146,16 +148,27 @@ class VC:
                 False,
             )
 
+        os.makedirs(VC.TEMP_PATH, exist_ok=True)
+        ext = Path(attachment.filename).suffix
+        temp_file = VC.TEMP_PATH / f"{itr.guild_id}{ext}"
+
         if client.is_playing():
             client.stop()
+            await asyncio.sleep(1)  # Give time for the stop to take effect
 
-        temp_file = Path("./temp") / "sounds" / f"{itr.user.id}_{attachment.filename}"
         await attachment.save(temp_file)
-        audio_source = discord.FFmpegPCMAudio(source=str(temp_file))
+        audio_source = discord.FFmpegPCMAudio(source=str(temp_file), options="-filter:a 'dynaudnorm, volume=0.2'")
+
+        async def delete_file_after_use(file: Path):
+            if client.is_playing():
+                return
+            if file.exists():
+                await asyncio.sleep(1)
+                os.remove(file)
 
         client.play(
             audio_source,
-            after=lambda e: os.remove(temp_file) if os.path.exists(temp_file) else None,
+            after=lambda e: delete_file_after_use(temp_file),
         )
         return (
             f"▶️ Playing {attachment.filename} in {itr.user.voice.channel.mention}...",
@@ -178,6 +191,16 @@ class VC:
                 logging.info("Bot is alone in voice channel, disconnecting.")
                 await VC.leave(guild_id)
                 break
+
+            if VC.TEMP_PATH.exists():
+                for file in VC.TEMP_PATH.iterdir():
+                    if file.is_file():
+                        # Delete if older than 5 minutes
+                        if (asyncio.get_event_loop().time() - file.stat().st_mtime) > 300:
+                            try:
+                                file.unlink()
+                            except Exception as e:
+                                logging.error(f"Failed to delete temp file {file}: {e}")
 
             await asyncio.sleep(60)
 

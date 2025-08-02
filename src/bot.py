@@ -637,8 +637,8 @@ class Bot(discord.Client):
             log_cmd(itr)
             description, success = await VC.play_attachment(itr, sound)
             embed = SuccessEmbed(
-                title_success=f"Playing {sound.filename}!",
-                title_error=f"Failed to play {sound.filename}...",
+                title_success="Playing sound!",
+                title_fail=f"Failed to play {sound.filename}...",
                 description=description,
                 success=success,
             )

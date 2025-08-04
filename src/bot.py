@@ -554,10 +554,7 @@ class Bot(discord.Client):
             if variants != 0:
                 await itr.followup.send(
                     files=generate_token_variants(
-                        token_image=token_image,
-                        filename_seed=image,
-                        amount=variants,
-                        hue=frame_hue,
+                        token_image=token_image, filename_seed=image, amount=variants
                     )
                 )
                 return
@@ -614,10 +611,7 @@ class Bot(discord.Client):
             if variants != 0:
                 await itr.followup.send(
                     files=generate_token_variants(
-                        token_image=token_image,
-                        filename_seed=url,
-                        amount=variants,
-                        hue=frame_hue,
+                        token_image=token_image, filename_seed=url, amount=variants
                     )
                 )
                 return
@@ -625,7 +619,7 @@ class Bot(discord.Client):
             await itr.followup.send(
                 file=discord.File(
                     fp=image_to_bytesio(token_image),
-                    filename=generate_token_from_url(url),
+                    filename=generate_token_url_filename(url),
                 )
             )
 

@@ -15,6 +15,9 @@ TOKEN_BG = Image.open("./assets/images/token_bg.jpg").convert("RGBA")
 TOKEN_NUMBER_LABEL = Image.open("./assets/images/token_number_label.png").convert(
     "RGBA"
 )
+TOKEN_NUMBER_OVERLAY = Image.open("./assets/images/token_number_overlay.png").convert(
+    "RGBA"
+)
 
 
 class AlignH(Enum):
@@ -199,13 +202,12 @@ def generate_token_variants(
     token_image: Image.Image,
     filename_seed: discord.Attachment | str,
     amount: int,
-    hue: int,
 ) -> list[discord.File]:
     files = []
     for i in range(amount):
         id = i + 1
         labeled_image = add_number_to_tokenimage(
-            token_image=token_image, number=id, amount=amount, hue=hue
+            token_image=token_image, number=id, amount=amount
         )
         filename = (
             generate_token_url_filename(filename_seed, id)
@@ -223,26 +225,21 @@ def generate_token_variants(
 
 
 def add_number_to_tokenimage(
-    token_image: Image.Image, number: int, amount: int, hue: int
+    token_image: Image.Image, number: int, amount: int
 ) -> Image.Image:
-    # Create label
-    # label_size = (64, 64)
     label_size = (72, 72)
-    font_size = int(label_size[1] * 0.7) if number < 10 else int(label_size[1] * 0.5)
-
-    # frame = TOKEN_FRAME.copy()
-    # frame = frame.resize(label_size, Image.LANCZOS)
-    # bg_hue = ((number - 1) * (360 / amount)) - hue
-    # bg = _shift_hue(TOKEN_BG, bg_hue)
-    # bg = _crop_image(
-    #     bg, h_align=AlignH.CENTER, v_align=AlignV.CENTER, max_size=label_size, inset=2
-    # )
-    # label = Image.alpha_composite(bg, frame)
+    font_size = (
+        int(label_size[1] * 0.65) if number < 10 else int(label_size[1] * 0.45)
+    )  # Adjust size if larger than 10, percentages are selected by whatever looked best.
 
     label = TOKEN_NUMBER_LABEL.copy()
-    variant_hue = ((number - 1) * (360 / amount)) - hue
-    label = _shift_hue(label, variant_hue)
-    label = label.rotate((number - 1) * (360 / amount + 1)).resize(label_size)
+    variant_hue = (number - 1) * (360 / amount)
+    overlay = _shift_hue(TOKEN_NUMBER_OVERLAY.copy(), variant_hue)
+    label.alpha_composite(overlay)
+    label = label.rotate(
+        (number - 1) * (360 / amount + 1)
+    )  # +1 So the last label does not have the same rotation as the first.
+    label = label.resize(label_size)
 
     # Prepare text & font
     try:
@@ -253,7 +250,7 @@ def add_number_to_tokenimage(
     draw = ImageDraw.Draw(label)
     text = str(number)
 
-    # Calculate center
+    # Calculate label-center
     bbox = draw.textbbox((0, 0), text, font=font)
     text_width = bbox[2] - bbox[0]
     text_height = bbox[3] - bbox[1]
@@ -263,31 +260,25 @@ def add_number_to_tokenimage(
     if number == 7 and "merienda" in font.font.family.lower():
         y += (
             text_height // 6
-        )  # Merienda's 7 is shifted upwards, thus requires compensation
+        )  # Merienda's '7' is shifted upwards, thus requires compensation, dividing by 6 gave nicest results.
 
     # Draw text
     draw.text((x, y), text, font=font, fill=(255, 255, 255, 255))
-    label = _shift_hue(label, hue)
-
-    # Add label to token_image
-    # pos = (
-    #     int(token_image.width - label.width) // 2,
-    #     int(token_image.height - label.height),
-    # )
-    # Angle in radians (e.g., -45° from x-axis is top-right)
-    angle_deg = 90
+    angle_deg = 90  # 90 Is bottom, 0 is right-side
     angle_rad = math.radians(angle_deg)
 
-    cx = token_image.width // 2 - ((label.width // 2) * math.cos(angle_rad))
-    cy = token_image.height // 2 - ((label.height // 2) * math.sin(angle_rad))
-    radius = token_image.width // 2
-
+    # Token Center
+    cx = token_image.width // 2
+    cy = token_image.height // 2
+    # Radius Adjustment
+    rx = cx - (label.width // 2)
+    ry = cy - (label.height // 2)
     # Rim position
-    px = cx + int(radius * math.cos(angle_rad))
-    py = cy + int(radius * math.sin(angle_rad))
+    px = cx + int(rx * math.cos(angle_rad)) - (label.width // 2)
+    py = cy + int(ry * math.sin(angle_rad)) - (label.height // 2)
 
     # Adjust to place label so its center is on the rim
-    pos = (int(px - label.width // 2), int(py - label.height // 2))
+    pos = (int(px), int(py))
     combined = token_image.copy()
     combined.alpha_composite(label, dest=pos)
 

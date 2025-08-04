@@ -9,6 +9,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 
 TOKEN_FRAME = Image.open("./assets/images/token_border.png").convert("RGBA")
+TOKEN_BG = Image.open("./assets/images/token_bg.jpg").convert("RGBA")
 
 
 class AlignH(Enum):
@@ -130,16 +131,16 @@ def _crop_image(
     return background
 
 
-def _get_hue_frame(hue: int) -> Image.Image:
+def _shift_hue(image: Image.Image, hue: int) -> Image.Image:
     """
-    Returns a copy of TOKEN_FRAME with its hue shifted by the given amount.
+    Returns a copy of an image with its hue shifted by the given amount.
     Hue should be in the range -360 to 360.
     """
     if hue == 0:
-        return TOKEN_FRAME.copy()
+        return image.copy()
 
     # Convert to HSV, shift hue, and convert back
-    r, g, b, a = TOKEN_FRAME.split()
+    r, g, b, a = image.split()
     rgb_image = Image.merge("RGB", (r, g, b))
     hsv_image = rgb_image.convert("HSV")
     h, s, v = hsv_image.split()
@@ -164,22 +165,22 @@ def generate_token_image(
     v_align: AlignV = AlignV.CENTER,
 ) -> Image.Image:
     inner = _crop_image(image, h_align, v_align, TOKEN_FRAME.size)
-    frame = _get_hue_frame(hue) if hue else TOKEN_FRAME
+    frame = _shift_hue(TOKEN_FRAME, hue)
     return Image.alpha_composite(inner, frame)
 
 
-def _get_filename(name: str) -> str:
-    return f"{name}_token_{int(time.time())}.png"
+def _get_filename(name: str, id: int) -> str:
+    return f"{name}_token_{int(time.time())}_{id}.png"
 
 
-def generate_token_url_filename(url: str) -> str:
+def generate_token_url_filename(url: str, id: int = 0) -> str:
     url_hash = str(abs(hash(url)))
-    return _get_filename(url_hash)
+    return _get_filename(url_hash, id)
 
 
-def generate_token_filename(base_image: discord.Attachment) -> str:
+def generate_token_filename(base_image: discord.Attachment, id: int = 0) -> str:
     filename = os.path.splitext(base_image.filename)[0]
-    return _get_filename(filename)
+    return _get_filename(filename, id)
 
 
 def image_to_bytesio(image: Image.Image) -> io.BytesIO:
@@ -189,22 +190,43 @@ def image_to_bytesio(image: Image.Image) -> io.BytesIO:
     return output
 
 
+def generate_token_variants(token_image: Image.Image, attachment: discord.Attachment, amount: int, hue: int) -> list[discord.File]:
+    files = []
+    for i in range(amount):
+        id = i + 1
+        labeled_image = add_number_to_tokenimage(
+            token_image=token_image, number=id, amount=amount, hue=hue
+        )
+        files.append(
+            discord.File(
+                fp=image_to_bytesio(labeled_image),
+                filename=generate_token_filename(attachment, id),
+            )
+        )
+
+    return files
+
 def add_number_to_tokenimage(
-    token_image: Image.Image, number: int, hue: int
+    token_image: Image.Image, number: int, amount: int, hue: int
 ) -> Image.Image:
     # Create label
-    label_size = (48, 48)
+    label_size = (64, 64)
+    font_size = 48
 
-    frame = _get_hue_frame(hue) if hue else TOKEN_FRAME
+    frame = TOKEN_FRAME.copy()
     frame = frame.resize(label_size, Image.LANCZOS)
-    label = Image.new("RGBA", label_size, (0, 0, 0, 255))
-    label = Image.alpha_composite(label, frame)
+    bg_hue = ((number - 1) * (360 / amount)) - hue
+    bg = _shift_hue(TOKEN_BG, bg_hue)
+    bg = _crop_image(
+        bg, h_align=AlignH.CENTER, v_align=AlignV.CENTER, max_size=label_size, inset=4
+    )
+    label = Image.alpha_composite(bg, frame)
 
     # Prepare text & font
     try:
-        font = ImageFont.truetype("arial.ttf", 24)
+        font = ImageFont.truetype("./assets/fonts/Merienda-Black.ttf", font_size)
     except OSError:
-        font = ImageFont.load_default()
+        font = ImageFont.load_default(font_size)
 
     draw = ImageDraw.Draw(label)
     text = str(number)
@@ -213,14 +235,18 @@ def add_number_to_tokenimage(
     bbox = draw.textbbox((0, 0), text, font=font)
     text_width = bbox[2] - bbox[0]
     text_height = bbox[3] - bbox[1]
-    x = (label_size[0] / 2) - text_width
-    y = (label_size[1] / 2) - text_height
+    x = (label_size[0] - text_width) // 2
+    y = (label_size[1] - text_height * 2) // 2
 
     # Draw text
-    draw.text((x, y), text, font=font, fill=(255, 255, 255, 255))
+    draw.text((x, y), text, font=font, fill=(255, 255, 200, 255))
+    label = _shift_hue(label, hue)
 
     # Add label to token_image
-    pos = (token_image.width - frame.width * 2, token_image.height - frame.height * 2)
+    pos = (
+        int(token_image.width - frame.width) // 2,
+        int(token_image.height - frame.height),
+    )
     combined = token_image.copy()
     combined.alpha_composite(label, dest=pos)
 

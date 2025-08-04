@@ -30,6 +30,7 @@ from token_gen import (
     generate_token_filename,
     generate_token_image,
     generate_token_url_filename,
+    generate_token_variants,
     image_to_bytesio,
     open_image,
     open_image_url,
@@ -529,7 +530,7 @@ class Bot(discord.Client):
             frame_hue: app_commands.Range[int, -360, 360] = 0,
             h_alignment: str = AlignH.CENTER.value,
             v_alignment: str = AlignV.CENTER.value,
-            variants: int = 0,
+            variants: app_commands.Range[int, 0, 10] = 0,
         ):
             log_cmd(itr)
 
@@ -550,28 +551,17 @@ class Bot(discord.Client):
                 return
 
             token_image = generate_token_image(img, frame_hue, h_alignment, v_alignment)
-            if variants == 0:
-                await itr.followup.send(
-                    file=discord.File(
-                        fp=image_to_bytesio(token_image),
-                        filename=generate_token_filename(image),
-                    )
-                )
+            if variants != 0:
+                await itr.followup.send(files=generate_token_variants(token_image=token_image, attachment=image, amount=variants, hue=frame_hue), suppress_embeds=True)
                 return
 
-            files = []
-            for i in range(variants):
-                labeled_image = add_number_to_tokenimage(
-                    token_image=token_image, number=(i + 1), hue=frame_hue
+            await itr.followup.send(
+                file=discord.File(
+                    fp=image_to_bytesio(token_image),
+                    filename=generate_token_filename(image),
                 )
-                files.append(
-                    discord.File(
-                        fp=image_to_bytesio(labeled_image),
-                        filename=f"{i}_{generate_token_filename(image)}",
-                    )
-                )
+            )
 
-            await itr.followup.send(files=files)
 
         @self.tree.command(
             name=t("commands.tokengenurl.name"),

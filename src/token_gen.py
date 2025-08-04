@@ -191,7 +191,9 @@ def image_to_bytesio(image: Image.Image) -> io.BytesIO:
     return output
 
 
-def generate_token_variants(token_image: Image.Image, attachment: discord.Attachment, amount: int, hue: int) -> list[discord.File]:
+def generate_token_variants(
+    token_image: Image.Image, attachment: discord.Attachment, amount: int, hue: int
+) -> list[discord.File]:
     files = []
     for i in range(amount):
         id = i + 1
@@ -206,6 +208,7 @@ def generate_token_variants(token_image: Image.Image, attachment: discord.Attach
         )
 
     return files
+
 
 def add_number_to_tokenimage(
     token_image: Image.Image, number: int, amount: int, hue: int

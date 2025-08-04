@@ -552,7 +552,15 @@ class Bot(discord.Client):
 
             token_image = generate_token_image(img, frame_hue, h_alignment, v_alignment)
             if variants != 0:
-                await itr.followup.send(files=generate_token_variants(token_image=token_image, attachment=image, amount=variants, hue=frame_hue), suppress_embeds=True)
+                await itr.followup.send(
+                    files=generate_token_variants(
+                        token_image=token_image,
+                        attachment=image,
+                        amount=variants,
+                        hue=frame_hue,
+                    ),
+                    suppress_embeds=True,
+                )
                 return
 
             await itr.followup.send(
@@ -561,7 +569,6 @@ class Bot(discord.Client):
                     filename=generate_token_filename(image),
                 )
             )
-
 
         @self.tree.command(
             name=t("commands.tokengenurl.name"),

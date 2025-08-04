@@ -26,7 +26,6 @@ from stats import Stats
 from token_gen import (
     AlignH,
     AlignV,
-    add_number_to_tokenimage,
     generate_token_filename,
     generate_token_image,
     generate_token_url_filename,

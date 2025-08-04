@@ -2,7 +2,6 @@ from enum import Enum
 import io
 import math
 import os
-import random
 import time
 import aiohttp
 import discord

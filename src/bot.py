@@ -555,11 +555,10 @@ class Bot(discord.Client):
                 await itr.followup.send(
                     files=generate_token_variants(
                         token_image=token_image,
-                        attachment=image,
+                        filename_seed=image,
                         amount=variants,
                         hue=frame_hue,
-                    ),
-                    suppress_embeds=True,
+                    )
                 )
                 return
 
@@ -579,6 +578,7 @@ class Bot(discord.Client):
             frame_hue="Hue shift to apply to the token-frame (Gold: 0 | Red: -30 | Blue: 180 | Green: 80).",
             h_alignment="Horizontal alignment for the token image.",
             v_alignment="Vertical alignment for the token image.",
+            variants="Create many tokens with label-numbers.",
         )
         @app_commands.choices(
             h_alignment=TokenGenHorAlignmentChoices,
@@ -590,6 +590,7 @@ class Bot(discord.Client):
             frame_hue: app_commands.Range[int, -360, 360] = 0,
             h_alignment: str = AlignH.CENTER.value,
             v_alignment: str = AlignV.CENTER.value,
+            variants: app_commands.Range[int, 0, 10] = 0,
         ):
             log_cmd(itr)
 
@@ -610,10 +611,21 @@ class Bot(discord.Client):
                 return
 
             token_image = generate_token_image(img, frame_hue, h_alignment, v_alignment)
+            if variants != 0:
+                await itr.followup.send(
+                    files=generate_token_variants(
+                        token_image=token_image,
+                        filename_seed=url,
+                        amount=variants,
+                        hue=frame_hue,
+                    )
+                )
+                return
+
             await itr.followup.send(
                 file=discord.File(
                     fp=image_to_bytesio(token_image),
-                    filename=generate_token_url_filename(url),
+                    filename=generate_token_from_url(url),
                 )
             )
 

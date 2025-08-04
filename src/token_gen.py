@@ -210,9 +210,11 @@ def add_number_to_tokenimage(
     text = str(number)
 
     # Calculate center
-    text_width, text_height = draw.textsize(text, font=font)
-    x = (frame.width - text_width) / 2
-    y = (frame.height - text_height) / 2
+    bbox = draw.textbbox((0, 0), text, font=font)
+    text_width = bbox[2] - bbox[0]
+    text_height = bbox[3] - bbox[1]
+    x = (label_size[0] - text_width) / 2
+    y = (label_size[1] - text_height) / 2
 
     # Draw text
     draw.text((x, y), text, font=font, fill=(255, 255, 255, 255))

@@ -1,5 +1,6 @@
 from enum import Enum
 import io
+import math
 import os
 import time
 import aiohttp
@@ -210,15 +211,15 @@ def add_number_to_tokenimage(
     token_image: Image.Image, number: int, amount: int, hue: int
 ) -> Image.Image:
     # Create label
-    label_size = (64, 64)
-    font_size = 48
+    label_size = (48, 48)
+    font_size = int(label_size[1] * 0.8)
 
     frame = TOKEN_FRAME.copy()
     frame = frame.resize(label_size, Image.LANCZOS)
     bg_hue = ((number - 1) * (360 / amount)) - hue
     bg = _shift_hue(TOKEN_BG, bg_hue)
     bg = _crop_image(
-        bg, h_align=AlignH.CENTER, v_align=AlignV.CENTER, max_size=label_size, inset=4
+        bg, h_align=AlignH.CENTER, v_align=AlignV.CENTER, max_size=label_size, inset=2
     )
     label = Image.alpha_composite(bg, frame)
 

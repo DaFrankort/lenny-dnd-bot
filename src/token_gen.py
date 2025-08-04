@@ -5,7 +5,7 @@ import time
 import aiohttp
 import discord
 import numpy as np
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
 
 TOKEN_FRAME = Image.open("./assets/images/token_border.png").convert("RGBA")
@@ -187,3 +187,39 @@ def image_to_bytesio(image: Image.Image) -> io.BytesIO:
     image.save(output, format="PNG")
     output.seek(0)
     return output
+
+
+def add_number_to_tokenimage(
+    token_image: Image.Image, number: int, hue: int
+) -> Image.Image:
+    # Create label
+    label_size = (48, 48)
+
+    frame = _get_hue_frame(hue) if hue else TOKEN_FRAME
+    frame = frame.resize(label_size, Image.LANCZOS)
+    label = Image.new("RGBA", label_size, (0, 0, 0, 0))
+    label = Image.alpha_composite(label, frame)
+
+    # Prepare text & font
+    try:
+        font = ImageFont.truetype("arial.ttf", 24)
+    except OSError:
+        font = ImageFont.load_default()
+
+    draw = ImageDraw.Draw(label)
+    text = str(number)
+
+    # Calculate center
+    text_width, text_height = draw.textsize(text, font=font)
+    x = (frame.width - text_width) / 2
+    y = (frame.height - text_height) / 2
+
+    # Draw text
+    draw.text((x, y), text, font=font, fill=(255, 255, 255, 255))
+
+    # Add label to token_image
+    pos = (token_image.width - frame.width, token_image.height - frame.height)
+    combined = token_image.copy()
+    combined.alpha_composite(label, dest=pos)
+
+    return combined

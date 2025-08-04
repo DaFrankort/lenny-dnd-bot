@@ -26,6 +26,7 @@ from stats import Stats
 from token_gen import (
     AlignH,
     AlignV,
+    add_number_to_tokenimage,
     generate_token_filename,
     generate_token_image,
     generate_token_url_filename,
@@ -516,6 +517,7 @@ class Bot(discord.Client):
             frame_hue="Hue shift to apply to the token-frame (Gold: 0 | Red: -30 | Blue: 180 | Green: 80).",
             h_alignment="Horizontal alignment for the token image.",
             v_alignment="Vertical alignment for the token image.",
+            variants="Create many tokens with label-numbers.",
         )
         @app_commands.choices(
             h_alignment=TokenGenHorAlignmentChoices,
@@ -527,6 +529,7 @@ class Bot(discord.Client):
             frame_hue: app_commands.Range[int, -360, 360] = 0,
             h_alignment: str = AlignH.CENTER.value,
             v_alignment: str = AlignV.CENTER.value,
+            variants: int = 0,
         ):
             log_cmd(itr)
 
@@ -547,12 +550,28 @@ class Bot(discord.Client):
                 return
 
             token_image = generate_token_image(img, frame_hue, h_alignment, v_alignment)
-            await itr.followup.send(
-                file=discord.File(
-                    fp=image_to_bytesio(token_image),
-                    filename=generate_token_filename(image),
+            if variants == 0:
+                await itr.followup.send(
+                    file=discord.File(
+                        fp=image_to_bytesio(token_image),
+                        filename=generate_token_filename(image),
+                    )
                 )
-            )
+                return
+
+            files = []
+            for i in range(variants):
+                labeled_image = add_number_to_tokenimage(
+                    token_image=token_image, number=(i + 1), hue=frame_hue
+                )
+                files.append(
+                    discord.File(
+                        fp=image_to_bytesio(labeled_image),
+                        filename=f"{i}_{generate_token_filename(image)}",
+                    )
+                )
+
+            await itr.followup.send(files=files)
 
         @self.tree.command(
             name=t("commands.tokengenurl.name"),

@@ -197,7 +197,7 @@ def add_number_to_tokenimage(
 
     frame = _get_hue_frame(hue) if hue else TOKEN_FRAME
     frame = frame.resize(label_size, Image.LANCZOS)
-    label = Image.new("RGBA", label_size, (0, 0, 0, 0))
+    label = Image.new("RGBA", label_size, (0, 0, 0, 255))
     label = Image.alpha_composite(label, frame)
 
     # Prepare text & font
@@ -213,14 +213,14 @@ def add_number_to_tokenimage(
     bbox = draw.textbbox((0, 0), text, font=font)
     text_width = bbox[2] - bbox[0]
     text_height = bbox[3] - bbox[1]
-    x = (label_size[0] - text_width) / 2
-    y = (label_size[1] - text_height) / 2
+    x = (label_size[0] / 2) - text_width
+    y = (label_size[1] / 2) - text_height
 
     # Draw text
     draw.text((x, y), text, font=font, fill=(255, 255, 255, 255))
 
     # Add label to token_image
-    pos = (token_image.width - frame.width, token_image.height - frame.height)
+    pos = (token_image.width - frame.width * 2, token_image.height - frame.height * 2)
     combined = token_image.copy()
     combined.alpha_composite(label, dest=pos)
 

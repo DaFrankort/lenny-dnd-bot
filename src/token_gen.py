@@ -242,7 +242,7 @@ def add_number_to_tokenimage(
 
     # Prepare text & font
     try:
-        font = ImageFont.truetype("./assets/fonts/DragonHunter-9Ynxj.otf", font_size)
+        font = ImageFont.truetype("./assets/fonts/Merienda-Light.ttf", font_size)
     except OSError:
         font = ImageFont.load_default(font_size)
 

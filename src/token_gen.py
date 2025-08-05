@@ -227,9 +227,7 @@ def add_number_to_tokenimage(
     token_image: Image.Image, number: int, amount: int
 ) -> Image.Image:
     label_size = (72, 72)
-    font_size = (
-        int(label_size[1] * 0.65) if number < 10 else int(label_size[1] * 0.45)
-    )  # Adjust size if larger than 10, percentages are selected by whatever looked best.
+    font_size = int(min(label_size) * 0.5)
 
     label = TOKEN_NUMBER_LABEL.copy()
     variant_hue = (number - 1) * (360 / amount)

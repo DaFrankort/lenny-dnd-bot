@@ -206,6 +206,7 @@ class SpellEmbed(_DNDObjectEmbed):
 
         super().__init__(spell)
 
+        self._set_embed_color(spell)
         self.add_field(name="Type", value=spell.level_school, inline=True)
         self.add_field(name="Casting Time", value=spell.casting_time, inline=True)
         self.add_field(name="Range", value=spell.spell_range, inline=True)
@@ -222,6 +223,28 @@ class SpellEmbed(_DNDObjectEmbed):
             )
             self.add_description_fields(spell.description)
 
+    def _set_embed_color(self, spell: Spell):
+        match spell.school.lower():
+            case "abjuration":
+                self.color = discord.Colour.from_rgb(0, 185, 33)
+            case "conjuration":
+                self.color = discord.Colour.from_rgb(189, 0, 68)
+            case "divination":
+                self.color = discord.Colour.from_rgb(0, 173, 179)
+            case "enchantment":
+                self.color = discord.Colour.from_rgb(179, 0, 131)
+            case "evocation":
+                self.color = discord.Colour.from_rgb(172, 1, 9)
+            case "illusion":
+                self.color = discord.Colour.from_rgb(14, 109, 174)
+            case "necromancy":
+                self.color = discord.Colour.from_rgb(108, 24, 141)
+            case "transmutation":
+                self.color = discord.Colour.from_rgb(204, 190, 0)
+            case _:
+                logging.warning(f"Unknown spell school: '{spell.school.lower()}'")
+                self.color = discord.Colour.green()
+
 
 class ItemEmbed(_DNDObjectEmbed):
     def __init__(self, item: Item) -> None:
@@ -233,6 +256,7 @@ class ItemEmbed(_DNDObjectEmbed):
         descriptions = item.description
 
         if type is not None:
+            self._set_embed_color(item)
             self.add_field(name="", value=f"*{type}*", inline=False)
 
         if properties is not None:
@@ -250,6 +274,32 @@ class ItemEmbed(_DNDObjectEmbed):
             )
 
             self.add_description_fields(item.description)
+
+    def _set_embed_color(self, item: Item):
+        color = None
+        for type in item.type:
+            cleaned_type = (
+                type.split("(")[0].strip().lower()
+            )  # Type sometimes has additional info between brackets.
+            match cleaned_type:
+                case "common":
+                    color = discord.Colour.green()
+                case "uncommon":
+                    color = discord.Colour.from_rgb(178, 114, 63)
+                case "rare":
+                    color = discord.Colour.from_rgb(166, 155, 190)
+                case "very rare":
+                    color = discord.Colour.from_rgb(208, 172, 63)
+                case "legendary":
+                    color = discord.Colour.from_rgb(140, 194, 216)
+                case "artifact":
+                    color = discord.Colour.from_rgb(200, 37, 35)
+                case "varies" | "unknown":
+                    color = discord.Colour.from_rgb(186, 187, 187)
+                case _:
+                    continue
+
+        self.color = color or discord.Colour.from_rgb(149, 149, 149)  # Gray
 
 
 class ConditionEmbed(_DNDObjectEmbed):

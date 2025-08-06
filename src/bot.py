@@ -253,6 +253,71 @@ class Bot(discord.Client):
             )
             await VC.play_dice_roll(itr, expression, reason)
 
+        @self.tree.context_menu(name="Reroll")
+        async def reroll(itr: Interaction, message: discord.Message):
+            log_cmd(itr)
+            if message.author.id != itr.client.user.id:
+                await itr.response.send_message(
+                    f"❌ Only works on dice-roll messages sent by {itr.client.user.name} ❌",
+                    ephemeral=True,
+                )
+                return
+
+            if not message.embeds or len(message.embeds) == 0:
+                await itr.response.send_message(
+                    "❌ Reroll doesn't work on this message type!", ephemeral=True
+                )
+                return
+
+            embed = message.embeds[0]
+            title = embed.author.name or ""
+            if not ("Rolling" in title or "Rerolling" in title):
+                await itr.response.send_message(
+                    "❌ Message does not contain a dice-roll!", ephemeral=True
+                )
+                return
+
+            dice_notation = (
+                title.replace("Rolling ", "").replace("Rerolling", "").replace("!", "")
+            )
+            if "disadvantage" in dice_notation:
+                # Check 'disadvantage' before 'advantage', may give a false positive otherwise.
+                mode = DiceRollMode.Disadvantage
+                dice_notation = dice_notation.replace("with disadvantage", "")
+            elif "advantage" in dice_notation:
+                mode = DiceRollMode.Advantage
+                dice_notation = dice_notation.replace("with advantage", "")
+            else:
+                mode = DiceRollMode.Normal
+            dice_notation = dice_notation.strip()
+
+            reason = None
+            if "Result" not in embed.fields[0].value:
+                lines = embed.fields[0].value.strip().splitlines()
+                for line in lines:
+                    if line.startswith("🎲") and ":" in line:
+                        label = (
+                            line[1:].split(":", 1)[0].strip()
+                        )  # Remove 🎲 and split before colon
+                        reason = label.replace("*", "")
+                        break
+
+            expression = DiceExpression(
+                expression=dice_notation, mode=mode, reason=reason
+            )
+            expression.title = expression.title.replace("Rolling", "Rerolling")
+            DiceExpressionCache.store_expression(itr, expression, dice_notation)
+
+            await itr.response.send_message(
+                embed=UserActionEmbed(
+                    itr=itr,
+                    title=expression.title,
+                    description=expression.description,
+                ),
+                ephemeral=expression.ephemeral,
+            )
+            await VC.play_dice_roll(itr, expression, reason)
+
         @roll.autocomplete("diceroll")
         @advantage.autocomplete("diceroll")
         @disadvantage.autocomplete("diceroll")

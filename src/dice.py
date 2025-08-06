@@ -282,7 +282,7 @@ class DiceExpression(object):
         if reason is None:
             reason = "Result"
 
-        self.description += f"\n🎲 **{reason.capitalize()}: {self.roll.value}**"
+        self.description += f"\n🎲 **{reason.title()}: {self.roll.value}**"
 
         extra_messages = []
         if self.roll.is_natural_twenty:

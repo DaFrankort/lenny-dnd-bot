@@ -130,6 +130,7 @@ class TestBotCommands:
                             AlignV.TOP.value,
                         ],
                     },
+                    {"image": mock_image(), "variants": [0, 3, 10]},
                 ],
             ),
             (
@@ -153,6 +154,7 @@ class TestBotCommands:
                             AlignV.TOP.value,
                         ],
                     },
+                    {"url": img_url, "variants": [0, 3, 10]},
                     {"url": "NotAUrl"},
                 ],
             ),

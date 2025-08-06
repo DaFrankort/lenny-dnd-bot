@@ -224,26 +224,19 @@ class SpellEmbed(_DNDObjectEmbed):
             self.add_description_fields(spell.description)
 
     def _set_embed_color(self, spell: Spell):
-        match spell.school.lower():
-            case "abjuration":
-                self.color = discord.Colour.from_rgb(0, 185, 33)
-            case "conjuration":
-                self.color = discord.Colour.from_rgb(189, 0, 68)
-            case "divination":
-                self.color = discord.Colour.from_rgb(0, 173, 179)
-            case "enchantment":
-                self.color = discord.Colour.from_rgb(179, 0, 131)
-            case "evocation":
-                self.color = discord.Colour.from_rgb(172, 1, 9)
-            case "illusion":
-                self.color = discord.Colour.from_rgb(14, 109, 174)
-            case "necromancy":
-                self.color = discord.Colour.from_rgb(108, 24, 141)
-            case "transmutation":
-                self.color = discord.Colour.from_rgb(204, 190, 0)
-            case _:
-                logging.warning(f"Unknown spell school: '{spell.school.lower()}'")
-                self.color = discord.Colour.green()
+        school_colors = {
+            "abjuration": discord.Colour.from_rgb(0, 185, 33),
+            "conjuration": discord.Colour.from_rgb(189, 0, 68),
+            "divination": discord.Colour.from_rgb(0, 173, 179),
+            "enchantment": discord.Colour.from_rgb(179, 0, 131),
+            "evocation": discord.Colour.from_rgb(172, 1, 9),
+            "illusion": discord.Colour.from_rgb(14, 109, 174),
+            "necromancy": discord.Colour.from_rgb(108, 24, 141),
+            "transmutation": discord.Colour.from_rgb(204, 190, 0),
+        }
+
+        school = spell.school.lower()
+        self.color = school_colors.get(school, discord.Colour.green())
 
 
 class ItemEmbed(_DNDObjectEmbed):
@@ -276,30 +269,25 @@ class ItemEmbed(_DNDObjectEmbed):
             self.add_description_fields(item.description)
 
     def _set_embed_color(self, item: Item):
+        type_colors = {
+            "common": discord.Colour.green(),
+            "uncommon": discord.Colour.from_rgb(178, 114, 63),
+            "rare": discord.Colour.from_rgb(166, 155, 190),
+            "very rare": discord.Colour.from_rgb(208, 172, 63),
+            "legendary": discord.Colour.from_rgb(140, 194, 216),
+            "artifact": discord.Colour.from_rgb(200, 37, 35),
+            "varies": discord.Colour.from_rgb(186, 187, 187),
+            "unknown": discord.Colour.from_rgb(186, 187, 187),
+        }
+
         color = None
         for type in item.type:
-            cleaned_type = (
-                type.split("(")[0].strip().lower()
-            )  # Type sometimes has additional info between brackets.
-            match cleaned_type:
-                case "common":
-                    color = discord.Colour.green()
-                case "uncommon":
-                    color = discord.Colour.from_rgb(178, 114, 63)
-                case "rare":
-                    color = discord.Colour.from_rgb(166, 155, 190)
-                case "very rare":
-                    color = discord.Colour.from_rgb(208, 172, 63)
-                case "legendary":
-                    color = discord.Colour.from_rgb(140, 194, 216)
-                case "artifact":
-                    color = discord.Colour.from_rgb(200, 37, 35)
-                case "varies" | "unknown":
-                    color = discord.Colour.from_rgb(186, 187, 187)
-                case _:
-                    continue
+            cleaned_type = type.split("(")[0].strip().lower()
+            if cleaned_type in type_colors:
+                color = type_colors[cleaned_type]
+                break
 
-        self.color = color or discord.Colour.from_rgb(149, 149, 149)  # Gray
+        self.color = color or discord.Colour.from_rgb(149, 149, 149)
 
 
 class ConditionEmbed(_DNDObjectEmbed):

@@ -621,11 +621,14 @@ class Bot(discord.Client):
         )
         @app_commands.describe(
             in_weeks=t("commands.plansession.args.in_weeks"),
+            poll_duration=t("commands.plansession.args.poll_duration"),
         )
         async def plan_session(
-            itr: Interaction, in_weeks: app_commands.Range[int, 0, 48]
+            itr: Interaction,
+            in_weeks: app_commands.Range[int, 0, 48],
+            poll_duration: app_commands.Range[int, 1, 168] = 24,
         ):
-            poll = SessionPlanPoll(in_weeks)
+            poll = SessionPlanPoll(in_weeks, poll_duration)
             await itr.response.send_message(poll=poll)
 
         @self.tree.command(

@@ -157,7 +157,10 @@ class TestBotCommands:
                 ],
             ),
             (t("commands.initiative.name"), {}),
-            (t("commands.plansession.name"), {"in_weeks": [0, 1, 4]}),
+            (
+                t("commands.plansession.name"),
+                {"in_weeks": [0, 1, 4], "poll_duration": [1, 24, 168]},
+            ),
             (t("commands.help.name"), {}),
             # ("", {"": "", "": ""}),
         ],

@@ -9,7 +9,7 @@ from help import HelpEmbed
 from i18n import t
 
 from dice import DiceExpression, DiceExpressionCache, DiceRollMode
-from dnd import DNDData, DNDObject
+from dnd import DNDData, DNDObject, Gender
 from embeds import (
     NoResultsFoundEmbed,
     MultiDNDSelectView,
@@ -169,6 +169,12 @@ class Bot(discord.Client):
             app_commands.Choice(name="Top", value=AlignV.TOP.value),
             app_commands.Choice(name="Center", value=AlignV.CENTER.value),
             app_commands.Choice(name="Bottom", value=AlignV.BOTTOM.value),
+        ]
+
+        GenderChoices = [
+            app_commands.Choice(name="Female", value=Gender.FEMALE.value),
+            app_commands.Choice(name="Male", value=Gender.MALE.value),
+            app_commands.Choice(name="Other", value=Gender.OTHER.value),
         ]
 
         #
@@ -461,24 +467,20 @@ class Bot(discord.Client):
                 )
 
         @self.tree.command(
-            name="getname", description="Get a random name!"
+            name="namegen", description="Get a random name!"
         )  # TODO Localisation
-        async def getname(itr: Interaction, race: str = None, gender: str = None):
+        @app_commands.choices(gender=GenderChoices)
+        async def namegen(
+            itr: Interaction, race: str = None, gender: str = Gender.OTHER.value
+        ):
+            gender = Gender(gender)
             name, new_race, new_gender = self.data.names.get_random(race, gender)
-            description = f"*{new_gender} {new_race}*".title()
-
-            race = race or ""
-            if race.lower() not in new_race.lower():
-                description += "\n* Race selected randomly"
-
-            gender = gender or ""
-            if gender.lower() not in new_gender.lower():
-                description += "\n * Gender selected randomly"
+            description = f"*{new_gender.value} {new_race}*".title()
 
             embed = SimpleEmbed(title=name, description=description)
             await itr.response.send_message(embed=embed, ephemeral=True)
 
-        # TODO RACE & GENDER AUTOCOMPLETE/CHOICES
+        # TODO RACE AUTOCOMPLETE
 
         @self.tree.command(
             name=t("commands.color.name"), description=t("commands.color.desc")

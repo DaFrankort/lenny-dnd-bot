@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from enum import Enum
 import json
 import logging
 import os.path
@@ -514,6 +515,12 @@ class LanguageList(DNDObjectList):
             self.entries.append(Language(language))
 
 
+class Gender(Enum):
+    FEMALE = "female"
+    MALE = "male"
+    OTHER = "other"
+
+
 class NameTable:
     """Names supplied by 5etools, does not adhere to normal DNDObject format!"""
 
@@ -525,13 +532,13 @@ class NameTable:
         for d in data:
             race = d["name"].lower()
             table = {}
-            table["female"] = d["tables"]["female"]
-            table["male"] = d["tables"]["male"]
+            table[Gender.FEMALE.value] = d["tables"]["female"]
+            table[Gender.MALE.value] = d["tables"]["male"]
             table["family"] = d["tables"]["family"]
 
             self.tables[race] = table
 
-    def get_random(self, race: str = None, gender: str = None) -> tuple[str, str, str]:
+    def get_random(self, race: str | None, gender: Gender) -> tuple[str, str, Gender]:
         """
         Race and gender are randomised if not specified.
         Returns the selected name, race and gender in a tuple.
@@ -544,25 +551,14 @@ class NameTable:
             race = random.choice(list(self.tables.keys()))
             table = self.tables.get(race)
 
-        if gender is None:
-            gender = random.choice(
-                ["female", "male"]
-            )  # TODO MAKE GENDER SELECTION MORE ROBUST
+        if gender is Gender.OTHER:
+            gender = random.choice([Gender.FEMALE, Gender.MALE])
 
-        gender = gender.lower()
-        if gender != "female" and gender != "male":
-            gender = random.choice(
-                ["female", "male"]
-            )  # TODO MAKE GENDER SELECTION MORE ROBUST
-
-        names = table.get(gender)
+        names = table.get(gender.value)
         surnames = table.get("family", [])
 
         name = random.choice(names)
-        use_surname = (
-            random.choice([True, False]) and len(surnames) != 0
-        )  # Apply surname randomly, if available
-        if use_surname:
+        if len(surnames) != 0:
             surname = random.choice(surnames)
             return f"{name} {surname}", race, gender
         return name, race, gender

@@ -480,7 +480,18 @@ class Bot(discord.Client):
             embed = SimpleEmbed(title=name, description=description)
             await itr.response.send_message(embed=embed, ephemeral=True)
 
-        # TODO RACE AUTOCOMPLETE
+        @namegen.autocomplete("race")
+        async def autocomplete_namgen_race(
+            itr: Interaction, current: str
+        ) -> list[app_commands.Choice[str]]:
+            races = self.data.names.get_races()
+            filtered_races = [
+                race.title() for race in races if current.lower() in race.lower()
+            ]
+            return [
+                app_commands.Choice(name=race, value=race)
+                for race in filtered_races[:25]
+            ]
 
         @self.tree.command(
             name=t("commands.color.name"), description=t("commands.color.desc")

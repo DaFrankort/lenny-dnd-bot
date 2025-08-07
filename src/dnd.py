@@ -563,6 +563,9 @@ class NameTable:
             return f"{name} {surname}", race, gender
         return name, race, gender
 
+    def get_races(self):
+        return self.tables.keys()
+
 
 class DNDData(object):
     spells: SpellList

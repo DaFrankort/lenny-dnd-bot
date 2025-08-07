@@ -5,6 +5,7 @@ import pytest_asyncio
 from unittest.mock import AsyncMock, MagicMock
 
 from bot import Bot
+from dnd import Gender
 import i18n
 from i18n import t
 from utils.test_utils import listify
@@ -99,6 +100,17 @@ class TestBotCommands:
                     {"query": "Barb"},
                     {"query": "qwertyuiopasdfghjkl;zxcvbnm,./1234567890"},
                 ],
+            ),
+            (
+                t("commands.namegen.name"),
+                {
+                    "race": [None, "Human", "foobar"],
+                    "gender": [
+                        Gender.FEMALE.value,
+                        Gender.MALE.value,
+                        Gender.OTHER.value,
+                    ],
+                },
             ),
             (
                 t("commands.color.name"),

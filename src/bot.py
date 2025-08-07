@@ -9,10 +9,11 @@ from help import HelpEmbed
 from i18n import t
 
 from dice import DiceExpression, DiceExpressionCache, DiceRollMode
-from dnd import DNDData, DNDObject
+from dnd import DNDData, DNDObject, Gender
 from embeds import (
     NoResultsFoundEmbed,
     MultiDNDSelectView,
+    SimpleEmbed,
     UserActionEmbed,
 )
 from initiative import (
@@ -168,6 +169,12 @@ class Bot(discord.Client):
             app_commands.Choice(name="Top", value=AlignV.TOP.value),
             app_commands.Choice(name="Center", value=AlignV.CENTER.value),
             app_commands.Choice(name="Bottom", value=AlignV.BOTTOM.value),
+        ]
+
+        GenderChoices = [
+            app_commands.Choice(name="Female", value=Gender.FEMALE.value),
+            app_commands.Choice(name="Male", value=Gender.MALE.value),
+            app_commands.Choice(name="Other", value=Gender.OTHER.value),
         ]
 
         #
@@ -458,6 +465,44 @@ class Bot(discord.Client):
                 await itr.response.send_message(
                     embed=embed, view=embed.view, ephemeral=True
                 )
+
+        @self.tree.command(
+            name=t("commands.namegen.name"), description=t("commands.namegen.desc")
+        )
+        @app_commands.describe(
+            race=t("commands.namegen.args.race"),
+            gender=t("commands.namegen.args.gender"),
+        )
+        @app_commands.choices(gender=GenderChoices)
+        async def namegen(
+            itr: Interaction, race: str = None, gender: str = Gender.OTHER.value
+        ):
+            gender = Gender(gender)
+            name, new_race, new_gender = self.data.names.get_random(race, gender)
+
+            if name is None:
+                await itr.response.send_message(
+                    "❌ Can't generate names at this time ❌", ephemeral=True
+                )
+                return
+
+            description = f"*{new_gender.value} {new_race}*".title()
+
+            embed = SimpleEmbed(title=name, description=description)
+            await itr.response.send_message(embed=embed)
+
+        @namegen.autocomplete("race")
+        async def autocomplete_namgen_race(
+            itr: Interaction, current: str
+        ) -> list[app_commands.Choice[str]]:
+            races = self.data.names.get_races()
+            filtered_races = [
+                race.title() for race in races if current.lower() in race.lower()
+            ]
+            return [
+                app_commands.Choice(name=race, value=race)
+                for race in filtered_races[:25]
+            ]
 
         @self.tree.command(
             name=t("commands.color.name"), description=t("commands.color.desc")

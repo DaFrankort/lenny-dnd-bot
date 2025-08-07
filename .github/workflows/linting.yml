@@ -18,6 +18,8 @@ jobs:
     steps:
       - name: Check out source repository
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - uses: ./.github/actions/setup
 
@@ -34,6 +36,8 @@ jobs:
     steps:
       - name: Check out source repository
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - uses: ./.github/actions/setup
 

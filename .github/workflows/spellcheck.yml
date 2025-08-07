@@ -19,6 +19,8 @@ jobs:
     steps:
       - name: Check out repo
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Install cspell
         run: npm install -g cspell

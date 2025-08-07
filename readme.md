@@ -99,9 +99,10 @@ Look up various D&D data from [5e.tools](https://5e.tools/).
 - `/action <action-name>` – Look up information about a D&D action (e.g. Dash).
 - `/search <query>` - Look for many related results regarding D&D data. Example: `/search fire` would return any data with 'fire' in the name.
 
-### Character Stat Roll
+### Character Tools
 
 - `/stats` – Automatically roll stats for a new character's skills, using the 4d6 drop lowest method.
+- `/namegen [race] [gender]` - Generate a random name, race and/or gender can be specified but will default to random.
 
 ### Token-Image Generation
 

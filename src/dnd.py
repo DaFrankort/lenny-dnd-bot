@@ -554,7 +554,14 @@ class NameTable:
         if gender is Gender.OTHER:
             gender = random.choice([Gender.FEMALE, Gender.MALE])
 
-        names = table.get(gender.value)
+        names = table.get(gender.value, None)
+        if names is None:
+            return (
+                "Failed to generate name",
+                race,
+                gender,
+            )  # Only occurs if submodule isn't available!
+
         surnames = table.get("family", [])
 
         name = random.choice(names)

@@ -2,6 +2,7 @@ from abc import abstractmethod
 import json
 import logging
 import os.path
+import random
 
 import discord
 from rapidfuzz import fuzz
@@ -513,6 +514,60 @@ class LanguageList(DNDObjectList):
             self.entries.append(Language(language))
 
 
+class NameTable:
+    """Names supplied by 5etools, does not adhere to normal DNDObject format!"""
+
+    path = "./submodules/lenny-dnd-data/generated/names.json"
+    tables: dict[str, dict[str, list[str]]] = {}
+
+    def __init__(self):
+        data = _read_dnd_data(self.path)
+        for d in data:
+            race = d["name"].lower()
+            table = {}
+            table["female"] = d["tables"]["female"]
+            table["male"] = d["tables"]["male"]
+            table["family"] = d["tables"]["family"]
+
+            self.tables[race] = table
+
+    def get_random(self, race: str = None, gender: str = None) -> tuple[str, str, str]:
+        """
+        Race and gender are randomised if not specified.
+        Returns the selected name, race and gender in a tuple.
+        """
+        if race:
+            race = race.lower()
+
+        table = self.tables.get(race, None)
+        if table is None:
+            race = random.choice(list(self.tables.keys()))
+            table = self.tables.get(race)
+
+        if gender is None:
+            gender = random.choice(
+                ["female", "male"]
+            )  # TODO MAKE GENDER SELECTION MORE ROBUST
+
+        gender = gender.lower()
+        if gender != "female" and gender != "male":
+            gender = random.choice(
+                ["female", "male"]
+            )  # TODO MAKE GENDER SELECTION MORE ROBUST
+
+        names = table.get(gender)
+        surnames = table.get("family", [])
+
+        name = random.choice(names)
+        use_surname = (
+            random.choice([True, False]) and len(surnames) != 0
+        )  # Apply surname randomly, if available
+        if use_surname:
+            surname = random.choice(surnames)
+            return f"{name} {surname}", race, gender
+        return name, race, gender
+
+
 class DNDData(object):
     spells: SpellList
     items: ItemList
@@ -524,7 +579,10 @@ class DNDData(object):
     feats: FeatList
     languages: LanguageList
 
+    names: NameTable
+
     def __init__(self):
+        # LISTS
         self.spells = SpellList()
         self.items = ItemList()
         self.conditions = ConditionList()
@@ -534,6 +592,9 @@ class DNDData(object):
         self.actions = ActionList()
         self.feats = FeatList()
         self.languages = LanguageList()
+
+        # TABLES
+        self.names = NameTable()
 
     def __iter__(self):
         yield self.spells

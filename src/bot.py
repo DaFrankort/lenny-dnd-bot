@@ -13,6 +13,7 @@ from dnd import DNDData, DNDObject
 from embeds import (
     NoResultsFoundEmbed,
     MultiDNDSelectView,
+    SimpleEmbed,
     UserActionEmbed,
 )
 from initiative import (
@@ -458,6 +459,26 @@ class Bot(discord.Client):
                 await itr.response.send_message(
                     embed=embed, view=embed.view, ephemeral=True
                 )
+
+        @self.tree.command(
+            name="getname", description="Get a random name!"
+        )  # TODO Localisation
+        async def getname(itr: Interaction, race: str = None, gender: str = None):
+            name, new_race, new_gender = self.data.names.get_random(race, gender)
+            description = f"*{new_gender} {new_race}*".title()
+
+            race = race or ""
+            if race.lower() not in new_race.lower():
+                description += "\n* Race selected randomly"
+
+            gender = gender or ""
+            if gender.lower() not in new_gender.lower():
+                description += "\n * Gender selected randomly"
+
+            embed = SimpleEmbed(title=name, description=description)
+            await itr.response.send_message(embed=embed, ephemeral=True)
+
+        # TODO RACE & GENDER AUTOCOMPLETE/CHOICES
 
         @self.tree.command(
             name=t("commands.color.name"), description=t("commands.color.desc")

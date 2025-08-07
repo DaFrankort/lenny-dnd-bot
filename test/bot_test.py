@@ -101,6 +101,14 @@ class TestBotCommands:
                 ],
             ),
             (
+                # TODO localisation
+                "getname",
+                {
+                    "race": [None, "Human", "foobar"],
+                    "gender": [None, "Female", "MALE", "foobar"],
+                },
+            ),
+            (
                 t("commands.color.name"),
                 [{"hex_color": "#ff00ff"}, {"hex_color": "Not a color"}],
             ),

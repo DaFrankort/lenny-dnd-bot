@@ -467,8 +467,12 @@ class Bot(discord.Client):
                 )
 
         @self.tree.command(
-            name="namegen", description="Get a random name!"
-        )  # TODO Localisation
+            name=t("commands.namegen.name"), description=t("commands.namegen.desc")
+        )
+        @app_commands.describe(
+            race=t("commands.namegen.args.race"),
+            gender=t("commands.namegen.args.gender"),
+        )
         @app_commands.choices(gender=GenderChoices)
         async def namegen(
             itr: Interaction, race: str = None, gender: str = Gender.OTHER.value

@@ -96,6 +96,16 @@
       "help": "Looks up all possible D&D entries for a query.",
       "command": "/search <query>"
     },
+    "namegen": {
+      "name": "namegen",
+      "desc": "Generate a random name depending on race and gender!",
+      "help": "Get a random name for a humanoid, race and gender can be specified but will default to random values.",
+      "command": "/namegen [race] [gender]",
+      "args": {
+        "race": "Request a name from a specific race, selects random race by default.",
+        "gender": "Request name from a specific gender, selects random gender by default."
+      }
+    },
     "color": {
       "name": "color",
       "desc": "Set a preferred color using a hex-value. Leave hex_color empty to use auto-generated colors.",
@@ -202,8 +212,8 @@
     },
     "character": {
       "name": "Character",
-      "commands": ["stats"],
-      "text": "You can easily generate stats for your character using the following command:",
+      "commands": ["stats", "namegen"],
+      "text": "You can easily generate stats and names for your character using the following commands:",
       "info": []
     },
     "dnd": {

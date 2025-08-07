@@ -105,7 +105,11 @@ class TestBotCommands:
                 t("commands.namegen.name"),
                 {
                     "race": [None, "Human", "foobar"],
-                    "gender": [Gender.FEMALE.value, Gender.MALE.value, Gender.OTHER.value],
+                    "gender": [
+                        Gender.FEMALE.value,
+                        Gender.MALE.value,
+                        Gender.OTHER.value,
+                    ],
                 },
             ),
             (

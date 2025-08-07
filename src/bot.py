@@ -482,7 +482,7 @@ class Bot(discord.Client):
             description = f"*{new_gender.value} {new_race}*".title()
 
             embed = SimpleEmbed(title=name, description=description)
-            await itr.response.send_message(embed=embed, ephemeral=True)
+            await itr.response.send_message(embed=embed)
 
         @namegen.autocomplete("race")
         async def autocomplete_namgen_race(

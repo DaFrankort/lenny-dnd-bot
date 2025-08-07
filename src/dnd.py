@@ -529,6 +529,10 @@ class NameTable:
 
     def __init__(self):
         data = _read_dnd_data(self.path)
+        if len(data) == 0:
+            self.tables = None
+            return
+
         for d in data:
             race = d["name"].lower()
             table = {}
@@ -538,11 +542,16 @@ class NameTable:
 
             self.tables[race] = table
 
-    def get_random(self, race: str | None, gender: Gender) -> tuple[str, str, Gender]:
+    def get_random(
+        self, race: str | None, gender: Gender
+    ) -> tuple[str, str, Gender] | tuple[None, None, None]:
         """
         Race and gender are randomised if not specified.
         Returns the selected name, race and gender in a tuple.
         """
+        if self.tables is None:
+            return None, None, None
+
         if race:
             race = race.lower()
 
@@ -555,13 +564,6 @@ class NameTable:
             gender = random.choice([Gender.FEMALE, Gender.MALE])
 
         names = table.get(gender.value, None)
-        if names is None:
-            return (
-                "Failed to generate name",
-                race,
-                gender,
-            )  # Only occurs if submodule isn't available!
-
         surnames = table.get("family", [])
 
         name = random.choice(names)

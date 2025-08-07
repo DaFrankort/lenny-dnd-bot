@@ -479,6 +479,13 @@ class Bot(discord.Client):
         ):
             gender = Gender(gender)
             name, new_race, new_gender = self.data.names.get_random(race, gender)
+
+            if name is None:
+                await itr.response.send_message(
+                    "❌ Can't generate names at this time ❌", ephemeral=True
+                )
+                return
+
             description = f"*{new_gender.value} {new_race}*".title()
 
             embed = SimpleEmbed(title=name, description=description)

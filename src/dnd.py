@@ -515,6 +515,36 @@ class LanguageList(DNDObjectList):
             self.entries.append(Language(language))
 
 
+class Background(DNDObject):
+    abilities: list[str] | None
+    description: list[Description]
+
+    def __init__(self, json: any):
+        self.object_type = "background"
+        self.emoji = "📕"
+
+        self.name = json["name"]
+        self.source = json["source"]
+        self.url = json["url"]
+        self.abilities = json["abilities"]
+        self.description = json["description"]
+
+    @abstractmethod
+    def get_embed(self) -> discord.Embed:
+        from embeds import BackgroundEmbed
+
+        return BackgroundEmbed(self)
+
+
+class BackgroundList(DNDObjectList):
+    path = "./submodules/lenny-dnd-data/generated/backgrounds.json"
+
+    def __init__(self):
+        super().__init__()
+        for background in _read_dnd_data(self.path):
+            self.entries.append(Background(background))
+
+
 class Gender(Enum):
     FEMALE = "female"
     MALE = "male"
@@ -600,6 +630,7 @@ class DNDData(object):
         self.actions = ActionList()
         self.feats = FeatList()
         self.languages = LanguageList()
+        self.backgrounds = BackgroundList()
 
         # TABLES
         self.names = NameTable()
@@ -614,6 +645,7 @@ class DNDData(object):
         yield self.actions
         yield self.feats
         yield self.languages
+        yield self.backgrounds
 
 
 class DNDSearchResults(object):
@@ -626,6 +658,7 @@ class DNDSearchResults(object):
     actions: list[Action]
     feats: list[Feat]
     languages: list[Language]
+    backgrounds: list[Background]
     _type_map: dict[type, list[DNDObject]]
 
     def __init__(self):
@@ -638,6 +671,7 @@ class DNDSearchResults(object):
         self.actions = []
         self.feats = []
         self.languages = []
+        self.backgrounds = []
 
         self._type_map = {
             Spell: self.spells,
@@ -649,6 +683,7 @@ class DNDSearchResults(object):
             Action: self.actions,
             Feat: self.feats,
             Language: self.languages,
+            Background: self.backgrounds,
         }
 
     def add(self, entry):

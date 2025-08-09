@@ -3,6 +3,7 @@ import logging
 import discord
 import rich
 from dnd import (
+    Background,
     Class,
     Creature,
     DNDObject,
@@ -530,6 +531,13 @@ class LanguageEmbed(_DNDObjectEmbed):
             if len(self.fields) > 0:
                 self.add_field(name="", value=HORIZONTAL_LINE, inline=False)
             self.add_description_fields(language.description)
+
+
+class BackgroundEmbed(_DNDObjectEmbed):
+    def __init__(self, background: Background):
+        super().__init__(background)
+        if background.description:
+            self.add_description_fields(background.description)
 
 
 class SimpleEmbed(discord.Embed):

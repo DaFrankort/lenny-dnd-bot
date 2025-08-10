@@ -90,6 +90,12 @@
       "help": "Looks up a D&D Language by name.",
       "command": "/language <language name>"
     },
+    "background": {
+      "name": "background",
+      "desc": "Get the details of a background.",
+      "help": "Looks up a D&D Background by name.",
+      "command": "/background <background name>"
+    },
     "search": {
       "name": "search",
       "desc": "Search for a D&D entry.",
@@ -218,7 +224,7 @@
     },
     "dnd": {
       "name": "D&D Resources",
-      "commands": ["spell", "item", "condition", "creature", "class", "feat", "rule", "action", "language", "search"],
+      "commands": ["spell", "item", "condition", "creature", "class", "feat", "rule", "action", "language", "background", "search"],
       "text": "You can look up D&D information from [5e.tools](https://5e.tools/) using the following commands:",
       "info": []
     },

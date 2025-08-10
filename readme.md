@@ -97,6 +97,8 @@ Look up various D&D data from [5e.tools](https://5e.tools/).
 - `/creature <creature-name>` – Look up information about a D&D creature (e.g. Orc).
 - `/rule <rule-name>` – Look up information about a D&D rule (e.g. Saving Throw).
 - `/action <action-name>` – Look up information about a D&D action (e.g. Dash).
+- `/language <language-name>` - Look up a D&D language (e.g. Common).
+- `/background <background-name>` - Look up a D&D Background (e.g. Soldier).
 - `/search <query>` - Look for many related results regarding D&D data. Example: `/search fire` would return any data with 'fire' in the name.
 
 ### Character Tools

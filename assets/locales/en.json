@@ -172,7 +172,7 @@
         {
           "name": "Dice Notations",
           "info": [
-            "To roll dice, you need to use dice notations, these follow the format `XdY + Z`.",
+            "To roll dice, you need to use dice notations, these generally follow the format `XdY + Z`.",
             "For example, ``1d20 + 6`` rolls a single 20-sided die and adds 6 to the result, these notations are expandable to combine a large number of dice.",
             "Besides basic math operators (``+``, ``-``, ``/``, ``*``), ``NdN`` and numbers, you can also use modifiers [documented on this site.](https://d20.readthedocs.io/en/latest/start.html#grammar)",
             "*Note: Dice notations are sometimes referred to as dice expressions instead.*"

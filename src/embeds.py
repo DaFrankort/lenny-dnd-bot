@@ -593,15 +593,15 @@ class TableEmbed(_DNDObjectEmbed):
     def __init__(self, table: DNDTable):
         super().__init__(table)
         if table.table:
-            self.add_description_fields([table.table])
+            self.description = self.build_table(table.table["value"], CHAR_FIELD_LIMIT=4000)
 
         if table.footnotes:
             footnotes = "\n".join(table.footnotes)
             if len(table.footnotes) == 1:
                 self.set_footer(text=footnotes.replace("*", ""), icon_url=None)
             else:
-                description = Description(name="", type="text", value=f"*{footnotes}*")
-                self.add_description_fields([description])
+                desc = Description(name="", type="text", value=f"*{footnotes}*")
+                self.add_description_fields([desc])
 
         if table.is_rollable:
             self.view = TableView(table)

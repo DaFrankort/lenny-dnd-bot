@@ -549,16 +549,14 @@ class BackgroundEmbed(_DNDObjectEmbed):
 class TableView(discord.ui.View):
     table: DNDTable
 
-    def __init__(self, table: DNDTable):
-        super().__init__()
-        self.table = table
-
     @discord.ui.button(
         label="Roll", style=discord.ButtonStyle.primary, custom_id="roll_btn"
     )
     async def add(self, itr: discord.Interaction, btn: discord.ui.Button):
+        log_button_press(
+            itr=itr, button=btn, location=f"Table Roll - {self.table.name}"
+        )
         row, expression = self.table.roll()
-        print(row, expression)
         if row is None or expression is None:
             # Disable button to prevent further attempts, since it will keep failing.
             btn.disabled = True
@@ -581,19 +579,28 @@ class TableView(discord.ui.View):
         description = f"```{buffer.getvalue()}```"
         buffer.close()
 
-        embed = UserActionEmbed(
-            itr=itr, title=expression.title, description=description
-        )
+        embed = UserActionEmbed(itr=itr, title=expression.title, description="")
+        embed.description = description
         embed.title = f"{self.table.name} [{expression.roll.value}]"
         await itr.response.send_message(embed=embed)
         await VC.play(itr, sound_type=SoundType.ROLL)
+
+    def __init__(self, table: DNDTable):
+        super().__init__()
+        self.table = table
+
+        for child in self.children:
+            if hasattr(child, "custom_id") and child.custom_id == "roll_btn":
+                child.label = f"Roll {self.table.dice_notation}"
 
 
 class TableEmbed(_DNDObjectEmbed):
     def __init__(self, table: DNDTable):
         super().__init__(table)
         if table.table:
-            self.description = self.build_table(table.table["value"], CHAR_FIELD_LIMIT=4000)
+            self.description = self.build_table(
+                table.table["value"], CHAR_FIELD_LIMIT=4000
+            )
 
         if table.footnotes:
             footnotes = "\n".join(table.footnotes)

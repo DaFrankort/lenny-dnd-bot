@@ -593,7 +593,6 @@ class DNDTable(DNDObject):
         rows = self.table["value"]["rows"]
         for row in rows:
             range = row[0]
-            print(range)
             if range["min"] <= result <= range["max"]:
                 return row, expression
         return None, expression

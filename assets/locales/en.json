@@ -217,7 +217,7 @@
       ]
     },
     "character": {
-      "name": "Character",
+      "name": "Character Utilities",
       "commands": ["stats", "namegen"],
       "text": "You can easily generate stats and names for your character using the following commands:",
       "info": []

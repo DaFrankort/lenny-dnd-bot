@@ -96,6 +96,12 @@
       "help": "Looks up a D&D Background by name.",
       "command": "/background <background name>"
     },
+    "table": {
+      "name": "table",
+      "desc": "Get the details of a table.",
+      "help": "Looks up a D&D Table by name.",
+      "command": "/table <table name>"
+    },
     "search": {
       "name": "search",
       "desc": "Search for a D&D entry.",
@@ -224,7 +230,7 @@
     },
     "dnd": {
       "name": "D&D Resources",
-      "commands": ["spell", "item", "condition", "creature", "class", "feat", "rule", "action", "language", "background", "search"],
+      "commands": ["spell", "item", "condition", "creature", "class", "feat", "rule", "action", "language", "background", "table", "search"],
       "text": "You can look up D&D information from [5e.tools](https://5e.tools/) using the following commands:",
       "info": []
     },

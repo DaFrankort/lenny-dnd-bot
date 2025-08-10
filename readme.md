@@ -99,6 +99,7 @@ Look up various D&D data from [5e.tools](https://5e.tools/).
 - `/action <action-name>` – Look up information about a D&D action (e.g. Dash).
 - `/language <language-name>` - Look up a D&D language (e.g. Common).
 - `/background <background-name>` - Look up a D&D Background (e.g. Soldier).
+- `/table <table-name>` - Look up a D&D Table (e.g. Wild Magic Surge).
 - `/search <query>` - Look for many related results regarding D&D data. Example: `/search fire` would return any data with 'fire' in the name.
 
 ### Character Tools

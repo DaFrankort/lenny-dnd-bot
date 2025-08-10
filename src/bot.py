@@ -465,6 +465,21 @@ class Bot(discord.Client):
             return self.data.backgrounds.get_autocomplete_suggestions(query=current)
 
         @self.tree.command(
+            name=t("commands.table.name"),
+            description=t("commands.table.desc"),
+        )
+        async def table(itr: Interaction, name: str):
+            log_cmd(itr)
+            found = self.data.tables.get(name)
+            await send_DNDObject_lookup_result(itr, "table", found, name)
+
+        @table.autocomplete("name")
+        async def table_autocomplete(
+            itr: discord.Interaction, current: str
+        ) -> list[app_commands.Choice[str]]:
+            return self.data.tables.get_autocomplete_suggestions(query=current)
+
+        @self.tree.command(
             name=t("commands.search.name"), description=t("commands.search.desc")
         )
         async def search(itr: Interaction, query: str):

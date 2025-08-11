@@ -117,6 +117,16 @@ class _DNDObjectEmbed(discord.Embed):
 
         return char_count
 
+    def _format_cell_value(self, value: str | object) -> str:
+        if isinstance(value, str):
+            return value
+        if value["type"] == "range":
+            if value["min"] == value["max"]:
+                return str(value["min"])
+            else:
+                return f"{value['min']}-{value['max']}"
+        raise Exception("Unsupported cell type")
+
     def build_table(self, value, CHAR_FIELD_LIMIT=1024):
         """Turns a Description with headers & rows into a clean table using rich."""
 
@@ -128,10 +138,7 @@ class _DNDObjectEmbed(discord.Embed):
             table.add_column(header, justify="left", style=None)
 
         for row in rows:
-            formatted_row = [
-                cell.notation if hasattr(cell, "notation") else str(cell)
-                for cell in row
-            ]
+            formatted_row = [self._format_cell_value(value) for value in row]
             table.add_row(*formatted_row)
 
         buffer = io.StringIO()

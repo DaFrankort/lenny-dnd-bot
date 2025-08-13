@@ -117,7 +117,7 @@ Optionally adjust the frame's color with `hue-shift` (default: gold), and contro
 ### Discord utilities
 
 - `plansession <in_weeks> [poll_duration]` - Quickly generates a poll where players can vote for days they're available within a given week.
-- `playsound` - Allows users to play a sound effect from a file through the bot, allowing for more atmospheric roleplay!
+- `playsound` - Allows users to play a sound effect from a file through the bot, allowing for more atmospheric role-play!
 
 #### User Colors
 Commands that signify user-actions are highlighted with colors that are unique per user. This makes it easy to discern different user's actions.

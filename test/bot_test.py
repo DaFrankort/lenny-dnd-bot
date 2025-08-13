@@ -23,6 +23,14 @@ def mock_image() -> discord.Attachment:
     return image
 
 
+def mock_sound() -> discord.Attachment:
+    sound = MagicMock(spec=discord.Attachment)
+    sound.url = r"https://diviextended.com/wp-content/uploads/2021/10/sound-of-waves-marine-drive-mumbai.mp3"
+    sound.content_type = MagicMock()
+    sound.content_type = "audio"
+    return sound
+
+
 class TestBotCommands:
     @pytest.fixture()
     def bot(self):
@@ -175,6 +183,10 @@ class TestBotCommands:
             (
                 t("commands.plansession.name"),
                 {"in_weeks": [0, 1, 4], "poll_duration": [1, 24, 168]},
+            ),
+            (
+                t("commands.playsound.name"),
+                {"sound": [mock_sound(), mock_image()]},
             ),
             (t("commands.help.name"), {}),
             # ("", {"": "", "": ""}),

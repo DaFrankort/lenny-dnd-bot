@@ -261,7 +261,7 @@ class Bot(discord.Client):
             )
             await VC.play_dice_roll(itr, expression, reason)
 
-        @self.tree.context_menu(name="Reroll")
+        @self.tree.context_menu(name=t("contextmenu.reroll.name"))
         async def reroll(itr: Interaction, message: discord.Message):
             log_cmd(itr)
             if message.author.id != itr.client.user.id:

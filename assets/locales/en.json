@@ -153,6 +153,11 @@
       }
     }
   },
+  "contextmenu": {
+    "reroll": {
+      "name": "reroll"
+    }
+  },
   "help": {
     "overview": {
       "name": "Overview",

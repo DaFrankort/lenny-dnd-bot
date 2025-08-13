@@ -2,5 +2,5 @@
   "version": "0.2",
   "language": "en",
   "dictionaries": ["python", "softwareTerms"],
-  "words": ["tokengenurl", "tokengen", "etools", "plansession", "namegen"]
+  "words": ["tokengenurl", "tokengen", "etools", "plansession", "namegen", "contextmenu"]
 }

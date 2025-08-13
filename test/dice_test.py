@@ -106,7 +106,6 @@ class TestDiceExpression:
 
     def test_is_dirty_twenty(self):
         dice = DiceExpression("1000d20kh1ma17+3")
-        print(dice.roll.is_dirty_twenty, dice.roll.roll, dice.is_valid, dice.roll.value)
         assert dice.roll.is_dirty_twenty, "Dice roll should be dirty twenty."
 
     def test_contains_dice(self):

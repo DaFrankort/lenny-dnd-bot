@@ -15,4 +15,5 @@ venv
 
 # Assets
 assets/sounds/**/*
+!assets/sounds/**/
 !assets/sounds/**/*_default.*

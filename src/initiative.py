@@ -401,6 +401,8 @@ class InitiativeRollModal(_InitiativeModal):
             return
 
         embed = InitiativeEmbed(itr, self.tracker)
+        sound_type = SoundType.CREATURE if name else SoundType.PLAYER
+        await VC.play(itr, sound_type)
         await itr.response.edit_message(embed=embed, view=embed.view)
         await itr.followup.send(
             embed=UserActionEmbed(
@@ -408,7 +410,6 @@ class InitiativeRollModal(_InitiativeModal):
             ),
             ephemeral=True,
         )
-        await VC.play(itr, SoundType.ROLL)
 
 
 class InitiativeSetModal(_InitiativeModal):
@@ -441,6 +442,7 @@ class InitiativeSetModal(_InitiativeModal):
         self.tracker.add(itr, initiative)
 
         embed = InitiativeEmbed(itr, self.tracker)
+        await VC.play(itr, SoundType.WRITE)
         await itr.response.edit_message(embed=embed, view=embed.view)
         await itr.followup.send(
             embed=UserActionEmbed(
@@ -467,6 +469,10 @@ class InitiativeDeleteModal(_InitiativeModal):
         name = self.get_str(self.name)
         text, success = self.tracker.remove(itr, name)
         embed = InitiativeEmbed(itr, self.tracker)
+
+        if success:
+            await VC.play(itr, SoundType.DELETE)
+
         await itr.response.edit_message(embed=embed, view=embed.view)
         await itr.followup.send(
             embed=SuccessEmbed(
@@ -552,12 +558,12 @@ class InitiativeBulkModal(_InitiativeModal):
             return
 
         embed = InitiativeEmbed(itr, self.tracker)
+        await VC.play(itr, SoundType.CREATURE)
         await itr.response.edit_message(embed=embed, view=embed.view)
         await itr.followup.send(
             embed=UserActionEmbed(itr=itr, title=title, description=description),
             ephemeral=True,
         )
-        await VC.play(itr, SoundType.ROLL)
 
 
 class InitiativeClearConfirmModal(_InitiativeModal):
@@ -581,6 +587,7 @@ class InitiativeClearConfirmModal(_InitiativeModal):
 
         self.tracker.clear(itr)
         embed = InitiativeEmbed(itr, self.tracker)
+        await VC.play(itr, SoundType.DELETE)
         await itr.response.edit_message(embed=embed, view=embed.view)
         await itr.followup.send(
             embed=SimpleEmbed(
@@ -611,7 +618,7 @@ class InitiativeView(discord.ui.View):
     @discord.ui.button(
         label="Delete Roll",
         style=discord.ButtonStyle.danger,
-        custom_id="retract_btn",
+        custom_id="delete_btn",
         row=0,
     )
     async def remove_initiative(self, itr: Interaction, button: discord.ui.Button):
@@ -638,11 +645,13 @@ class InitiativeView(discord.ui.View):
                 discord.ButtonStyle.secondary
                 if self.locked
                 else {
-                    "retract_btn": discord.ButtonStyle.danger,
+                    "delete_btn": discord.ButtonStyle.danger,
                     "clear_btn": discord.ButtonStyle.danger,
                     "bulk_btn": discord.ButtonStyle.primary,
                 }.get(child.custom_id, discord.ButtonStyle.success)
             )
+
+        await VC.play(itr, SoundType.LOCK)
         await itr.response.edit_message(view=self)
 
     @discord.ui.button(

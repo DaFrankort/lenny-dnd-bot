@@ -1,6 +1,7 @@
 import asyncio
 from enum import Enum
 import logging
+import os
 from pathlib import Path
 import random
 import shutil
@@ -28,6 +29,7 @@ class SoundType(Enum):
 class VC:
     clients: dict[int, discord.VoiceClient] = {}
     voice_available: bool = False
+    TEMP_PATH = Path("./temp/sounds")
 
     @staticmethod
     def check_ffmpeg():
@@ -111,6 +113,12 @@ class VC:
             client.play(sound)
 
     @staticmethod
+    def clean_temp_sounds():
+        if VC.TEMP_PATH.exists():
+            shutil.rmtree(VC.TEMP_PATH)
+            os.mkdir(VC.TEMP_PATH)
+
+    @staticmethod
     async def play_dice_roll(
         itr: Interaction, expression: DiceExpression, reason: str = None
     ):
@@ -132,6 +140,47 @@ class VC:
             sound_type = SoundType.NAT_1
 
         await VC.play(itr, sound_type)
+
+    @staticmethod
+    async def play_attachment(
+        itr: discord.Interaction, attachment: discord.Attachment
+    ) -> tuple[bool, str]:
+        """Play an audio file from an attachment. Returns a tuple with a boolean for success and a description."""
+        if not VC.voice_available:
+            return False, "Voice chat is not enabled on this bot."
+        if not attachment.content_type.startswith("audio"):
+            return False, "Attachment must be an audio file!"
+        if not itr.guild or not itr.user.voice:
+            return False, "You must be in a server voice channel to play sounds!"
+
+        await VC.join(itr)
+        client = VC.clients.get(itr.guild_id)
+        if not client:
+            return (
+                False,
+                "Failed to join your voice channel, does the bot have the correct permissions?",
+            )
+
+        os.makedirs(VC.TEMP_PATH, exist_ok=True)
+        ext = Path(attachment.filename).suffix
+        temp_file = VC.TEMP_PATH / f"{client.channel.id}{ext}"
+
+        if client.is_playing():
+            client.stop()
+            await asyncio.sleep(1)  # Give time for the stop to take effect
+
+        await attachment.save(temp_file)
+        audio_source = discord.FFmpegPCMAudio(
+            source=str(temp_file), options="-filter:a 'dynaudnorm, volume=0.2'"
+        )
+
+        client.play(
+            audio_source,
+        )
+        return (
+            True,
+            f"▶️ Playing ``{attachment.filename}`` in {itr.user.voice.channel.mention}...",
+        )
 
     @staticmethod
     async def monitor_vc(guild_id: int):

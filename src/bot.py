@@ -14,6 +14,7 @@ from embeds import (
     NoResultsFoundEmbed,
     MultiDNDSelectView,
     SimpleEmbed,
+    SuccessEmbed,
     UserActionEmbed,
 )
 from initiative import (
@@ -81,6 +82,7 @@ class Bot(discord.Client):
         await self._attempt_sync_guild()
         await self.tree.sync()
         Sounds.init_folders()
+        VC.clean_temp_sounds()  # Files are often unused, clearing on launch cleans up storage.
         if self.voice_enabled:
             VC.check_ffmpeg()
         else:
@@ -778,6 +780,21 @@ class Bot(discord.Client):
         ):
             poll = SessionPlanPoll(in_weeks, poll_duration)
             await itr.response.send_message(poll=poll)
+
+        @self.tree.command(
+            name=t("commands.playsound.name"),
+            description=t("commands.playsound.desc"),
+        )
+        async def play_sound(itr: Interaction, sound: discord.Attachment):
+            log_cmd(itr)
+            success, description = await VC.play_attachment(itr, sound)
+            embed = SuccessEmbed(
+                title_success="Playing sound!",
+                title_fail=f"Failed to play {sound.filename}...",
+                description=description,
+                success=success,
+            )
+            await itr.response.send_message(embed=embed, ephemeral=True)
 
         @self.tree.command(
             name=t("commands.help.name"), description=t("commands.help.desc")

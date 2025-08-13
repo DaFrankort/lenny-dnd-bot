@@ -131,12 +131,16 @@ class Bot(discord.Client):
                 await itr.response.send_message(view=view, ephemeral=True)
 
             else:
+                await itr.response.defer(thinking=False)
+
                 embed = found[0].get_embed()
-                view = embed.view
-                if view:
-                    await itr.response.send_message(embed=embed, view=view)
-                    return
-                await itr.response.send_message(embed=embed)
+                kwargs = {"embed": embed}
+                if embed.view:
+                    kwargs["view"] = embed.view
+                if embed.file:
+                    kwargs["file"] = embed.file
+
+                await itr.followup.send(**kwargs)
 
         def _get_diceroll_shortcut(
             itr: Interaction, diceroll: str, reason: str | None
@@ -560,13 +564,14 @@ class Bot(discord.Client):
         async def stats(itr: Interaction):
             log_cmd(itr)
             stats = Stats(itr)
-            await itr.response.send_message(
-                embed=UserActionEmbed(
-                    itr=itr,
-                    title=stats.get_embed_title(),
-                    description=stats.get_embed_description(),
-                ),
+            embed = UserActionEmbed(
+                itr=itr,
+                title=stats.get_embed_title(),
+                description=stats.get_embed_description(),
             )
+            chart_image = stats.get_radar_chart(itr)
+            embed.set_image(url=f"attachment://{chart_image.filename}")
+            await itr.response.send_message(embed=embed, file=chart_image)
 
         @self.tree.command(
             name=t("commands.tokengen.name"),

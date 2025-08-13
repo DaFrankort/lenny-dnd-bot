@@ -134,6 +134,12 @@
       "args": {
         "in_weeks": "How many weeks from now? (0 = this week, 1 = next week, ...)"
       }
+    },
+    "playsound": {
+      "name": "playsound",
+      "desc": "Play a sound effect from a file in voice chat!",
+      "help": "Allows users to play sound effects from files in voice chat without requiring any soundboard setup.",
+      "command": "/playsound <audio-file>"
     }
   },
   "help": {
@@ -187,7 +193,7 @@
     },
     "utility": {
       "name": "Discord Utilities",
-      "commands": ["color", "plansession"],
+      "commands": ["color", "plansession", "playsound"],
       "text": "",
       "info": [
         {

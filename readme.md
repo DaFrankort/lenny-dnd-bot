@@ -111,8 +111,12 @@ Optionally adjust the frame's color with `hue-shift` (default: gold), and contro
 - `/tokengen <image-attachment> [hue-shift] [h_alignment] [v_alignment]` - Generate a token from an image attachment.
 - `/tokengenurl <image-url> [hue-shift] [h_alignment] [v_alignment]` - Generate a token from an image URL.
 
-### Customize embed colors for users
+### Discord utilities
 
+- `plansession <in_weeks> [poll_duration]` - Quickly generates a poll where players can vote for days they're available within a given week.
+- `playsound` - Allows users to play a sound effect from a file through the bot, allowing for more atmospheric roleplay!
+
+#### User Colors
 Commands that signify user-actions are highlighted with colors that are unique per user. This makes it easy to discern different user's actions.
 By default the user's color is automatically generated based on their display name. Users can adjust their colors using following commands:
 

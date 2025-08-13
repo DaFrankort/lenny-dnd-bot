@@ -560,13 +560,14 @@ class Bot(discord.Client):
         async def stats(itr: Interaction):
             log_cmd(itr)
             stats = Stats(itr)
-            await itr.response.send_message(
-                embed=UserActionEmbed(
-                    itr=itr,
-                    title=stats.get_embed_title(),
-                    description=stats.get_embed_description(),
-                ),
+            embed = UserActionEmbed(
+                itr=itr,
+                title=stats.get_embed_title(),
+                description=stats.get_embed_description(),
             )
+            chart_image = stats.get_radar_chart(itr)
+            embed.set_image(url=f"attachment://{chart_image.filename}")
+            await itr.response.send_message(embed=embed, file=chart_image)
 
         @self.tree.command(
             name=t("commands.tokengen.name"),

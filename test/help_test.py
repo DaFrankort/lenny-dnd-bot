@@ -1,3 +1,4 @@
+import discord
 from bot import Bot
 import i18n
 
@@ -8,7 +9,11 @@ class TestHelp:
         bot = Bot()
         bot._register_commands()
 
-        command_names = [cmd.name for cmd in bot.tree.get_commands()]
+        command_names = [
+            cmd.name
+            for cmd in bot.tree.get_commands()
+            if isinstance(cmd, discord.app_commands.Command)
+        ]
 
         for name in command_names:
             assert i18n.has(

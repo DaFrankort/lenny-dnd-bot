@@ -1,5 +1,8 @@
+import io
 import random
 import discord
+import numpy as np
+import matplotlib.pyplot as plt
 
 
 class Stats:
@@ -33,3 +36,28 @@ class Stats:
 
         message += f"\n**Total**: {total}"
         return message
+
+    def get_radar_chart(self) -> discord.File:
+        results = [result for _, result in self.stats]
+        N = len(results)
+        values = results + results[:1]  # repeat first to close polygon
+
+        angles = np.linspace(0, 2 * np.pi, N, endpoint=False).tolist()
+        angles += angles[:1]
+
+        # Create radar chart
+        fig, ax = plt.subplots(subplot_kw=dict(polar=True))
+        ax.set_xticks(angles[:-1])
+        # ax.set_xticklabels(labels)
+        ax.set_ylim(0, 18)
+
+        ax.plot(angles, values, color="red", linewidth=2)
+        ax.fill(angles, values, color="red", alpha=0.25)
+
+        # Save to memory
+        buf = io.BytesIO()
+        plt.savefig(buf, format="png", bbox_inches="tight", transparent=True)
+        buf.seek(0)
+        plt.close(fig)
+
+        return discord.File(fp=buf, filename="stats.png")

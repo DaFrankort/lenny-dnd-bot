@@ -279,14 +279,14 @@ class Bot(discord.Client):
 
             embed = message.embeds[0]
             title = embed.author.name or ""
-            if not ("Rolling" in title or "Rerolling" in title):
+            if not ("Rolling" in title or "Re-rolling" in title):
                 await itr.response.send_message(
                     "❌ Message does not contain a dice-roll!", ephemeral=True
                 )
                 return
 
             dice_notation = (
-                title.replace("Rolling ", "").replace("Rerolling", "").replace("!", "")
+                title.replace("Rolling ", "").replace("Re-rolling", "").replace("!", "")
             )
             if "disadvantage" in dice_notation:
                 # Check 'disadvantage' before 'advantage', may give a false positive otherwise.

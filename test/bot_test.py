@@ -5,6 +5,7 @@ import pytest_asyncio
 from unittest.mock import AsyncMock, MagicMock
 
 from bot import Bot
+from dnd import Gender
 import i18n
 from i18n import t
 from utils.test_utils import listify
@@ -84,21 +85,33 @@ class TestBotCommands:
                 },
             ),
             (t("commands.shortcut.name"), {}),
-            (t("commands.spell.name"), [{"name": "Fire Bolt"}, {"name": "abcdefg"}]),
-            (t("commands.item.name"), [{"name": "Sword"}, {"name": "abcdefg"}]),
-            (t("commands.condition.name"), [{"name": "Poisoned"}, {"name": "abcdefg"}]),
-            (t("commands.creature.name"), [{"name": "Goblin"}, {"name": "abcdef"}]),
-            (t("commands.class.name"), [{"name": "Wizard"}, {"name": "abcdef"}]),
-            (t("commands.rule.name"), [{"name": "Action"}, {"name": "abcdef"}]),
-            (t("commands.action.name"), [{"name": "Attack"}, {"name": "abcdef"}]),
-            (t("commands.feat.name"), [{"name": "Tough"}, {"name": "abcdef"}]),
-            (t("commands.language.name"), [{"name": "Common"}, {"name": "abcdef"}]),
+            (t("commands.spell.name"), {"name": ["Fire Bolt", "abcdef"]}),
+            (t("commands.item.name"), {"name": ["Sword", "abcdef"]}),
+            (t("commands.condition.name"), {"name": ["Poisoned", "abcdef"]}),
+            (t("commands.creature.name"), {"name": ["Goblin", "abcdef"]}),
+            (t("commands.class.name"), {"name": ["Wizard", "abcdef"]}),
+            (t("commands.rule.name"), {"name": ["Action", "abcdef"]}),
+            (t("commands.action.name"), {"name": ["Attack", "abcdef"]}),
+            (t("commands.feat.name"), {"name": ["Tough", "abcdef"]}),
+            (t("commands.language.name"), {"name": ["Common", "abcdef"]}),
+            (t("commands.background.name"), {"name": ["Soldier", "abcdef"]}),
             (
                 t("commands.search.name"),
                 [
                     {"query": "Barb"},
                     {"query": "qwertyuiopasdfghjkl;zxcvbnm,./1234567890"},
                 ],
+            ),
+            (
+                t("commands.namegen.name"),
+                {
+                    "race": [None, "Human", "foobar"],
+                    "gender": [
+                        Gender.FEMALE.value,
+                        Gender.MALE.value,
+                        Gender.OTHER.value,
+                    ],
+                },
             ),
             (
                 t("commands.color.name"),
@@ -130,6 +143,7 @@ class TestBotCommands:
                             AlignV.TOP.value,
                         ],
                     },
+                    {"image": mock_image(), "variants": [0, 3, 10]},
                 ],
             ),
             (
@@ -153,11 +167,15 @@ class TestBotCommands:
                             AlignV.TOP.value,
                         ],
                     },
+                    {"url": img_url, "variants": [0, 3, 10]},
                     {"url": "NotAUrl"},
                 ],
             ),
             (t("commands.initiative.name"), {}),
-            (t("commands.plansession.name"), {"in_weeks": [0, 1, 4]}),
+            (
+                t("commands.plansession.name"),
+                {"in_weeks": [0, 1, 4], "poll_duration": [1, 24, 168]},
+            ),
             (t("commands.help.name"), {}),
             # ("", {"": "", "": ""}),
         ],

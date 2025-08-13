@@ -5,6 +5,7 @@ from pathlib import Path
 import random
 import shutil
 import discord
+from discord import Interaction
 
 from dice import DiceExpression
 
@@ -16,6 +17,12 @@ class SoundType(Enum):
     ATTACK = "combat/attack"
     DAMAGE = "combat/damage"
     FIRE = "combat/fire"
+    INITIATIVE = "initiative/initiative"
+    PLAYER = "initiative/player"
+    CREATURE = "initiative/creature"
+    WRITE = "initiative/write"
+    DELETE = "initiative/delete"
+    LOCK = "initiative/lock"
 
 
 class VC:
@@ -41,7 +48,7 @@ class VC:
         VC.voice_available = False
 
     @staticmethod
-    async def join(itr: discord.Interaction):
+    async def join(itr: Interaction):
         """Join the voice channel of the user who invoked the command."""
         if not VC.voice_available:
             return
@@ -76,7 +83,7 @@ class VC:
             del VC.clients[guild_id]
 
     @staticmethod
-    async def play(itr: discord.Interaction, sound_type: SoundType):
+    async def play(itr: Interaction, sound_type: SoundType):
         """Play an audio file in the voice channel."""
         if not VC.voice_available:
             return
@@ -92,8 +99,8 @@ class VC:
 
         retries = 0
         while client.is_playing():
-            # We queue sounds for 5 seconds, to prevent abrubt sound cuts
-            if retries >= 50:
+            # We queue sounds for 3 seconds, to prevent abrubt sound cuts
+            if retries >= 30:
                 client.stop()
                 break
             await asyncio.sleep(0.1)
@@ -105,7 +112,7 @@ class VC:
 
     @staticmethod
     async def play_dice_roll(
-        itr: discord.Interaction, expression: DiceExpression, reason: str = None
+        itr: Interaction, expression: DiceExpression, reason: str = None
     ):
         roll = expression.roll
         sound_type = SoundType.ROLL
@@ -171,6 +178,11 @@ class Sounds:
             SoundType.ATTACK: option(speed_deviation=0.3),
             SoundType.DAMAGE: option(speed_deviation=0.4),
             SoundType.FIRE: option(speed_deviation=0.2),
+            SoundType.PLAYER: option(speed_deviation=0.1),
+            SoundType.CREATURE: option(speed_deviation=0.1),
+            SoundType.WRITE: option(speed_deviation=0.3),
+            SoundType.DELETE: option(speed_deviation=0.3),
+            SoundType.LOCK: option(volume=0.2, speed_deviation=0.3),
             # Add sound types and specific options here
         }
 

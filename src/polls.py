@@ -6,10 +6,12 @@ from methods import when
 
 
 class SessionPlanPoll(Poll):
-    def __init__(self, in_weeks: int):
+    def __init__(self, in_weeks: int, poll_duration: int):
         super().__init__(
             question=self._get_question(in_weeks),
-            duration=datetime.timedelta(hours=1),  # Minimum required time is 1 hour.
+            duration=datetime.timedelta(
+                hours=poll_duration
+            ),  # Minimum required time is 1 hour.
             multiple=True,
         )
 

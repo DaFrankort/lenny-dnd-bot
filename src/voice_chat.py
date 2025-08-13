@@ -144,21 +144,21 @@ class VC:
     @staticmethod
     async def play_attachment(
         itr: discord.Interaction, attachment: discord.Attachment
-    ) -> tuple[str, True]:
-        """Play an audio file from an attachment. Returns a tuple with a description and a boolean for success."""
+    ) -> tuple[bool, str]:
+        """Play an audio file from an attachment. Returns a tuple with a boolean for success and a description."""
         if not VC.voice_available:
-            return "Voice chat is not enabled on this bot.", False
+            return False, "Voice chat is not enabled on this bot."
         if not attachment.content_type.startswith("audio"):
-            return "Attachment must be an audio file!", False
+            return False, "Attachment must be an audio file!"
         if not itr.guild or not itr.user.voice:
-            return "You must be in a server voice channel to play sounds!", False
+            return False, "You must be in a server voice channel to play sounds!"
 
         await VC.join(itr)
         client = VC.clients.get(itr.guild_id)
         if not client:
             return (
-                "Failed to join your voice channel, does the bot have the correct permissions?",
                 False,
+                "Failed to join your voice channel, does the bot have the correct permissions?",
             )
 
         os.makedirs(VC.TEMP_PATH, exist_ok=True)
@@ -178,8 +178,8 @@ class VC:
             audio_source,
         )
         return (
-            f"▶️ Playing ``{attachment.filename}`` in {itr.user.voice.channel.mention}...",
             True,
+            f"▶️ Playing ``{attachment.filename}`` in {itr.user.voice.channel.mention}...",
         )
 
     @staticmethod

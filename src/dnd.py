@@ -10,6 +10,8 @@ from rapidfuzz import fuzz
 from discord.app_commands import Choice
 from typing import Literal, Union, TypedDict
 
+from dice import DiceExpression
+
 
 def is_source_phb2014(source: str) -> bool:
     return source in ["PHB", "DMG", "MM"]
@@ -26,9 +28,19 @@ def _read_dnd_data(path: str) -> list[dict]:
         return json.load(file)
 
 
+class DescriptionRowRange(TypedDict):
+    type: Literal["range"]
+    min: int
+    max: int
+
+    @property
+    def notation(self) -> str:
+        return f"{self['min']} - {self['max']}"
+
+
 class DescriptionTable(TypedDict):
     headers: list[str]
-    rows: list[list[str]]
+    rows: list[list[str] | DescriptionRowRange]
 
 
 class Description(TypedDict):
@@ -545,6 +557,56 @@ class BackgroundList(DNDObjectList):
             self.entries.append(Background(background))
 
 
+class DNDTable(DNDObject):
+    dice_notation: str | None
+    table: Description
+    footnotes: list[str] | None
+
+    def __init__(self, json: any):
+        self.object_type = "table"
+        self.emoji = "📊"
+
+        self.name = json["name"]
+        self.source = json["source"]
+        self.url = json["url"]
+
+        self.dice_notation = json["roll"]
+        self.table = json["table"]
+        self.footnotes = json["footnotes"]
+
+    @abstractmethod
+    def get_embed(self) -> discord.Embed:
+        from embeds import TableEmbed
+
+        return TableEmbed(self)
+
+    @property
+    def is_rollable(self) -> bool:
+        return self.dice_notation is not None
+
+    def roll(self) -> tuple[list[str] | None, DiceExpression | None]:
+        if not self.is_rollable:
+            return None, None
+
+        expression = DiceExpression(self.dice_notation)
+        result = expression.roll.value
+        rows = self.table["value"]["rows"]
+        for row in rows:
+            range = row[0]
+            if range["min"] <= result <= range["max"]:
+                return row, expression
+        return None, expression
+
+
+class DNDTableList(DNDObjectList):
+    path = "./submodules/lenny-dnd-data/generated/tables.json"
+
+    def __init__(self):
+        super().__init__()
+        for table in _read_dnd_data(self.path):
+            self.entries.append(DNDTable(table))
+
+
 class Gender(Enum):
     FEMALE = "female"
     MALE = "male"
@@ -616,6 +678,7 @@ class DNDData(object):
     actions: ActionList
     feats: FeatList
     languages: LanguageList
+    tables: DNDTableList
 
     names: NameTable
 
@@ -631,6 +694,7 @@ class DNDData(object):
         self.feats = FeatList()
         self.languages = LanguageList()
         self.backgrounds = BackgroundList()
+        self.tables = DNDTableList()
 
         # TABLES
         self.names = NameTable()
@@ -646,6 +710,7 @@ class DNDData(object):
         yield self.feats
         yield self.languages
         yield self.backgrounds
+        yield self.tables
 
 
 class DNDSearchResults(object):
@@ -659,6 +724,7 @@ class DNDSearchResults(object):
     feats: list[Feat]
     languages: list[Language]
     backgrounds: list[Background]
+    tables: list[DNDTable]
     _type_map: dict[type, list[DNDObject]]
 
     def __init__(self):
@@ -672,6 +738,7 @@ class DNDSearchResults(object):
         self.feats = []
         self.languages = []
         self.backgrounds = []
+        self.tables = []
 
         self._type_map = {
             Spell: self.spells,
@@ -684,6 +751,7 @@ class DNDSearchResults(object):
             Feat: self.feats,
             Language: self.languages,
             Background: self.backgrounds,
+            DNDTable: self.tables,
         }
 
     def add(self, entry):

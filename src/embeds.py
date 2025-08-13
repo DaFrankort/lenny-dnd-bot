@@ -7,6 +7,7 @@ from dnd import (
     Class,
     Creature,
     DNDObject,
+    DNDTable,
     Description,
     Feat,
     Item,
@@ -18,6 +19,8 @@ from dnd import (
 from user_colors import UserColor
 from rich.table import Table
 from rich.console import Console
+
+from voice_chat import VC, SoundType
 
 HORIZONTAL_LINE = "~~-------------------------------------------------------------------------------------~~"
 
@@ -114,6 +117,16 @@ class _DNDObjectEmbed(discord.Embed):
 
         return char_count
 
+    def _format_cell_value(self, value: str | object) -> str:
+        if isinstance(value, str):
+            return value
+        if value["type"] == "range":
+            if value["min"] == value["max"]:
+                return str(value["min"])
+            else:
+                return f"{value['min']}-{value['max']}"
+        raise Exception("Unsupported cell type")
+
     def build_table(self, value, CHAR_FIELD_LIMIT=1024):
         """Turns a Description with headers & rows into a clean table using rich."""
 
@@ -125,8 +138,8 @@ class _DNDObjectEmbed(discord.Embed):
             table.add_column(header, justify="left", style=None)
 
         for row in rows:
-            row = map(str, row)
-            table.add_row(*row)
+            formatted_row = [self._format_cell_value(value) for value in row]
+            table.add_row(*formatted_row)
 
         buffer = io.StringIO()
         console = Console(file=buffer, width=56)
@@ -538,6 +551,74 @@ class BackgroundEmbed(_DNDObjectEmbed):
         super().__init__(background)
         if background.description:
             self.add_description_fields(background.description)
+
+
+class TableView(discord.ui.View):
+    table: DNDTable
+
+    @discord.ui.button(
+        label="Roll", style=discord.ButtonStyle.primary, custom_id="roll_btn"
+    )
+    async def add(self, itr: discord.Interaction, btn: discord.ui.Button):
+        log_button_press(
+            itr=itr, button=btn, location=f"Table Roll - {self.table.name}"
+        )
+        row, expression = self.table.roll()
+        if row is None or expression is None:
+            # Disable button to prevent further attempts, since it will keep failing.
+            btn.disabled = True
+            btn.style = discord.ButtonStyle.gray
+            await itr.response.send_message(
+                "❌ Couldn't roll table, something went wrong. ❌"
+            )
+            await itr.message.edit(view=self)
+            return
+
+        console_table = Table(style=None, box=rich.box.ROUNDED)
+        # Omit the first header and first row value
+        for header in self.table.table["value"]["headers"][1:]:
+            console_table.add_column(header, justify="left", style=None)
+        console_table.add_row(*row[1:])
+
+        buffer = io.StringIO()
+        console = Console(file=buffer, width=56)
+        console.print(console_table)
+        description = f"```{buffer.getvalue()}```"
+        buffer.close()
+
+        embed = UserActionEmbed(itr=itr, title=expression.title, description="")
+        embed.description = description
+        embed.title = f"{self.table.name} [{expression.roll.value}]"
+        await itr.response.send_message(embed=embed)
+        await VC.play(itr, sound_type=SoundType.ROLL)
+
+    def __init__(self, table: DNDTable):
+        super().__init__()
+        self.table = table
+
+        for child in self.children:
+            if hasattr(child, "custom_id") and child.custom_id == "roll_btn":
+                child.label = f"Roll {self.table.dice_notation}"
+
+
+class TableEmbed(_DNDObjectEmbed):
+    def __init__(self, table: DNDTable):
+        super().__init__(table)
+        if table.table:
+            self.description = self.build_table(
+                table.table["value"], CHAR_FIELD_LIMIT=4000
+            )
+
+        if table.footnotes:
+            footnotes = "\n".join(table.footnotes)
+            if len(table.footnotes) == 1:
+                self.set_footer(text=footnotes.replace("*", ""), icon_url=None)
+            else:
+                desc = Description(name="", type="text", value=f"*{footnotes}*")
+                self.add_description_fields([desc])
+
+        if table.is_rollable:
+            self.view = TableView(table)
 
 
 class SimpleEmbed(discord.Embed):

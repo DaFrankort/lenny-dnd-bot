@@ -53,10 +53,12 @@ class Stats:
         ax.set_xticklabels([str(r) for r in results])
         ax.set_ylim(0, max(18, max(values)))
 
+        ax.set_yticklabels([])  # Remove numbers on radial rings
+
         r, g, b = discord.Color(UserColor.get(itr)).to_rgb()
         color = (r / 255.0, g / 255.0, b / 255.0)
         ax.plot(angles, values, color=color, linewidth=2)
-        ax.fill(angles, values, color=color, alpha=0.25)
+        ax.fill(angles, values, color=color, alpha=0.4)
 
         ax.spines["polar"].set_color("white")
         ax.tick_params(colors="white")

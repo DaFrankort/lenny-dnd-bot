@@ -3,6 +3,7 @@ import logging
 import discord
 import rich
 from dnd import (
+    Background,
     Class,
     Creature,
     DNDObject,
@@ -206,6 +207,7 @@ class SpellEmbed(_DNDObjectEmbed):
 
         super().__init__(spell)
 
+        self._set_embed_color(spell)
         self.add_field(name="Type", value=spell.level_school, inline=True)
         self.add_field(name="Casting Time", value=spell.casting_time, inline=True)
         self.add_field(name="Range", value=spell.spell_range, inline=True)
@@ -222,6 +224,21 @@ class SpellEmbed(_DNDObjectEmbed):
             )
             self.add_description_fields(spell.description)
 
+    def _set_embed_color(self, spell: Spell):
+        school_colors = {
+            "abjuration": discord.Colour.from_rgb(0, 185, 33),
+            "conjuration": discord.Colour.from_rgb(189, 0, 68),
+            "divination": discord.Colour.from_rgb(0, 173, 179),
+            "enchantment": discord.Colour.from_rgb(179, 0, 131),
+            "evocation": discord.Colour.from_rgb(172, 1, 9),
+            "illusion": discord.Colour.from_rgb(14, 109, 174),
+            "necromancy": discord.Colour.from_rgb(108, 24, 141),
+            "transmutation": discord.Colour.from_rgb(204, 190, 0),
+        }
+
+        school = spell.school.lower()
+        self.color = school_colors.get(school, discord.Colour.green())
+
 
 class ItemEmbed(_DNDObjectEmbed):
     def __init__(self, item: Item) -> None:
@@ -233,6 +250,7 @@ class ItemEmbed(_DNDObjectEmbed):
         descriptions = item.description
 
         if type is not None:
+            self._set_embed_color(item)
             self.add_field(name="", value=f"*{type}*", inline=False)
 
         if properties is not None:
@@ -250,6 +268,27 @@ class ItemEmbed(_DNDObjectEmbed):
             )
 
             self.add_description_fields(item.description)
+
+    def _set_embed_color(self, item: Item):
+        type_colors = {
+            "common": discord.Colour.green(),
+            "uncommon": discord.Colour.from_rgb(178, 114, 63),
+            "rare": discord.Colour.from_rgb(166, 155, 190),
+            "very rare": discord.Colour.from_rgb(208, 172, 63),
+            "legendary": discord.Colour.from_rgb(140, 194, 216),
+            "artifact": discord.Colour.from_rgb(200, 37, 35),
+            "varies": discord.Colour.from_rgb(186, 187, 187),
+            "unknown": discord.Colour.from_rgb(186, 187, 187),
+        }
+
+        color = None
+        for type in item.type:
+            cleaned_type = type.split("(")[0].strip().lower()
+            if cleaned_type in type_colors:
+                color = type_colors[cleaned_type]
+                break
+
+        self.color = color or discord.Colour.from_rgb(149, 149, 149)
 
 
 class ConditionEmbed(_DNDObjectEmbed):
@@ -492,6 +531,13 @@ class LanguageEmbed(_DNDObjectEmbed):
             if len(self.fields) > 0:
                 self.add_field(name="", value=HORIZONTAL_LINE, inline=False)
             self.add_description_fields(language.description)
+
+
+class BackgroundEmbed(_DNDObjectEmbed):
+    def __init__(self, background: Background):
+        super().__init__(background)
+        if background.description:
+            self.add_description_fields(background.description)
 
 
 class SimpleEmbed(discord.Embed):

@@ -1,14 +1,22 @@
 from enum import Enum
 import io
+import math
 import os
 import time
 import aiohttp
 import discord
 import numpy as np
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
 
 TOKEN_FRAME = Image.open("./assets/images/token_border.png").convert("RGBA")
+TOKEN_BG = Image.open("./assets/images/token_bg.jpg").convert("RGBA")
+TOKEN_NUMBER_LABEL = Image.open("./assets/images/token_number_label.png").convert(
+    "RGBA"
+)
+TOKEN_NUMBER_OVERLAY = Image.open("./assets/images/token_number_overlay.png").convert(
+    "RGBA"
+)
 
 
 class AlignH(Enum):
@@ -130,16 +138,16 @@ def _crop_image(
     return background
 
 
-def _get_hue_frame(hue: int) -> Image.Image:
+def _shift_hue(image: Image.Image, hue: int) -> Image.Image:
     """
-    Returns a copy of TOKEN_FRAME with its hue shifted by the given amount.
+    Returns a copy of an image with its hue shifted by the given amount.
     Hue should be in the range -360 to 360.
     """
     if hue == 0:
-        return TOKEN_FRAME.copy()
+        return image.copy()
 
     # Convert to HSV, shift hue, and convert back
-    r, g, b, a = TOKEN_FRAME.split()
+    r, g, b, a = image.split()
     rgb_image = Image.merge("RGB", (r, g, b))
     hsv_image = rgb_image.convert("HSV")
     h, s, v = hsv_image.split()
@@ -164,22 +172,22 @@ def generate_token_image(
     v_align: AlignV = AlignV.CENTER,
 ) -> Image.Image:
     inner = _crop_image(image, h_align, v_align, TOKEN_FRAME.size)
-    frame = _get_hue_frame(hue) if hue else TOKEN_FRAME
+    frame = _shift_hue(TOKEN_FRAME, hue)
     return Image.alpha_composite(inner, frame)
 
 
-def _get_filename(name: str) -> str:
-    return f"{name}_token_{int(time.time())}.png"
+def _get_filename(name: str, id: int) -> str:
+    return f"{name}_token_{int(time.time())}_{id}.png"
 
 
-def generate_token_url_filename(url: str) -> str:
+def generate_token_url_filename(url: str, id: int = 0) -> str:
     url_hash = str(abs(hash(url)))
-    return _get_filename(url_hash)
+    return _get_filename(url_hash, id)
 
 
-def generate_token_filename(base_image: discord.Attachment) -> str:
+def generate_token_filename(base_image: discord.Attachment, id: int = 0) -> str:
     filename = os.path.splitext(base_image.filename)[0]
-    return _get_filename(filename)
+    return _get_filename(filename, id)
 
 
 def image_to_bytesio(image: Image.Image) -> io.BytesIO:
@@ -187,3 +195,90 @@ def image_to_bytesio(image: Image.Image) -> io.BytesIO:
     image.save(output, format="PNG")
     output.seek(0)
     return output
+
+
+def generate_token_variants(
+    token_image: Image.Image,
+    filename_seed: discord.Attachment | str,
+    amount: int,
+) -> list[discord.File]:
+    files = []
+    for i in range(amount):
+        id = i + 1
+        labeled_image = add_number_to_tokenimage(
+            token_image=token_image, number=id, amount=amount
+        )
+        filename = (
+            generate_token_url_filename(filename_seed, id)
+            if isinstance(filename_seed, str)
+            else generate_token_filename(filename_seed, id)
+        )
+        files.append(
+            discord.File(
+                fp=image_to_bytesio(labeled_image),
+                filename=filename,
+            )
+        )
+
+    return files
+
+
+def add_number_to_tokenimage(
+    token_image: Image.Image, number: int, amount: int
+) -> Image.Image:
+    label_size = (72, 72)
+    font_size = (
+        int(min(label_size) * 0.6) if number < 10 else int(min(label_size) * 0.5)
+    )
+
+    label = TOKEN_NUMBER_LABEL.copy()
+    variant_hue = (number - 1) * (360 / amount)
+    overlay = _shift_hue(TOKEN_NUMBER_OVERLAY.copy(), variant_hue)
+    label.alpha_composite(overlay)
+    label = label.rotate(
+        (number - 1) * (360 / amount + 1)
+    )  # +1 So the last label does not have the same rotation as the first.
+    label = label.resize(label_size)
+
+    # Prepare text & font
+    try:
+        font = ImageFont.truetype("./assets/fonts/Merienda-Light.ttf", font_size)
+    except OSError:
+        font = ImageFont.load_default(font_size)
+
+    draw = ImageDraw.Draw(label)
+    text = str(number)
+
+    # Calculate label-center
+    bbox = draw.textbbox((0, 0), text, font=font)
+    text_width = bbox[2] - bbox[0]
+    text_height = bbox[3] - bbox[1]
+    x = (label_size[0] - text_width) // 2
+    y = (label_size[1] - text_height * 2) // 2
+
+    if number == 7 and "merienda" in font.font.family.lower():
+        y += (
+            text_height // 6
+        )  # Merienda's '7' is shifted upwards, thus requires compensation, dividing by 6 gave nicest results.
+
+    # Draw text
+    draw.text((x, y), text, font=font, fill=(255, 255, 255, 255))
+    angle_deg = 90  # 90 Is bottom, 0 is right-side
+    angle_rad = math.radians(angle_deg)
+
+    # Token Center
+    cx = token_image.width // 2
+    cy = token_image.height // 2
+    # Radius Adjustment
+    rx = cx - (label.width // 2)
+    ry = cy - (label.height // 2)
+    # Rim position
+    px = cx + int(rx * math.cos(angle_rad)) - (label.width // 2)
+    py = cy + int(ry * math.sin(angle_rad)) - (label.height // 2)
+
+    # Adjust to place label so its center is on the rim
+    pos = (int(px), int(py))
+    combined = token_image.copy()
+    combined.alpha_composite(label, dest=pos)
+
+    return combined

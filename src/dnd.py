@@ -1,7 +1,9 @@
 from abc import abstractmethod
+from enum import Enum
 import json
 import logging
 import os.path
+import random
 
 import discord
 from rapidfuzz import fuzz
@@ -513,6 +515,97 @@ class LanguageList(DNDObjectList):
             self.entries.append(Language(language))
 
 
+class Background(DNDObject):
+    abilities: list[str] | None
+    description: list[Description]
+
+    def __init__(self, json: any):
+        self.object_type = "background"
+        self.emoji = "📕"
+
+        self.name = json["name"]
+        self.source = json["source"]
+        self.url = json["url"]
+        self.abilities = json["abilities"]
+        self.description = json["description"]
+
+    @abstractmethod
+    def get_embed(self) -> discord.Embed:
+        from embeds import BackgroundEmbed
+
+        return BackgroundEmbed(self)
+
+
+class BackgroundList(DNDObjectList):
+    path = "./submodules/lenny-dnd-data/generated/backgrounds.json"
+
+    def __init__(self):
+        super().__init__()
+        for background in _read_dnd_data(self.path):
+            self.entries.append(Background(background))
+
+
+class Gender(Enum):
+    FEMALE = "female"
+    MALE = "male"
+    OTHER = "other"
+
+
+class NameTable:
+    """Names supplied by 5etools, does not adhere to normal DNDObject format!"""
+
+    path = "./submodules/lenny-dnd-data/generated/names.json"
+    tables: dict[str, dict[str, list[str]]] = {}
+
+    def __init__(self):
+        data = _read_dnd_data(self.path)
+        if len(data) == 0:
+            self.tables = None
+            return
+
+        for d in data:
+            race = d["name"].lower()
+            table = {}
+            table[Gender.FEMALE.value] = d["tables"]["female"]
+            table[Gender.MALE.value] = d["tables"]["male"]
+            table["family"] = d["tables"]["family"]
+
+            self.tables[race] = table
+
+    def get_random(
+        self, race: str | None, gender: Gender
+    ) -> tuple[str, str, Gender] | tuple[None, None, None]:
+        """
+        Race and gender are randomised if not specified.
+        Returns the selected name, race and gender in a tuple.
+        """
+        if self.tables is None:
+            return None, None, None
+
+        if race:
+            race = race.lower()
+
+        table = self.tables.get(race, None)
+        if table is None:
+            race = random.choice(list(self.tables.keys()))
+            table = self.tables.get(race)
+
+        if gender is Gender.OTHER:
+            gender = random.choice([Gender.FEMALE, Gender.MALE])
+
+        names = table.get(gender.value, None)
+        surnames = table.get("family", [])
+
+        name = random.choice(names)
+        if len(surnames) != 0:
+            surname = random.choice(surnames)
+            return f"{name} {surname}", race, gender
+        return name, race, gender
+
+    def get_races(self):
+        return self.tables.keys()
+
+
 class DNDData(object):
     spells: SpellList
     items: ItemList
@@ -524,7 +617,10 @@ class DNDData(object):
     feats: FeatList
     languages: LanguageList
 
+    names: NameTable
+
     def __init__(self):
+        # LISTS
         self.spells = SpellList()
         self.items = ItemList()
         self.conditions = ConditionList()
@@ -534,6 +630,10 @@ class DNDData(object):
         self.actions = ActionList()
         self.feats = FeatList()
         self.languages = LanguageList()
+        self.backgrounds = BackgroundList()
+
+        # TABLES
+        self.names = NameTable()
 
     def __iter__(self):
         yield self.spells
@@ -545,6 +645,7 @@ class DNDData(object):
         yield self.actions
         yield self.feats
         yield self.languages
+        yield self.backgrounds
 
 
 class DNDSearchResults(object):
@@ -557,6 +658,7 @@ class DNDSearchResults(object):
     actions: list[Action]
     feats: list[Feat]
     languages: list[Language]
+    backgrounds: list[Background]
     _type_map: dict[type, list[DNDObject]]
 
     def __init__(self):
@@ -569,6 +671,7 @@ class DNDSearchResults(object):
         self.actions = []
         self.feats = []
         self.languages = []
+        self.backgrounds = []
 
         self._type_map = {
             Spell: self.spells,
@@ -580,6 +683,7 @@ class DNDSearchResults(object):
             Action: self.actions,
             Feat: self.feats,
             Language: self.languages,
+            Background: self.backgrounds,
         }
 
     def add(self, entry):

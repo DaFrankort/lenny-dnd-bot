@@ -9,10 +9,11 @@ from help import HelpEmbed
 from i18n import t
 
 from dice import DiceExpression, DiceExpressionCache, DiceRollMode
-from dnd import DNDData, DNDObject
+from dnd import DNDData, DNDObject, Gender
 from embeds import (
     NoResultsFoundEmbed,
     MultiDNDSelectView,
+    SimpleEmbed,
     SuccessEmbed,
     UserActionEmbed,
 )
@@ -30,12 +31,13 @@ from token_gen import (
     generate_token_filename,
     generate_token_image,
     generate_token_url_filename,
+    generate_token_variants,
     image_to_bytesio,
     open_image,
     open_image_url,
 )
 from user_colors import UserColor
-from voice_chat import VC, Sounds
+from voice_chat import VC, SoundType, Sounds
 
 
 class Bot(discord.Client):
@@ -169,6 +171,12 @@ class Bot(discord.Client):
             app_commands.Choice(name="Top", value=AlignV.TOP.value),
             app_commands.Choice(name="Center", value=AlignV.CENTER.value),
             app_commands.Choice(name="Bottom", value=AlignV.BOTTOM.value),
+        ]
+
+        GenderChoices = [
+            app_commands.Choice(name="Female", value=Gender.FEMALE.value),
+            app_commands.Choice(name="Male", value=Gender.MALE.value),
+            app_commands.Choice(name="Other", value=Gender.OTHER.value),
         ]
 
         #
@@ -444,6 +452,21 @@ class Bot(discord.Client):
             return self.data.languages.get_autocomplete_suggestions(query=current)
 
         @self.tree.command(
+            name=t("commands.background.name"),
+            description=t("commands.background.desc"),
+        )
+        async def background(itr: Interaction, name: str):
+            log_cmd(itr)
+            found = self.data.backgrounds.get(name)
+            await send_DNDObject_lookup_result(itr, "background", found, name)
+
+        @background.autocomplete("name")
+        async def background_autocomplete(
+            itr: discord.Interaction, current: str
+        ) -> list[app_commands.Choice[str]]:
+            return self.data.backgrounds.get_autocomplete_suggestions(query=current)
+
+        @self.tree.command(
             name=t("commands.search.name"), description=t("commands.search.desc")
         )
         async def search(itr: Interaction, query: str):
@@ -459,6 +482,44 @@ class Bot(discord.Client):
                 await itr.response.send_message(
                     embed=embed, view=embed.view, ephemeral=True
                 )
+
+        @self.tree.command(
+            name=t("commands.namegen.name"), description=t("commands.namegen.desc")
+        )
+        @app_commands.describe(
+            race=t("commands.namegen.args.race"),
+            gender=t("commands.namegen.args.gender"),
+        )
+        @app_commands.choices(gender=GenderChoices)
+        async def namegen(
+            itr: Interaction, race: str = None, gender: str = Gender.OTHER.value
+        ):
+            gender = Gender(gender)
+            name, new_race, new_gender = self.data.names.get_random(race, gender)
+
+            if name is None:
+                await itr.response.send_message(
+                    "❌ Can't generate names at this time ❌", ephemeral=True
+                )
+                return
+
+            description = f"*{new_gender.value} {new_race}*".title()
+
+            embed = SimpleEmbed(title=name, description=description)
+            await itr.response.send_message(embed=embed)
+
+        @namegen.autocomplete("race")
+        async def autocomplete_namgen_race(
+            itr: Interaction, current: str
+        ) -> list[app_commands.Choice[str]]:
+            races = self.data.names.get_races()
+            filtered_races = [
+                race.title() for race in races if current.lower() in race.lower()
+            ]
+            return [
+                app_commands.Choice(name=race, value=race)
+                for race in filtered_races[:25]
+            ]
 
         @self.tree.command(
             name=t("commands.color.name"), description=t("commands.color.desc")
@@ -501,13 +562,14 @@ class Bot(discord.Client):
         async def stats(itr: Interaction):
             log_cmd(itr)
             stats = Stats(itr)
-            await itr.response.send_message(
-                embed=UserActionEmbed(
-                    itr=itr,
-                    title=stats.get_embed_title(),
-                    description=stats.get_embed_description(),
-                ),
+            embed = UserActionEmbed(
+                itr=itr,
+                title=stats.get_embed_title(),
+                description=stats.get_embed_description(),
             )
+            chart_image = stats.get_radar_chart(itr)
+            embed.set_image(url=f"attachment://{chart_image.filename}")
+            await itr.response.send_message(embed=embed, file=chart_image)
 
         @self.tree.command(
             name=t("commands.tokengen.name"),
@@ -518,6 +580,7 @@ class Bot(discord.Client):
             frame_hue="Hue shift to apply to the token-frame (Gold: 0 | Red: -30 | Blue: 180 | Green: 80).",
             h_alignment="Horizontal alignment for the token image.",
             v_alignment="Vertical alignment for the token image.",
+            variants="Create many tokens with label-numbers.",
         )
         @app_commands.choices(
             h_alignment=TokenGenHorAlignmentChoices,
@@ -529,6 +592,7 @@ class Bot(discord.Client):
             frame_hue: app_commands.Range[int, -360, 360] = 0,
             h_alignment: str = AlignH.CENTER.value,
             v_alignment: str = AlignV.CENTER.value,
+            variants: app_commands.Range[int, 0, 10] = 0,
         ):
             log_cmd(itr)
 
@@ -549,6 +613,14 @@ class Bot(discord.Client):
                 return
 
             token_image = generate_token_image(img, frame_hue, h_alignment, v_alignment)
+            if variants != 0:
+                await itr.followup.send(
+                    files=generate_token_variants(
+                        token_image=token_image, filename_seed=image, amount=variants
+                    )
+                )
+                return
+
             await itr.followup.send(
                 file=discord.File(
                     fp=image_to_bytesio(token_image),
@@ -565,6 +637,7 @@ class Bot(discord.Client):
             frame_hue="Hue shift to apply to the token-frame (Gold: 0 | Red: -30 | Blue: 180 | Green: 80).",
             h_alignment="Horizontal alignment for the token image.",
             v_alignment="Vertical alignment for the token image.",
+            variants="Create many tokens with label-numbers.",
         )
         @app_commands.choices(
             h_alignment=TokenGenHorAlignmentChoices,
@@ -576,6 +649,7 @@ class Bot(discord.Client):
             frame_hue: app_commands.Range[int, -360, 360] = 0,
             h_alignment: str = AlignH.CENTER.value,
             v_alignment: str = AlignV.CENTER.value,
+            variants: app_commands.Range[int, 0, 10] = 0,
         ):
             log_cmd(itr)
 
@@ -596,6 +670,14 @@ class Bot(discord.Client):
                 return
 
             token_image = generate_token_image(img, frame_hue, h_alignment, v_alignment)
+            if variants != 0:
+                await itr.followup.send(
+                    files=generate_token_variants(
+                        token_image=token_image, filename_seed=url, amount=variants
+                    )
+                )
+                return
+
             await itr.followup.send(
                 file=discord.File(
                     fp=image_to_bytesio(token_image),
@@ -613,6 +695,7 @@ class Bot(discord.Client):
             log_cmd(itr)
             embed = InitiativeEmbed(itr, self.initiatives)
             await itr.response.send_message(embed=embed, view=embed.view)
+            await VC.play(itr, SoundType.INITIATIVE)
 
             message = await itr.original_response()
             await self.initiatives.set_message(itr, message)
@@ -623,11 +706,14 @@ class Bot(discord.Client):
         )
         @app_commands.describe(
             in_weeks=t("commands.plansession.args.in_weeks"),
+            poll_duration=t("commands.plansession.args.poll_duration"),
         )
         async def plan_session(
-            itr: Interaction, in_weeks: app_commands.Range[int, 0, 48]
+            itr: Interaction,
+            in_weeks: app_commands.Range[int, 0, 48],
+            poll_duration: app_commands.Range[int, 1, 168] = 24,
         ):
-            poll = SessionPlanPoll(in_weeks)
+            poll = SessionPlanPoll(in_weeks, poll_duration)
             await itr.response.send_message(poll=poll)
 
         @self.tree.command(

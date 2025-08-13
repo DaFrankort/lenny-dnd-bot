@@ -90,11 +90,27 @@
       "help": "Looks up a D&D Language by name.",
       "command": "/language <language name>"
     },
+    "background": {
+      "name": "background",
+      "desc": "Get the details of a background.",
+      "help": "Looks up a D&D Background by name.",
+      "command": "/background <background name>"
+    },
     "search": {
       "name": "search",
       "desc": "Search for a D&D entry.",
       "help": "Looks up all possible D&D entries for a query.",
       "command": "/search <query>"
+    },
+    "namegen": {
+      "name": "namegen",
+      "desc": "Generate a random name depending on race and gender!",
+      "help": "Get a random name for a humanoid, race and gender can be specified but will default to random values.",
+      "command": "/namegen [race] [gender]",
+      "args": {
+        "race": "Request a name from a specific race, selects random race by default.",
+        "gender": "Request name from a specific gender, selects random gender by default."
+      }
     },
     "color": {
       "name": "color",
@@ -132,7 +148,8 @@
       "help": "Creates a poll for players to select their availability in x weeks. Generates poll-answers from Monday - Sunday, along with an 'Earlier' and 'Later' option. If 0 is specified it will poll for the remaining days in the current week.",
       "command": "/plansession <in-weeks>",
       "args": {
-        "in_weeks": "How many weeks from now? (0 = this week, 1 = next week, ...)"
+        "in_weeks": "How many weeks from now? (0 = this week, 1 = next week, ...)",
+        "poll_duration": "How long until the poll closes? (Defaults to 24h)"
       }
     },
     "playsound": {
@@ -161,7 +178,7 @@
         {
           "name": "Dice Notations",
           "info": [
-            "To roll dice, you need to use dice notations, these follow the format `XdY + Z`.",
+            "To roll dice, you need to use dice notations, these generally follow the `XdY + Z` format.",
             "For example, ``1d20 + 6`` rolls a single 20-sided die and adds 6 to the result, these notations are expandable to combine a large number of dice.",
             "Besides basic math operators (``+``, ``-``, ``/``, ``*``), ``NdN`` and numbers, you can also use modifiers [documented on this site.](https://d20.readthedocs.io/en/latest/start.html#grammar)",
             "*Note: Dice notations are sometimes referred to as dice expressions instead.*"
@@ -206,14 +223,14 @@
       ]
     },
     "character": {
-      "name": "Character",
-      "commands": ["stats"],
-      "text": "You can easily generate stats for your character using the following command:",
+      "name": "Character Utilities",
+      "commands": ["stats", "namegen"],
+      "text": "You can easily generate stats and names for your character using the following commands:",
       "info": []
     },
     "dnd": {
       "name": "D&D Resources",
-      "commands": ["spell", "item", "condition", "creature", "class", "feat", "rule", "action", "language", "search"],
+      "commands": ["spell", "item", "condition", "creature", "class", "feat", "rule", "action", "language", "background", "search"],
       "text": "You can look up D&D information from [5e.tools](https://5e.tools/) using the following commands:",
       "info": []
     },

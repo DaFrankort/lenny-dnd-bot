@@ -131,16 +131,12 @@ class Bot(discord.Client):
                 await itr.response.send_message(view=view, ephemeral=True)
 
             else:
-                await itr.response.defer(thinking=False)
-
                 embed = found[0].get_embed()
-                kwargs = {"embed": embed}
-                if embed.view:
-                    kwargs["view"] = embed.view
-                if embed.file:
-                    kwargs["file"] = embed.file
-
-                await itr.followup.send(**kwargs)
+                view = embed.view
+                if view:
+                    await itr.response.send_message(embed=embed, view=view)
+                    return
+                await itr.response.send_message(embed=embed)
 
         def _get_diceroll_shortcut(
             itr: Interaction, diceroll: str, reason: str | None

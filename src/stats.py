@@ -62,6 +62,7 @@ class Stats:
 
         ax.spines["polar"].set_color("white")
         ax.tick_params(colors="white")
+        ax.grid(color="white", alpha=0.3, linewidth=1)
 
         # Save to memory
         buf = io.BytesIO()

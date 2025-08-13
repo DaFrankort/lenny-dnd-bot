@@ -5,6 +5,7 @@ import discord
 from discord import app_commands
 from discord import Interaction
 from dotenv import load_dotenv
+from charactergen import CharacterGen, CharacterGenEmbed
 from help import HelpEmbed
 from i18n import t
 
@@ -600,6 +601,14 @@ class Bot(discord.Client):
                 app_commands.Choice(name=race, value=race)
                 for race in filtered_races[:25]
             ]
+
+        @self.tree.command(
+            name="charactergen", description="Generate a random character!"
+        )
+        async def charactergen(itr: Interaction):
+            character = CharacterGen(itr, self.data)
+            embed = CharacterGenEmbed(character)
+            await itr.response.send_message(embed=embed)
 
         @self.tree.command(
             name=t("commands.color.name"), description=t("commands.color.desc")

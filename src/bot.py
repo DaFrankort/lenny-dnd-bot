@@ -313,7 +313,7 @@ class Bot(discord.Client):
             expression = DiceExpression(
                 expression=dice_notation, mode=mode, reason=reason
             )
-            expression.title = expression.title.replace("Rolling", "Rerolling")
+            expression.title = expression.title.replace("Rolling", "Re-rolling")
             DiceExpressionCache.store_expression(itr, expression, dice_notation)
 
             await itr.response.send_message(

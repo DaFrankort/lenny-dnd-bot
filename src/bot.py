@@ -269,10 +269,10 @@ class Bot(discord.Client):
             if message.author.id != itr.client.user.id:
                 await itr.response.send_message(
                     f"❌ {itr.client.user.name} can only delete their own messages ❌",
-                    ephemeral=True
+                    ephemeral=True,
                 )
                 return
-            
+
             await message.delete()
             await itr.response.send_message("Message deleted!", ephemeral=True)
 

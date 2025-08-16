@@ -263,6 +263,19 @@ class Bot(discord.Client):
             )
             await VC.play_dice_roll(itr, expression, reason)
 
+        @self.tree.context_menu(name=t("contextmenu.delete.name"))
+        async def delete_message(itr: Interaction, message: discord.Message):
+            log_cmd(itr)
+            if message.author.id != itr.client.user.id:
+                await itr.response.send_message(
+                    f"❌ {itr.client.user.name} can only delete their own messages ❌",
+                    ephemeral=True
+                )
+                return
+            
+            await message.delete()
+            await itr.response.send_message("Message deleted!", ephemeral=True)
+
         @self.tree.context_menu(name=t("contextmenu.reroll.name"))
         async def reroll(itr: Interaction, message: discord.Message):
             log_cmd(itr)

@@ -17,7 +17,6 @@ def dice_distribution_chart(
     distribution: d20distribution.distribution.DiceDistribution,
     min_to_beat: int,
 ) -> discord.File:
-    distribution: dict[int, float] = distribution.to_dict()
     keys = list(sorted(distribution.keys()))
     values = [100 * distribution.get(key) for key in keys]  # In percent
 
@@ -36,7 +35,7 @@ def dice_distribution_chart(
 
     max_ticks = 20 / len(str(max(distribution.keys())))
     steps = int(math.ceil(len(distribution.keys()) / max_ticks))
-    ax.set_xticks(range(min(distribution.keys()), max(distribution.keys()) + 1, steps))
+    ax.set_xticks(range(distribution.min(), distribution.max() + 1, steps))
     ax.yaxis.set_major_formatter("{x:.2f}%")  # Add percent on y-axis
 
     ax.tick_params(colors="white")

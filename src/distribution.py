@@ -1,16 +1,11 @@
 from collections.abc import Iterable
 import io
 import math
-from typing import Literal
 import d20.diceast
 import d20
 import discord
 import matplotlib.pyplot as plt
 from user_colors import UserColor
-
-# TODO advantage
-# TODO disadvantage
-# TODO minimum value to beat
 
 
 def to_matplotlib_color(color: int) -> tuple[float, float, float]:
@@ -265,7 +260,7 @@ def get_dice_expression_distribution(expression: str) -> DiceDistribution:
         return DiceDistribution(
             {0: 1.0}, set(["Expression contains a possible division by zero!"])
         )
-    except Exception as e:
+    except Exception:
         return DiceDistribution(
             {0: 1.0}, set(["There was an error parsing the expression!"])
         )

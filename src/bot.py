@@ -1,7 +1,6 @@
 import logging
 import os
 import re
-from typing import Literal
 import discord
 from discord import app_commands
 from discord import Interaction

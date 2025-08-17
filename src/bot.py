@@ -660,13 +660,14 @@ class Bot(discord.Client):
             min_to_beat: int | None = None,
         ):
             log_cmd(itr)
+            await itr.response.defer() # Calculations might take a while for large expressions, e.g. 100d100
             distribution = get_distribution(expression, advantage=advantage)
             chart = distribution.chart(itr, min_to_beat or -9999999)
             embed = DiceDistributionEmbed(
                 itr, expression, distribution, advantage, min_to_beat
             )
             embed.set_image(url=f"attachment://{chart.filename}")
-            await itr.response.send_message(embed=embed, file=chart)
+            await itr.followup.send(embed=embed, file=chart)
 
         @distribution.autocomplete("advantage")
         async def distribution_autocomplete(

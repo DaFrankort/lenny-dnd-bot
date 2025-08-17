@@ -5,6 +5,7 @@ import d20.diceast
 import d20
 import discord
 import matplotlib.pyplot as plt
+import numpy as np
 from user_colors import UserColor
 
 
@@ -47,11 +48,11 @@ class DiceDistribution(object):
 
     @property
     def min(self) -> int:
-        return min(self.odds.keys())
+        return min(self.keys())
 
     @property
     def max(self) -> int:
-        return max(self.odds.keys())
+        return max(self.keys())
 
     @property
     def mean(self) -> float:
@@ -167,8 +168,12 @@ class DiceDistribution(object):
 
         plt.rcParams["figure.dpi"] = 600
         fig, ax = plt.subplots(subplot_kw=dict())
-        ax.xaxis.set_major_formatter("{x:.0f}")  # Remove floating points on x-axis
+
+        max_ticks = 20 / len(str(self.max))
+        steps = int(math.ceil(len(self.keys()) / max_ticks))
+        ax.set_xticks(range(self.min, self.max + 1, steps))
         ax.yaxis.set_major_formatter("{x:.2f}%")  # Add percent on y-axis
+
         ax.tick_params(colors="white")
         ax.grid(color="white", alpha=0.3, linewidth=1)
         ax.spines["top"].set_color("white")

@@ -167,7 +167,6 @@ class DiceDistribution(object):
 
         plt.rcParams["figure.dpi"] = 600
         fig, ax = plt.subplots(subplot_kw=dict())
-        ax.bar(keys, values, color=colors)
         ax.xaxis.set_major_formatter("{x:.0f}")  # Remove floating points on x-axis
         ax.yaxis.set_major_formatter("{x:.2f}%")  # Add percent on y-axis
         ax.tick_params(colors="white")
@@ -176,6 +175,8 @@ class DiceDistribution(object):
         ax.spines["right"].set_color("white")
         ax.spines["bottom"].set_color("white")
         ax.spines["left"].set_color("white")
+        ax.bar(keys, values, color=colors)
+        ax.set_axisbelow(True)
 
         buf = io.BytesIO()
         plt.savefig(buf, format="png", bbox_inches="tight", transparent=True)
@@ -303,8 +304,8 @@ class DiceDistributionEmbed(discord.Embed):
             type="rich",
         )
 
-        self.add_field(name="Mean", value=f"{distribution.mean:.2f}")
-        self.add_field(name="Stdev", value=f"{distribution.stdev:.2f}")
+        self.add_field(name="Mean", value=f"{distribution.mean:.2f}", inline=True)
+        self.add_field(name="Stdev", value=f"{distribution.stdev:.2f}", inline=True)
 
         if min_to_beat is not None:
             odds = distribution.get_odds_higher_or_equal_than(min_to_beat)

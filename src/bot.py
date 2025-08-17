@@ -1,10 +1,12 @@
 import logging
 import os
 import re
+from typing import Literal
 import discord
 from discord import app_commands
 from discord import Interaction
 from dotenv import load_dotenv
+from distribution import DiceDistributionEmbed, get_distribution
 from help import HelpEmbed
 from i18n import t
 
@@ -647,6 +649,34 @@ class Bot(discord.Client):
                 ),
                 ephemeral=True,
             )
+
+        @self.tree.command(
+            name=t("commands.distribution.name"),
+            description=t("commands.distribution.desc"),
+        )
+        async def distribution(
+            itr: Interaction,
+            expression: str,
+            advantage: str = "",
+            min_to_beat: int | None = None,
+        ):
+            log_cmd(itr)
+            distribution = get_distribution(expression, advantage=advantage)
+            chart = distribution.chart(itr, min_to_beat or -9999999)
+            embed = DiceDistributionEmbed(
+                itr, expression, distribution, advantage, min_to_beat
+            )
+            embed.set_image(url=f"attachment://{chart.filename}")
+            await itr.response.send_message(embed=embed, file=chart)
+
+        @distribution.autocomplete("advantage")
+        async def distribution_autocomplete(
+            itr: discord.Interaction, current: str
+        ) -> list[app_commands.Choice[str]]:
+            return [
+                app_commands.Choice(name="advantage", value="advantage"),
+                app_commands.Choice(name="disadvantage", value="disadvantage"),
+            ]
 
         @self.tree.command(
             name=t("commands.stats.name"),

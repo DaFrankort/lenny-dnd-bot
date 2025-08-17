@@ -96,6 +96,12 @@
       "help": "Looks up a D&D Background by name.",
       "command": "/background <background name>"
     },
+    "species": {
+      "name": "species",
+      "desc": "Get the details of a species.",
+      "help": "Looks up a D&D Species by name.",
+      "command": "/species <species name>"
+    },
     "table": {
       "name": "table",
       "desc": "Get the details of a table.",

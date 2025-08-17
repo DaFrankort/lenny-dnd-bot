@@ -607,6 +607,47 @@ class DNDTableList(DNDObjectList):
             self.entries.append(DNDTable(table))
 
 
+class Species(DNDObject):
+    image: str | None
+    sizes: str
+    speed: list[str]
+    type: str | None
+
+    description: list[Description]
+    info: list[Description]
+
+    def __init__(self, json: any):
+        self.object_type = "species"
+        self.emoji = "🧝"
+
+        self.name = json["name"]
+        self.source = json["source"]
+        self.url = json["url"]
+
+        self.image = json["image"]
+        self.sizes = " or ".join(json["sizes"])  # TODO Concatinate in backend
+        self.speed = json["speed"]
+        self.type = json["creatureType"]
+
+        self.description = json["description"]
+        self.info = json["info"]
+
+    @abstractmethod
+    def get_embed(self) -> discord.Embed:
+        from embeds import SpeciesEmbed
+
+        return SpeciesEmbed(self)
+
+
+class SpeciesList(DNDObjectList):
+    path = "./submodules/lenny-dnd-data/generated/species.json"
+
+    def __init__(self):
+        super().__init__()
+        for species in _read_dnd_data(self.path):
+            self.entries.append(Species(species))
+
+
 class Gender(Enum):
     FEMALE = "female"
     MALE = "male"
@@ -679,6 +720,7 @@ class DNDData(object):
     feats: FeatList
     languages: LanguageList
     tables: DNDTableList
+    species: SpeciesList
 
     names: NameTable
 
@@ -695,6 +737,7 @@ class DNDData(object):
         self.languages = LanguageList()
         self.backgrounds = BackgroundList()
         self.tables = DNDTableList()
+        self.species = SpeciesList()
 
         # TABLES
         self.names = NameTable()
@@ -711,6 +754,7 @@ class DNDData(object):
         yield self.languages
         yield self.backgrounds
         yield self.tables
+        yield self.species
 
 
 class DNDSearchResults(object):
@@ -725,6 +769,7 @@ class DNDSearchResults(object):
     languages: list[Language]
     backgrounds: list[Background]
     tables: list[DNDTable]
+    species: list[Species]
     _type_map: dict[type, list[DNDObject]]
 
     def __init__(self):
@@ -739,6 +784,7 @@ class DNDSearchResults(object):
         self.languages = []
         self.backgrounds = []
         self.tables = []
+        self.species = []
 
         self._type_map = {
             Spell: self.spells,
@@ -752,6 +798,7 @@ class DNDSearchResults(object):
             Language: self.languages,
             Background: self.backgrounds,
             DNDTable: self.tables,
+            Species: self.species,
         }
 
     def add(self, entry):

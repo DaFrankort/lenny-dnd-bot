@@ -1,6 +1,5 @@
 import logging
 import os
-import re
 import discord
 from discord import app_commands
 from discord import Interaction
@@ -12,6 +11,7 @@ from commands.rolls import (
     DisadvantageRollCommand,
     RollCommand,
 )
+from commands.shortcut import ShortcutCommand
 from i18n import t
 
 from commands.distribution import DistributionCommand
@@ -30,9 +30,9 @@ from initiative import (
     InitiativeEmbed,
     InitiativeTracker,
 )
+from logger import log_cmd
 from polls import SessionPlanPoll
 from search import SearchEmbed, search_from_query
-from shortcuts import ShortcutEmbed
 from token_gen import (
     AlignH,
     AlignV,
@@ -83,6 +83,7 @@ class Bot(discord.Client):
         self.tree.add_command(AdvantageRollCommand())
         self.tree.add_command(DisadvantageRollCommand())
         self.tree.add_command(D20Command())
+        self.tree.add_command(ShortcutCommand())
 
     def run_client(self):
         """Starts the bot using the token stored in .env"""
@@ -124,16 +125,6 @@ class Bot(discord.Client):
         #
         # HELPER FUNCTIONS
         #
-
-        def log_cmd(itr: Interaction):
-            """Helper function to log user's command-usage in the terminal"""
-            try:
-                criteria = [f"[{k}={v}]" for k, v in vars(itr.namespace).items()]
-            except Exception:
-                criteria = []
-            criteria_text = " ".join(criteria)
-
-            logging.info(f"{itr.user.name} => /{itr.command.name} {criteria_text}")
 
         async def send_DNDObject_lookup_result(
             itr: Interaction, label: str, found: list[DNDObject], name: str
@@ -255,17 +246,6 @@ class Bot(discord.Client):
                 ephemeral=expression.ephemeral,
             )
             await VC.play_dice_roll(itr, expression, reason)
-
-        @self.tree.command(
-            name=t("commands.shortcut.name"),
-            description=t("commands.shortcut.desc"),
-        )
-        async def shortcut(itr: Interaction):
-            log_cmd(itr)
-            embed = ShortcutEmbed(itr)
-            await itr.response.send_message(
-                embed=embed, view=embed.view, ephemeral=True
-            )
 
         @self.tree.command(
             name=t("commands.spell.name"), description=t("commands.spell.desc")

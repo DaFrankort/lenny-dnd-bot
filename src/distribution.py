@@ -47,6 +47,8 @@ class DiceDistributionEmbed(discord.Embed):
         self.add_field(name="Stdev", value=f"{distribution.stdev():.2f}", inline=True)
 
         if min_to_beat is not None:
-            odds = distribution.get_odds_higher_or_equal_than(min_to_beat)
-            odds = f"{100*odds:.2f}%"
-            self.add_field(name=f"Odds to beat {min_to_beat}", value=odds)
+            odds = 0
+            for key in distribution.keys():
+                if key >= min_to_beat:
+                    odds += distribution.get(key)
+            self.add_field(name=f"Odds to beat {min_to_beat}", value=f"{100*odds:.2f}%")

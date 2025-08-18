@@ -656,14 +656,23 @@ class Bot(discord.Client):
         )
         @app_commands.choices(
             advantage=[
-                app_commands.Choice(name="advantage", value="advantage"),
-                app_commands.Choice(name="disadvantage", value="disadvantage"),
+                app_commands.Choice(
+                    name=DiceRollMode.Advantage.value,
+                    value=DiceRollMode.Advantage.value,
+                ),
+                app_commands.Choice(
+                    name=DiceRollMode.Disadvantage.value,
+                    value=DiceRollMode.Disadvantage.value,
+                ),
+                app_commands.Choice(
+                    name=DiceRollMode.Normal.value, value=DiceRollMode.Normal.value
+                ),
             ]
         )
         async def distribution(
             itr: Interaction,
             expression: str,
-            advantage: str = "",
+            advantage: str = DiceRollMode.Normal.value,
             min_to_beat: int | None = None,
         ):
             log_cmd(itr)

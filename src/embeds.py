@@ -635,8 +635,8 @@ class SpeciesEmbed(_DNDObjectEmbed):
         if species.description:
             self.add_description_fields(species.description)
 
-        self.add_field(name="", value=HORIZONTAL_LINE)
         if species.info:
+            self.add_field(name="", value=HORIZONTAL_LINE)
             self.add_description_fields(species.info)
 
 

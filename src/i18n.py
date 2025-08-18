@@ -9,6 +9,7 @@ def set_locale(locale: str) -> None:
     with open(locale, "r") as file:
         __translations = json.load(file)
 
+
 # TODO bug, for some reason this is not loaded at the start
 set_locale("./assets/locales/en.json")
 

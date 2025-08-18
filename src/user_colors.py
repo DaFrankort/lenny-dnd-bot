@@ -103,3 +103,7 @@ class UserColor:
             return True
         except Exception:
             return False
+
+    @staticmethod
+    def to_rgb(color: int) -> tuple[int, int, int]:
+        return discord.Color(color).to_rgb()

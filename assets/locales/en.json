@@ -169,6 +169,12 @@
       "desc": "Play a sound effect from a file in voice chat!",
       "help": "Allows users to play sound effects from files in voice chat without requiring any soundboard setup.",
       "command": "/playsound <audio-file>"
+    },
+    "distribution": {
+      "name": "distribution",
+      "desc": "Show the probability distribution of an expression.",
+      "help": "Generates an image of the distribution of an expression.",
+      "command": "/distribution <expression> [advantage] [min_to_beat]"
     }
   },
   "contextmenu": {
@@ -186,13 +192,22 @@
       "info": [
         {
           "name": "Additional info",
-          "info": ["You can get more information for each command by navigating to its category help tab."]
+          "info": [
+            "You can get more information for each command by navigating to its category help tab."
+          ]
         }
       ]
     },
     "roll": {
       "name": "Roll",
-      "commands": ["roll", "d20", "advantage", "disadvantage", "shortcut"],
+      "commands": [
+        "roll",
+        "d20",
+        "advantage",
+        "disadvantage",
+        "shortcut",
+        "distribution"
+      ],
       "text:": "You can roll dice using the following commands:",
       "info": [
         {
@@ -250,7 +265,20 @@
     },
     "dnd": {
       "name": "D&D Resources",
-      "commands": ["spell", "item", "condition", "creature", "class", "feat", "rule", "action", "language", "background", "table", "search"],
+      "commands": [
+        "spell",
+        "item",
+        "condition",
+        "creature",
+        "class",
+        "feat",
+        "rule",
+        "action",
+        "language",
+        "background",
+        "table",
+        "search"
+      ],
       "text": "You can look up D&D information from [5e.tools](https://5e.tools/) using the following commands:",
       "info": []
     },

@@ -5,6 +5,8 @@ import discord
 from discord import app_commands
 from discord import Interaction
 from dotenv import load_dotenv
+from charts import dice_distribution_chart
+from distribution import DiceDistributionEmbed, get_distribution
 from help import HelpEmbed
 from i18n import t
 
@@ -662,6 +664,50 @@ class Bot(discord.Client):
                 ),
                 ephemeral=True,
             )
+
+        @self.tree.command(
+            name=t("commands.distribution.name"),
+            description=t("commands.distribution.desc"),
+        )
+        @app_commands.choices(
+            advantage=[
+                app_commands.Choice(
+                    name=DiceRollMode.Advantage.value,
+                    value=DiceRollMode.Advantage.value,
+                ),
+                app_commands.Choice(
+                    name=DiceRollMode.Disadvantage.value,
+                    value=DiceRollMode.Disadvantage.value,
+                ),
+                app_commands.Choice(
+                    name=DiceRollMode.Normal.value, value=DiceRollMode.Normal.value
+                ),
+            ]
+        )
+        async def distribution(
+            itr: Interaction,
+            expression: str,
+            advantage: str = DiceRollMode.Normal.value,
+            min_to_beat: int | None = None,
+        ):
+            log_cmd(itr)
+            await itr.response.defer()
+            try:
+                distribution = get_distribution(expression, advantage=advantage)
+                chart = dice_distribution_chart(
+                    itr, distribution, min_to_beat or -9999999
+                )
+                embed = DiceDistributionEmbed(
+                    itr, expression, distribution, advantage, min_to_beat
+                )
+                embed.set_image(url=f"attachment://{chart.filename}")
+                await itr.followup.send(embed=embed, file=chart)
+            except Exception as e:
+                title = f"Error in {expression}!"
+                desc = f"⚠️ {str(e)}"
+                await itr.followup.send(
+                    embed=SimpleEmbed(title=title, description=desc)
+                )
 
         @self.tree.command(
             name=t("commands.stats.name"),

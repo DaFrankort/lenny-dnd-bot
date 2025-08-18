@@ -104,6 +104,7 @@ class TestBotCommands:
             (t("commands.language.name"), {"name": ["Common", "abcdef"]}),
             (t("commands.background.name"), {"name": ["Soldier", "abcdef"]}),
             (t("commands.table.name"), {"name": ["Wild Magic", "abcdef"]}),
+            (t("commands.species.name"), {"name": ["Human", "abcdef"]}),
             (
                 t("commands.search.name"),
                 [

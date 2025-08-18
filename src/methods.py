@@ -7,4 +7,4 @@ def when(condition: bool, value_on_true: any, value_on_false: any) -> any:
 
 
 def simple_choice(choice: str) -> discord.app_commands.Choice:
-    return (discord.app_commands.Choice(name=choice, value=choice),)
+    return discord.app_commands.Choice(name=choice, value=choice)

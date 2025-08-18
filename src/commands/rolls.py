@@ -31,52 +31,49 @@ def _get_diceroll_shortcut(
     return diceroll, reason or shortcut_reason
 
 
-class DetailedRollCommand(discord.app_commands.Command, abc.ABC):
-    """Utility class for specific dice commands that accept an expression and a reason."""
-
-    @discord.app_commands.autocomplete("diceroll")
-    async def autocomplete_diceroll(
-        itr: discord.Interaction, current: str
-    ) -> list[discord.app_commands.Choice[str]]:
-        return DiceExpressionCache.get_autocomplete_suggestions(itr, current)
-
-    async def autocomplete_roll_reason(
-        itr: discord.Interaction, current: str
-    ) -> list[discord.app_commands.Choice[str]]:
-        reasons = [
-            "Attack",
-            "Damage",
-            "Saving Throw",
-            "Athletics",
-            "Acrobatics",
-            "Sleight of Hand",
-            "Stealth",
-            "Arcana",
-            "History",
-            "Investigation",
-            "Nature",
-            "Religion",
-            "Animal Handling",
-            "Insight",
-            "Medicine",
-            "Perception",
-            "Survival",
-            "Deception",
-            "Intimidation",
-            "Performance",
-            "Persuasion",
-            "Fire",
-        ]
-        filtered_reasons = [
-            reason for reason in reasons if current.lower() in reason.lower()
-        ]
-        return [
-            discord.app_commands.Choice(name=reason, value=reason)
-            for reason in filtered_reasons[:25]
-        ]
+async def diceroll_autocomplete(
+    itr: discord.Interaction, current: str
+) -> list[discord.app_commands.Choice[str]]:
+    return DiceExpressionCache.get_autocomplete_suggestions(itr, current)
 
 
-class RollCommand(DetailedRollCommand):
+async def reason_autocomplete(
+    _: discord.Interaction, current: str
+) -> list[discord.app_commands.Choice[str]]:
+    reasons = [
+        "Attack",
+        "Damage",
+        "Saving Throw",
+        "Athletics",
+        "Acrobatics",
+        "Sleight of Hand",
+        "Stealth",
+        "Arcana",
+        "History",
+        "Investigation",
+        "Nature",
+        "Religion",
+        "Animal Handling",
+        "Insight",
+        "Medicine",
+        "Perception",
+        "Survival",
+        "Deception",
+        "Intimidation",
+        "Performance",
+        "Persuasion",
+        "Fire",
+    ]
+    filtered_reasons = [
+        reason for reason in reasons if current.lower() in reason.lower()
+    ]
+    return [
+        discord.app_commands.Choice(name=reason, value=reason)
+        for reason in filtered_reasons[:25]
+    ]
+
+
+class RollCommand(discord.app_commands.Command):
     name = t("commands.roll.name")
     description = t("commands.roll.desc")
 
@@ -87,7 +84,12 @@ class RollCommand(DetailedRollCommand):
             callback=self.callback,
         )
 
+    @discord.app_commands.autocomplete(
+        diceroll=diceroll_autocomplete,
+        reason=reason_autocomplete,
+    )
     async def callback(
+        self,
         itr: discord.Interaction,
         diceroll: str,
         reason: str = None,
@@ -110,7 +112,7 @@ class RollCommand(DetailedRollCommand):
         await VC.play_dice_roll(itr, expression, reason)
 
 
-class AdvantageRollCommand(DetailedRollCommand):
+class AdvantageRollCommand(discord.app_commands.Command):
     name = t("commands.advantage.name")
     description = t("commands.advantage.desc")
 
@@ -121,7 +123,16 @@ class AdvantageRollCommand(DetailedRollCommand):
             callback=self.callback,
         )
 
-    async def callback(itr: discord.Interaction, diceroll: str, reason: str = None):
+    @discord.app_commands.autocomplete(
+        diceroll=diceroll_autocomplete,
+        reason=reason_autocomplete,
+    )
+    async def callback(
+        self,
+        itr: discord.Interaction,
+        diceroll: str,
+        reason: str = None,
+    ):
         log_cmd(itr)
         dice_notation, reason = _get_diceroll_shortcut(itr, diceroll, reason)
         expression = DiceExpression(
@@ -140,7 +151,7 @@ class AdvantageRollCommand(DetailedRollCommand):
         await VC.play_dice_roll(itr, expression, reason)
 
 
-class DisadvantageRollCommand(DetailedRollCommand):
+class DisadvantageRollCommand(discord.app_commands.Command):
     name = t("commands.disadvantage.name")
     description = t("commands.disadvantage.desc")
 
@@ -151,7 +162,16 @@ class DisadvantageRollCommand(DetailedRollCommand):
             callback=self.callback,
         )
 
-    async def callback(itr: discord.Interaction, diceroll: str, reason: str = None):
+    @discord.app_commands.autocomplete(
+        diceroll=diceroll_autocomplete,
+        reason=reason_autocomplete,
+    )
+    async def callback(
+        self,
+        itr: discord.Interaction,
+        diceroll: str,
+        reason: str = None,
+    ):
         log_cmd(itr)
         dice_notation, reason = _get_diceroll_shortcut(itr, diceroll, reason)
         expression = DiceExpression(
@@ -181,7 +201,7 @@ class D20Command(discord.app_commands.Command):
             callback=self.callback,
         )
 
-    async def callback(itr: discord.Interaction):
+    async def callback(self, itr: discord.Interaction):
         log_cmd(itr)
         expression = DiceExpression("1d20", DiceRollMode.Normal)
         await itr.response.send_message(

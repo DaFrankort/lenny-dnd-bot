@@ -17,7 +17,7 @@ class StatsCommand(discord.app_commands.Command):
             callback=self.callback,
         )
 
-    async def callback(itr: discord.Interaction):
+    async def callback(self, itr: discord.Interaction):
         log_cmd(itr)
         stats = Stats(itr)
         embed = UserActionEmbed(

@@ -6,6 +6,12 @@ from discord import app_commands
 from discord import Interaction
 from dotenv import load_dotenv
 from commands.help import HelpCommand
+from commands.rolls import (
+    AdvantageRollCommand,
+    D20Command,
+    DisadvantageRollCommand,
+    RollCommand,
+)
 from i18n import t
 
 from commands.distribution import DistributionCommand
@@ -73,6 +79,10 @@ class Bot(discord.Client):
         self.tree.add_command(DistributionCommand())
         self.tree.add_command(HelpCommand())
         self.tree.add_command(StatsCommand())
+        self.tree.add_command(RollCommand())
+        self.tree.add_command(AdvantageRollCommand())
+        self.tree.add_command(DisadvantageRollCommand())
+        self.tree.add_command(D20Command())
 
     def run_client(self):
         """Starts the bot using the token stored in .env"""
@@ -146,27 +156,6 @@ class Bot(discord.Client):
                     return
                 await itr.response.send_message(embed=embed)
 
-        def _get_diceroll_shortcut(
-            itr: Interaction, diceroll: str, reason: str | None
-        ) -> tuple[str, str | None]:
-            shortcuts = DiceExpressionCache.get_user_shortcuts(itr)
-            if not shortcuts:
-                return diceroll, reason
-
-            parts = re.split(r"([+\-*/()])", diceroll)
-            shortcut_reason = None
-            for part in parts:
-                part = part.strip()
-
-                if part in shortcuts:
-                    shortcut = shortcuts[part]
-                    expression = shortcut["expression"]
-                    reason = shortcut["reason"]
-                    diceroll = diceroll.replace(part, expression)
-                    shortcut_reason = reason
-
-            return diceroll, reason or shortcut_reason
-
         TokenGenHorAlignmentChoices = [
             app_commands.Choice(name="Left", value=AlignH.LEFT.value),
             app_commands.Choice(name="Center", value=AlignH.CENTER.value),
@@ -188,86 +177,6 @@ class Bot(discord.Client):
         #
         # COMMANDS
         #
-
-        @self.tree.command(
-            name=t("commands.roll.name"), description=t("commands.roll.desc")
-        )
-        async def roll(itr: Interaction, diceroll: str, reason: str = None):
-            log_cmd(itr)
-            dice_notation, reason = _get_diceroll_shortcut(itr, diceroll, reason)
-            expression = DiceExpression(
-                dice_notation, mode=DiceRollMode.Normal, reason=reason
-            )
-            DiceExpressionCache.store_expression(itr, expression, diceroll)
-
-            await itr.response.send_message(
-                embed=UserActionEmbed(
-                    itr=itr,
-                    title=expression.title,
-                    description=expression.description,
-                ),
-                ephemeral=expression.ephemeral,
-            )
-            await VC.play_dice_roll(itr, expression, reason)
-
-        @self.tree.command(
-            name=t("commands.d20.name"), description=t("commands.d20.desc")
-        )
-        async def d20(itr: Interaction):
-            log_cmd(itr)
-            expression = DiceExpression("1d20", DiceRollMode.Normal)
-            await itr.response.send_message(
-                embed=UserActionEmbed(
-                    itr=itr,
-                    title=expression.title,
-                    description=expression.description,
-                ),
-                ephemeral=expression.ephemeral,
-            )
-            await VC.play_dice_roll(itr, expression)
-
-        @self.tree.command(
-            name=t("commands.advantage.name"), description=t("commands.advantage.desc")
-        )
-        async def advantage(itr: Interaction, diceroll: str, reason: str = None):
-            log_cmd(itr)
-            dice_notation, reason = _get_diceroll_shortcut(itr, diceroll, reason)
-            expression = DiceExpression(
-                dice_notation, DiceRollMode.Advantage, reason=reason
-            )
-            DiceExpressionCache.store_expression(itr, expression, diceroll)
-
-            await itr.response.send_message(
-                embed=UserActionEmbed(
-                    itr=itr,
-                    title=expression.title,
-                    description=expression.description,
-                ),
-                ephemeral=expression.ephemeral,
-            )
-            await VC.play_dice_roll(itr, expression, reason)
-
-        @self.tree.command(
-            name=t("commands.disadvantage.name"),
-            description=t("commands.disadvantage.desc"),
-        )
-        async def disadvantage(itr: Interaction, diceroll: str, reason: str = None):
-            log_cmd(itr)
-            dice_notation, reason = _get_diceroll_shortcut(itr, diceroll, reason)
-            expression = DiceExpression(
-                dice_notation, DiceRollMode.Disadvantage, reason=reason
-            )
-            DiceExpressionCache.store_expression(itr, expression, diceroll)
-
-            await itr.response.send_message(
-                embed=UserActionEmbed(
-                    itr=itr,
-                    title=expression.title,
-                    description=expression.description,
-                ),
-                ephemeral=expression.ephemeral,
-            )
-            await VC.play_dice_roll(itr, expression, reason)
 
         @self.tree.context_menu(name=t("contextmenu.delete.name"))
         async def delete_message(itr: Interaction, message: discord.Message):
@@ -346,52 +255,6 @@ class Bot(discord.Client):
                 ephemeral=expression.ephemeral,
             )
             await VC.play_dice_roll(itr, expression, reason)
-
-        @roll.autocomplete("diceroll")
-        @advantage.autocomplete("diceroll")
-        @disadvantage.autocomplete("diceroll")
-        async def autocomplete_roll_expression(
-            itr: Interaction, current: str
-        ) -> list[app_commands.Choice[str]]:
-            return DiceExpressionCache.get_autocomplete_suggestions(itr, current)
-
-        @roll.autocomplete("reason")
-        @advantage.autocomplete("reason")
-        @disadvantage.autocomplete("reason")
-        async def autocomplete_roll_reason(
-            itr: Interaction, current: str
-        ) -> list[app_commands.Choice[str]]:
-            reasons = [
-                "Attack",
-                "Damage",
-                "Saving Throw",
-                "Athletics",
-                "Acrobatics",
-                "Sleight of Hand",
-                "Stealth",
-                "Arcana",
-                "History",
-                "Investigation",
-                "Nature",
-                "Religion",
-                "Animal Handling",
-                "Insight",
-                "Medicine",
-                "Perception",
-                "Survival",
-                "Deception",
-                "Intimidation",
-                "Performance",
-                "Persuasion",
-                "Fire",
-            ]
-            filtered_reasons = [
-                reason for reason in reasons if current.lower() in reason.lower()
-            ]
-            return [
-                app_commands.Choice(name=reason, value=reason)
-                for reason in filtered_reasons[:25]
-            ]
 
         @self.tree.command(
             name=t("commands.shortcut.name"),

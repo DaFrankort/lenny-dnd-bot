@@ -654,6 +654,12 @@ class Bot(discord.Client):
             name=t("commands.distribution.name"),
             description=t("commands.distribution.desc"),
         )
+        @app_commands.choices(
+            advantage=[
+                app_commands.Choice(name="advantage", value="advantage"),
+                app_commands.Choice(name="disadvantage", value="disadvantage"),
+            ]
+        )
         async def distribution(
             itr: Interaction,
             expression: str,
@@ -678,15 +684,6 @@ class Bot(discord.Client):
                 await itr.followup.send(
                     embed=SimpleEmbed(title=title, description=desc)
                 )
-
-        @distribution.autocomplete("advantage")
-        async def distribution_autocomplete(
-            itr: discord.Interaction, current: str
-        ) -> list[app_commands.Choice[str]]:
-            return [
-                app_commands.Choice(name="advantage", value="advantage"),
-                app_commands.Choice(name="disadvantage", value="disadvantage"),
-            ]
 
         @self.tree.command(
             name=t("commands.stats.name"),

@@ -24,7 +24,7 @@ from initiative import (
 from polls import SessionPlanPoll
 from search import SearchEmbed, search_from_query
 from shortcuts import ShortcutEmbed
-from stats import Stats
+from stats import Stats, draw_radar_chart
 from token_gen import (
     AlignH,
     AlignV,
@@ -648,9 +648,13 @@ class Bot(discord.Client):
                 ephemeral=True,
             )
 
-        @self.tree.command(
-            name=t("commands.stats.name"),
-            description=t("commands.stats.desc"),
+        # STATS
+        stats_group = app_commands.Group(
+            name=t("commands.stats.name"), description=t("commands.stats.desc")
+        )
+
+        @stats_group.command(
+            name="roll", description="Rolls new stats and shows them on a radar chart."
         )
         async def stats(itr: Interaction):
             log_cmd(itr)
@@ -663,6 +667,40 @@ class Bot(discord.Client):
             chart_image = stats.get_radar_chart(itr)
             embed.set_image(url=f"attachment://{chart_image.filename}")
             await itr.response.send_message(embed=embed, file=chart_image)
+
+        @stats_group.command(name="visualise", description="Visualise custom stats")
+        @app_commands.describe(
+            str="Strength",
+            dex="Dexterity",
+            con="Constitution",
+            int="Intelligence",
+            wis="Wisdom",
+            cha="Charisma",
+        )
+        async def stats_custom(
+            itr: Interaction,
+            str: app_commands.Range[int, 0, 48],
+            dex: app_commands.Range[int, 0, 48],
+            con: app_commands.Range[int, 0, 48],
+            int: app_commands.Range[int, 0, 48],
+            wis: app_commands.Range[int, 0, 48],
+            cha: app_commands.Range[int, 0, 48],
+        ):
+            log_cmd(itr)
+            embed = UserActionEmbed(
+                itr=itr,
+                title="Custom Stats",
+                description="Your character’s stats visualised!",
+            )
+            chart_image = draw_radar_chart(
+                itr=itr,
+                results=[str, dex, con, int, wis, cha],
+                labels=["STR", "DEX", "CON", "INT", "WIS", "CHA"],
+            )
+            embed.set_image(url=f"attachment://{chart_image.filename}")
+            await itr.response.send_message(embed=embed, file=chart_image)
+
+        self.tree.add_command(stats_group)
 
         @self.tree.command(
             name=t("commands.tokengen.name"),

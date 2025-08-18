@@ -609,7 +609,7 @@ class DNDTableList(DNDObjectList):
 
 class Species(DNDObject):
     image: str | None
-    sizes: str
+    sizes: list[str]
     speed: list[str]
     type: str | None
 
@@ -625,7 +625,7 @@ class Species(DNDObject):
         self.url = json["url"]
 
         self.image = json["image"]
-        self.sizes = " or ".join(json["sizes"])  # TODO Concatinate in backend
+        self.sizes = json["sizes"]
         self.speed = json["speed"]
         self.type = json["creatureType"]
 

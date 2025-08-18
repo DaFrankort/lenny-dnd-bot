@@ -629,7 +629,7 @@ class SpeciesEmbed(_DNDObjectEmbed):
         if species.type:
             self.add_field(name="Creature Type", value=species.type, inline=True)
         if species.sizes:
-            self.add_field(name="Size", value=species.sizes, inline=True)
+            self.add_field(name="Size", value=" or ".join(species.sizes), inline=True)
         if species.speed:
             self.add_field(name="Speed", value=", ".join(species.speed), inline=True)
         if species.description:

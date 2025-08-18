@@ -5,7 +5,7 @@ import discord
 from discord import app_commands
 from discord import Interaction
 from dotenv import load_dotenv
-from help import HelpEmbed
+from commands.help import HelpCommand
 from i18n import t
 
 from commands.distribution import DistributionCommand
@@ -71,6 +71,7 @@ class Bot(discord.Client):
         self.initiatives = InitiativeTracker()
 
         self.tree.add_command(DistributionCommand())
+        self.tree.add_command(HelpCommand())
         self.tree.add_command(StatsCommand())
 
     def run_client(self):
@@ -827,14 +828,3 @@ class Bot(discord.Client):
                 success=success,
             )
             await itr.response.send_message(embed=embed, ephemeral=True)
-
-        @self.tree.command(
-            name=t("commands.help.name"), description=t("commands.help.desc")
-        )
-        @app_commands.choices(tab=HelpEmbed.get_tab_choices())
-        async def help(itr: Interaction, tab: str = None):
-            log_cmd(itr)
-            embed = HelpEmbed(tab)
-            await itr.response.send_message(
-                embed=embed, view=embed.view, ephemeral=True
-            )

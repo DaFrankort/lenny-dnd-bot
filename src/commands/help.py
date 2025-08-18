@@ -1,6 +1,7 @@
 import discord
 
 from embeds import UserActionEmbed
+from help import HelpEmbed
 from i18n import t
 from logger import log_cmd
 from stats import Stats
@@ -17,14 +18,8 @@ class HelpCommand(discord.app_commands.Command):
             callback=self.callback,
         )
 
-    async def callback(itr: discord.Interaction):
+    @discord.app_commands.choices(tab=HelpEmbed.get_tab_choices())
+    async def callback(itr: discord.Interaction, tab: str = None):
         log_cmd(itr)
-        stats = Stats(itr)
-        embed = UserActionEmbed(
-            itr=itr,
-            title=stats.get_embed_title(),
-            description=stats.get_embed_description(),
-        )
-        chart_image = stats.get_radar_chart(itr)
-        embed.set_image(url=f"attachment://{chart_image.filename}")
-        await itr.response.send_message(embed=embed, file=chart_image)
+        embed = HelpEmbed(tab)
+        await itr.response.send_message(embed=embed, view=embed.view, ephemeral=True)

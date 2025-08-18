@@ -626,13 +626,12 @@ class SpeciesEmbed(_DNDObjectEmbed):
     def __init__(self, species: Species):
         super().__init__(species)
 
-        subtitle = species.sizes
         if species.type:
-            subtitle = f"{species.sizes} {species.type}"
-        self.description = f"*{subtitle}*"
-
+            self.add_field(name="Creature Type", value=species.type, inline=True)
+        if species.sizes:
+            self.add_field(name="Size", value=species.sizes, inline=True)
         if species.speed:
-            self.add_field(name="Movement", value=" / ".join(species.speed))
+            self.add_field(name="Speed", value=", ".join(species.speed), inline=True)
         if species.description:
             self.add_description_fields(species.description)
 

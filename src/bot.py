@@ -5,10 +5,11 @@ import discord
 from discord import app_commands
 from discord import Interaction
 from dotenv import load_dotenv
-from charts import dice_distribution_chart
-from distribution import DiceDistributionEmbed, get_distribution
 from help import HelpEmbed
 from i18n import t
+
+from commands.distribution import DistributionCommand
+from commands.stats import StatsCommand
 
 from dice import DiceExpression, DiceExpressionCache, DiceRollMode
 from dnd import DNDData, DNDObject, Gender
@@ -26,7 +27,6 @@ from initiative import (
 from polls import SessionPlanPoll
 from search import SearchEmbed, search_from_query
 from shortcuts import ShortcutEmbed
-from stats import Stats
 from token_gen import (
     AlignH,
     AlignV,
@@ -69,6 +69,9 @@ class Bot(discord.Client):
 
         self.data = DNDData()
         self.initiatives = InitiativeTracker()
+
+        self.tree.add_command(DistributionCommand())
+        self.tree.add_command(StatsCommand())
 
     def run_client(self):
         """Starts the bot using the token stored in .env"""
@@ -664,66 +667,6 @@ class Bot(discord.Client):
                 ),
                 ephemeral=True,
             )
-
-        @self.tree.command(
-            name=t("commands.distribution.name"),
-            description=t("commands.distribution.desc"),
-        )
-        @app_commands.choices(
-            advantage=[
-                app_commands.Choice(
-                    name=DiceRollMode.Advantage.value,
-                    value=DiceRollMode.Advantage.value,
-                ),
-                app_commands.Choice(
-                    name=DiceRollMode.Disadvantage.value,
-                    value=DiceRollMode.Disadvantage.value,
-                ),
-                app_commands.Choice(
-                    name=DiceRollMode.Normal.value, value=DiceRollMode.Normal.value
-                ),
-            ]
-        )
-        async def distribution(
-            itr: Interaction,
-            expression: str,
-            advantage: str = DiceRollMode.Normal.value,
-            min_to_beat: int | None = None,
-        ):
-            log_cmd(itr)
-            await itr.response.defer()
-            try:
-                distribution = get_distribution(expression, advantage=advantage)
-                chart = dice_distribution_chart(
-                    itr, distribution, min_to_beat or -9999999
-                )
-                embed = DiceDistributionEmbed(
-                    itr, expression, distribution, advantage, min_to_beat
-                )
-                embed.set_image(url=f"attachment://{chart.filename}")
-                await itr.followup.send(embed=embed, file=chart)
-            except Exception as e:
-                title = f"Error in {expression}!"
-                desc = f"⚠️ {str(e)}"
-                await itr.followup.send(
-                    embed=SimpleEmbed(title=title, description=desc)
-                )
-
-        @self.tree.command(
-            name=t("commands.stats.name"),
-            description=t("commands.stats.desc"),
-        )
-        async def stats(itr: Interaction):
-            log_cmd(itr)
-            stats = Stats(itr)
-            embed = UserActionEmbed(
-                itr=itr,
-                title=stats.get_embed_title(),
-                description=stats.get_embed_description(),
-            )
-            chart_image = stats.get_radar_chart(itr)
-            embed.set_image(url=f"attachment://{chart_image.filename}")
-            await itr.response.send_message(embed=embed, file=chart_image)
 
         @self.tree.command(
             name=t("commands.tokengen.name"),

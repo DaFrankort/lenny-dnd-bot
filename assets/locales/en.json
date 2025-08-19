@@ -6,16 +6,6 @@
       "help": "Show the help tab for the given section. If no section is provided, this overview is given.",
       "command": "/help [tab]"
     },
-    "namegen": {
-      "name": "namegen",
-      "desc": "Generate a random name depending on race and gender!",
-      "help": "Get a random name for a humanoid, race and gender can be specified but will default to random values.",
-      "command": "/namegen [race] [gender]",
-      "args": {
-        "race": "Request a name from a specific race, selects random race by default.",
-        "gender": "Request name from a specific gender, selects random gender by default."
-      }
-    },
     "color": {
       "name": "color",
       "desc": "Set a preferred color using a hex-value. Leave hex_color empty to use auto-generated colors.",

@@ -2,7 +2,6 @@ import discord
 
 from dnd import DNDData, Gender
 from embeds import SimpleEmbed
-from i18n import t
 
 GenderChoices = [
     discord.app_commands.Choice(name="Female", value=Gender.FEMALE.value),
@@ -12,8 +11,10 @@ GenderChoices = [
 
 
 class NameGenCommand(discord.app_commands.Command):
-    name = t("commands.namegen.name")
-    description = t("commands.namegen.desc")
+    name = "namegen"
+    desc = "Generate a random name depending on race and gender!"
+    help = "Get a random name for a humanoid, race and gender can be specified but will default to random values."
+    command = "/namegen [race] [gender]"
 
     data: DNDData
 
@@ -21,7 +22,7 @@ class NameGenCommand(discord.app_commands.Command):
         self.data = data
         super().__init__(
             name=self.name,
-            description=self.description,
+            description=self.desc,
             callback=self.callback,
         )
 
@@ -36,8 +37,8 @@ class NameGenCommand(discord.app_commands.Command):
         ]
 
     @discord.app_commands.describe(
-        race=t("commands.namegen.args.race"),
-        gender=t("commands.namegen.args.gender"),
+        race="Request a name from a specific race, selects random race by default.",
+        gender="Request name from a specific gender, selects random gender by default.",
     )
     @discord.app_commands.choices(gender=GenderChoices)
     @discord.app_commands.autocomplete(race=race_autocomplete)

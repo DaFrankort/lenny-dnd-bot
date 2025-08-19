@@ -5,6 +5,7 @@ from discord import app_commands
 from discord import Interaction
 from dotenv import load_dotenv
 from commands.help import HelpCommand
+from commands.initiative import InitiativeCommand
 from commands.rolls import (
     AdvantageRollCommand,
     D20Command,
@@ -76,6 +77,7 @@ class Bot(discord.Client):
         self.tree.add_command(ShortcutCommand())
         self.tree.add_command(TokenGenCommand())
         self.tree.add_command(TokenGenUrlCommand())
+        self.tree.add_command(InitiativeCommand(initiatives=self.initiatives))
 
     def run_client(self):
         """Starts the bot using the token stored in .env"""
@@ -491,21 +493,6 @@ class Bot(discord.Client):
                 ),
                 ephemeral=True,
             )
-
-        @self.tree.command(
-            name=t("commands.initiative.name"),
-            description=t("commands.initiative.desc"),
-        )
-        async def initiative(
-            itr: Interaction,
-        ):
-            log_cmd(itr)
-            embed = InitiativeEmbed(itr, self.initiatives)
-            await itr.response.send_message(embed=embed, view=embed.view)
-            await VC.play(itr, SoundType.INITIATIVE)
-
-            message = await itr.original_response()
-            await self.initiatives.set_message(itr, message)
 
         @self.tree.command(
             name=t("commands.plansession.name"),

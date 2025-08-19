@@ -6,12 +6,6 @@
       "help": "Show the help tab for the given section. If no section is provided, this overview is given.",
       "command": "/help [tab]"
     },
-    "stats": {
-      "name": "stats",
-      "desc": "Roll stats for a new character, using the 4d6 drop lowest method.",
-      "help": "Performs six dice rolls using the 4d6 drop lowest method, providing you with six values to use for your new character's stats.",
-      "command": "/stats"
-    },
     "tokengen": {
       "name": "tokengen",
       "desc": "Turn an image into a 5e.tools-style token.",

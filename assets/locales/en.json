@@ -6,30 +6,6 @@
       "help": "Show the help tab for the given section. If no section is provided, this overview is given.",
       "command": "/help [tab]"
     },
-    "roll": {
-      "name": "roll",
-      "desc": "Roll your d20s!",
-      "help": "Roll a single dice expression.",
-      "command": "/roll <dice notation> [reason]"
-    },
-    "d20": {
-      "name": "d20",
-      "desc": "Just roll a clean d20!",
-      "help": "Rolls a basic 1d20 with no modifiers.",
-      "command": "/d20"
-    },
-    "advantage": {
-      "name": "advantage",
-      "desc": "Lucky you! Roll and take the best of two!",
-      "help": "Roll the expression twice, use the highest result.",
-      "command": "/advantage <dice notation> [reason]"
-    },
-    "disadvantage": {
-      "name": "disadvantage",
-      "desc": "Tough luck chump... Roll twice and suck it.",
-      "help": "Roll the expression twice, use the lowest result.",
-      "command": "/disadvantage <dice notation> [reason]"
-    },
     "shortcut": {
       "name": "shortcut",
       "desc": "Create & edit roll shortcuts, ideal for people who can't read character sheets!",

@@ -8,9 +8,6 @@
     }
   },
   "contextmenu": {
-    "reroll": {
-      "name": "Re-roll"
-    },
     "delete": {
       "name": "Delete message"
     }

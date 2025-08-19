@@ -1,11 +1,10 @@
 import discord
 
-from i18n import t
 from logger import log_cmd
 
 
 class DeleteContextMenu(discord.app_commands.ContextMenu):
-    name = t("contextmenu.delete.name")
+    name = "Re-roll"
 
     def __init__(self):
         super().__init__(

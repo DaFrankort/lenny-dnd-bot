@@ -8,7 +8,7 @@ from voice_chat import VC
 
 
 class RerollContextMenu(discord.app_commands.ContextMenu):
-    name = t("contextmenu.reroll.name")
+    name = "Re-roll"
 
     def __init__(self):
         super().__init__(

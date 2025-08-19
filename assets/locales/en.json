@@ -7,11 +7,6 @@
       "command": "/help [tab]"
     }
   },
-  "contextmenu": {
-    "delete": {
-      "name": "Delete message"
-    }
-  },
   "help": {
     "overview": {
       "name": "Overview",

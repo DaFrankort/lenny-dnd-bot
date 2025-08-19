@@ -12,12 +12,6 @@
       "help": "Performs six dice rolls using the 4d6 drop lowest method, providing you with six values to use for your new character's stats.",
       "command": "/stats"
     },
-    "initiative": {
-      "name": "initiative",
-      "desc": "Start tracking initiatives for combat!",
-      "help": "Summons an embed with buttons, to set up combat-initiatives.",
-      "command": "/initiative"
-    },
     "tokengen": {
       "name": "tokengen",
       "desc": "Turn an image into a 5e.tools-style token.",

@@ -1,14 +1,15 @@
 import discord
 
-from i18n import t
 from initiative import InitiativeEmbed, InitiativeTracker
 from logger import log_cmd
 from voice_chat import VC, SoundType
 
 
 class InitiativeCommand(discord.app_commands.Command):
-    name = t("commands.initiative.name")
-    description = t("commands.initiative.desc")
+    name = "initiative"
+    desc = "Start tracking initiatives for combat!"
+    help = "Summons an embed with buttons, to set up combat-initiatives."
+    command = "/initiative"
 
     initiatives: InitiativeTracker
 
@@ -16,7 +17,7 @@ class InitiativeCommand(discord.app_commands.Command):
         self.initiatives = initiatives
         super().__init__(
             name=self.name,
-            description=self.description,
+            description=self.desc,
             callback=self.callback,
         )
 

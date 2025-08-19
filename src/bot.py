@@ -2,13 +2,27 @@ import logging
 import os
 import discord
 from discord import app_commands
-from discord import Interaction
 from dotenv import load_dotenv
 from commands.charactergen import NameGenCommand
 from commands.color import ColorCommand
 from commands.distribution import DistributionCommand
 from commands.help import HelpCommand
 from commands.initiative import InitiativeCommand
+from commands.lookup import (
+    LookupActionCommand,
+    LookupAnyCommand,
+    LookupBackgroundCommand,
+    LookupClassCommand,
+    LookupConditionCommand,
+    LookupCreatureCommand,
+    LookupFeatCommand,
+    LookupItemCommand,
+    LookupLanguageCommand,
+    LookupRuleCommand,
+    LookupSpeciesCommand,
+    LookupSpellCommand,
+    LookupTableCommand,
+)
 from commands.plansession import PlanSessionCommand
 from commands.playsound import PlaySoundCommand
 from commands.rolls import (
@@ -22,19 +36,12 @@ from commands.stats import StatsCommand
 from commands.tokengen import TokenGenCommand, TokenGenUrlCommand
 from context_menus.delete import DeleteContextMenu
 from context_menus.reroll import RerollContextMenu
-from i18n import t
 
 
-from dnd import DNDData, DNDObject
-from embeds import (
-    NoResultsFoundEmbed,
-    MultiDNDSelectView,
-)
+from dnd import DNDData
 from initiative import (
     InitiativeTracker,
 )
-from logger import log_cmd
-from search import SearchEmbed, search_from_query
 from voice_chat import VC, Sounds
 
 
@@ -67,6 +74,8 @@ class Bot(discord.Client):
         self.initiatives = InitiativeTracker()
 
     async def setup_hook(self):
+        logging.info("Registering slash-commands")
+
         # Commands
         self.tree.add_command(DistributionCommand())
         self.tree.add_command(HelpCommand())
@@ -84,11 +93,26 @@ class Bot(discord.Client):
         self.tree.add_command(ColorCommand())
         self.tree.add_command(NameGenCommand(data=self.data))
 
+        # D&D lookup commands
+        self.tree.add_command(LookupSpellCommand(data=self.data))
+        self.tree.add_command(LookupItemCommand(data=self.data))
+        self.tree.add_command(LookupConditionCommand(data=self.data))
+        self.tree.add_command(LookupCreatureCommand(data=self.data))
+        self.tree.add_command(LookupClassCommand(data=self.data))
+        self.tree.add_command(LookupRuleCommand(data=self.data))
+        self.tree.add_command(LookupActionCommand(data=self.data))
+        self.tree.add_command(LookupFeatCommand(data=self.data))
+        self.tree.add_command(LookupLanguageCommand(data=self.data))
+        self.tree.add_command(LookupBackgroundCommand(data=self.data))
+        self.tree.add_command(LookupTableCommand(data=self.data))
+        self.tree.add_command(LookupSpeciesCommand(data=self.data))
+        self.tree.add_command(LookupAnyCommand(data=self.data))
+
         # Context menus
         self.tree.add_command(DeleteContextMenu())
         self.tree.add_command(RerollContextMenu())
 
-        await self.tree.sync()
+        logging.info("Registered slash-commands")
 
     def run_client(self):
         """Starts the bot using the token stored in .env"""
@@ -100,7 +124,6 @@ class Bot(discord.Client):
         logging.info("Initializing")
         logging.info(f"Logged in as {self.user} (ID: {self.user.id})")
 
-        self._register_commands()
         await self._attempt_sync_guild()
         await self.tree.sync()
         Sounds.init_folders()
@@ -123,228 +146,3 @@ class Bot(discord.Client):
         else:
             await self.tree.sync(guild=guild)
             logging.info(f"Connected to guild: {guild.name} (ID: {guild.id})")
-
-    def _register_commands(self):
-        logging.info("Registered slash-commands")
-
-        #
-        # HELPER FUNCTIONS
-        #
-
-        async def send_DNDObject_lookup_result(
-            itr: Interaction, label: str, found: list[DNDObject], name: str
-        ):
-            logging.debug(f"{label.upper()}: Found {len(found)} for '{name}'")
-
-            if len(found) == 0:
-                embed = NoResultsFoundEmbed(label, name)
-                await itr.response.send_message(embed=embed, ephemeral=True)
-
-            elif len(found) > 1:
-                view = MultiDNDSelectView(name, found)
-                await itr.response.send_message(view=view, ephemeral=True)
-
-            else:
-                embed = found[0].get_embed()
-                view = embed.view
-                if view:
-                    await itr.response.send_message(embed=embed, view=view)
-                    return
-                await itr.response.send_message(embed=embed)
-
-        #
-        # COMMANDS
-        #
-
-        @self.tree.command(
-            name=t("commands.spell.name"), description=t("commands.spell.desc")
-        )
-        async def spell(itr: Interaction, name: str):
-            log_cmd(itr)
-            found = self.data.spells.get(name)
-            await send_DNDObject_lookup_result(itr, "spells", found, name)
-
-        @spell.autocomplete("name")
-        async def spell_autocomplete(
-            itr: discord.Interaction, current: str
-        ) -> list[app_commands.Choice[str]]:
-            return self.data.spells.get_autocomplete_suggestions(query=current)
-
-        @self.tree.command(
-            name=t("commands.item.name"), description=t("commands.item.desc")
-        )
-        async def item(itr: Interaction, name: str):
-            log_cmd(itr)
-            found = self.data.items.get(name)
-            await send_DNDObject_lookup_result(itr, "items", found, name)
-
-        @item.autocomplete("name")
-        async def item_autocomplete(
-            itr: discord.Interaction, current: str
-        ) -> list[app_commands.Choice[str]]:
-            return self.data.items.get_autocomplete_suggestions(query=current)
-
-        @self.tree.command(
-            name=t("commands.condition.name"),
-            description=t("commands.condition.desc"),
-        )
-        async def condition(itr: Interaction, name: str):
-            log_cmd(itr)
-            found = self.data.conditions.get(name)
-            await send_DNDObject_lookup_result(itr, "conditions", found, name)
-
-        @condition.autocomplete("name")
-        async def condition_autocomplete(
-            itr: discord.Interaction, current: str
-        ) -> list[app_commands.Choice[str]]:
-            return self.data.conditions.get_autocomplete_suggestions(query=current)
-
-        @self.tree.command(
-            name=t("commands.creature.name"),
-            description=t("commands.creature.desc"),
-        )
-        async def creature(itr: Interaction, name: str):
-            log_cmd(itr)
-            found = self.data.creatures.get(name)
-            await send_DNDObject_lookup_result(itr, "creatures", found, name)
-
-        @creature.autocomplete("name")
-        async def creature_autocomplete(
-            itr: discord.Interaction, current: str
-        ) -> list[app_commands.Choice[str]]:
-            return self.data.creatures.get_autocomplete_suggestions(query=current)
-
-        @self.tree.command(
-            name=t("commands.class.name"),
-            description=t("commands.class.desc"),
-        )
-        async def character_class(itr: Interaction, name: str):
-            log_cmd(itr)
-            found = self.data.classes.get(name)
-            await send_DNDObject_lookup_result(itr, "classes", found, name)
-
-        @character_class.autocomplete("name")
-        async def character_class_autocomplete(
-            itr: discord.Interaction, current: str
-        ) -> list[app_commands.Choice[str]]:
-            return self.data.classes.get_autocomplete_suggestions(query=current)
-
-        @self.tree.command(
-            name=t("commands.rule.name"), description=t("commands.rule.desc")
-        )
-        async def rule(itr: Interaction, name: str):
-            log_cmd(itr)
-            found = self.data.rules.get(name)
-            await send_DNDObject_lookup_result(itr, "rules", found, name)
-
-        @rule.autocomplete("name")
-        async def rule_autocomplete(
-            itr: discord.Interaction, current: str
-        ) -> list[app_commands.Choice[str]]:
-            return self.data.rules.get_autocomplete_suggestions(query=current)
-
-        @self.tree.command(
-            name=t("commands.action.name"), description=t("commands.action.desc")
-        )
-        async def action(itr: Interaction, name: str):
-            log_cmd(itr)
-            found = self.data.actions.get(name)
-            await send_DNDObject_lookup_result(itr, "actions", found, name)
-
-        @action.autocomplete("name")
-        async def action_autocomplete(
-            itr: discord.Interaction, current: str
-        ) -> list[app_commands.Choice[str]]:
-            return self.data.actions.get_autocomplete_suggestions(query=current)
-
-        @self.tree.command(
-            name=t("commands.feat.name"),
-            description=t("commands.feat.desc"),
-        )
-        async def feat(itr: Interaction, name: str):
-            log_cmd(itr)
-            found = self.data.feats.get(name)
-            await send_DNDObject_lookup_result(itr, "feats", found, name)
-
-        @feat.autocomplete("name")
-        async def feat_autocomplete(
-            itr: discord.Interaction, current: str
-        ) -> list[app_commands.Choice[str]]:
-            return self.data.feats.get_autocomplete_suggestions(query=current)
-
-        @self.tree.command(
-            name=t("commands.language.name"),
-            description=t("commands.language.desc"),
-        )
-        async def language(itr: Interaction, name: str):
-            log_cmd(itr)
-            found = self.data.languages.get(name)
-            await send_DNDObject_lookup_result(itr, "languages", found, name)
-
-        @language.autocomplete("name")
-        async def language_autocomplete(
-            itr: discord.Interaction, current: str
-        ) -> list[app_commands.Choice[str]]:
-            return self.data.languages.get_autocomplete_suggestions(query=current)
-
-        @self.tree.command(
-            name=t("commands.background.name"),
-            description=t("commands.background.desc"),
-        )
-        async def background(itr: Interaction, name: str):
-            log_cmd(itr)
-            found = self.data.backgrounds.get(name)
-            await send_DNDObject_lookup_result(itr, "background", found, name)
-
-        @background.autocomplete("name")
-        async def background_autocomplete(
-            itr: discord.Interaction, current: str
-        ) -> list[app_commands.Choice[str]]:
-            return self.data.backgrounds.get_autocomplete_suggestions(query=current)
-
-        @self.tree.command(
-            name=t("commands.table.name"),
-            description=t("commands.table.desc"),
-        )
-        async def table(itr: Interaction, name: str):
-            log_cmd(itr)
-            found = self.data.tables.get(name)
-            await send_DNDObject_lookup_result(itr, "table", found, name)
-
-        @table.autocomplete("name")
-        async def table_autocomplete(
-            itr: discord.Interaction, current: str
-        ) -> list[app_commands.Choice[str]]:
-            return self.data.tables.get_autocomplete_suggestions(query=current)
-
-        @self.tree.command(
-            name=t("commands.species.name"),
-            description=t("commands.species.desc"),
-        )
-        async def species(itr: Interaction, name: str):
-            log_cmd(itr)
-            found = self.data.species.get(name)
-            await send_DNDObject_lookup_result(itr, "species", found, name)
-
-        @species.autocomplete("name")
-        async def species_autocomplete(
-            itr: discord.Interaction, current: str
-        ) -> list[app_commands.Choice[str]]:
-            return self.data.species.get_autocomplete_suggestions(query=current)
-
-        @self.tree.command(
-            name=t("commands.search.name"), description=t("commands.search.desc")
-        )
-        async def search(itr: Interaction, query: str):
-            log_cmd(itr)
-            results = search_from_query(query, self.data)
-            logging.debug(f"Found {len(results.get_all())} results for '{query}'")
-
-            if len(results.get_all()) == 0:
-                embed = NoResultsFoundEmbed("results", query)
-                await itr.response.send_message(embed=embed, ephemeral=True)
-            else:
-                embed = SearchEmbed(query, results)
-                await itr.response.send_message(
-                    embed=embed, view=embed.view, ephemeral=True
-                )

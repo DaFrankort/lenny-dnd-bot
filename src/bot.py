@@ -6,6 +6,7 @@ from discord import Interaction
 from dotenv import load_dotenv
 from commands.help import HelpCommand
 from commands.initiative import InitiativeCommand
+from commands.plansession import PlanSessionCommand
 from commands.rolls import (
     AdvantageRollCommand,
     D20Command,
@@ -29,14 +30,12 @@ from embeds import (
     UserActionEmbed,
 )
 from initiative import (
-    InitiativeEmbed,
     InitiativeTracker,
 )
 from logger import log_cmd
-from polls import SessionPlanPoll
 from search import SearchEmbed, search_from_query
 from user_colors import UserColor
-from voice_chat import VC, SoundType, Sounds
+from voice_chat import VC, Sounds
 
 
 class Bot(discord.Client):
@@ -78,6 +77,7 @@ class Bot(discord.Client):
         self.tree.add_command(TokenGenCommand())
         self.tree.add_command(TokenGenUrlCommand())
         self.tree.add_command(InitiativeCommand(initiatives=self.initiatives))
+        self.tree.add_command(PlanSessionCommand())
 
     def run_client(self):
         """Starts the bot using the token stored in .env"""
@@ -493,22 +493,6 @@ class Bot(discord.Client):
                 ),
                 ephemeral=True,
             )
-
-        @self.tree.command(
-            name=t("commands.plansession.name"),
-            description=t("commands.plansession.desc"),
-        )
-        @app_commands.describe(
-            in_weeks=t("commands.plansession.args.in_weeks"),
-            poll_duration=t("commands.plansession.args.poll_duration"),
-        )
-        async def plan_session(
-            itr: Interaction,
-            in_weeks: app_commands.Range[int, 0, 48],
-            poll_duration: app_commands.Range[int, 1, 168] = 24,
-        ):
-            poll = SessionPlanPoll(in_weeks, poll_duration)
-            await itr.response.send_message(poll=poll)
 
         @self.tree.command(
             name=t("commands.playsound.name"),

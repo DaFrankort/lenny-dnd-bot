@@ -6,12 +6,6 @@
       "help": "Show the help tab for the given section. If no section is provided, this overview is given.",
       "command": "/help [tab]"
     },
-    "color": {
-      "name": "color",
-      "desc": "Set a preferred color using a hex-value. Leave hex_color empty to use auto-generated colors.",
-      "help": "Set a custom color for yourself by providing a hex value. Using the command without a hex-value defaults your color back to an auto-generated one.",
-      "command": "/color [color]"
-    },
     "stats": {
       "name": "stats",
       "desc": "Roll stats for a new character, using the 4d6 drop lowest method.",

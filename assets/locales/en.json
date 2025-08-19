@@ -6,12 +6,6 @@
       "help": "Show the help tab for the given section. If no section is provided, this overview is given.",
       "command": "/help [tab]"
     },
-    "shortcut": {
-      "name": "shortcut",
-      "desc": "Create & edit roll shortcuts, ideal for people who can't read character sheets!",
-      "help": "Create, edit and remove roll-shortcuts, which can be referred to in dice-roll commands.",
-      "command": "/shortcut"
-    },
     "namegen": {
       "name": "namegen",
       "desc": "Generate a random name depending on race and gender!",

@@ -4,6 +4,7 @@ import discord
 from discord import app_commands
 from discord import Interaction
 from dotenv import load_dotenv
+from commands.color import ColorCommand
 from commands.help import HelpCommand
 from commands.initiative import InitiativeCommand
 from commands.plansession import PlanSessionCommand
@@ -35,7 +36,6 @@ from initiative import (
 )
 from logger import log_cmd
 from search import SearchEmbed, search_from_query
-from user_colors import UserColor
 from voice_chat import VC, Sounds
 
 
@@ -80,6 +80,7 @@ class Bot(discord.Client):
         self.tree.add_command(InitiativeCommand(initiatives=self.initiatives))
         self.tree.add_command(PlanSessionCommand())
         self.tree.add_command(PlaySoundCommand())
+        self.tree.add_command(ColorCommand())
 
     def run_client(self):
         """Starts the bot using the token stored in .env"""
@@ -461,37 +462,3 @@ class Bot(discord.Client):
                 app_commands.Choice(name=race, value=race)
                 for race in filtered_races[:25]
             ]
-
-        @self.tree.command(
-            name=t("commands.color.name"), description=t("commands.color.desc")
-        )
-        async def set_color(itr: Interaction, hex_color: str = ""):
-            log_cmd(itr)
-            if hex_color == "":
-                removed = UserColor.remove(itr)
-                message = (
-                    "❌ Cleared user-defined color. ❌"
-                    if removed
-                    else "⚠️ You have not yet set a color. ⚠️"
-                )
-                await itr.response.send_message(message, ephemeral=True)
-                return
-
-            if not UserColor.validate(hex_color):
-                await itr.response.send_message(
-                    "⚠️ Invalid hex value: Must be 6 valid hexadecimal characters (0-9, A-F), optionally starting with a # symbol. (eg. ff00ff / #ff00ff) ⚠️",
-                    ephemeral=True,
-                )
-                return
-
-            old_color = f"#{UserColor.get(itr):06X}"
-            color = UserColor.parse(hex_color)
-            UserColor.save(itr, color)
-            await itr.response.send_message(
-                embed=UserActionEmbed(
-                    itr=itr,
-                    title=f"{itr.user.display_name} set a new color!",
-                    description=f"``{old_color.upper()}`` => ``#{hex_color.upper()}``",
-                ),
-                ephemeral=True,
-            )

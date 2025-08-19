@@ -8,7 +8,6 @@ from distribution import DiceDistributionEmbed, get_distribution
 from embeds import SimpleEmbed
 from i18n import t
 from logger import log_cmd
-from methods import simple_choice
 
 
 DISTRIBUTION_COMMAND_ADVANTAGE_CHOICES = [

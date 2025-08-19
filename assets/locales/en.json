@@ -5,12 +5,6 @@
       "desc": "Get an overview of all commands.",
       "help": "Show the help tab for the given section. If no section is provided, this overview is given.",
       "command": "/help [tab]"
-    },
-    "playsound": {
-      "name": "playsound",
-      "desc": "Play a sound effect from a file in voice chat!",
-      "help": "Allows users to play sound effects from files in voice chat without requiring any soundboard setup.",
-      "command": "/playsound <audio-file>"
     }
   },
   "contextmenu": {

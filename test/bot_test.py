@@ -9,7 +9,7 @@ from dnd import Gender
 import i18n
 from i18n import t
 from utils.test_utils import listify
-from token_gen import AlignH, AlignV
+from commands.tokengen import AlignH, AlignV
 
 i18n.set_locale("./assets/locales/en.json")
 img_url = r"https://img.lovepik.com/element/40116/9419.png_1200.png"

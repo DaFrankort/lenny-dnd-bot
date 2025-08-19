@@ -4,6 +4,7 @@ import discord
 from discord import app_commands
 from discord import Interaction
 from dotenv import load_dotenv
+from commands.charactergen import NameGenCommand
 from commands.color import ColorCommand
 from commands.help import HelpCommand
 from commands.initiative import InitiativeCommand
@@ -67,6 +68,7 @@ class Bot(discord.Client):
         self.data = DNDData()
         self.initiatives = InitiativeTracker()
 
+    async def setup_hook(self):
         self.tree.add_command(DistributionCommand())
         self.tree.add_command(HelpCommand())
         self.tree.add_command(StatsCommand())
@@ -81,6 +83,9 @@ class Bot(discord.Client):
         self.tree.add_command(PlanSessionCommand())
         self.tree.add_command(PlaySoundCommand())
         self.tree.add_command(ColorCommand())
+        self.tree.add_command(NameGenCommand(data=self.data))
+
+        await self.tree.sync()
 
     def run_client(self):
         """Starts the bot using the token stored in .env"""
@@ -143,12 +148,6 @@ class Bot(discord.Client):
                     await itr.response.send_message(embed=embed, view=view)
                     return
                 await itr.response.send_message(embed=embed)
-
-        GenderChoices = [
-            app_commands.Choice(name="Female", value=Gender.FEMALE.value),
-            app_commands.Choice(name="Male", value=Gender.MALE.value),
-            app_commands.Choice(name="Other", value=Gender.OTHER.value),
-        ]
 
         #
         # COMMANDS
@@ -424,41 +423,3 @@ class Bot(discord.Client):
                 await itr.response.send_message(
                     embed=embed, view=embed.view, ephemeral=True
                 )
-
-        @self.tree.command(
-            name=t("commands.namegen.name"), description=t("commands.namegen.desc")
-        )
-        @app_commands.describe(
-            race=t("commands.namegen.args.race"),
-            gender=t("commands.namegen.args.gender"),
-        )
-        @app_commands.choices(gender=GenderChoices)
-        async def namegen(
-            itr: Interaction, race: str = None, gender: str = Gender.OTHER.value
-        ):
-            gender = Gender(gender)
-            name, new_race, new_gender = self.data.names.get_random(race, gender)
-
-            if name is None:
-                await itr.response.send_message(
-                    "❌ Can't generate names at this time ❌", ephemeral=True
-                )
-                return
-
-            description = f"*{new_gender.value} {new_race}*".title()
-
-            embed = SimpleEmbed(title=name, description=description)
-            await itr.response.send_message(embed=embed)
-
-        @namegen.autocomplete("race")
-        async def autocomplete_namgen_race(
-            itr: Interaction, current: str
-        ) -> list[app_commands.Choice[str]]:
-            races = self.data.names.get_races()
-            filtered_races = [
-                race.title() for race in races if current.lower() in race.lower()
-            ]
-            return [
-                app_commands.Choice(name=race, value=race)
-                for race in filtered_races[:25]
-            ]

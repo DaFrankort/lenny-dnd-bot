@@ -12,9 +12,18 @@ from methods import simple_choice
 
 
 DISTRIBUTION_COMMAND_ADVANTAGE_CHOICES = [
-    simple_choice(DiceRollMode.Advantage.value),
-    simple_choice(DiceRollMode.Disadvantage.value),
-    simple_choice(DiceRollMode.Normal.value),
+    app_commands.Choice(
+        name=DiceRollMode.Advantage.value,
+        value=DiceRollMode.Advantage.value,
+    ),
+    app_commands.Choice(
+        name=DiceRollMode.Disadvantage.value,
+        value=DiceRollMode.Disadvantage.value,
+    ),
+    app_commands.Choice(
+        name=DiceRollMode.Normal.value,
+        value=DiceRollMode.Normal.value,
+    ),
 ]
 
 

@@ -45,12 +45,6 @@
       "desc": "Play a sound effect from a file in voice chat!",
       "help": "Allows users to play sound effects from files in voice chat without requiring any soundboard setup.",
       "command": "/playsound <audio-file>"
-    },
-    "distribution": {
-      "name": "distribution",
-      "desc": "Show the probability distribution of an expression.",
-      "help": "Generates an image of the distribution of an expression.",
-      "command": "/distribution <expression> [advantage] [min_to_beat]"
     }
   },
   "contextmenu": {

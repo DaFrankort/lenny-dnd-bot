@@ -4,7 +4,7 @@ from logger import log_cmd
 
 
 class DeleteContextMenu(discord.app_commands.ContextMenu):
-    name = "Re-roll"
+    name = "Delete message"
 
     def __init__(self):
         super().__init__(

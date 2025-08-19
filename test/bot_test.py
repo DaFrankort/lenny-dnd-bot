@@ -9,7 +9,7 @@ from dnd import Gender
 import i18n
 from i18n import t
 from utils.test_utils import listify
-from token_gen import AlignH, AlignV
+from commands.tokengen import AlignH, AlignV
 
 i18n.set_locale("./assets/locales/en.json")
 img_url = r"https://img.lovepik.com/element/40116/9419.png_1200.png"
@@ -35,7 +35,6 @@ class TestBotCommands:
     @pytest.fixture()
     def bot(self):
         bot = Bot(voice=False)
-        bot._register_commands()
         return bot
 
     @pytest.fixture()
@@ -264,7 +263,7 @@ class TestBotCommands:
 
         for current in queries:
             try:
-                await autocomplete_fn(self.mock_interaction, current)
+                await autocomplete_fn(cmd, self.mock_interaction, current)
             except Exception as e:
                 pytest.fail(
                     f"Error while autocompleting '{param_name}' for /{cmd_name} with query '{current}': {e}"

@@ -12,7 +12,7 @@ def to_matplotlib_color(color: int) -> tuple[float, float, float]:
     return (r / 255.0, g / 255.0, b / 255.0)
 
 
-def dice_distribution_chart(
+def get_distribution_chart(
     itr: discord.Interaction,
     distribution: d20distribution.distribution.DiceDistribution,
     min_to_beat: int,

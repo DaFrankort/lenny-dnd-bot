@@ -264,7 +264,7 @@ class TestBotCommands:
 
         for current in queries:
             try:
-                await autocomplete_fn(self.mock_interaction, current)
+                await autocomplete_fn(cmd, self.mock_interaction, current)
             except Exception as e:
                 pytest.fail(
                     f"Error while autocompleting '{param_name}' for /{cmd_name} with query '{current}': {e}"

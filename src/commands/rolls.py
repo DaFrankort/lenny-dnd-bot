@@ -30,13 +30,13 @@ def _get_diceroll_shortcut(
     return diceroll, reason or shortcut_reason
 
 
-async def diceroll_autocomplete(
+async def func_diceroll_autocomplete(
     itr: discord.Interaction, current: str
 ) -> list[discord.app_commands.Choice[str]]:
     return DiceExpressionCache.get_autocomplete_suggestions(itr, current)
 
 
-async def reason_autocomplete(
+async def func_reason_autocomplete(
     _: discord.Interaction, current: str
 ) -> list[discord.app_commands.Choice[str]]:
     reasons = [
@@ -83,6 +83,12 @@ class RollCommand(discord.app_commands.Command):
             callback=self.callback,
         )
 
+    async def diceroll_autocomplete(self, itr: discord.Interaction, current: str):
+        return func_diceroll_autocomplete(itr, current)
+
+    async def reason_autocomplete(self, itr: discord.Interaction, current: str):
+        return func_reason_autocomplete(itr, current)
+
     @discord.app_commands.autocomplete(
         diceroll=diceroll_autocomplete,
         reason=reason_autocomplete,
@@ -122,6 +128,12 @@ class AdvantageRollCommand(discord.app_commands.Command):
             callback=self.callback,
         )
 
+    async def diceroll_autocomplete(self, itr: discord.Interaction, current: str):
+        return func_diceroll_autocomplete(itr, current)
+
+    async def reason_autocomplete(self, itr: discord.Interaction, current: str):
+        return func_reason_autocomplete(itr, current)
+
     @discord.app_commands.autocomplete(
         diceroll=diceroll_autocomplete,
         reason=reason_autocomplete,
@@ -160,6 +172,12 @@ class DisadvantageRollCommand(discord.app_commands.Command):
             description=self.description,
             callback=self.callback,
         )
+
+    async def diceroll_autocomplete(self, itr: discord.Interaction, current: str):
+        return func_diceroll_autocomplete(itr, current)
+
+    async def reason_autocomplete(self, itr: discord.Interaction, current: str):
+        return func_reason_autocomplete(itr, current)
 
     @discord.app_commands.autocomplete(
         diceroll=diceroll_autocomplete,

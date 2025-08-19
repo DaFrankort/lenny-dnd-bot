@@ -35,7 +35,7 @@ class TestBotCommands:
     @pytest.fixture()
     def bot(self):
         bot = Bot(voice=False)
-        bot._register_commands()
+        bot.setup_hook()
         return bot
 
     @pytest.fixture()

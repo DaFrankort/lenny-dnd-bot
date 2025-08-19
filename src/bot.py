@@ -6,6 +6,7 @@ from discord import Interaction
 from dotenv import load_dotenv
 from commands.charactergen import NameGenCommand
 from commands.color import ColorCommand
+from commands.distribution import DistributionCommand
 from commands.help import HelpCommand
 from commands.initiative import InitiativeCommand
 from commands.plansession import PlanSessionCommand
@@ -17,21 +18,17 @@ from commands.rolls import (
     RollCommand,
 )
 from commands.shortcut import ShortcutCommand
+from commands.stats import StatsCommand
 from commands.tokengen import TokenGenCommand, TokenGenUrlCommand
 from context_menus.delete import DeleteContextMenu
+from context_menus.reroll import RerollContextMenu
 from i18n import t
 
-from commands.distribution import DistributionCommand
-from commands.stats import StatsCommand
 
-from dice import DiceExpression, DiceExpressionCache, DiceRollMode
-from dnd import DNDData, DNDObject, Gender
+from dnd import DNDData, DNDObject
 from embeds import (
     NoResultsFoundEmbed,
     MultiDNDSelectView,
-    SimpleEmbed,
-    SuccessEmbed,
-    UserActionEmbed,
 )
 from initiative import (
     InitiativeTracker,
@@ -89,6 +86,7 @@ class Bot(discord.Client):
 
         # Context menus
         self.tree.add_command(DeleteContextMenu())
+        self.tree.add_command(RerollContextMenu())
 
         await self.tree.sync()
 
@@ -157,71 +155,6 @@ class Bot(discord.Client):
         #
         # COMMANDS
         #
-
-        @self.tree.context_menu(name=t("contextmenu.reroll.name"))
-        async def reroll(itr: Interaction, message: discord.Message):
-            log_cmd(itr)
-            if message.author.id != itr.client.user.id:
-                await itr.response.send_message(
-                    f"❌ Only works on dice-roll messages sent by {itr.client.user.name} ❌",
-                    ephemeral=True,
-                )
-                return
-
-            if not message.embeds or len(message.embeds) == 0:
-                await itr.response.send_message(
-                    "❌ Reroll doesn't work on this message type!", ephemeral=True
-                )
-                return
-
-            embed = message.embeds[0]
-            title = embed.author.name or ""
-            if not ("Rolling" in title or "Re-rolling" in title):
-                await itr.response.send_message(
-                    "❌ Message does not contain a dice-roll!", ephemeral=True
-                )
-                return
-
-            dice_notation = (
-                title.replace("Rolling ", "").replace("Re-rolling", "").replace("!", "")
-            )
-            if "disadvantage" in dice_notation:
-                # Check 'disadvantage' before 'advantage', may give a false positive otherwise.
-                mode = DiceRollMode.Disadvantage
-                dice_notation = dice_notation.replace("with disadvantage", "")
-            elif "advantage" in dice_notation:
-                mode = DiceRollMode.Advantage
-                dice_notation = dice_notation.replace("with advantage", "")
-            else:
-                mode = DiceRollMode.Normal
-            dice_notation = dice_notation.strip()
-
-            reason = None
-            if "Result" not in embed.fields[0].value:
-                lines = embed.fields[0].value.strip().splitlines()
-                for line in lines:
-                    if line.startswith("🎲") and ":" in line:
-                        label = (
-                            line[1:].split(":", 1)[0].strip()
-                        )  # Remove 🎲 and split before colon
-                        reason = label.replace("*", "")
-                        break
-
-            expression = DiceExpression(
-                expression=dice_notation, mode=mode, reason=reason
-            )
-            expression.title = expression.title.replace("Rolling", "Re-rolling")
-            DiceExpressionCache.store_expression(itr, expression, dice_notation)
-
-            await itr.response.send_message(
-                embed=UserActionEmbed(
-                    itr=itr,
-                    title=expression.title,
-                    description=expression.description,
-                ),
-                ephemeral=expression.ephemeral,
-            )
-            await VC.play_dice_roll(itr, expression, reason)
 
         @self.tree.command(
             name=t("commands.spell.name"), description=t("commands.spell.desc")

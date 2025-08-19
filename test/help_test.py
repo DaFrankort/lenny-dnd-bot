@@ -7,7 +7,6 @@ class TestHelp:
     def test_all_commands_have_help(self):
         i18n.set_locale("./assets/locales/en.json")
         bot = Bot()
-        bot.setup_hook()
 
         command_names = [
             cmd.name

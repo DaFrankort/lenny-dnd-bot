@@ -72,8 +72,9 @@ class Bot(discord.Client):
 
         self.data = DNDData()
         self.initiatives = InitiativeTracker()
+        self._register_commands()
 
-    def setup_hook(self):
+    def _register_commands(self):
         logging.info("Registering slash-commands")
 
         # Commands

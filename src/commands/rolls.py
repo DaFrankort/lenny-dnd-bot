@@ -84,10 +84,10 @@ class RollCommand(discord.app_commands.Command):
         )
 
     async def diceroll_autocomplete(self, itr: discord.Interaction, current: str):
-        return func_diceroll_autocomplete(itr, current)
+        return await func_diceroll_autocomplete(itr, current)
 
     async def reason_autocomplete(self, itr: discord.Interaction, current: str):
-        return func_reason_autocomplete(itr, current)
+        return await func_reason_autocomplete(itr, current)
 
     @discord.app_commands.autocomplete(
         diceroll=diceroll_autocomplete,
@@ -129,10 +129,10 @@ class AdvantageRollCommand(discord.app_commands.Command):
         )
 
     async def diceroll_autocomplete(self, itr: discord.Interaction, current: str):
-        return func_diceroll_autocomplete(itr, current)
+        return await func_diceroll_autocomplete(itr, current)
 
     async def reason_autocomplete(self, itr: discord.Interaction, current: str):
-        return func_reason_autocomplete(itr, current)
+        return await func_reason_autocomplete(itr, current)
 
     @discord.app_commands.autocomplete(
         diceroll=diceroll_autocomplete,
@@ -174,10 +174,10 @@ class DisadvantageRollCommand(discord.app_commands.Command):
         )
 
     async def diceroll_autocomplete(self, itr: discord.Interaction, current: str):
-        return func_diceroll_autocomplete(itr, current)
+        return await func_diceroll_autocomplete(itr, current)
 
     async def reason_autocomplete(self, itr: discord.Interaction, current: str):
-        return func_reason_autocomplete(itr, current)
+        return await func_reason_autocomplete(itr, current)
 
     @discord.app_commands.autocomplete(
         diceroll=diceroll_autocomplete,

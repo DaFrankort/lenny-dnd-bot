@@ -6,18 +6,6 @@
       "help": "Show the help tab for the given section. If no section is provided, this overview is given.",
       "command": "/help [tab]"
     },
-    "tokengen": {
-      "name": "tokengen",
-      "desc": "Turn an image into a 5e.tools-style token.",
-      "help": "Generates a token image from an image attachment.",
-      "command": "/tokengen <image-attachment> [hue-shift] [h_alignment] [v_alignment]"
-    },
-    "tokengenurl": {
-      "name": "tokengenurl",
-      "desc": "Turn an image url into a 5e.tools-style token.",
-      "help": "Generates a token image from an image url.",
-      "command": "/tokengenurl <image-url> [hue-shift] [h_alignment] [v_alignment]"
-    },
     "playsound": {
       "name": "playsound",
       "desc": "Play a sound effect from a file in voice chat!",

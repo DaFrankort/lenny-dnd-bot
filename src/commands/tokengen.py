@@ -8,7 +8,6 @@ from discord import app_commands
 import discord
 import numpy as np
 
-from i18n import t
 from logger import log_cmd
 from PIL import Image, ImageDraw, ImageFont
 
@@ -301,13 +300,15 @@ TokenGenVerAlignmentChoices = [
 
 
 class TokenGenCommand(discord.app_commands.Command):
-    name = t("commands.tokengen.name")
-    description = t("commands.tokengen.desc")
+    name = "tokengen"
+    desc = "Turn an image into a 5e.tools-style token."
+    help = "Generates a token image from an image attachment."
+    command = "/tokengen <image-attachment> [hue-shift] [h_alignment] [v_alignment]"
 
     def __init__(self):
         super().__init__(
             name=self.name,
-            description=self.description,
+            description=self.desc,
             callback=self.callback,
         )
 
@@ -367,13 +368,15 @@ class TokenGenCommand(discord.app_commands.Command):
 
 
 class TokenGenUrlCommand(discord.app_commands.Command):
-    name = t("commands.tokengenurl.name")
-    description = t("commands.tokengenurl.desc")
+    name = "tokengenurl"
+    desc = "Turn an image url into a 5e.tools-style token."
+    help = "Generates a token image from an image url."
+    command = "/tokengenurl <image-url> [hue-shift] [h_alignment] [v_alignment]"
 
     def __init__(self):
         super().__init__(
             name=self.name,
-            description=self.description,
+            description=self.desc,
             callback=self.callback,
         )
 

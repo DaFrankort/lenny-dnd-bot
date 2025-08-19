@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from commands.help import HelpCommand
 from commands.initiative import InitiativeCommand
 from commands.plansession import PlanSessionCommand
+from commands.playsound import PlaySoundCommand
 from commands.rolls import (
     AdvantageRollCommand,
     D20Command,
@@ -78,6 +79,7 @@ class Bot(discord.Client):
         self.tree.add_command(TokenGenUrlCommand())
         self.tree.add_command(InitiativeCommand(initiatives=self.initiatives))
         self.tree.add_command(PlanSessionCommand())
+        self.tree.add_command(PlaySoundCommand())
 
     def run_client(self):
         """Starts the bot using the token stored in .env"""
@@ -493,18 +495,3 @@ class Bot(discord.Client):
                 ),
                 ephemeral=True,
             )
-
-        @self.tree.command(
-            name=t("commands.playsound.name"),
-            description=t("commands.playsound.desc"),
-        )
-        async def play_sound(itr: Interaction, sound: discord.Attachment):
-            log_cmd(itr)
-            success, description = await VC.play_attachment(itr, sound)
-            embed = SuccessEmbed(
-                title_success="Playing sound!",
-                title_fail=f"Failed to play {sound.filename}...",
-                description=description,
-                success=success,
-            )
-            await itr.response.send_message(embed=embed, ephemeral=True)

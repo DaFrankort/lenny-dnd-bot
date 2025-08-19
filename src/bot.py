@@ -18,6 +18,7 @@ from commands.rolls import (
 )
 from commands.shortcut import ShortcutCommand
 from commands.tokengen import TokenGenCommand, TokenGenUrlCommand
+from context_menus.delete import DeleteContextMenu
 from i18n import t
 
 from commands.distribution import DistributionCommand
@@ -69,6 +70,7 @@ class Bot(discord.Client):
         self.initiatives = InitiativeTracker()
 
     async def setup_hook(self):
+        # Commands
         self.tree.add_command(DistributionCommand())
         self.tree.add_command(HelpCommand())
         self.tree.add_command(StatsCommand())
@@ -84,6 +86,9 @@ class Bot(discord.Client):
         self.tree.add_command(PlaySoundCommand())
         self.tree.add_command(ColorCommand())
         self.tree.add_command(NameGenCommand(data=self.data))
+
+        # Context menus
+        self.tree.add_command(DeleteContextMenu())
 
         await self.tree.sync()
 
@@ -152,19 +157,6 @@ class Bot(discord.Client):
         #
         # COMMANDS
         #
-
-        @self.tree.context_menu(name=t("contextmenu.delete.name"))
-        async def delete_message(itr: Interaction, message: discord.Message):
-            log_cmd(itr)
-            if message.author.id != itr.client.user.id:
-                await itr.response.send_message(
-                    f"❌ {itr.client.user.name} can only delete their own messages ❌",
-                    ephemeral=True,
-                )
-                return
-
-            await message.delete()
-            await itr.response.send_message("Message deleted!", ephemeral=True)
 
         @self.tree.context_menu(name=t("contextmenu.reroll.name"))
         async def reroll(itr: Interaction, message: discord.Message):

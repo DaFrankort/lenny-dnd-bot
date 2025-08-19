@@ -24,16 +24,6 @@
       "help": "Generates a token image from an image url.",
       "command": "/tokengenurl <image-url> [hue-shift] [h_alignment] [v_alignment]"
     },
-    "plansession": {
-      "name": "plansession",
-      "desc": "Stop squandering and poll your party's availability in x weeks!",
-      "help": "Creates a poll for players to select their availability in x weeks. Generates poll-answers from Monday - Sunday, along with an 'Earlier' and 'Later' option. If 0 is specified it will poll for the remaining days in the current week.",
-      "command": "/plansession <in-weeks>",
-      "args": {
-        "in_weeks": "How many weeks from now? (0 = this week, 1 = next week, ...)",
-        "poll_duration": "How long until the poll closes? (Defaults to 24h)"
-      }
-    },
     "playsound": {
       "name": "playsound",
       "desc": "Play a sound effect from a file in voice chat!",

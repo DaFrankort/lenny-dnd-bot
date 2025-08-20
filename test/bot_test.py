@@ -6,12 +6,9 @@ from unittest.mock import AsyncMock, MagicMock
 
 from bot import Bot
 from dnd import Gender
-import i18n
-from i18n import t
 from utils.test_utils import listify
 from commands.tokengen import AlignH, AlignV
 
-i18n.set_locale("./assets/locales/en.json")
 img_url = r"https://img.lovepik.com/element/40116/9419.png_1200.png"
 
 
@@ -71,49 +68,49 @@ class TestBotCommands:
         "cmd_name, arguments",
         [
             (
-                t("commands.roll.name"),
+                "roll",
                 {
                     "diceroll": ["1d20+6", "4d8kh3", "DiceExpression"],
                     "reason": [None, "Attack"],
                 },
             ),
-            (t("commands.d20.name"), {}),
+            ("d20", {}),
             (
-                t("commands.advantage.name"),
+                "advantage",
                 {
                     "diceroll": ["1d20+6", "4d8kh3", "DiceExpression"],
                     "reason": [None, "Damage"],
                 },
             ),
             (
-                t("commands.disadvantage.name"),
+                "disadvantage",
                 {
                     "diceroll": ["1d20+6", "4d8kh3", "DiceExpression"],
                     "reason": [None, "Fire"],
                 },
             ),
-            (t("commands.shortcut.name"), {}),
-            (t("commands.spell.name"), {"name": ["Fire Bolt", "abcdef"]}),
-            (t("commands.item.name"), {"name": ["Sword", "abcdef"]}),
-            (t("commands.condition.name"), {"name": ["Poisoned", "abcdef"]}),
-            (t("commands.creature.name"), {"name": ["Goblin", "abcdef"]}),
-            (t("commands.class.name"), {"name": ["Wizard", "abcdef"]}),
-            (t("commands.rule.name"), {"name": ["Action", "abcdef"]}),
-            (t("commands.action.name"), {"name": ["Attack", "abcdef"]}),
-            (t("commands.feat.name"), {"name": ["Tough", "abcdef"]}),
-            (t("commands.language.name"), {"name": ["Common", "abcdef"]}),
-            (t("commands.background.name"), {"name": ["Soldier", "abcdef"]}),
-            (t("commands.table.name"), {"name": ["Wild Magic", "abcdef"]}),
-            (t("commands.species.name"), {"name": ["Human", "abcdef"]}),
+            ("shortcut", {}),
+            ("spell", {"name": ["Fire Bolt", "abcdef"]}),
+            ("item", {"name": ["Sword", "abcdef"]}),
+            ("condition", {"name": ["Poisoned", "abcdef"]}),
+            ("creature", {"name": ["Goblin", "abcdef"]}),
+            ("class", {"name": ["Wizard", "abcdef"]}),
+            ("rule", {"name": ["Action", "abcdef"]}),
+            ("action", {"name": ["Attack", "abcdef"]}),
+            ("feat", {"name": ["Tough", "abcdef"]}),
+            ("language", {"name": ["Common", "abcdef"]}),
+            ("background", {"name": ["Soldier", "abcdef"]}),
+            ("table", {"name": ["Wild Magic", "abcdef"]}),
+            ("species", {"name": ["Human", "abcdef"]}),
             (
-                t("commands.search.name"),
+                "search",
                 [
                     {"query": "Barb"},
                     {"query": "qwertyuiopasdfghjkl;zxcvbnm,./1234567890"},
                 ],
             ),
             (
-                t("commands.namegen.name"),
+                "namegen",
                 {
                     "race": [None, "Human", "foobar"],
                     "gender": [
@@ -124,16 +121,16 @@ class TestBotCommands:
                 },
             ),
             (
-                t("commands.color.name"),
+                "color",
                 [{"hex_color": "#ff00ff"}, {"hex_color": "Not a color"}],
             ),
             (
-                t("commands.color.name"),
+                "color",
                 {"hex_color": ""},
             ),  # Run clear last, to remove useless data from files.
-            (t("commands.stats.name"), {}),
+            ("stats", {}),
             (
-                t("commands.tokengen.name"),
+                "tokengen",
                 [
                     {"image": mock_image()},
                     {"image": mock_image(), "frame_hue": [-180, 0, 180]},
@@ -157,7 +154,7 @@ class TestBotCommands:
                 ],
             ),
             (
-                t("commands.tokengenurl.name"),
+                "tokengenurl",
                 [
                     {"url": img_url},
                     {"url": img_url, "frame_hue": [-180, 0, 180]},
@@ -181,16 +178,16 @@ class TestBotCommands:
                     {"url": "NotAUrl"},
                 ],
             ),
-            (t("commands.initiative.name"), {}),
+            ("initiative", {}),
             (
-                t("commands.plansession.name"),
+                "plansession",
                 {"in_weeks": [0, 1, 4], "poll_duration": [1, 24, 168]},
             ),
             (
-                t("commands.playsound.name"),
+                "playsound",
                 {"sound": [mock_sound(), mock_image()]},
             ),
-            (t("commands.help.name"), {}),
+            ("help", {}),
             # ("", {"": "", "": ""}),
         ],
     )
@@ -219,21 +216,21 @@ class TestBotCommands:
     @pytest.mark.parametrize(
         "cmd_name, param_name, queries",
         [
-            (t("commands.roll.name"), "diceroll", ["", "1d20"]),
-            (t("commands.advantage.name"), "diceroll", ["", "1d20"]),
-            (t("commands.disadvantage.name"), "diceroll", ["", "1d20"]),
-            (t("commands.roll.name"), "reason", ["", "Att"]),
-            (t("commands.advantage.name"), "reason", ["", "Dam"]),
-            (t("commands.disadvantage.name"), "reason", ["", "Ste"]),
-            (t("commands.spell.name"), "name", ["", "Fireb"]),
-            (t("commands.item.name"), "name", ["", "Dag"]),
-            (t("commands.condition.name"), "name", ["", "Poi"]),
-            (t("commands.creature.name"), "name", ["", "Gobl"]),
-            (t("commands.class.name"), "name", ["", "Bar"]),
-            (t("commands.rule.name"), "name", ["", "Adv"]),
-            (t("commands.action.name"), "name", ["", "Att"]),
-            (t("commands.feat.name"), "name", ["", "Tou"]),
-            (t("commands.language.name"), "name", ["", "Comm"]),
+            ("roll", "diceroll", ["", "1d20"]),
+            ("advantage", "diceroll", ["", "1d20"]),
+            ("disadvantage", "diceroll", ["", "1d20"]),
+            ("roll", "reason", ["", "Att"]),
+            ("advantage", "reason", ["", "Dam"]),
+            ("disadvantage", "reason", ["", "Ste"]),
+            ("spell", "name", ["", "Fireb"]),
+            ("item", "name", ["", "Dag"]),
+            ("condition", "name", ["", "Poi"]),
+            ("creature", "name", ["", "Gobl"]),
+            ("class", "name", ["", "Bar"]),
+            ("rule", "name", ["", "Adv"]),
+            ("action", "name", ["", "Att"]),
+            ("feat", "name", ["", "Tou"]),
+            ("language", "name", ["", "Comm"]),
             # ('', '', ''),
         ],
     )

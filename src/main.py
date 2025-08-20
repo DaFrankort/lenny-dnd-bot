@@ -3,12 +3,8 @@ import logging
 import os
 from bot import Bot
 from discord.utils import _ColourFormatter
-import i18n
 
 if __name__ == "__main__":
-    # Set-up translations
-    i18n.set_locale("./assets/locales/en.json")
-
     # Parse command line arguments, see `python src/main.py --help`
     parser = argparse.ArgumentParser()
     parser.add_argument(

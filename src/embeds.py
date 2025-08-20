@@ -118,10 +118,12 @@ class _DNDObjectEmbed(discord.Embed):
 
         return char_count
 
-    def _format_cell_value(self, value: str | object) -> str:
-        if isinstance(value, str):
+    def _format_cell_value(self, value: int | str | object) -> str:
+        if isinstance(value, int):
+            return str(value)
+        elif isinstance(value, str):
             return value
-        if value["type"] == "range":
+        elif value["type"] == "range":
             if value["min"] == value["max"]:
                 return str(value["min"])
             else:

@@ -12,9 +12,9 @@ GenderChoices = [
 
 class NameGenCommand(discord.app_commands.Command):
     name = "namegen"
-    desc = "Generate a random name depending on race and gender!"
-    help = "Get a random name for a humanoid, race and gender can be specified but will default to random values."
-    command = "/namegen [race] [gender]"
+    desc = "Generate a random name depending on species and gender!"
+    help = "Get a random name for a humanoid, species and gender can be specified but will default to random values."
+    command = "/namegen [species] [gender]"
 
     data: DNDData
 
@@ -26,30 +26,30 @@ class NameGenCommand(discord.app_commands.Command):
             callback=self.callback,
         )
 
-    async def race_autocomplete(self, _: discord.Interaction, current: str):
-        races = self.data.names.get_races()
-        filtered_races = [
-            race.title() for race in races if current.lower() in race.lower()
+    async def species_autocomplete(self, _: discord.Interaction, current: str):
+        species = self.data.names.get_species()
+        filtered_species = [
+            spec.title() for spec in species if current.lower() in spec.lower()
         ]
         return [
-            discord.app_commands.Choice(name=race, value=race)
-            for race in filtered_races[:25]
+            discord.app_commands.Choice(name=spec, value=spec)
+            for spec in filtered_species[:25]
         ]
 
     @discord.app_commands.describe(
-        race="Request a name from a specific race, selects random race by default.",
+        species="Request a name from a specific species, selects random species by default.",
         gender="Request name from a specific gender, selects random gender by default.",
     )
     @discord.app_commands.choices(gender=GenderChoices)
-    @discord.app_commands.autocomplete(race=race_autocomplete)
+    @discord.app_commands.autocomplete(species=species_autocomplete)
     async def callback(
         self,
         itr: discord.Interaction,
-        race: str = None,
+        species: str = None,
         gender: str = Gender.OTHER.value,
     ):
         gender = Gender(gender)
-        name, new_race, new_gender = self.data.names.get_random(race, gender)
+        name, new_species, new_gender = self.data.names.get_random(species, gender)
 
         if name is None:
             await itr.response.send_message(
@@ -57,7 +57,7 @@ class NameGenCommand(discord.app_commands.Command):
             )
             return
 
-        description = f"*{new_gender.value} {new_race}*".title()
+        description = f"*{new_gender.value} {new_species}*".title()
 
         embed = SimpleEmbed(title=name, description=description)
         await itr.response.send_message(embed=embed)

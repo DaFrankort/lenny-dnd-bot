@@ -2,7 +2,7 @@ import logging
 import random
 import time
 import discord
-from discord import Interaction, Message, NotFound
+from discord import Interaction, Message, NotFound, ui
 
 from dice import DiceRollMode
 from embeds import SimpleEmbed, SuccessEmbed, UserActionEmbed, log_button_press
@@ -350,16 +350,16 @@ class _InitiativeModal(SimpleModal):
 
 
 class InitiativeRollModal(_InitiativeModal):
-    modifier = discord.ui.TextInput(
+    modifier = ui.TextInput(
         label="Your Initiative Modifier", placeholder="0", max_length=2, required=False
     )
-    name = discord.ui.TextInput(
+    name = ui.TextInput(
         label="Name (Username by default)",
         placeholder="Goblin",
         required=False,
         max_length=128,
     )
-    mode = discord.ui.TextInput(
+    mode = ui.TextInput(
         label="Roll Mode (Normal by default)",
         placeholder="Advantage / Disadvantage",
         required=False,
@@ -400,10 +400,10 @@ class InitiativeRollModal(_InitiativeModal):
             )
             return
 
-        embed = InitiativeEmbed(itr, self.tracker)
+        view = InitiativeContainer(itr, self.tracker)
         sound_type = SoundType.CREATURE if name else SoundType.PLAYER
         await VC.play(itr, sound_type)
-        await itr.response.edit_message(embed=embed, view=embed.view)
+        await itr.response.edit_message(view=view)
         await itr.followup.send(
             embed=UserActionEmbed(
                 itr=itr, title=initiative.title, description=initiative.description
@@ -413,10 +413,8 @@ class InitiativeRollModal(_InitiativeModal):
 
 
 class InitiativeSetModal(_InitiativeModal):
-    value = discord.ui.TextInput(
-        label="Initiative value", placeholder="20", max_length=3
-    )
-    name = discord.ui.TextInput(
+    value = ui.TextInput(label="Initiative value", placeholder="20", max_length=3)
+    name = ui.TextInput(
         label="Name (Username by default)",
         placeholder="Goblin",
         required=False,
@@ -441,9 +439,9 @@ class InitiativeSetModal(_InitiativeModal):
         initiative.set_value(value)
         self.tracker.add(itr, initiative)
 
-        embed = InitiativeEmbed(itr, self.tracker)
+        view = InitiativeContainer(itr, self.tracker)
         await VC.play(itr, SoundType.WRITE)
-        await itr.response.edit_message(embed=embed, view=embed.view)
+        await itr.response.edit_message(view=view)
         await itr.followup.send(
             embed=UserActionEmbed(
                 itr=itr, title=initiative.title, description=initiative.description
@@ -453,7 +451,7 @@ class InitiativeSetModal(_InitiativeModal):
 
 
 class InitiativeDeleteModal(_InitiativeModal):
-    name = discord.ui.TextInput(
+    name = ui.TextInput(
         label="Name (Username by default)",
         placeholder="Goblin",
         required=False,
@@ -468,12 +466,12 @@ class InitiativeDeleteModal(_InitiativeModal):
 
         name = self.get_str(self.name)
         text, success = self.tracker.remove(itr, name)
-        embed = InitiativeEmbed(itr, self.tracker)
+        view = InitiativeContainer(itr, self.tracker)
 
         if success:
             await VC.play(itr, SoundType.DELETE)
 
-        await itr.response.edit_message(embed=embed, view=embed.view)
+        await itr.response.edit_message(view=view)
         await itr.followup.send(
             embed=SuccessEmbed(
                 title_success="Removed initiative",
@@ -486,25 +484,23 @@ class InitiativeDeleteModal(_InitiativeModal):
 
 
 class InitiativeBulkModal(_InitiativeModal):
-    modifier = discord.ui.TextInput(
+    modifier = ui.TextInput(
         label="Creature's Initiative Modifier",
         placeholder="0",
         max_length=3,
         required=False,
     )
-    name = discord.ui.TextInput(
-        label="Creature's Name", placeholder="Goblin", max_length=128
-    )
-    amount = discord.ui.TextInput(
+    name = ui.TextInput(label="Creature's Name", placeholder="Goblin", max_length=128)
+    amount = ui.TextInput(
         label="Amount of creatures to add", placeholder="1", max_length=2
     )
-    mode = discord.ui.TextInput(
+    mode = ui.TextInput(
         label="Roll Mode (Normal by default)",
         placeholder="Advantage / Disadvantage",
         required=False,
         max_length=12,
     )
-    shared = discord.ui.TextInput(
+    shared = ui.TextInput(
         label="Share Initiative (False by default)",
         placeholder="True / False",
         required=False,
@@ -557,9 +553,9 @@ class InitiativeBulkModal(_InitiativeModal):
             )
             return
 
-        embed = InitiativeEmbed(itr, self.tracker)
+        view = InitiativeContainer(itr, self.tracker)
         await VC.play(itr, SoundType.CREATURE)
-        await itr.response.edit_message(embed=embed, view=embed.view)
+        await itr.response.edit_message(view=view)
         await itr.followup.send(
             embed=UserActionEmbed(itr=itr, title=title, description=description),
             ephemeral=True,
@@ -567,7 +563,7 @@ class InitiativeBulkModal(_InitiativeModal):
 
 
 class InitiativeClearConfirmModal(_InitiativeModal):
-    confirm = discord.ui.TextInput(label="Type 'CLEAR' to confirm", placeholder="CLEAR")
+    confirm = ui.TextInput(label="Type 'CLEAR' to confirm", placeholder="CLEAR")
 
     def __init__(self, itr: Interaction, tracker: InitiativeTracker):
         super().__init__(itr, title="Are you sure you want to clear?", tracker=tracker)
@@ -586,9 +582,9 @@ class InitiativeClearConfirmModal(_InitiativeModal):
             return
 
         self.tracker.clear(itr)
-        embed = InitiativeEmbed(itr, self.tracker)
+        view = InitiativeContainer(itr, self.tracker)
         await VC.play(itr, SoundType.DELETE)
-        await itr.response.edit_message(embed=embed, view=embed.view)
+        await itr.response.edit_message(view=view)
         await itr.followup.send(
             embed=SimpleEmbed(
                 "Cleared all initiatives!", f"Cleared by {itr.user.display_name}."
@@ -597,83 +593,103 @@ class InitiativeClearConfirmModal(_InitiativeModal):
         )
 
 
-class InitiativeView(discord.ui.View):
-    def __init__(self, itr: Interaction, tracker: InitiativeTracker):
-        super().__init__(timeout=3600)  # Stop being responsive after 1 hour
+class InitiativePlayerRow(ui.ActionRow):
+    def __init__(self, tracker: InitiativeTracker):
+        super().__init__()
         self.tracker = tracker
-        self.locked = False
 
-    @discord.ui.button(
+    @ui.button(
         label="Roll", style=discord.ButtonStyle.success, custom_id="roll_btn", row=0
     )
-    async def roll_initiative(self, itr: Interaction, button: discord.ui.Button):
+    async def roll_initiative(self, itr: Interaction, button: ui.Button):
         await itr.response.send_modal(InitiativeRollModal(itr, self.tracker))
 
-    @discord.ui.button(
+    @ui.button(
         label="Set", style=discord.ButtonStyle.success, custom_id="set_btn", row=0
     )
-    async def set_initiative(self, itr: Interaction, button: discord.ui.Button):
+    async def set_initiative(self, itr: Interaction, button: ui.Button):
         await itr.response.send_modal(InitiativeSetModal(itr, self.tracker))
 
-    @discord.ui.button(
+    @ui.button(
         label="Delete Roll",
         style=discord.ButtonStyle.danger,
         custom_id="delete_btn",
         row=0,
     )
-    async def remove_initiative(self, itr: Interaction, button: discord.ui.Button):
+    async def remove_initiative(self, itr: Interaction, button: ui.Button):
         await itr.response.send_modal(InitiativeDeleteModal(itr, self.tracker))
 
-    @discord.ui.button(
+
+class InitiativeDMRow(ui.ActionRow):
+    def __init__(self, tracker: InitiativeTracker):
+        super().__init__()
+        self.tracker = tracker
+
+    @ui.button(
         label="Bulk", style=discord.ButtonStyle.primary, custom_id="bulk_btn", row=1
     )
-    async def bulk_roll_initiative(self, itr: Interaction, button: discord.ui.Button):
+    async def bulk_roll_initiative(self, itr: Interaction, button: ui.Button):
         await itr.response.send_modal(InitiativeBulkModal(itr, self.tracker))
 
-    @discord.ui.button(
+    @ui.button(
         label="Lock", style=discord.ButtonStyle.primary, custom_id="lock_btn", row=1
     )
-    async def lock(self, itr: Interaction, button: discord.ui.Button):
-        log_button_press(itr, button, "InitiativeView")
-        self.locked = not self.locked
-        for child in self.children:
-            if child.custom_id == "lock_btn":
-                continue
-
-            child.disabled = self.locked
-            child.style = (
-                discord.ButtonStyle.secondary
-                if self.locked
-                else {
-                    "delete_btn": discord.ButtonStyle.danger,
-                    "clear_btn": discord.ButtonStyle.danger,
-                    "bulk_btn": discord.ButtonStyle.primary,
-                }.get(child.custom_id, discord.ButtonStyle.success)
-            )
-
+    async def lock(self, itr: Interaction, button: ui.Button):
+        log_button_press(itr, button, "InitiativeContainer")
         await VC.play(itr, SoundType.LOCK)
-        await itr.response.edit_message(view=self)
+        await itr.response.edit_message(
+            view=InitiativeContainer(itr, self.tracker, True)
+        )
 
-    @discord.ui.button(
+    @ui.button(
         label="Clear Rolls",
         style=discord.ButtonStyle.danger,
         custom_id="clear_btn",
         row=1,
     )
-    async def clear_initiative(self, itr: Interaction, button: discord.ui.Button):
+    async def clear_initiative(self, itr: Interaction, button: ui.Button):
         await itr.response.send_modal(InitiativeClearConfirmModal(itr, self.tracker))
 
 
-class InitiativeEmbed(SimpleEmbed):
-    view: discord.ui.View
+class InitiativeUnlockButton(ui.Button):
+    def __init__(self, tracker: InitiativeTracker):
+        super().__init__(
+            style=discord.ButtonStyle.primary, label="Unlock", custom_id="unlock_btn"
+        )
+        self.tracker = tracker
 
-    def __init__(self, itr: Interaction, tracker: InitiativeTracker):
-        super().__init__(title="Initiatives", description=None)
+    async def callback(self, itr: Interaction):
+        log_button_press(itr, self, "InitiativeContainer")
+        await VC.play(itr, SoundType.LOCK)
+        await itr.response.edit_message(
+            view=InitiativeContainer(itr, self.tracker, False)
+        )
+
+
+class InitiativeContainer(ui.LayoutView):
+    def __init__(
+        self, itr: Interaction, tracker: InitiativeTracker, locked: bool = False
+    ):
+        super().__init__(timeout=None)
+
+        container = ui.Container(accent_color=discord.Color.green())
+        container.add_item(ui.TextDisplay("# Initiatives"))
+        container.add_item(ui.Separator(spacing=discord.SeparatorSpacing.small))
 
         description = ""
         for initiative in tracker.get(itr):
             total = initiative.get_total()
             description += f"- ``{total:>2}`` - {initiative.name}\n"
+        description = description or "*No initiatives rolled yet!*\n"
+        container.add_item(ui.TextDisplay(description))
+        container.add_item(ui.Separator(spacing=discord.SeparatorSpacing.small))
 
-        self.description = description or "*No initiatives rolled yet!*"
-        self.view = InitiativeView(itr, tracker)
+        if locked:
+            container.add_item(
+                ui.Section("‎", accessory=InitiativeUnlockButton(tracker))
+            )
+        else:
+            container.add_item(InitiativePlayerRow(tracker))
+            container.add_item(InitiativeDMRow(tracker))
+
+        self.add_item(container)

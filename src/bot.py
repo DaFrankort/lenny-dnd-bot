@@ -78,7 +78,7 @@ class Bot(discord.Client):
 
         # Commands
         self.tree.add_command(DistributionCommand())
-        self.tree.add_command(HelpCommand())
+        self.tree.add_command(HelpCommand(tree=self.tree))
         self.tree.add_command(StatsCommand())
         self.tree.add_command(RollCommand())
         self.tree.add_command(AdvantageRollCommand())

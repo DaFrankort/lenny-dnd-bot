@@ -675,7 +675,13 @@ class InitiativeContainerView(ui.LayoutView):
         container.add_item(ui.TextDisplay("# Initiatives"))
         container.add_item(ui.Separator(spacing=discord.SeparatorSpacing.small))
 
-        container.add_item(ui.TextDisplay(self._get_initiatives_text(itr, tracker)))
+        description = ""
+        for initiative in tracker.get(itr):
+            total = initiative.get_total()
+            description += f"- ``{total:>2}`` - {initiative.name}\n"
+        description = description or "*No initiatives rolled yet!*\n"
+
+        container.add_item(ui.TextDisplay(description))
         container.add_item(ui.Separator(spacing=discord.SeparatorSpacing.small))
 
         if locked:
@@ -687,11 +693,3 @@ class InitiativeContainerView(ui.LayoutView):
             container.add_item(InitiativeDMRow(tracker))
 
         self.add_item(container)
-
-    def _get_initiatives_text(self, itr: Interaction, tracker: InitiativeTracker):
-        description = ""
-        for initiative in tracker.get(itr):
-            total = initiative.get_total()
-            description += f"- ``{total:>2}`` - {initiative.name}\n"
-
-        return description or "*No initiatives rolled yet!*\n"

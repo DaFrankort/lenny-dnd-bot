@@ -112,7 +112,7 @@ class TestBotCommands:
             (
                 "namegen",
                 {
-                    "race": [None, "Human", "foobar"],
+                    "species": [None, "Human", "foobar"],
                     "gender": [
                         Gender.FEMALE.value,
                         Gender.MALE.value,

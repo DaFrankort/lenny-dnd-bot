@@ -1,19 +1,20 @@
 import discord
 
 from embeds import UserActionEmbed
-from i18n import t
 from logger import log_cmd
 from user_colors import UserColor
 
 
 class ColorCommand(discord.app_commands.Command):
-    name = t("commands.color.name")
-    description = t("commands.color.desc")
+    name = "color"
+    desc = "Set a preferred color using a hex-value. Leave hex_color empty to use auto-generated colors."
+    help = "Set a custom color for yourself by providing a hex value. Using the command without a hex-value defaults your color back to an auto-generated one."
+    command = "/color [color]"
 
     def __init__(self):
         super().__init__(
             name=self.name,
-            description=self.description,
+            description=self.desc,
             callback=self.callback,
         )
 

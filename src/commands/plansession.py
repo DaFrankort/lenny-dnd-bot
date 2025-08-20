@@ -1,7 +1,6 @@
 import datetime
 import discord
 
-from i18n import t
 from methods import when
 
 
@@ -18,33 +17,32 @@ class SessionPlanPoll(discord.Poll):
         self._add_date_answers(in_weeks)
 
     def _get_question(self, in_weeks: int):
-        if in_weeks in (0, 1):
-            week_phrase = when(
-                in_weeks == 0, t("common.this_week"), t("common.next_week")
-            )
+        if in_weeks == 0:
+            week_phrase = "this week"
+        elif in_weeks == 1:
+            week_phrase = "next week"
         else:
-            week_phrase = t("common.in_x_weeks", in_weeks)
+            week_phrase = f"in {in_weeks} weeks"
 
-        return t("common.week_x_question", week_phrase)
+        return f"Session {week_phrase}, which days work for you?"
 
     def _add_date_answers(self, in_weeks: int):
         today = datetime.date.today()
         is_this_week = in_weeks == 0
-        answer_count_thisweek = (
-            6 - today.weekday() + 1
-        )  # Remaining days of the week + 'later' option
+        # Remaining days of the week + 'later' option
+        answer_count_thisweek = 6 - today.weekday() + 1
         answer_count = when(
             is_this_week, answer_count_thisweek, 9
         )  # 9 => 7 days + later/earlier options
 
         for i in range(answer_count):
             if i == 0 and not is_this_week:
-                day_text = t("common.earlier")
+                day_text = "Earlier"
                 relative_text = None
                 emoji = "⬆️"
 
             elif i == answer_count - 1:
-                day_text = t("common.later")
+                day_text = "Later"
                 relative_text = None
                 emoji = "⬇️"
 
@@ -56,9 +54,7 @@ class SessionPlanPoll(discord.Poll):
 
                 day_is_tomorrow = day_offset == 1
                 relative_text = when(
-                    day_is_tomorrow,
-                    t("common.tomorrow"),
-                    t("common.in_x_days", day_offset),
+                    day_is_tomorrow, "Tomorrow", f"In {day_offset} days"
                 )
                 emoji = "📅"
 
@@ -70,19 +66,21 @@ class SessionPlanPoll(discord.Poll):
 
 
 class PlanSessionCommand(discord.app_commands.Command):
-    name = t("commands.plansession.name")
-    description = t("commands.plansession.desc")
+    name = "plansession"
+    desc = "Stop squandering and poll your party's availability in x weeks!"
+    help = "Creates a poll for players to select their availability in x weeks. Generates poll-answers from Monday - Sunday, along with an 'Earlier' and 'Later' option. If 0 is specified it will poll for the remaining days in the current week."
+    command = "/plansession <in-weeks>"
 
     def __init__(self):
         super().__init__(
             name=self.name,
-            description=self.description,
+            description=self.desc,
             callback=self.callback,
         )
 
     @discord.app_commands.describe(
-        in_weeks=t("commands.plansession.args.in_weeks"),
-        poll_duration=t("commands.plansession.args.poll_duration"),
+        in_weeks="How many weeks from now? (0 = this week, 1 = next week, ...)",
+        poll_duration="How long until the poll closes? (Defaults to 24h)",
     )
     async def callback(
         self,

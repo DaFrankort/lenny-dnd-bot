@@ -2,13 +2,12 @@ import discord
 
 from dice import DiceExpression, DiceExpressionCache, DiceRollMode
 from embeds import UserActionEmbed
-from i18n import t
 from logger import log_cmd
 from voice_chat import VC
 
 
 class RerollContextMenu(discord.app_commands.ContextMenu):
-    name = t("contextmenu.reroll.name")
+    name = "Re-roll"
 
     def __init__(self):
         super().__init__(

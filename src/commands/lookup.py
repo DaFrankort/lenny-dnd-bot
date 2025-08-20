@@ -4,7 +4,6 @@ import discord
 
 from dnd import DNDData, DNDObject
 from embeds import MultiDNDSelectView, NoResultsFoundEmbed
-from i18n import t
 from logger import log_cmd
 from search import SearchEmbed, search_from_query
 
@@ -36,8 +35,10 @@ async def send_DNDObject_lookup_result(
 
 
 class LookupSpellCommand(discord.app_commands.Command):
-    name = t("commands.spell.name")
-    description = t("commands.spell.desc")
+    name = "spell"
+    desc = "Get the details for a spell."
+    help = "Looks up a spell by name."
+    command = "/spell <spell name>"
 
     data: DNDData
 
@@ -45,7 +46,7 @@ class LookupSpellCommand(discord.app_commands.Command):
         self.data = data
         super().__init__(
             name=self.name,
-            description=self.description,
+            description=self.desc,
             callback=self.callback,
         )
 
@@ -60,8 +61,10 @@ class LookupSpellCommand(discord.app_commands.Command):
 
 
 class LookupItemCommand(discord.app_commands.Command):
-    name = t("commands.item.name")
-    description = t("commands.item.desc")
+    name = "item"
+    desc = "Get the details for an item."
+    help = "Looks up an item by name."
+    command = "/item <item name>"
 
     data: DNDData
 
@@ -69,7 +72,7 @@ class LookupItemCommand(discord.app_commands.Command):
         self.data = data
         super().__init__(
             name=self.name,
-            description=self.description,
+            description=self.desc,
             callback=self.callback,
         )
 
@@ -84,8 +87,10 @@ class LookupItemCommand(discord.app_commands.Command):
 
 
 class LookupConditionCommand(discord.app_commands.Command):
-    name = t("commands.condition.name")
-    description = t("commands.condition.desc")
+    name = "condition"
+    desc = "Get the details of a condition or status effect."
+    help = "Looks up a condition or status effect by name."
+    command = "/condition <condition name>"
 
     data: DNDData
 
@@ -93,7 +98,7 @@ class LookupConditionCommand(discord.app_commands.Command):
         self.data = data
         super().__init__(
             name=self.name,
-            description=self.description,
+            description=self.desc,
             callback=self.callback,
         )
 
@@ -108,8 +113,10 @@ class LookupConditionCommand(discord.app_commands.Command):
 
 
 class LookupCreatureCommand(discord.app_commands.Command):
-    name = t("commands.creature.name")
-    description = t("commands.creature.desc")
+    name = "creature"
+    desc = "Get the details of a creature."
+    help = "Looks up a creature by name."
+    command = "/creature <creature name>"
 
     data: DNDData
 
@@ -117,7 +124,7 @@ class LookupCreatureCommand(discord.app_commands.Command):
         self.data = data
         super().__init__(
             name=self.name,
-            description=self.description,
+            description=self.desc,
             callback=self.callback,
         )
 
@@ -132,8 +139,10 @@ class LookupCreatureCommand(discord.app_commands.Command):
 
 
 class LookupClassCommand(discord.app_commands.Command):
-    name = t("commands.class.name")
-    description = t("commands.class.desc")
+    name = "class"
+    desc = "Get the details for a character class."
+    help = "Looks up a D&D class by name."
+    command = "/class <class name>"
 
     data: DNDData
 
@@ -141,7 +150,7 @@ class LookupClassCommand(discord.app_commands.Command):
         self.data = data
         super().__init__(
             name=self.name,
-            description=self.description,
+            description=self.desc,
             callback=self.callback,
         )
 
@@ -156,8 +165,10 @@ class LookupClassCommand(discord.app_commands.Command):
 
 
 class LookupRuleCommand(discord.app_commands.Command):
-    name = t("commands.rule.name")
-    description = t("commands.rule.desc")
+    name = "rule"
+    desc = "Get the details of a D&D rule."
+    help = "Looks up a D&D rule by name."
+    command = "/rule <rule name>"
 
     data: DNDData
 
@@ -165,7 +176,7 @@ class LookupRuleCommand(discord.app_commands.Command):
         self.data = data
         super().__init__(
             name=self.name,
-            description=self.description,
+            description=self.desc,
             callback=self.callback,
         )
 
@@ -180,8 +191,10 @@ class LookupRuleCommand(discord.app_commands.Command):
 
 
 class LookupActionCommand(discord.app_commands.Command):
-    name = t("commands.action.name")
-    description = t("commands.action.desc")
+    name = "action"
+    desc = "Get the details of a D&D action."
+    help = "Looks up a D&D action by name."
+    command = "/action <action name>"
 
     data: DNDData
 
@@ -189,7 +202,7 @@ class LookupActionCommand(discord.app_commands.Command):
         self.data = data
         super().__init__(
             name=self.name,
-            description=self.description,
+            description=self.desc,
             callback=self.callback,
         )
 
@@ -204,8 +217,10 @@ class LookupActionCommand(discord.app_commands.Command):
 
 
 class LookupFeatCommand(discord.app_commands.Command):
-    name = t("commands.feat.name")
-    description = t("commands.feat.desc")
+    name = "feat"
+    desc = "Get the details of a character feat."
+    help = "Looks up a character feat by name."
+    command = "/feat <feat name>"
 
     data: DNDData
 
@@ -213,7 +228,7 @@ class LookupFeatCommand(discord.app_commands.Command):
         self.data = data
         super().__init__(
             name=self.name,
-            description=self.description,
+            description=self.desc,
             callback=self.callback,
         )
 
@@ -228,8 +243,10 @@ class LookupFeatCommand(discord.app_commands.Command):
 
 
 class LookupLanguageCommand(discord.app_commands.Command):
-    name = t("commands.language.name")
-    description = t("commands.language.desc")
+    name = "language"
+    desc = "Get the details of a language."
+    help = "Looks up a D&D Language by name."
+    command = "/language <language name>"
 
     data: DNDData
 
@@ -237,7 +254,7 @@ class LookupLanguageCommand(discord.app_commands.Command):
         self.data = data
         super().__init__(
             name=self.name,
-            description=self.description,
+            description=self.desc,
             callback=self.callback,
         )
 
@@ -252,8 +269,10 @@ class LookupLanguageCommand(discord.app_commands.Command):
 
 
 class LookupBackgroundCommand(discord.app_commands.Command):
-    name = t("commands.background.name")
-    description = t("commands.background.desc")
+    name = "background"
+    desc = "Get the details of a background."
+    help = "Looks up a D&D Background by name."
+    command = "/background <background name>"
 
     data: DNDData
 
@@ -261,7 +280,7 @@ class LookupBackgroundCommand(discord.app_commands.Command):
         self.data = data
         super().__init__(
             name=self.name,
-            description=self.description,
+            description=self.desc,
             callback=self.callback,
         )
 
@@ -276,8 +295,10 @@ class LookupBackgroundCommand(discord.app_commands.Command):
 
 
 class LookupTableCommand(discord.app_commands.Command):
-    name = t("commands.table.name")
-    description = t("commands.table.desc")
+    name = "table"
+    desc = "Get the details of a table."
+    help = "Looks up a D&D Table by name."
+    command = "/table <table name>"
 
     data: DNDData
 
@@ -285,7 +306,7 @@ class LookupTableCommand(discord.app_commands.Command):
         self.data = data
         super().__init__(
             name=self.name,
-            description=self.description,
+            description=self.desc,
             callback=self.callback,
         )
 
@@ -300,8 +321,10 @@ class LookupTableCommand(discord.app_commands.Command):
 
 
 class LookupSpeciesCommand(discord.app_commands.Command):
-    name = t("commands.species.name")
-    description = t("commands.species.desc")
+    name = "species"
+    desc = "Get the details of a species."
+    help = "Looks up a D&D Species by name."
+    command = "/species <species name>"
 
     data: DNDData
 
@@ -309,7 +332,7 @@ class LookupSpeciesCommand(discord.app_commands.Command):
         self.data = data
         super().__init__(
             name=self.name,
-            description=self.description,
+            description=self.desc,
             callback=self.callback,
         )
 
@@ -324,8 +347,10 @@ class LookupSpeciesCommand(discord.app_commands.Command):
 
 
 class LookupAnyCommand(discord.app_commands.Command):
-    name = t("commands.search.name")
-    description = t("commands.search.desc")
+    name = "search"
+    desc = "Search for a D&D entry."
+    help = "Looks up all possible D&D entries for a query."
+    command = "/search <query>"
 
     data: DNDData
 
@@ -333,7 +358,7 @@ class LookupAnyCommand(discord.app_commands.Command):
         self.data = data
         super().__init__(
             name=self.name,
-            description=self.description,
+            description=self.desc,
             callback=self.callback,
         )
 

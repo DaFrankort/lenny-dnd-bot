@@ -3,7 +3,6 @@ import discord
 
 from dice import DiceExpression, DiceExpressionCache, DiceRollMode
 from embeds import UserActionEmbed
-from i18n import t
 from logger import log_cmd
 from voice_chat import VC
 
@@ -73,13 +72,15 @@ async def func_reason_autocomplete(
 
 
 class RollCommand(discord.app_commands.Command):
-    name = t("commands.roll.name")
-    description = t("commands.roll.desc")
+    name = "roll"
+    desc = "Roll your d20s!"
+    help = "Roll a single dice expression."
+    command = "/roll <dice notation> [reason]"
 
     def __init__(self):
         super().__init__(
             name=self.name,
-            description=self.description,
+            description=self.desc,
             callback=self.callback,
         )
 
@@ -118,13 +119,15 @@ class RollCommand(discord.app_commands.Command):
 
 
 class AdvantageRollCommand(discord.app_commands.Command):
-    name = t("commands.advantage.name")
-    description = t("commands.advantage.desc")
+    name = "advantage"
+    desc = "Lucky you! Roll and take the best of two!"
+    help = "Roll the expression twice, use the highest result."
+    command = "/advantage <dice notation> [reason]"
 
     def __init__(self):
         super().__init__(
             name=self.name,
-            description=self.description,
+            description=self.desc,
             callback=self.callback,
         )
 
@@ -163,13 +166,15 @@ class AdvantageRollCommand(discord.app_commands.Command):
 
 
 class DisadvantageRollCommand(discord.app_commands.Command):
-    name = t("commands.disadvantage.name")
-    description = t("commands.disadvantage.desc")
+    name = "disadvantage"
+    desc = "Tough luck chump... Roll twice and suck it."
+    help = "Roll the expression twice, use the lowest result."
+    command = "/disadvantage <dice notation> [reason]"
 
     def __init__(self):
         super().__init__(
             name=self.name,
-            description=self.description,
+            description=self.desc,
             callback=self.callback,
         )
 
@@ -208,13 +213,15 @@ class DisadvantageRollCommand(discord.app_commands.Command):
 
 
 class D20Command(discord.app_commands.Command):
-    name = t("commands.d20.name")
-    description = t("commands.d20.desc")
+    name = "d20"
+    desc = "Just roll a clean d20!"
+    help = "Rolls a basic 1d20 with no modifiers."
+    command = "/d20"
 
     def __init__(self):
         super().__init__(
             name=self.name,
-            description=self.description,
+            description=self.desc,
             callback=self.callback,
         )
 

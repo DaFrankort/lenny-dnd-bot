@@ -683,9 +683,8 @@ class InitiativeContainerView(ui.LayoutView):
         container.add_item(ui.Separator(spacing=discord.SeparatorSpacing.small))
 
         if locked:
-            container.add_item(
-                ui.Section("‎", accessory=InitiativeUnlockButton(tracker))
-            )
+            unlock_section = ui.Section("‎", accessory=InitiativeUnlockButton(tracker))
+            container.add_item(unlock_section)
         else:
             container.add_item(InitiativePlayerRow(tracker))
             container.add_item(InitiativeDMRow(tracker))

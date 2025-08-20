@@ -399,7 +399,7 @@ class InitiativeRollModal(_InitiativeModal):
             )
             return
 
-        view = InitiativeContainer(itr, self.tracker)
+        view = InitiativeContainerView(itr, self.tracker)
         sound_type = SoundType.CREATURE if name else SoundType.PLAYER
         await VC.play(itr, sound_type)
         await itr.response.edit_message(view=view)
@@ -438,7 +438,7 @@ class InitiativeSetModal(_InitiativeModal):
         initiative.set_value(value)
         self.tracker.add(itr, initiative)
 
-        view = InitiativeContainer(itr, self.tracker)
+        view = InitiativeContainerView(itr, self.tracker)
         await VC.play(itr, SoundType.WRITE)
         await itr.response.edit_message(view=view)
         await itr.followup.send(
@@ -465,7 +465,7 @@ class InitiativeDeleteModal(_InitiativeModal):
 
         name = self.get_str(self.name)
         text, success = self.tracker.remove(itr, name)
-        view = InitiativeContainer(itr, self.tracker)
+        view = InitiativeContainerView(itr, self.tracker)
 
         if success:
             await VC.play(itr, SoundType.DELETE)
@@ -552,7 +552,7 @@ class InitiativeBulkModal(_InitiativeModal):
             )
             return
 
-        view = InitiativeContainer(itr, self.tracker)
+        view = InitiativeContainerView(itr, self.tracker)
         await VC.play(itr, SoundType.CREATURE)
         await itr.response.edit_message(view=view)
         await itr.followup.send(
@@ -581,7 +581,7 @@ class InitiativeClearConfirmModal(_InitiativeModal):
             return
 
         self.tracker.clear(itr)
-        view = InitiativeContainer(itr, self.tracker)
+        view = InitiativeContainerView(itr, self.tracker)
         await VC.play(itr, SoundType.DELETE)
         await itr.response.edit_message(view=view)
         await itr.followup.send(
@@ -634,10 +634,10 @@ class InitiativeDMRow(ui.ActionRow):
         label="Lock", style=discord.ButtonStyle.primary, custom_id="lock_btn", row=1
     )
     async def lock(self, itr: Interaction, button: ui.Button):
-        log_button_press(itr, button, "InitiativeContainer")
+        log_button_press(itr, button, "InitiativeContainerView")
         await VC.play(itr, SoundType.LOCK)
         await itr.response.edit_message(
-            view=InitiativeContainer(itr, self.tracker, True)
+            view=InitiativeContainerView(itr, self.tracker, True)
         )
 
     @ui.button(
@@ -658,20 +658,20 @@ class InitiativeUnlockButton(ui.Button):
         self.tracker = tracker
 
     async def callback(self, itr: Interaction):
-        log_button_press(itr, self, "InitiativeContainer")
+        log_button_press(itr, self, "InitiativeContainerView")
         await VC.play(itr, SoundType.LOCK)
         await itr.response.edit_message(
-            view=InitiativeContainer(itr, self.tracker, False)
+            view=InitiativeContainerView(itr, self.tracker, False)
         )
 
 
-class InitiativeContainer(ui.LayoutView):
+class InitiativeContainerView(ui.LayoutView):
     def __init__(
         self, itr: Interaction, tracker: InitiativeTracker, locked: bool = False
     ):
         super().__init__(timeout=None)
 
-        container = ui.Container(accent_color=discord.Color.green())
+        container = ui.Container(accent_color=discord.Color.dark_green())
         container.add_item(ui.TextDisplay("# Initiatives"))
         container.add_item(ui.Separator(spacing=discord.SeparatorSpacing.small))
 

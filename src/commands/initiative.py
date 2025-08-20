@@ -1,6 +1,6 @@
 import discord
 
-from initiative import InitiativeContainer, InitiativeTracker
+from initiative import InitiativeContainerView, InitiativeTracker
 from logger import log_cmd
 from voice_chat import VC, SoundType
 
@@ -23,7 +23,7 @@ class InitiativeCommand(discord.app_commands.Command):
 
     async def callback(self, itr: discord.Interaction):
         log_cmd(itr)
-        view = InitiativeContainer(itr, self.initiatives)
+        view = InitiativeContainerView(itr, self.initiatives)
         await itr.response.send_message(view=view)
         await VC.play(itr, SoundType.INITIATIVE)
 

@@ -33,7 +33,10 @@ Once cloned, navigate to the repository directory and install the required depen
 ```bash
 cd lenny-dnd-bot
 
-pip install -r requirements.txt
+python -m venv venv
+source venv/bin/activate
+
+pip install -r requirements.txt --force
 ```
 
 ### 3. Setup .env File

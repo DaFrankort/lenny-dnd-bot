@@ -2,7 +2,6 @@ import discord
 
 from dice import DiceExpression, DiceExpressionCache, DiceRollMode
 from embeds import UserActionEmbed
-from i18n import t
 from logger import log_cmd
 from voice_chat import VC
 

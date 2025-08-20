@@ -112,26 +112,6 @@ class Bot(discord.Client):
         self.tree.add_command(DeleteContextMenu())
         self.tree.add_command(RerollContextMenu())
 
-        @self.tree.error  # TODO Make this cleaner, move it somewhere else, potentially it's own file?
-        async def on_error(
-            itr: discord.Interaction, error: app_commands.AppCommandError
-        ):
-            if isinstance(error, app_commands.CommandOnCooldown):
-                await itr.response.send_message(
-                    f"⏳ This command is on cooldown. Try again in {error.retry_after:.1f}s.",
-                    ephemeral=True,
-                )
-            elif isinstance(error, app_commands.CheckFailure):
-                await itr.response.send_message(
-                    "🚫 You must be in a voice channel to use this command.",
-                    ephemeral=True,
-                )
-            else:
-                await itr.response.send_message(
-                    "⚠️ An unexpected error occurred.", ephemeral=True
-                )
-                logging.error("Error in PlaySoundCommand", exc_info=error)
-
         logging.info("Registered slash-commands")
 
     def run_client(self):

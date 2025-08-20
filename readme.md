@@ -65,7 +65,7 @@ You can follow [this tutorial](https://www.hostinger.com/tutorials/how-to-instal
 To start the bot, simply run the following command:
 
 ```bash
-py -3 ./src/main.py
+python ./src/main.py
 ```
 
 You can add the following arguments if you wish:

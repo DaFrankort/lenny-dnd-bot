@@ -667,31 +667,31 @@ class NameTable:
             return
 
         for d in data:
-            race = d["name"].lower()
+            species = d["name"].lower()
             table = {}
             table[Gender.FEMALE.value] = d["tables"]["female"]
             table[Gender.MALE.value] = d["tables"]["male"]
             table["family"] = d["tables"]["family"]
 
-            self.tables[race] = table
+            self.tables[species] = table
 
     def get_random(
-        self, race: str | None, gender: Gender
+        self, species: str | None, gender: Gender
     ) -> tuple[str, str, Gender] | tuple[None, None, None]:
         """
-        Race and gender are randomised if not specified.
-        Returns the selected name, race and gender in a tuple.
+        Species and gender are randomised if not specified.
+        Returns the selected name, species and gender in a tuple.
         """
         if self.tables is None:
             return None, None, None
 
-        if race:
-            race = race.lower()
+        if species:
+            species = species.lower()
 
-        table = self.tables.get(race, None)
+        table = self.tables.get(species, None)
         if table is None:
-            race = random.choice(list(self.tables.keys()))
-            table = self.tables.get(race)
+            species = random.choice(list(self.tables.keys()))
+            table = self.tables.get(species)
 
         if gender is Gender.OTHER:
             gender = random.choice([Gender.FEMALE, Gender.MALE])
@@ -702,10 +702,10 @@ class NameTable:
         name = random.choice(names)
         if len(surnames) != 0:
             surname = random.choice(surnames)
-            return f"{name} {surname}", race, gender
-        return name, race, gender
+            return f"{name} {surname}", species, gender
+        return name, species, gender
 
-    def get_races(self):
+    def get_species(self):
         return self.tables.keys()
 
 

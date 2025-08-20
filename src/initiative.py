@@ -675,11 +675,9 @@ class InitiativeContainerView(ui.LayoutView):
         container.add_item(ui.TextDisplay("# Initiatives"))
         container.add_item(ui.Separator(spacing=discord.SeparatorSpacing.small))
 
-        description = ""
-        for initiative in tracker.get(itr):
-            total = initiative.get_total()
-            description += f"- ``{total:>2}`` - {initiative.name}\n"
-        description = description or "*No initiatives rolled yet!*\n"
+        initiatives = tracker.get(itr)
+        descriptions = [f"- ``{i.get_total():>2}`` - {i.name}" for i in initiatives]
+        description = "\n".join(descriptions) or "*No initiatives rolled yet!*"
 
         container.add_item(ui.TextDisplay(description))
         container.add_item(ui.Separator(spacing=discord.SeparatorSpacing.small))

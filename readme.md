@@ -33,7 +33,10 @@ Once cloned, navigate to the repository directory and install the required depen
 ```bash
 cd lenny-dnd-bot
 
-pip install -r requirements.txt
+python -m venv venv
+source venv/bin/activate
+
+pip install -r requirements.txt --force
 ```
 
 ### 3. Setup .env File
@@ -62,7 +65,7 @@ You can follow [this tutorial](https://www.hostinger.com/tutorials/how-to-instal
 To start the bot, simply run the following command:
 
 ```bash
-py -3 ./src/main.py
+python ./src/main.py
 ```
 
 You can add the following arguments if you wish:

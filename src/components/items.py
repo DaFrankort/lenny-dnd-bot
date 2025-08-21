@@ -9,7 +9,7 @@ class TitleTextDisplay(ui.TextDisplay):
     def __init__(self, name: str, source: str = None, url: str = None, id=None):
         title = when(source, f"{name} ({source})", name)
         title = when(url, f"[{title}]({url})", title)
-        title = f"# {title}"
+        title = f"### {title}"
         super().__init__(content=title, id=id)
 
 
@@ -17,7 +17,7 @@ class FieldTextDisplay(ui.TextDisplay):
     """A TextDisplay that formats the text as a field, with a label and value."""
 
     def __init__(self, name: str, value: str, id=None):
-        content = when(name, f"### {name}\n{value}", value)
+        content = when(name, f"**{name}**\n{value}", value)
         super().__init__(content=content, id=id)
 
     @classmethod

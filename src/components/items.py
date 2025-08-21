@@ -1,4 +1,5 @@
 from discord import ui
+import discord
 from dnd import Description
 from methods import when
 
@@ -42,6 +43,6 @@ class FieldTextDisplay(ui.TextDisplay):
 class SimpleSeparator(ui.Separator):
     def __init__(self, is_large=False):
         if is_large:
-            super().__init__(spacing=ui.SeparatorSpacing.large)
+            super().__init__(spacing=discord.SeparatorSpacing.large)
         else:
-            super().__init__(spacing=ui.SeparatorSpacing.small)
+            super().__init__(spacing=discord.SeparatorSpacing.small)

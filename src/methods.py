@@ -9,7 +9,7 @@ def when(condition: bool, value_on_true: any, value_on_false: any) -> any:
     return value_on_true if condition else value_on_false
 
 
-def build_table(value):
+def build_table(value, width: int | None = 56, show_lines: bool = False) -> str:
     def format_cell_value(value: int | str | object) -> str:
         if isinstance(value, int):
             return str(value)
@@ -24,7 +24,9 @@ def build_table(value):
 
     headers = value["headers"]
     rows = value["rows"]
-    table = Table(style=None, box=rich.box.ROUNDED)
+
+    box_style = rich.box.SQUARE_DOUBLE_HEAD if show_lines else rich.box.ROUNDED
+    table = Table(style=None, box=box_style, show_lines=show_lines)
 
     for header in headers:
         table.add_column(header, justify="left", style=None)
@@ -34,7 +36,7 @@ def build_table(value):
         table.add_row(*formatted_row)
 
     buffer = io.StringIO()
-    console = Console(file=buffer, width=56)
+    console = Console(file=buffer, width=width)
     console.print(table)
     table_string = f"```{buffer.getvalue()}```"
     buffer.close()

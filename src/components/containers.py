@@ -4,19 +4,19 @@ import rich
 from rich.table import Table
 from rich.console import Console
 from discord import ui
-from components.items import TitleTextDisplay
+from components.items import SimpleSeparator, TitleTextDisplay
 from dnd import DNDTable
 from embeds import UserActionEmbed
 from logger import log_button_press
 from methods import build_table
 from voice_chat import VC, SoundType
+from PIL import Image, ImageDraw, ImageFont
 
 
 class DNDTableRollButton(ui.Button):
     def __init__(self, table: DNDTable):
-        label = f"Roll {table.dice_notation}"
         super().__init__(
-            style=discord.ButtonStyle.primary, label=label, custom_id="roll_btn"
+            style=discord.ButtonStyle.primary, label="Roll", custom_id="roll_btn"
         )
         self.table = table
 
@@ -55,6 +55,8 @@ class DNDTableRollButton(ui.Button):
 
 
 class DNDTableContainerView(ui.LayoutView):
+    file: discord.File = None
+
     def __init__(self, table: DNDTable):
         super().__init__(timeout=None)
         container = ui.Container(accent_color=discord.Color.dark_green())
@@ -75,7 +77,49 @@ class DNDTableContainerView(ui.LayoutView):
             table_display = ui.TextDisplay(table_string)
             container.add_item(table_display)
         else:
-            container.add_item(ui.TextDisplay("TODO: Handle large tables."))
+            container.add_item(SimpleSeparator())
+
+            table_string = build_table(
+                table.table["value"], 112, True
+            )  # Rebuild table, but wider
+            font_size = 64
+            padding = font_size // 2
+            try:
+                font = ImageFont.truetype(
+                    font="./assets/fonts/GoogleSansCode-Light.ttf", size=font_size
+                )
+            except OSError:
+                font = ImageFont.load_default(size=font_size)
+            lines = table_string.replace("```", "").splitlines()
+
+            # Calculate image dimensions
+            max_width = max(
+                [font.getlength(line) for line in lines]
+            )  # width of longest line
+            line_height = int(
+                (font.getbbox("A")[3] - font.getbbox("A")[1]) * 1.5
+            )  # height of a line
+            img_height = line_height * len(lines) + 4 * padding
+            img_width = int(max_width) + 4 * padding
+
+            # Draw image with text
+            img = Image.new("RGB", (img_width, img_height), color=(10, 10, 25))
+            draw = ImageDraw.Draw(img)
+            y = padding
+            for line in lines:
+                draw.text((padding * 2, y), line, font=font, fill="white")
+                y += line_height
+
+            buffer = io.BytesIO()
+            img.save(buffer, format="PNG")
+            buffer.seek(0)
+            self.file = discord.File(
+                fp=buffer, filename=table.name.lower().replace(" ", "_") + ".png"
+            )
+
+            container.add_item(
+                ui.MediaGallery(discord.MediaGalleryItem(media=self.file))
+            )
 
         if table.footnotes:
             for footnote in table.footnotes:

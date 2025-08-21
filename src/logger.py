@@ -11,3 +11,9 @@ def log_cmd(itr: discord.Interaction):
     criteria_text = " ".join(criteria)
 
     logging.info(f"{itr.user.name} => /{itr.command.name} {criteria_text}")
+
+
+def log_button_press(
+    itr: discord.Interaction, button: discord.ui.Button, location: str
+):
+    logging.info(f"{itr.user.name} pressed '{button.label}' in {location}")

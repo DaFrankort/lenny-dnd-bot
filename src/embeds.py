@@ -17,6 +17,7 @@ from dnd import (
     Spell,
     Condition,
 )
+from logger import log_button_press
 from user_colors import UserColor
 from rich.table import Table
 from rich.console import Console
@@ -24,12 +25,6 @@ from rich.console import Console
 from voice_chat import VC, SoundType
 
 HORIZONTAL_LINE = "~~-------------------------------------------------------------------------------------~~"
-
-
-def log_button_press(
-    itr: discord.Interaction, button: discord.ui.Button, location: str
-):
-    logging.info(f"{itr.user.name} pressed '{button.label}' in {location}")
 
 
 class MultiDNDSelect(discord.ui.Select):

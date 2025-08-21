@@ -27,11 +27,11 @@ async def send_DNDObject_lookup_result(
 
     else:
         embed = found[0].get_embed()
-        view = embed.view
-        if view:
-            await itr.response.send_message(embed=embed, view=view)
+        if isinstance(embed, discord.ui.LayoutView):  # Uses LayoutView instead of Embed
+            await itr.response.send_message(view=embed)
             return
-        await itr.response.send_message(embed=embed)
+        view = getattr(embed, "view", discord.interactions.MISSING)
+        await itr.response.send_message(embed=embed, view=view)
 
 
 class LookupSpellCommand(discord.app_commands.Command):

@@ -3,6 +3,7 @@ import random
 import time
 import discord
 from discord import Interaction, Message, NotFound, ui
+from components.items import SimpleSeparator
 from dice import DiceRollMode
 from embeds import SimpleEmbed, SuccessEmbed, UserActionEmbed, log_button_press
 from rapidfuzz import fuzz
@@ -673,14 +674,14 @@ class InitiativeContainerView(ui.LayoutView):
 
         container = ui.Container(accent_color=discord.Color.dark_green())
         container.add_item(ui.TextDisplay("# Initiatives"))
-        container.add_item(ui.Separator(spacing=discord.SeparatorSpacing.small))
+        container.add_item(SimpleSeparator())
 
         initiatives = tracker.get(itr)
         descriptions = [f"- ``{i.get_total():>2}`` - {i.name}" for i in initiatives]
         description = "\n".join(descriptions) or "*No initiatives rolled yet!*"
 
         container.add_item(ui.TextDisplay(description))
-        container.add_item(ui.Separator(spacing=discord.SeparatorSpacing.small))
+        container.add_item(SimpleSeparator())
 
         if locked:
             unlock_section = ui.Section("‎", accessory=InitiativeUnlockButton(tracker))

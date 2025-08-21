@@ -93,12 +93,8 @@ class DNDTableContainerView(ui.LayoutView):
             lines = table_string.replace("```", "").splitlines()
 
             # Calculate image dimensions
-            max_width = max(
-                [font.getlength(line) for line in lines]
-            )  # width of longest line
-            line_height = int(
-                (font.getbbox("A")[3] - font.getbbox("A")[1]) * 1.5
-            )  # height of a line
+            max_width = max([font.getlength(line) for line in lines])
+            line_height = int((font.getbbox("A")[3] - font.getbbox("A")[1]) * 1.5)
             img_height = line_height * len(lines) + 4 * padding
             img_width = int(max_width) + 4 * padding
 

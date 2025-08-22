@@ -10,6 +10,7 @@ venv
 
 # Private data
 /temp
+/config
 .env
 .flake8
 

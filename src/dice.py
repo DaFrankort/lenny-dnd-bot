@@ -354,20 +354,16 @@ class DiceExpressionCache:
         last_used = user_data.get("last_used", [])
         if notation in last_used:
             last_used.remove(notation)
-
         last_used.append(notation)
-        last_used = last_used[-5:]  # Store max 5 expressions
 
         last_used_reasons = user_data.get("last_used_reason", [])
         if reason:
             if reason in last_used_reasons:
                 last_used_reasons.remove(reason)
-
             last_used_reasons.append(reason)
-            last_used_reasons = last_used_reasons[-5:]  # Store max 5 reasons
 
-        user_data["last_used"] = last_used
-        user_data["last_used_reason"] = last_used_reasons
+        user_data["last_used"] = last_used[-5:]  # Store max 5 expressions
+        user_data["last_used_reason"] = last_used_reasons[-5:]  # Store max 5 reasons
         data[user_id] = user_data
         cls._save_data()
 

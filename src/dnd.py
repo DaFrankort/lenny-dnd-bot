@@ -152,6 +152,19 @@ class DNDObjectList(object):
         return found
 
 
+async def send_dnd_embed(itr: discord.Interaction, dnd_object: DNDObject):
+    await itr.response.defer(thinking=False)
+    embed = dnd_object.get_embed()
+    file = embed.file or discord.interactions.MISSING
+
+    if isinstance(embed, discord.ui.LayoutView):
+        await itr.followup.send(view=embed, file=file)
+        return
+
+    view = embed.view or discord.interactions.MISSING
+    await itr.followup.send(embed=embed, view=view, file=file)
+
+
 class Spell(DNDObject):
     """A class representing a Dungeons & Dragons spell."""
 

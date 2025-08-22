@@ -238,7 +238,7 @@ class SearchSelectButton(ui.Button):
 
 
 class SearchLayoutView(ui.LayoutView):
-    per_page: int = 10
+    per_page: int = 5  # TODO Fix per_page to be 10 again
 
     page: int
     results: DNDSearchResults
@@ -283,7 +283,36 @@ class SearchLayoutView(ui.LayoutView):
 
         # FOOTER
         self.container.add_item(SimpleSeparator())
-        # TODO ADD PAGINATION
+
+        if self.max_pages > 1:
+            disable_back = self.page == 0
+            disable_next = self.page >= self.max_pages - 1
+
+            button_first_page = ui.Button(label="↞", style=discord.ButtonStyle.primary)
+            button_first_page.callback = lambda i: self.go_to_first_page(i)
+            button_first_page.disabled = disable_back
+
+            button_prev_page = ui.Button(label="←", style=discord.ButtonStyle.primary)
+            button_prev_page.callback = lambda i: self.go_to_prev_page(i)
+            button_prev_page.disabled = disable_back
+
+            button_next_page = ui.Button(label="→", style=discord.ButtonStyle.primary)
+            button_next_page.callback = lambda i: self.go_to_next_page(i)
+            button_next_page.disabled = disable_next
+
+            button_last_page = ui.Button(label="↠", style=discord.ButtonStyle.primary)
+            button_last_page.callback = lambda i: self.go_to_last_page(i)
+            button_last_page.disabled = disable_next
+
+            self.container.add_item(
+                ui.ActionRow(
+                    button_first_page,
+                    button_prev_page,
+                    button_next_page,
+                    button_last_page,
+                )
+            )
+
         self.container.add_item(
             ui.TextDisplay(f"-# Page {self.page + 1}/{self.max_pages}")
         )

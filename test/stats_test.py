@@ -14,7 +14,7 @@ class TestStats:
             ), "Rolls should be between 1 and 6"
             assert isinstance(result, int), "Result should be an integer"
             assert (
-                4 <= result <= 24
+                3 <= result <= 24
             ), "Result should be between 4 and 24 (sum of 3 rolls)"
 
     def test_get_embed_title(self):

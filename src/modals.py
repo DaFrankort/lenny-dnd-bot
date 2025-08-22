@@ -1,6 +1,6 @@
 import logging
 from discord import Interaction
-from discord.ui import TextInput, Modal
+from discord.ui import Label, TextInput, Modal
 
 
 class SimpleModal(Modal):
@@ -13,7 +13,7 @@ class SimpleModal(Modal):
         input_values = {
             child.label: str(child)
             for child in self.children
-            if isinstance(child, TextInput) and str(child) != ""
+            if isinstance(child, Label) and str(child) != ""
         }
 
         username = itr.user.name
@@ -26,32 +26,54 @@ class SimpleModal(Modal):
         )
         raise error
 
-    def get_str(self, text_input: TextInput) -> str | None:
+    def get_str(self, label_item: Label) -> str | None:
         """Safely parse string from TextInput. Returns None if input is empty or only spaces."""
-        text = str(text_input).strip()
-        return text if text else None
+        component = label_item.component
+        if isinstance(component, TextInput):
+            text = str(component).strip()
+            return text if text else None
+        else:
+            raise NotImplementedError(
+                f"Item type {type(component)} not supported in get_str()"
+            )
 
-    def get_int(self, text_input: TextInput) -> int | None:
+    def get_int(self, label_item: Label) -> int | None:
         """Safely parse integer from TextInput. Returns None on failure, defaults to 0 if input is ''"""
-        text = str(text_input).strip()
-        if text == "":
-            return 0
-        try:
-            return int(text)
-        except ValueError:
-            return None
+        component = label_item.component
+        if isinstance(component, TextInput):
+            text = str(component).strip()
+            if text == "":
+                return 0
+            try:
+                return int(text)
+            except ValueError:
+                return None
+        else:
+            raise NotImplementedError(
+                f"Item type {type(component)} not supported in get_int()"
+            )
 
     def get_choice(
-        self, text_input: TextInput, default: any, choices: dict[str, any]
+        self, label_item: Label, default: any, choices: dict[str, any]
     ) -> any:
         """Used to simulate selection-menu functionality, allowing a user to select a certain option."""
+        logging.warning(
+            "Deprecated! Using get_choice is not recommended, consider using an ui.Select component instead."
+        )
+        # TODO: get_choice may be deprecated in the future, if discord adds select-dropdowns that would be the better option.
+
         choice = default
-        user_input = str(text_input).lower()
+        component = label_item.component
+        if isinstance(component, TextInput):
+            user_input = str(component).lower()
+            for key in choices:
+                choice_value = choices[key]
+                if user_input.startswith(key.lower()):
+                    choice = choice_value
+                    break
 
-        for key in choices:
-            choice_value = choices[key]
-            if user_input.startswith(key.lower()):
-                choice = choice_value
-                break
-
-        return choice
+            return choice
+        else:
+            raise NotImplementedError(
+                f"Item type {type(component)} not supported in get_choice()"
+            )

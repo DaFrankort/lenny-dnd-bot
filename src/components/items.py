@@ -19,3 +19,30 @@ class SimpleSeparator(ui.Separator):
             super().__init__(spacing=discord.SeparatorSpacing.large)
         else:
             super().__init__(spacing=discord.SeparatorSpacing.small)
+
+
+class SimpleLabelTextInput(ui.Label):
+    def __init__(
+        self,
+        label: str,
+        description: str = None,
+        style: discord.TextStyle = discord.TextStyle.short,
+        placeholder: str = None,
+        default: str = None,
+        min_length: int = None,
+        max_length: int = None,
+        required=False,
+    ):
+        super().__init__(
+            text=label,
+            description=description,
+            component=ui.TextInput(
+                style=style,
+                placeholder=placeholder,
+                default=default,
+                min_length=min_length,
+                max_length=max_length,
+                required=required,
+                id=id,
+            ),
+        )

@@ -1,5 +1,6 @@
 import discord
 
+from components.items import SimpleLabelTextInput
 from dice import DiceExpressionCache
 from embeds import SuccessEmbed, UserActionEmbed
 from logger import log_cmd
@@ -31,15 +32,15 @@ def get_shortcut_options(shortcuts: object) -> list[discord.SelectOption]:
 
 
 class DiceShortcutAddModal(SimpleModal):
-    name = discord.ui.TextInput(
+    name = SimpleLabelTextInput(
         label="Shortcut Name",
         placeholder="ATK",
     )
-    notation = discord.ui.TextInput(
+    notation = SimpleLabelTextInput(
         label="Dice expression",
         placeholder="1d20+6",
     )
-    reason = discord.ui.TextInput(
+    reason = SimpleLabelTextInput(
         label="Roll Reason (Optional)",
         placeholder="Attack / Damage / Fire / ...",
         required=False,
@@ -76,10 +77,10 @@ class DiceShortcutAddModal(SimpleModal):
 
 class DiceShortcutEditModal(SimpleModal):
     name: str
-    notation = discord.ui.TextInput(
+    notation = SimpleLabelTextInput(
         label="Dice expression",
     )
-    reason = discord.ui.TextInput(
+    reason = SimpleLabelTextInput(
         label="Roll Reason (Optional)",
         required=False,
     )

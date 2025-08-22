@@ -238,7 +238,7 @@ class SearchSelectButton(ui.Button):
 
 
 class SearchLayoutView(ui.LayoutView):
-    per_page: int = 5  # TODO Fix per_page to be 10 again
+    per_page: int = 10  # TODO Fix per_page to be 10 again
 
     page: int
     results: DNDSearchResults
@@ -252,7 +252,6 @@ class SearchLayoutView(ui.LayoutView):
 
         super().__init__(timeout=None)
 
-        self.container = ui.Container(accent_color=discord.Color.dark_green())
         title = f"Results for '{query}'"
         url = f"https://5e.tools/search.html?q={query}"
         url = url.replace(" ", "%20")
@@ -270,19 +269,19 @@ class SearchLayoutView(ui.LayoutView):
 
     def build(self):
         self.clear_items()
-        self.container.clear_items()
+        container = ui.Container(accent_color=discord.Color.dark_green())
 
         # HEADER
-        self.container.add_item(self.title_item)
-        self.container.add_item(SimpleSeparator())
+        container.add_item(self.title_item)
+        container.add_item(SimpleSeparator())
 
         # CONTENT
         options = self.get_current_options()
         for option in options:
-            self.container.add_item(ui.ActionRow(SearchSelectButton(option)))
+            container.add_item(ui.ActionRow(SearchSelectButton(option)))
 
         # FOOTER
-        self.container.add_item(SimpleSeparator())
+        container.add_item(SimpleSeparator())
 
         if self.max_pages > 1:
             disable_back = self.page == 0
@@ -304,7 +303,7 @@ class SearchLayoutView(ui.LayoutView):
             button_last_page.callback = lambda i: self.go_to_last_page(i)
             button_last_page.disabled = disable_next
 
-            self.container.add_item(
+            container.add_item(
                 ui.ActionRow(
                     button_first_page,
                     button_prev_page,
@@ -313,11 +312,9 @@ class SearchLayoutView(ui.LayoutView):
                 )
             )
 
-        self.container.add_item(
-            ui.TextDisplay(f"-# Page {self.page + 1}/{self.max_pages}")
-        )
+        container.add_item(ui.TextDisplay(f"-# Page {self.page + 1}/{self.max_pages}"))
 
-        self.add_item(self.container)
+        self.add_item(container)
 
     async def rebuild(self, itr: discord.Interaction):
         self.build()

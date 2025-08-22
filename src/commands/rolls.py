@@ -36,9 +36,39 @@ async def func_diceroll_autocomplete(
 
 
 async def func_reason_autocomplete(
-    itr: discord.Interaction, current: str
+    _: discord.Interaction, current: str
 ) -> list[discord.app_commands.Choice[str]]:
-    return DiceExpressionCache.get_autocomplete_reason_suggestions(itr, current)
+    reasons = [
+        "Attack",
+        "Damage",
+        "Saving Throw",
+        "Athletics",
+        "Acrobatics",
+        "Sleight of Hand",
+        "Stealth",
+        "Arcana",
+        "History",
+        "Investigation",
+        "Nature",
+        "Religion",
+        "Animal Handling",
+        "Insight",
+        "Medicine",
+        "Perception",
+        "Survival",
+        "Deception",
+        "Intimidation",
+        "Performance",
+        "Persuasion",
+        "Fire",
+    ]
+    filtered_reasons = [
+        reason for reason in reasons if current.lower() in reason.lower()
+    ]
+    return [
+        discord.app_commands.Choice(name=reason, value=reason)
+        for reason in filtered_reasons[:25]
+    ]
 
 
 class RollCommand(discord.app_commands.Command):

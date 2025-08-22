@@ -7,7 +7,6 @@ import d20
 from enum import Enum
 from pathlib import Path
 from discord import Interaction
-import discord
 from discord.app_commands import Choice
 
 
@@ -233,7 +232,6 @@ class DiceExpression(object):
     title: str
     description: str
     ephemeral: bool  # Ephemeral in case an error occurred
-    reason: str | None
 
     def __init__(self, expression: str, mode=DiceRollMode.Normal, reason: str = None):
         self.rolls = []
@@ -242,7 +240,6 @@ class DiceExpression(object):
         self.title = ""
         self.description = ""
         self.ephemeral = False
-        self.reason = reason
         expression = expression.lower()  # d20 library requires lowercase expressions.
 
         if mode == DiceRollMode.Normal:
@@ -312,7 +309,7 @@ class DiceExpressionCache:
 
     @classmethod
     def _get_user_data_template(cls) -> object:
-        return {"last_used": [], "last_used_reason": [], "shortcuts": {}}
+        return {"last_used": [], "shortcuts": {}}
 
     @classmethod
     def _load_data(cls):
@@ -345,7 +342,6 @@ class DiceExpressionCache:
         if expression.roll.expression == typed_notation.strip().lower():
             # Shortcut used
             notation = expression.roll.expression
-            reason = expression.reason
 
         user_id = str(itr.user.id)
         data = cls._load_data()
@@ -358,16 +354,7 @@ class DiceExpressionCache:
         last_used.append(notation)
         last_used = last_used[-5:]  # Store max 5 expressions
 
-        last_used_reasons = user_data.get("last_used_reason", [])
-        if reason:
-            if reason in last_used_reasons:
-                last_used_reasons.remove(reason)
-
-            last_used_reasons.append(reason)
-            last_used_reasons = last_used_reasons[-5:]  # Store max 5 reasons
-
         user_data["last_used"] = last_used
-        user_data["last_used_reason"] = last_used_reasons
         data[user_id] = user_data
         cls._save_data()
 
@@ -454,65 +441,6 @@ class DiceExpressionCache:
 
         # Autocompleting a user's expression to last_used can be intrusive, as it will overwrite what they typed (e.g. if a user typed 1d20+6, then typed 1d20, it would autocorrect it to 1d20+6, which may not be what the player wanted)
         return cls.get_shortcut_autocomplete_suggestions(itr, query, True)
-
-    @classmethod
-    def get_autocomplete_reason_suggestions(
-        cls, itr: Interaction, query: str
-    ) -> list[Choice[str]]:
-        """
-        Returns auto-complete choices for the last reasons a user used when no query is given.
-        If query is given, will suggest reasons containing the query.
-        """
-        user_id = str(itr.user.id)
-        user_data = cls._load_data().get(user_id, cls._get_user_data_template())
-        last_used = user_data.get("last_used_reason", [])
-
-        if len(last_used) == 0:
-            return []
-
-        query = query.strip().lower().replace(" ", "")
-        if query == "":
-            return [Choice(name=expr, value=expr) for expr in reversed(last_used)]
-
-        reasons = [
-            "Attack",
-            "Damage",
-            "Strength",
-            "Fire",
-            "Healing",
-            "Dexterity",
-            "Constitution",
-            "Intelligence",
-            "Wisdom",
-            "Charisma",
-            "Saving Throw",
-            "Athletics",
-            "Acrobatics",
-            "Sleight of Hand",
-            "Stealth",
-            "Arcana",
-            "History",
-            "Investigation",
-            "Nature",
-            "Religion",
-            "Animal Handling",
-            "Insight",
-            "Medicine",
-            "Perception",
-            "Survival",
-            "Deception",
-            "Intimidation",
-            "Performance",
-            "Persuasion",
-        ]
-        filtered_reasons = sorted(
-            [reason for reason in reasons if query.lower() in reason.lower()],
-            key=lambda x: x.lower().index(query),
-        )
-        return [
-            discord.app_commands.Choice(name=reason, value=reason)
-            for reason in filtered_reasons[:25]
-        ]
 
     @classmethod
     def get_shortcut_autocomplete_suggestions(

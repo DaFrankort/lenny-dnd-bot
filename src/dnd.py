@@ -66,7 +66,7 @@ class DNDObject(object):
         return f"{self.name} ({self.source})"
 
     @abstractmethod
-    def get_embed(self) -> discord.Embed:
+    def get_embed(self) -> discord.Embed | discord.ui.LayoutView:
         pass
 
 
@@ -576,9 +576,9 @@ class DNDTable(DNDObject):
 
     @abstractmethod
     def get_embed(self) -> discord.Embed:
-        from embeds import TableEmbed
+        from components.containers import DNDTableContainerView
 
-        return TableEmbed(self)
+        return DNDTableContainerView(self)
 
     @property
     def is_rollable(self) -> bool:

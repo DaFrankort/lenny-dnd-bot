@@ -66,7 +66,7 @@ class DNDObject(object):
         return f"{self.name} ({self.source})"
 
     @abstractmethod
-    def get_embed(self) -> discord.Embed:
+    def get_embed(self) -> discord.Embed | discord.ui.LayoutView:
         pass
 
 

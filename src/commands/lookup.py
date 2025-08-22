@@ -28,18 +28,14 @@ async def send_DNDObject_lookup_result(
     else:
         await itr.response.defer(thinking=False)
         embed = found[0].get_embed()
-        file = getattr(embed, "file", None)
-
-        kwargs = {}
-        if isinstance(file, discord.File):
-            kwargs["file"] = file
+        file = embed.file or discord.interactions.MISSING
 
         if isinstance(embed, discord.ui.LayoutView):
-            await itr.followup.send(view=embed, **kwargs)
+            await itr.followup.send(view=embed, file=file)
             return
 
-        view = getattr(embed, "view", discord.interactions.MISSING)
-        await itr.followup.send(embed=embed, view=view, **kwargs)
+        view = embed.view or discord.interactions.MISSING
+        await itr.followup.send(embed=embed, view=view, file=file)
 
 
 class LookupSpellCommand(discord.app_commands.Command):

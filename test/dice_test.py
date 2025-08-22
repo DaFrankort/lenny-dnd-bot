@@ -132,6 +132,7 @@ class TestDiceExpressionCache:
         mock_expr = MagicMock()
         mock_expr.roll.errors = []
         mock_expr.roll.expression = "1d20+5"
+        mock_expr.reason = "Attack"
         mock_expr.description = "A valid roll"
         return mock_expr
 
@@ -146,11 +147,15 @@ class TestDiceExpressionCache:
         DiceExpressionCache.store_expression(itr, valid_expression, "1d20+5")
         user_id = str(itr.user.id)
         data = DiceExpressionCache._data
+        reason = valid_expression.reason
 
         assert user_id in data, f"User ID {user_id} should be in cache data."
         assert (
             "1d20+5" in data[user_id]["last_used"]
         ), "'1d20+5' should be in last_used for user."
+        assert (
+            reason in data[user_id]["last_used_reason"]
+        ), f"'{reason}' should be in last_used_reason for user."
 
     def test_store_expression_does_not_add_invalid(self, itr, invalid_expression):
         DiceExpressionCache.store_expression(itr, invalid_expression, "2d6")

@@ -52,7 +52,7 @@ class SearchSelectButton(ui.Button):
 
 
 class SearchLayoutView(ui.LayoutView):
-    per_page: int = 10  # TODO Fix per_page to be 10 again
+    per_page: int = 10
 
     page: int
     results: DNDSearchResults

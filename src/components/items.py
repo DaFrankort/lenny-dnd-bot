@@ -29,9 +29,9 @@ class SimpleLabelTextInput(ui.Label):
         style: discord.TextStyle = discord.TextStyle.short,
         placeholder: str = None,
         default: str = None,
+        required: bool = True,
         min_length: int = None,
         max_length: int = None,
-        required=False,
     ):
         super().__init__(
             text=label,
@@ -42,7 +42,6 @@ class SimpleLabelTextInput(ui.Label):
                 default=default,
                 min_length=min_length,
                 max_length=max_length,
-                required=required,
-                id=id,
-            ),
+                required=required
+            )
         )

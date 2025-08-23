@@ -4,6 +4,7 @@ import discord
 from components.items import SimpleSeparator
 from config import Config
 from dnd import DNDData, Source, SourceList
+from embeds import SimpleEmbed
 from logger import log_cmd
 
 
@@ -132,5 +133,11 @@ class ConfigCommand(discord.app_commands.Command):
 
     async def callback(self, itr: discord.Interaction):
         log_cmd(itr)
+        if itr.guild is None:
+            title = "Cannot change sources!"
+            desc = "Sources can only be enabled and disabled in a server."
+            await itr.response.send_message(embed=SimpleEmbed(title, desc))
+            return
+
         view = ConfigSourcesView(server=itr.guild)
         await itr.response.send_message(view=view)

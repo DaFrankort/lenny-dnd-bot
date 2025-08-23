@@ -14,23 +14,23 @@ def is_source_phb2014(source: str) -> bool:
 
 
 class Config(object):
-    server: discord.Guild
+    path: str | None
+    server: discord.Guild | None
 
-    def __init__(self, server: discord.Guild):
+    def __init__(self, server: discord.Guild | None):
+        self.path = None
         self.server = server
-        self.verify_path()
 
-    def verify_path(self) -> None:
-        path = pathlib.Path(self.path)
-        path.parent.mkdir(exist_ok=True, parents=True)
-        with open(path, "a") as f:
-            f.write("")
-
-    @property
-    def path(self) -> str:
-        return f"config/{self.server.id}.config"
+        if self.server is not None:
+            self.path = f"config/{self.server.id}.config"
+            path = pathlib.Path(self.path)
+            path.parent.mkdir(exist_ok=True, parents=True)
+            open(path, "a").close()  # Ensure file exists
 
     def get_disallowed_sources(self) -> set[str]:
+        if self.path is None:
+            return set([*SOURCES_PHB2014])
+
         config = toml.load(self.path)
         lookup = config.get("lookup", {})
         disallowed = lookup.get("disallowed_sources", None)

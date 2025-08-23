@@ -7,6 +7,7 @@ from dnd import (
     DNDData,
     DNDSearchResults,
     DNDObject,
+    send_dnd_embed,
 )
 
 
@@ -64,7 +65,7 @@ class SearchSelect(discord.ui.Select):
             max_values=1,
         )
 
-    async def callback(self, interaction: discord.Interaction):
+    async def callback(self, itr: discord.Interaction):
         """Handles the selection of a spell from the select menu."""
         value = self.values[0]
         name_pattern = r"^([^ ]*?) (.+) \(([^\)]+)\)"  # "Emoji Name (Source)"
@@ -72,13 +73,11 @@ class SearchSelect(discord.ui.Select):
         name = name_match.group(2)
         source = name_match.group(3)
 
-        user_name = interaction.user.display_name
+        user_name = itr.user.display_name
         logging.debug(f"SearchEmbed: user {user_name} selected '{name}")
 
         result = [r for r in self.results if r.name == name and r.source == source][0]
-        embed = result.get_embed()
-        view = embed.view or discord.ui.View()
-        await interaction.response.send_message(embed=embed, view=view)
+        await send_dnd_embed(itr, result)
 
 
 class SearchActionView(discord.ui.View):
@@ -200,22 +199,22 @@ class SearchEmbed(discord.Embed):
         self.set_footer(text=f"Page {self.page + 1}/{self.max_pages}")
         self.view.update(self.page, self.max_pages, options)
 
-    async def rebuild(self, interaction: discord.Interaction):
+    async def rebuild(self, itr: discord.Interaction):
         self.build()
-        return await interaction.response.edit_message(embed=self, view=self.view)
+        return await itr.response.edit_message(embed=self, view=self.view)
 
-    async def go_to_first_page(self, interaction: discord.Interaction):
+    async def go_to_first_page(self, itr: discord.Interaction):
         self.page = 0
-        return await self.rebuild(interaction)
+        return await self.rebuild(itr)
 
-    async def go_to_prev_page(self, interaction: discord.Interaction):
+    async def go_to_prev_page(self, itr: discord.Interaction):
         self.page = self.page - 1
-        return await self.rebuild(interaction)
+        return await self.rebuild(itr)
 
-    async def go_to_next_page(self, interaction: discord.Interaction):
+    async def go_to_next_page(self, itr: discord.Interaction):
         self.page = self.page + 1
-        return await self.rebuild(interaction)
+        return await self.rebuild(itr)
 
-    async def go_to_last_page(self, interaction: discord.Interaction):
+    async def go_to_last_page(self, itr: discord.Interaction):
         self.page = self.max_pages - 1
-        return await self.rebuild(interaction)
+        return await self.rebuild(itr)

@@ -78,6 +78,7 @@ class _DNDObjectEmbed(discord.Embed):
 
     _object: DNDObject
     view: discord.ui.View = None
+    file: discord.File = None
 
     def __init__(self, object: DNDObject):
         self._object = object

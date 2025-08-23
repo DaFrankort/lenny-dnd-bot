@@ -66,7 +66,7 @@ class DNDObject(object):
         return f"{self.name} ({self.source})"
 
     @abstractmethod
-    def get_embed(self) -> discord.Embed:
+    def get_embed(self) -> discord.Embed | discord.ui.LayoutView:
         pass
 
 
@@ -150,6 +150,19 @@ class DNDObjectList(object):
 
         found = sorted(found, key=lambda e: (e.name, e.source))
         return found
+
+
+async def send_dnd_embed(itr: discord.Interaction, dnd_object: DNDObject):
+    await itr.response.defer(thinking=False)
+    embed = dnd_object.get_embed()
+    file = embed.file or discord.interactions.MISSING
+
+    if isinstance(embed, discord.ui.LayoutView):
+        await itr.followup.send(view=embed, file=file)
+        return
+
+    view = embed.view or discord.interactions.MISSING
+    await itr.followup.send(embed=embed, view=view, file=file)
 
 
 class Spell(DNDObject):

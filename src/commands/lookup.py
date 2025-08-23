@@ -2,7 +2,7 @@ import logging
 
 import discord
 
-from dnd import DNDData, DNDObject
+from dnd import DNDData, DNDObject, send_dnd_embed
 from embeds import MultiDNDSelectView, NoResultsFoundEmbed
 from logger import log_cmd
 from search import SearchEmbed, search_from_query
@@ -26,20 +26,7 @@ async def send_DNDObject_lookup_result(
         await itr.response.send_message(view=view, ephemeral=True)
 
     else:
-        await itr.response.defer(thinking=False)
-        embed = found[0].get_embed()
-        file = getattr(embed, "file", None)
-
-        kwargs = {}
-        if isinstance(file, discord.File):
-            kwargs["file"] = file
-
-        if isinstance(embed, discord.ui.LayoutView):
-            await itr.followup.send(view=embed, **kwargs)
-            return
-
-        view = getattr(embed, "view", discord.interactions.MISSING)
-        await itr.followup.send(embed=embed, view=view, **kwargs)
+        await send_dnd_embed(itr, found[0])
 
 
 class LookupSpellCommand(discord.app_commands.Command):

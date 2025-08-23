@@ -13,10 +13,6 @@ from typing import Literal, Union, TypedDict
 from dice import DiceExpression
 
 
-def is_source_phb2014(source: str) -> bool:
-    return source in ["PHB", "DMG", "MM"]
-
-
 def _read_dnd_data(path: str) -> list[dict]:
     if not os.path.exists(path):
         logging.warning(f"D&D data file not found: '{path}'")
@@ -58,15 +54,13 @@ class DNDObject(object):
     select_description: str | None = None  # Description in dropdown menus
 
     @property
-    def is_phb2014(self) -> bool:
-        return is_source_phb2014(self.source)
-
-    @property
     def title(self) -> str:
         return f"{self.name} ({self.source})"
 
     @abstractmethod
-    def get_embed(self) -> discord.Embed | discord.ui.LayoutView:
+    def get_embed(
+        self, itr: discord.Interaction
+    ) -> discord.Embed | discord.ui.LayoutView:
         pass
 
 
@@ -77,14 +71,17 @@ class DNDObjectList(object):
         self.entries = []
 
     def get(
-        self, query: str, ignore_phb2014: bool = True, fuzzy_threshold: float = 75
+        self,
+        query: str,
+        allowed_sources: set[str],
+        fuzzy_threshold: float = 75,
     ) -> list[DNDObject]:
         query = query.strip().lower()
         exact: list[DNDObject] = []
         fuzzy: list[DNDObject] = []
 
         for entry in self.entries:
-            if ignore_phb2014 and entry.is_phb2014:
+            if entry.source not in allowed_sources:
                 continue
 
             entry_name = entry.name.strip().lower()
@@ -102,8 +99,8 @@ class DNDObjectList(object):
 
     def get_autocomplete_suggestions(
         self,
-        query: str = "",
-        ignore_phb2014: bool = True,
+        query: str,
+        allowed_sources: set[str],
         fuzzy_threshold: float = 75,
         limit: int = 25,
     ) -> list[Choice[str]]:
@@ -115,7 +112,7 @@ class DNDObjectList(object):
         choices = []
         seen_names = set()  # Required to avoid duplicate suggestions
         for e in self.entries:
-            if ignore_phb2014 and e.is_phb2014:
+            if e.source not in allowed_sources:
                 continue
             if e.name in seen_names:
                 continue
@@ -135,13 +132,16 @@ class DNDObjectList(object):
         return [choice for _, _, choice in choices[:limit]]
 
     def search(
-        self, query: str, ignore_phb2014: bool = True, fuzzy_threshold: float = 75
+        self,
+        query: str,
+        allowed_sources: set[str],
+        fuzzy_threshold: float = 75,
     ) -> list[DNDObject]:
         query = query.strip().lower()
         found: list[DNDObject] = []
 
         for entry in self.entries:
-            if ignore_phb2014 and entry.is_phb2014:
+            if entry.source not in allowed_sources:
                 continue
 
             entry_name = entry.name.strip().lower()
@@ -154,7 +154,7 @@ class DNDObjectList(object):
 
 async def send_dnd_embed(itr: discord.Interaction, dnd_object: DNDObject):
     await itr.response.defer(thinking=False)
-    embed = dnd_object.get_embed()
+    embed = dnd_object.get_embed(itr=itr)
     file = embed.file or discord.interactions.MISSING
 
     if isinstance(embed, discord.ui.LayoutView):
@@ -202,10 +202,10 @@ class Spell(DNDObject):
     def __repr__(self):
         return str(self)
 
-    def get_formatted_classes(self, ignore_phb2014: bool = True):
+    def get_formatted_classes(self, allowed_sources: set[str]):
         classes = set()
         for class_ in self.classes:
-            if ignore_phb2014 and is_source_phb2014(class_["source"]):
+            if class_["source"] not in allowed_sources:
                 continue
             classes.add(class_["name"])
         return ", ".join(sorted(list(classes)))
@@ -215,10 +215,10 @@ class Spell(DNDObject):
         return f"{self.level} {self.school}"
 
     @abstractmethod
-    def get_embed(self) -> discord.Embed:
+    def get_embed(self, itr: discord.Interaction) -> discord.Embed:
         from embeds import SpellEmbed
 
-        return SpellEmbed(self)
+        return SpellEmbed(itr, self)
 
 
 class SpellList(DNDObjectList):
@@ -276,7 +276,7 @@ class Item(DNDObject):
         return ", ".join(self.properties).capitalize()
 
     @abstractmethod
-    def get_embed(self) -> discord.Embed:
+    def get_embed(self, itr: discord.Interaction) -> discord.Embed:
         from embeds import ItemEmbed
 
         return ItemEmbed(self)
@@ -307,7 +307,7 @@ class Condition(DNDObject):
         self.image = json["image"]
 
     @abstractmethod
-    def get_embed(self) -> discord.Embed:
+    def get_embed(self, itr: discord.Interaction) -> discord.Embed:
         from embeds import ConditionEmbed
 
         return ConditionEmbed(self)
@@ -349,7 +349,7 @@ class Creature(DNDObject):
         self.select_description = self.subtitle
 
     @abstractmethod
-    def get_embed(self) -> discord.Embed:
+    def get_embed(self, itr: discord.Interaction) -> discord.Embed:
         from embeds import CreatureEmbed
 
         return CreatureEmbed(self)
@@ -393,7 +393,7 @@ class Class(DNDObject):
         return str(self)
 
     @abstractmethod
-    def get_embed(self) -> discord.Embed:
+    def get_embed(self, itr: discord.Interaction) -> discord.Embed:
         from embeds import ClassEmbed
 
         return ClassEmbed(self)
@@ -423,7 +423,7 @@ class Rule(DNDObject):
         self.description = json["description"]
 
     @abstractmethod
-    def get_embed(self) -> discord.Embed:
+    def get_embed(self, itr: discord.Interaction) -> discord.Embed:
         from embeds import RuleEmbed
 
         return RuleEmbed(self)
@@ -453,7 +453,7 @@ class Action(DNDObject):
         self.description = json["description"]
 
     @abstractmethod
-    def get_embed(self) -> discord.Embed:
+    def get_embed(self, itr: discord.Interaction) -> discord.Embed:
         from embeds import ActionEmbed
 
         return ActionEmbed(self)
@@ -487,7 +487,7 @@ class Feat(DNDObject):
         self.description = json["description"]
 
     @abstractmethod
-    def get_embed(self) -> discord.Embed:
+    def get_embed(self, itr: discord.Interaction) -> discord.Embed:
         from embeds import FeatEmbed
 
         return FeatEmbed(self)
@@ -525,7 +525,7 @@ class Language(DNDObject):
         self.description = json["description"]
 
     @abstractmethod
-    def get_embed(self) -> discord.Embed:
+    def get_embed(self, itr: discord.Interaction) -> discord.Embed:
         from embeds import LanguageEmbed
 
         return LanguageEmbed(self)
@@ -555,7 +555,7 @@ class Background(DNDObject):
         self.description = json["description"]
 
     @abstractmethod
-    def get_embed(self) -> discord.Embed:
+    def get_embed(self, itr: discord.Interaction) -> discord.Embed:
         from embeds import BackgroundEmbed
 
         return BackgroundEmbed(self)
@@ -588,7 +588,7 @@ class DNDTable(DNDObject):
         self.footnotes = json["footnotes"]
 
     @abstractmethod
-    def get_embed(self) -> discord.Embed:
+    def get_embed(self, itr: discord.Interaction) -> discord.Embed:
         from components.containers import DNDTableContainerView
 
         return DNDTableContainerView(self)
@@ -646,7 +646,7 @@ class Species(DNDObject):
         self.info = json["info"]
 
     @abstractmethod
-    def get_embed(self) -> discord.Embed:
+    def get_embed(self, itr: discord.Interaction) -> discord.Embed:
         from embeds import SpeciesEmbed
 
         return SpeciesEmbed(self)
@@ -720,6 +720,34 @@ class NameTable:
 
     def get_species(self):
         return self.tables.keys()
+
+
+class Source(object):
+    """Note: this object does not inherit from DNDObject as it is meta data about DNDObjects"""
+
+    id: str
+    name: str
+    source: str
+    published: str
+    author: str
+    group: str
+
+    def __init__(self, source: dict):
+        self.id = source["id"]
+        self.name = source["name"]
+        self.source = source["source"]
+        self.published = source["published"]
+        self.author = source["author"]
+        self.group = source["group"]
+
+
+class SourceList(object):
+    path = "./submodules/lenny-dnd-data/generated/sources.json"
+    entries: list[Source]
+
+    def __init__(self):
+        data = _read_dnd_data(self.path)
+        self.entries = [Source(e) for e in data]
 
 
 class DNDData(object):

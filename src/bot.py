@@ -5,6 +5,7 @@ from discord import app_commands
 from dotenv import load_dotenv
 from commands.charactergen import NameGenCommand
 from commands.color import ColorCommand
+from commands.config import ConfigCommand
 from commands.distribution import DistributionCommand
 from commands.help import HelpCommand
 from commands.initiative import InitiativeCommand
@@ -92,6 +93,7 @@ class Bot(discord.Client):
         self.tree.add_command(PlaySoundCommand())
         self.tree.add_command(ColorCommand())
         self.tree.add_command(NameGenCommand(data=self.data))
+        self.tree.add_command(ConfigCommand())
 
         # D&D lookup commands
         self.tree.add_command(LookupSpellCommand(data=self.data))

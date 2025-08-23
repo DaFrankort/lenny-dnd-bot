@@ -1,5 +1,6 @@
 import logging
 import discord
+from config import Config, is_source_phb2014
 from dnd import (
     Background,
     Class,
@@ -59,7 +60,7 @@ class MultiDNDSelect(discord.ui.Select):
         logging.debug(
             f"{self.name}: user {interaction.user.display_name} selected option {index}: '{entry.name}`"
         )
-        await interaction.response.send_message(embed=entry.get_embed())
+        await interaction.response.send_message(embed=entry.get_embed(interaction))
 
 
 class MultiDNDSelectView(discord.ui.View):
@@ -179,8 +180,9 @@ class _DNDObjectEmbed(discord.Embed):
 class SpellEmbed(_DNDObjectEmbed):
     """A class representing a Discord embed for a Dungeons & Dragons spell."""
 
-    def __init__(self, spell: Spell):
-        classes = spell.get_formatted_classes()
+    def __init__(self, itr: discord.Interaction, spell: Spell):
+        sources = Config.allowed_sources(server=itr.guild)
+        classes = spell.get_formatted_classes(sources)
 
         super().__init__(spell)
 
@@ -311,7 +313,9 @@ class MultiClassSubclassSelect(discord.ui.Select):
     ):
         options = []
         for subclass_name in character_class.subclass_level_features.keys():
-            if not character_class.is_phb2014 and subclass_name.endswith("(PHB)"):
+            if is_source_phb2014(character_class.source) and subclass_name.endswith(
+                "(PHB)"
+            ):
                 continue  # Only show PHB subclasses for PHB classes
 
             label = (

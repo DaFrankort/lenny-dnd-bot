@@ -5,6 +5,7 @@ import pytest_asyncio
 from unittest.mock import AsyncMock, MagicMock
 
 from bot import Bot
+from config import Config
 from dnd import Gender
 from utils.test_utils import listify
 from commands.tokengen import AlignH, AlignV
@@ -48,6 +49,7 @@ class TestBotCommands:
         )
         self.mock_interaction.user.display_name = "TestUser"
         self.mock_interaction.guild = MagicMock(spec=discord.Guild)
+        self.mock_interaction.guild.id = 1234
         self.mock_interaction.channel = MagicMock(spec=discord.TextChannel)
         self.mock_interaction.response = MagicMock()
         self.mock_interaction.response.send_message = AsyncMock()

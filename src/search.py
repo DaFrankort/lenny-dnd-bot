@@ -21,15 +21,15 @@ def __search_matches(query: str, name: str, threshold: float) -> bool:
 def search_from_query(
     query: str,
     data: DNDData,
+    allowed_sources: set[str],
     threshold=75.0,
-    ignore_phb2014=True,
 ):
     query = query.strip().lower()
     results = DNDSearchResults()
 
     for data_list in data:
         for entry in data_list.entries:
-            if ignore_phb2014 and getattr(entry, "is_phb2014", False):
+            if entry.source not in allowed_sources:
                 continue
             if __search_matches(query, entry.name, threshold):
                 results.add(entry)

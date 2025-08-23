@@ -3,9 +3,14 @@ import discord
 import pathlib
 import toml
 
-from dnd import DNDData
+from dnd import SourceList
 
-SOURCES_2014 = ["PHB", "DMG", "MM"]
+
+SOURCES_PHB2014 = ["PHB", "DMG", "MM"]
+
+
+def is_source_phb2014(source: str) -> bool:
+    return source in SOURCES_PHB2014
 
 
 class Config(object):
@@ -31,8 +36,14 @@ class Config(object):
         disallowed = lookup.get("disallowed_sources", None)
         if disallowed is None:
             # 2014 sources are disabled by default
-            disallowed = [*SOURCES_2014]
+            disallowed = [*SOURCES_PHB2014]
         return set(disallowed)
+
+    def get_allowed_sources(self) -> set[str]:
+        sources = SourceList()
+        sources = set([source.id for source in sources.entries])
+        disallowed = self.get_disallowed_sources()
+        return sources - disallowed
 
     def set_disallowed_sources(self, sources: Iterable[str]) -> None:
         config = toml.load(self.path)
@@ -50,3 +61,11 @@ class Config(object):
         disallowed = self.get_disallowed_sources()
         disallowed.add(source)
         self.set_disallowed_sources(disallowed)
+
+    def clear(self) -> None:
+        # Clear config file contents
+        open(self.path, 'w').close()
+
+    @staticmethod
+    def allowed_sources(server: discord.Guild) -> set[str]:
+        return Config(server=server).get_allowed_sources()

@@ -1,3 +1,7 @@
+from unittest.mock import MagicMock
+import discord
+import pytest_asyncio
+from config import Config
 from dnd import DNDData
 from search import search_from_query
 
@@ -15,19 +19,27 @@ class TestDndData:
         "ABCDF",
     ]
 
+    @pytest_asyncio.fixture(autouse=True)
+    def setup(self):
+        self.server = MagicMock(spec=discord.Guild)
+        self.server.id = 1234
+        self.config = Config(server=self.server)
+
     def test_dnddatalist_search(self):
+        sources = Config.allowed_sources(server=self.server)
         for query in self.queries:
             for data in self.dnd_data:
                 try:
-                    data.search(query)
+                    data.search(query, allowed_sources=sources)
                 except Exception:
                     assert (
                         False
                     ), f"{data.entries[0].object_type} DNDDataList failed search()"
 
     def test_search_from_query(self):
+        sources = Config.allowed_sources(server=self.server)
         for query in self.queries:
             try:
-                search_from_query(query, self.dnd_data)
+                search_from_query(query, self.dnd_data, allowed_sources=sources)
             except Exception:
                 assert False, "search_from_query threw an error."

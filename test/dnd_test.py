@@ -1,6 +1,5 @@
 from unittest.mock import MagicMock
 import discord
-import pytest
 import pytest_asyncio
 from config import Config
 from dnd import DNDData

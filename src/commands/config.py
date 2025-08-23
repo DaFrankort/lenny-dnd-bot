@@ -1,4 +1,3 @@
-import copy
 import math
 import discord
 
@@ -56,7 +55,7 @@ class ConfigSourcesView(discord.ui.LayoutView):
         self.clear_items()
         container = discord.ui.Container(accent_color=discord.Color.dark_green())
 
-        title = f"# Enable Sources"
+        title = "# Enable Sources"
         paging = f"-# Page {self.page}/{self.max_pages}"
         container.add_item(discord.ui.TextDisplay(title))
         container.add_item(discord.ui.TextDisplay(paging))

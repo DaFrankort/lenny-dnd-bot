@@ -5,7 +5,6 @@ import pytest_asyncio
 from unittest.mock import AsyncMock, MagicMock
 
 from bot import Bot
-from config import Config
 from dnd import Gender
 from utils.test_utils import listify
 from commands.tokengen import AlignH, AlignV

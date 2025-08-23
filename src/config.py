@@ -64,7 +64,7 @@ class Config(object):
 
     def clear(self) -> None:
         # Clear config file contents
-        open(self.path, 'w').close()
+        open(self.path, "w").close()
 
     @staticmethod
     def allowed_sources(server: discord.Guild) -> set[str]:

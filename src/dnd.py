@@ -729,7 +729,7 @@ class Source(object):
     name: str
     source: str
     published: str
-    author: str
+    author: str | None
     group: str
 
     def __init__(self, source: dict):

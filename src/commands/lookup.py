@@ -6,7 +6,7 @@ from config import Config
 from dnd import DNDData, DNDObject, send_dnd_embed
 from embeds import MultiDNDSelectView, NoResultsFoundEmbed
 from logger import log_cmd
-from search import SearchEmbed, search_from_query
+from search import SearchLayoutView, search_from_query
 
 
 async def send_DNDObject_lookup_result(
@@ -392,7 +392,5 @@ class LookupAnyCommand(discord.app_commands.Command):
             embed = NoResultsFoundEmbed("results", query)
             await itr.response.send_message(embed=embed, ephemeral=True)
         else:
-            embed = SearchEmbed(query, results)
-            await itr.response.send_message(
-                embed=embed, view=embed.view, ephemeral=True
-            )
+            view = SearchLayoutView(query, results)
+            await itr.response.send_message(view=view, ephemeral=True)

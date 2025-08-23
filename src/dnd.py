@@ -729,15 +729,16 @@ class Source(object):
     name: str
     source: str
     published: str
-    author: str
+    author: str | None
     group: str
 
     def __init__(self, source: dict):
+        print(source)
         self.id = source["id"]
         self.name = source["name"]
         self.source = source["source"]
         self.published = source["published"]
-        self.author = source["author"]
+        self.author = source.get("author", None)
         self.group = source["group"]
 
 

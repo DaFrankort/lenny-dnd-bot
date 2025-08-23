@@ -2,14 +2,25 @@ import discord
 
 from embeds import UserActionEmbed
 from logger import log_cmd
+from methods import when
 from user_colors import UserColor
 
 
-class ColorCommand(discord.app_commands.Command):
+class ColorCommandGroup(discord.app_commands.Group):
     name = "color"
-    desc = "Set a preferred color using a hex-value. Leave hex_color empty to use auto-generated colors."
-    help = "Set a custom color for yourself by providing a hex value. Using the command without a hex-value defaults your color back to an auto-generated one."
-    command = "/color [color]"
+    desc = "Set a preferred color to easily identify your actions!"
+
+    def __init__(self):
+        super().__init__(name=self.name, description=self.desc)
+        self.add_command(ColorSetCommand())
+        self.add_command(ColorClearCommand())
+
+
+class ColorSetCommand(discord.app_commands.Command):
+    name = "set"
+    desc = "Set a preferred color using a hex-value."
+    help = "Set a custom color for yourself by providing a hex value."
+    command = "/color set <color>"
 
     def __init__(self):
         super().__init__(
@@ -18,17 +29,8 @@ class ColorCommand(discord.app_commands.Command):
             callback=self.callback,
         )
 
-    async def callback(self, itr: discord.Interaction, hex_color: str = ""):
+    async def callback(self, itr: discord.Interaction, hex_color: str):
         log_cmd(itr)
-        if hex_color == "":
-            removed = UserColor.remove(itr)
-            message = (
-                "❌ Cleared user-defined color. ❌"
-                if removed
-                else "⚠️ You have not yet set a color. ⚠️"
-            )
-            await itr.response.send_message(message, ephemeral=True)
-            return
 
         if not UserColor.validate(hex_color):
             await itr.response.send_message(
@@ -48,3 +50,28 @@ class ColorCommand(discord.app_commands.Command):
             ),
             ephemeral=True,
         )
+
+
+class ColorClearCommand(discord.app_commands.Command):
+    name = "clear"
+    desc = "Clear your preferred color."
+    help = "Set your color back to an auto-generated one."
+    command = "/color clear"
+
+    def __init__(self):
+        super().__init__(
+            name=self.name,
+            description=self.desc,
+            callback=self.callback,
+        )
+
+    async def callback(self, itr: discord.Interaction):
+        log_cmd(itr)
+
+        removed = UserColor.remove(itr)
+        message = when(
+            removed,
+            "❌ Cleared user-defined color. ❌",
+            "⚠️ You have not yet set a color. ⚠️",
+        )
+        await itr.response.send_message(message, ephemeral=True)

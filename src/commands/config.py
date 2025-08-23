@@ -11,6 +11,7 @@ class ConfigSourcesButton(discord.ui.Button):
     source: Source
     server: discord.Guild
     config: Config
+    allowed: bool
     sources_view: "ConfigSourcesView"
 
     def __init__(
@@ -23,19 +24,20 @@ class ConfigSourcesButton(discord.ui.Button):
         self.sources_view = view
 
         disallowed = self.config.get_disallowed_sources()
-        if self.source.id in disallowed:
-            self.label = "Disabled"
-            self.style = discord.ButtonStyle.red
-        else:
+        self.allowed = self.source.id not in disallowed
+
+        if self.allowed:
             self.label = "‎ Enabled ‎‎"
             self.style = discord.ButtonStyle.green
+        else:
+            self.label = "Disabled"
+            self.style = discord.ButtonStyle.red
 
     async def callback(self, itr: discord.Interaction):
-        disallowed = self.config.get_disallowed_sources()
-        if self.source.id in disallowed:
-            self.config.allow_source(self.source.id)
-        else:
+        if self.allowed:
             self.config.disallow_source(self.source.id)
+        else:
+            self.config.allow_source(self.source.id)
         await self.sources_view.rebuild_and_edit(itr)
 
 

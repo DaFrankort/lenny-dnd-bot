@@ -12,6 +12,34 @@ from commands.tokengen import AlignH, AlignV
 img_url = r"https://img.lovepik.com/element/40116/9419.png_1200.png"
 
 
+def get_cmd_from_group(
+    group: discord.app_commands.Group, parts: list[str]
+) -> discord.app_commands.Command:
+    """Recursively looks for a command within command-groups."""
+    cmd = group.get_command(parts[0])
+    if isinstance(cmd, discord.app_commands.Group):
+        return get_cmd_from_group(cmd, parts[1:])
+    return cmd
+
+
+def get_cmd(
+    commands: dict[
+        str,
+        discord.app_commands.Command
+        | discord.app_commands.ContextMenu
+        | discord.app_commands.Group,
+    ],
+    name: str,
+):
+    if " " in name:
+        # Only groups can have spaces in the name
+        parts = [p.strip() for p in name.split(" ")]
+        root = commands.get(parts[0])
+        return get_cmd_from_group(root, parts[1:])
+    else:
+        return commands.get(name)
+
+
 def mock_image() -> discord.Attachment:
     image = MagicMock(spec=discord.Attachment)
     image.url = img_url
@@ -91,20 +119,20 @@ class TestBotCommands:
                 },
             ),
             ("shortcut", {}),
-            ("spell", {"name": ["Fire Bolt", "abcdef"]}),
-            ("item", {"name": ["Sword", "abcdef"]}),
-            ("condition", {"name": ["Poisoned", "abcdef"]}),
-            ("creature", {"name": ["Goblin", "abcdef"]}),
-            ("class", {"name": ["Wizard", "abcdef"]}),
-            ("rule", {"name": ["Action", "abcdef"]}),
-            ("action", {"name": ["Attack", "abcdef"]}),
-            ("feat", {"name": ["Tough", "abcdef"]}),
-            ("language", {"name": ["Common", "abcdef"]}),
-            ("background", {"name": ["Soldier", "abcdef"]}),
-            ("table", {"name": ["Wild Magic", "abcdef"]}),
-            ("species", {"name": ["Human", "abcdef"]}),
+            ("search spell", {"name": ["Fire Bolt", "abcdef"]}),
+            ("search item", {"name": ["Sword", "abcdef"]}),
+            ("search condition", {"name": ["Poisoned", "abcdef"]}),
+            ("search creature", {"name": ["Goblin", "abcdef"]}),
+            ("search class", {"name": ["Wizard", "abcdef"]}),
+            ("search rule", {"name": ["Action", "abcdef"]}),
+            ("search action", {"name": ["Attack", "abcdef"]}),
+            ("search feat", {"name": ["Tough", "abcdef"]}),
+            ("search language", {"name": ["Common", "abcdef"]}),
+            ("search background", {"name": ["Soldier", "abcdef"]}),
+            ("search table", {"name": ["Wild Magic", "abcdef"]}),
+            ("search species", {"name": ["Human", "abcdef"]}),
             (
-                "search",
+                "search all",
                 [
                     {"query": "Barb"},
                     {"query": "qwertyuiopasdfghjkl;zxcvbnm,./1234567890"},
@@ -200,23 +228,7 @@ class TestBotCommands:
         cmd_name: str,
         arguments: dict | list[dict],
     ):
-        def get_cmd_from_group(
-            group: discord.app_commands.Group, parts: list[str]
-        ) -> discord.app_commands.Command:
-            """Recursively looks for a command within command-groups."""
-            cmd = group.get_command(parts[0])
-            if isinstance(cmd, discord.app_commands.Group):
-                return get_cmd_from_group(cmd, parts[1:])
-            return cmd
-
-        if " " in cmd_name:
-            # Only groups can have spaces in the name
-            parts = [p.strip() for p in cmd_name.split(" ")]
-            root = commands.get(parts[0])
-            cmd = get_cmd_from_group(root, parts[1:])
-        else:
-            cmd = commands.get(cmd_name)
-
+        cmd = get_cmd(commands, cmd_name)
         assert cmd is not None, f"{cmd_name} command not found"
 
         arguments = listify(arguments)
@@ -241,15 +253,15 @@ class TestBotCommands:
             ("roll", "reason", ["", "Att"]),
             ("advantage", "reason", ["", "Dam"]),
             ("disadvantage", "reason", ["", "Ste"]),
-            ("spell", "name", ["", "Fireb"]),
-            ("item", "name", ["", "Dag"]),
-            ("condition", "name", ["", "Poi"]),
-            ("creature", "name", ["", "Gobl"]),
-            ("class", "name", ["", "Bar"]),
-            ("rule", "name", ["", "Adv"]),
-            ("action", "name", ["", "Att"]),
-            ("feat", "name", ["", "Tou"]),
-            ("language", "name", ["", "Comm"]),
+            ("search spell", "name", ["", "Fireb"]),
+            ("search item", "name", ["", "Dag"]),
+            ("search condition", "name", ["", "Poi"]),
+            ("search creature", "name", ["", "Gobl"]),
+            ("search class", "name", ["", "Bar"]),
+            ("search rule", "name", ["", "Adv"]),
+            ("search action", "name", ["", "Att"]),
+            ("search feat", "name", ["", "Tou"]),
+            ("search language", "name", ["", "Comm"]),
             # ('', '', ''),
         ],
     )
@@ -260,7 +272,7 @@ class TestBotCommands:
         param_name: str,
         queries: str | list[str],
     ):
-        cmd = commands.get(cmd_name)
+        cmd = get_cmd(commands, cmd_name)
         assert cmd is not None, f"Command {cmd_name} not found"
 
         param = cmd._params.get(param_name)

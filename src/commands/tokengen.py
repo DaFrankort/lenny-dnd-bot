@@ -8,7 +8,7 @@ from discord import app_commands
 import discord
 import numpy as np
 
-from logger import log_cmd
+from logic.app_commands import SimpleCommand
 from PIL import Image, ImageDraw, ImageFont
 
 TOKEN_FRAME = Image.open("./assets/images/token_border.png").convert("RGBA")
@@ -299,18 +299,10 @@ TokenGenVerAlignmentChoices = [
 ]
 
 
-class TokenGenCommand(discord.app_commands.Command):
+class TokenGenCommand(SimpleCommand):
     name = "tokengen"
     desc = "Turn an image into a 5e.tools-style token."
     help = "Generates a token image from an image attachment."
-    command = "/tokengen <image-attachment> [hue-shift] [h_alignment] [v_alignment]"
-
-    def __init__(self):
-        super().__init__(
-            name=self.name,
-            description=self.desc,
-            callback=self.callback,
-        )
 
     @app_commands.describe(
         image="The image to turn into a token.",
@@ -332,7 +324,7 @@ class TokenGenCommand(discord.app_commands.Command):
         v_alignment: str = AlignV.CENTER.value,
         variants: app_commands.Range[int, 0, 10] = 0,
     ):
-        log_cmd(itr)
+        self.log(itr)
 
         if not image.content_type.startswith("image"):
             await itr.response.send_message(
@@ -367,18 +359,10 @@ class TokenGenCommand(discord.app_commands.Command):
         )
 
 
-class TokenGenUrlCommand(discord.app_commands.Command):
+class TokenGenUrlCommand(SimpleCommand):
     name = "tokengenurl"
     desc = "Turn an image url into a 5e.tools-style token."
     help = "Generates a token image from an image url."
-    command = "/tokengenurl <image-url> [hue-shift] [h_alignment] [v_alignment]"
-
-    def __init__(self):
-        super().__init__(
-            name=self.name,
-            description=self.desc,
-            callback=self.callback,
-        )
 
     @app_commands.describe(
         url="The image-url to generate a token from.",
@@ -400,7 +384,7 @@ class TokenGenUrlCommand(discord.app_commands.Command):
         v_alignment: str = AlignV.CENTER.value,
         variants: app_commands.Range[int, 0, 10] = 0,
     ):
-        log_cmd(itr)
+        self.log(itr)
 
         if not url.startswith("http"):  # TODO properly validate urls
             await itr.response.send_message(

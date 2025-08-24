@@ -1,9 +1,8 @@
 import io
 import discord
 
-from embeds import UserActionEmbed
-from logger import log_cmd
 from logic.app_commands import SimpleCommand, SimpleCommandGroup
+from embeds import UserActionEmbed
 from methods import when
 from user_colors import UserColor
 from PIL import Image, ImageDraw, ImageFont
@@ -14,7 +13,7 @@ class ColorCommandGroup(SimpleCommandGroup):
     desc = "Set a preferred color to easily identify your actions!"
 
     def __init__(self):
-        super().__init__(name=self.name, description=self.desc)
+        super().__init__()
         self.add_command(ColorSetCommandGroup())
         self.add_command(ColorShowCommand())
         self.add_command(ColorClearCommand())
@@ -25,7 +24,7 @@ class ColorSetCommandGroup(SimpleCommandGroup):
     desc = "Set a preferred color."
 
     def __init__(self):
-        super().__init__(name=self.name, description=self.desc)
+        super().__init__()
         self.add_command(ColorSetHexCommand())
         self.add_command(ColorSetRGBCommand())
 
@@ -36,7 +35,7 @@ class ColorSetHexCommand(SimpleCommand):
     help = "Set a custom color for yourself by providing a hex value."
 
     async def callback(self, itr: discord.Interaction, hex_color: str):
-        log_cmd(itr)
+        self.log(itr)
 
         if not UserColor.validate(hex_color):
             await itr.response.send_message(
@@ -70,7 +69,7 @@ class ColorSetRGBCommand(SimpleCommand):
         g: discord.app_commands.Range[int, 0, 255],
         b: discord.app_commands.Range[int, 0, 255],
     ):
-        log_cmd(itr)
+        self.log(itr)
 
         ro, go, bo = UserColor.to_rgb(UserColor.get(itr))
         old_rgb_str = f"R ``{ro:03}``, G ``{go:03}``, B ``{bo:03}``"
@@ -93,7 +92,7 @@ class ColorShowCommand(SimpleCommand):
     help = "Shows the color that you are currently using"
 
     async def callback(self, itr: discord.Interaction):
-        log_cmd(itr)
+        self.log(itr)
 
         color = UserColor.get(itr)
         hex = f"#{color:06X}"
@@ -104,7 +103,9 @@ class ColorShowCommand(SimpleCommand):
         draw = ImageDraw.Draw(image)
 
         font_size = 16
-        luminance = 0.2126*r + 0.7152*g + 0.0722*b  # Use luminance to decide font color
+        luminance = (
+            0.2126 * r + 0.7152 * g + 0.0722 * b
+        )  # Use luminance to decide font color
         font_color = "black" if luminance > 128 else "white"
         try:
             font = ImageFont.truetype(
@@ -137,7 +138,7 @@ class ColorClearCommand(SimpleCommand):
     help = "Set your color back to an auto-generated one."
 
     async def callback(self, itr: discord.Interaction):
-        log_cmd(itr)
+        self.log(itr)
 
         removed = UserColor.remove(itr)
         message = when(

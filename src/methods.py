@@ -1,7 +1,10 @@
+from enum import Enum
 import io
+import logging
 import rich
 from rich.table import Table
 from rich.console import Console
+from PIL import ImageFont
 
 
 def when(condition: bool, value_on_true: any, value_on_false: any) -> any:
@@ -42,3 +45,16 @@ def build_table(value, width: int | None = 56, show_lines: bool = False) -> str:
     buffer.close()
 
     return table_string
+
+
+class FontType(Enum):
+    MONOSPACE = "./assets/fonts/GoogleSansCode-Light.ttf"
+    FANTASY = "./assets/fonts/Merienda-Light.ttf"
+
+
+def get_font(font: FontType, size: float):
+    try:
+        return ImageFont.truetype(font=font.value, size=size)
+    except OSError:
+        logging.warning(f"Font '{font.value}' could not be loaded!")
+        return ImageFont.load_default(size=size)

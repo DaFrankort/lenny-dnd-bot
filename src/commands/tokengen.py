@@ -9,7 +9,9 @@ import discord
 import numpy as np
 
 from logic.app_commands import SimpleCommand
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
+
+from methods import FontType, get_font
 
 TOKEN_FRAME = Image.open("./assets/images/token_border.png").convert("RGBA")
 TOKEN_BG = Image.open("./assets/images/token_bg.jpg").convert("RGBA")
@@ -243,11 +245,7 @@ def add_number_to_tokenimage(
     label = label.resize(label_size)
 
     # Prepare text & font
-    try:
-        font = ImageFont.truetype("./assets/fonts/Merienda-Light.ttf", font_size)
-    except OSError:
-        font = ImageFont.load_default(font_size)
-
+    font = get_font(FontType.FANTASY, font_size)
     draw = ImageDraw.Draw(label)
     text = str(number)
 

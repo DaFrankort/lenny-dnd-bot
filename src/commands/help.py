@@ -109,20 +109,7 @@ class HelpTabList(object):
     DND = HelpTab(
         tab="dnd",
         name="D&D Resources",
-        commands=[
-            "spell",
-            "item",
-            "condition",
-            "creature",
-            "class",
-            "feat",
-            "rule",
-            "action",
-            "language",
-            "background",
-            "table",
-            "search",
-        ],
+        commands=["search"],
         text="You can look up D&D information from [5e.tools](https://5e.tools/) using the following commands:",
         info=[],
     )

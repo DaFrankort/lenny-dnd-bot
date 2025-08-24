@@ -49,9 +49,6 @@ class ColorClearCommand(SimpleCommand):
     desc = "Clear your preferred color."
     help = "Set your color back to an auto-generated one."
 
-    # def __init__(self):
-    #     super().__init__()
-
     async def callback(self, itr: discord.Interaction):
         self.log(itr)
 

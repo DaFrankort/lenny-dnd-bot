@@ -12,11 +12,18 @@ class SimpleCommandGroup(discord.app_commands.Group):
 
 
 class SimpleCommand(discord.app_commands.Command):
-    name: str
-    desc: str
-    help: str
+    name: str = None
+    desc: str = None
+    help: str = None
 
     def __init__(self):
+        if self.name is None:
+            logging.error(f"'name' not defined in {type(self)}")
+        if self.desc is None:
+            logging.error(f"'desc' not defined in {type(self)}")
+        if self.help is None:
+            logging.error(f"'help' not defined in {type(self)}")
+
         super().__init__(name=self.name, description=self.desc, callback=self.callback)
 
     @property

@@ -5,7 +5,7 @@ from config import Config
 from dnd import DNDData, Source, SourceList
 from embeds import SimpleEmbed
 from logger import log_cmd
-from ui.paginated_view import PaginatedLayoutView
+from components.paginated_view import PaginatedLayoutView
 
 
 class ConfigSourcesButton(discord.ui.Button):

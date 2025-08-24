@@ -2,13 +2,13 @@ import discord
 from discord import ui
 from rapidfuzz import fuzz
 from components.items import SimpleSeparator, TitleTextDisplay
+from components.paginated_view import PaginatedLayoutView
 from dnd import (
     DNDData,
     DNDSearchResults,
     DNDObject,
     send_dnd_embed,
 )
-from ui.paginated_view import PaginatedLayoutView
 
 
 def __search_matches(query: str, name: str, threshold: float) -> bool:

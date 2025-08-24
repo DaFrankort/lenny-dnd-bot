@@ -4,7 +4,7 @@ import discord
 from discord import app_commands
 from dotenv import load_dotenv
 from commands.charactergen import NameGenCommand
-from commands.color import ColorCommand
+from commands.color import ColorCommandGroup
 from commands.config import ConfigCommand
 from commands.distribution import DistributionCommand
 from commands.help import HelpCommand
@@ -91,7 +91,7 @@ class Bot(discord.Client):
         self.tree.add_command(InitiativeCommand(initiatives=self.initiatives))
         self.tree.add_command(PlanSessionCommand())
         self.tree.add_command(PlaySoundCommand())
-        self.tree.add_command(ColorCommand())
+        self.tree.add_command(ColorCommandGroup())
         self.tree.add_command(NameGenCommand(data=self.data))
         self.tree.add_command(ConfigCommand())
 

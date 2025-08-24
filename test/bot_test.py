@@ -122,13 +122,10 @@ class TestBotCommands:
                 },
             ),
             (
-                "color",
-                [{"hex_color": "#ff00ff"}, {"hex_color": "Not a color"}],
+                "color set",
+                {"hex_color": ["#ff00ff", "ff00ff", "Not A color"]},
             ),
-            (
-                "color",
-                {"hex_color": ""},
-            ),  # Run clear last, to remove useless data from files.
+            ("color clear", {}),  # Run clear last, to remove useless data from files.
             ("stats", {}),
             (
                 "tokengen",
@@ -198,7 +195,23 @@ class TestBotCommands:
         cmd_name: str,
         arguments: dict | list[dict],
     ):
-        cmd = commands.get(cmd_name)
+        def get_cmd_from_group(
+            group: discord.app_commands.Group, parts: list[str]
+        ) -> discord.app_commands.Command:
+            """Recursively looks for a command within command-groups."""
+            cmd = group.get_command(parts[0])
+            if isinstance(cmd, discord.app_commands.Group):
+                return get_cmd_from_group(cmd, parts[1:])
+            return cmd
+
+        if " " in cmd_name:
+            # Only groups can have spaces in the name
+            parts = [p.strip() for p in cmd_name.split(" ")]
+            root = commands.get(parts[0])
+            cmd = get_cmd_from_group(root, parts[1:])
+        else:
+            cmd = commands.get(cmd_name)
+
         assert cmd is not None, f"{cmd_name} command not found"
 
         arguments = listify(arguments)

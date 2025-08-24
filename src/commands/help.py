@@ -252,6 +252,26 @@ class HelpEmbed(discord.Embed):
         found_tab = HelpTabs.find(tab)
         self.load_tab(found_tab)
 
+    def _get_command_desc_line(
+        self, cmd: discord.app_commands.Command | discord.app_commands.Group
+    ):
+        if isinstance(cmd, discord.app_commands.Command):
+            command_comm = cmd.command
+            command_help = cmd.help
+            return f"``{command_comm}``\n{command_help}\n"
+
+        if isinstance(cmd, discord.app_commands.Group):
+            group_desc = []
+            for group_cmd in cmd.commands:
+                desc = self._get_command_desc_line(group_cmd)
+                group_desc.append(desc)
+
+            return "\n".join(group_desc)
+
+        raise NotImplementedError(
+            f"app_command type '{type(cmd)}' not implemented in _get_command_desc_line!"
+        )
+
     def load_tab(self, tab: HelpTab):
         self.clear_fields()
 
@@ -267,9 +287,8 @@ class HelpEmbed(discord.Embed):
 
         for com in commands:
             command: discord.app_commands.Command = self.tree.get_command(com)
-            command_comm = command.command
-            command_help = command.help
-            commands_desc.append(f"``{command_comm}``\n{command_help}\n")
+            command_desc = self._get_command_desc_line(command)
+            commands_desc.append(command_desc)
 
         self.add_field(name="", value="\n".join(commands_desc), inline=False)
 

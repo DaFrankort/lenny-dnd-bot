@@ -3,9 +3,9 @@ import discord
 
 from logic.app_commands import SimpleCommand, SimpleCommandGroup
 from embeds import UserActionEmbed
-from methods import when
+from methods import FontType, get_font, when
 from user_colors import UserColor
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 
 
 def get_palette_image(color: discord.Color | int) -> discord.File:
@@ -22,12 +22,7 @@ def get_palette_image(color: discord.Color | int) -> discord.File:
     font_size = 16
     luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255
     font_color = when(luminance > 0.5, "black", "white")
-    try:
-        font = ImageFont.truetype(
-            font="./assets/fonts/GoogleSansCode-Light.ttf", size=font_size
-        )
-    except OSError:
-        font = ImageFont.load_default(size=font_size)
+    font = get_font(FontType.MONOSPACE, font_size)
 
     bbox = draw.textbbox((0, 0), hex_str, font=font)
     text_w = bbox[2] - bbox[0]

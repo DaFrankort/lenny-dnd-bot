@@ -42,6 +42,6 @@ class SimpleLabelTextInput(ui.Label):
                 default=default,
                 min_length=min_length,
                 max_length=max_length,
-                required=required
-            )
+                required=required,
+            ),
         )

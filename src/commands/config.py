@@ -1,4 +1,3 @@
-import math
 import discord
 
 from components.items import SimpleSeparator
@@ -6,6 +5,7 @@ from config import Config
 from dnd import DNDData, Source, SourceList
 from embeds import SimpleEmbed
 from logger import log_cmd
+from ui.paginated_view import PaginatedLayoutView
 
 
 class ConfigSourcesButton(discord.ui.Button):
@@ -39,29 +39,23 @@ class ConfigSourcesButton(discord.ui.Button):
             self.config.disallow_source(self.source.id)
         else:
             self.config.allow_source(self.source.id)
-        await self.sources_view.rebuild_and_edit(itr)
+        await self.sources_view.rebuild(itr)
 
 
-class ConfigSourcesView(discord.ui.LayoutView):
-    page: int  # Page starts counting from 1
-    per_page: int
+class ConfigSourcesView(PaginatedLayoutView):
     server: discord.Guild
 
     def __init__(self, server: discord.Guild):
-        super().__init__(timeout=None)
-        self.page = 1
-        self.per_page = 10
+        super().__init__()
         self.server = server
-        self.rebuild()
+        self.build()
 
-    def rebuild(self) -> None:
+    def build(self) -> None:
         self.clear_items()
         container = discord.ui.Container(accent_color=discord.Color.dark_green())
 
         title = "# Enable Sources"
-        paging = f"-# Page {self.page}/{self.max_pages}"
         container.add_item(discord.ui.TextDisplay(title))
-        container.add_item(discord.ui.TextDisplay(paging))
         container.add_item(SimpleSeparator())
 
         # Source list
@@ -71,49 +65,26 @@ class ConfigSourcesView(discord.ui.LayoutView):
             text = discord.ui.TextDisplay(source.name)
             button = ConfigSourcesButton(self, source, self.server)
             container.add_item(discord.ui.Section(text, accessory=button))
-        container.add_item(SimpleSeparator())
 
         # Button navigation
-        prev_button = discord.ui.Button(label="⮜")
-        prev_button.disabled = self.page <= 1
-        prev_button.callback = self.prev_page
-        prev_button.style = discord.ButtonStyle.primary
-
-        next_button = discord.ui.Button(label="➤")
-        next_button.disabled = self.page >= self.max_pages
-        next_button.callback = self.next_page
-        next_button.style = discord.ButtonStyle.primary
-
-        row = discord.ui.ActionRow(prev_button, next_button)
-        container.add_item(row)
+        container.add_item(SimpleSeparator())
+        container.add_item(self.navigation_footer())
 
         self.add_item(container)
+
+    @property
+    def entry_count(self) -> int:
+        sources = SourceList()
+        return len(sources.entries)
 
     @property
     def viewed_sources(self) -> list[Source]:
         sources = SourceList()
         sources = sorted(sources.entries, key=lambda s: s.name)
 
-        start = (self.page - 1) * self.per_page
-        end = self.page * self.per_page
+        start = self.page * self.per_page
+        end = (self.page + 1) * self.per_page
         return sources[start:end]
-
-    @property
-    def max_pages(self) -> int:
-        sources = SourceList()
-        return max(int(math.ceil(len(sources.entries) / self.per_page)), 1)
-
-    async def rebuild_and_edit(self, itr: discord.Interaction) -> None:
-        self.rebuild()
-        await itr.response.edit_message(view=self)
-
-    async def prev_page(self, itr: discord.Interaction) -> None:
-        self.page = max(self.page - 1, 1)
-        await self.rebuild_and_edit(itr)
-
-    async def next_page(self, itr: discord.Interaction) -> None:
-        self.page = min(self.page + 1, self.max_pages)
-        await self.rebuild_and_edit(itr)
 
 
 class ConfigCommand(discord.app_commands.Command):

@@ -19,7 +19,7 @@ from commands.rolls import (
 )
 from commands.search import SearchCommandGroup
 from commands.shortcut import ShortcutCommand
-from commands.stats import StatsCommand
+from commands.stats import StatsCommandGroup
 from commands.tokengen import TokenGenCommand, TokenGenUrlCommand
 from context_menus.delete import DeleteContextMenu
 from context_menus.reroll import RerollContextMenu
@@ -66,7 +66,7 @@ class Bot(discord.Client):
         # Commands
         self.tree.add_command(DistributionCommand())
         self.tree.add_command(HelpCommand(tree=self.tree))
-        self.tree.add_command(StatsCommand())
+        self.tree.add_command(StatsCommandGroup())
         self.tree.add_command(RollCommand())
         self.tree.add_command(AdvantageRollCommand())
         self.tree.add_command(DisadvantageRollCommand())

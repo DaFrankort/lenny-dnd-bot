@@ -1,9 +1,7 @@
 import discord
 from discord import ui
-from rapidfuzz import fuzz
 from components.items import SimpleSeparator, TitleTextDisplay
 from dnd import (
-    DNDData,
     DNDSearchResults,
     DNDObject,
     send_dnd_embed,

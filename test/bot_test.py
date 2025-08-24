@@ -150,9 +150,14 @@ class TestBotCommands:
                 },
             ),
             (
-                "color set",
+                "color set hex",
                 {"hex_color": ["#ff00ff", "ff00ff", "Not A color"]},
             ),
+            (
+                "color set rgb",
+                {"r": [255, 0], "g": [255, 0], "b": [255, 0]},
+            ),
+            ("color show", {}),
             ("color clear", {}),  # Run clear last, to remove useless data from files.
             ("stats", {}),
             (

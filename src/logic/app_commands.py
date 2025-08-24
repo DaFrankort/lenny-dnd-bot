@@ -18,11 +18,11 @@ class SimpleCommand(discord.app_commands.Command):
 
     def __init__(self):
         if self.name is None:
-            logging.error(f"'name' not defined in {type(self)}")
+            raise NotImplementedError(f"'name' not defined in {type(self)}")
         if self.desc is None:
-            logging.error(f"'desc' not defined in {type(self)}")
+            raise NotImplementedError(f"'desc' not defined in {type(self)}")
         if self.help is None:
-            logging.error(f"'help' not defined in {type(self)}")
+            raise NotImplementedError(f"'help' not defined in {type(self)}")
 
         super().__init__(name=self.name, description=self.desc, callback=self.callback)
 

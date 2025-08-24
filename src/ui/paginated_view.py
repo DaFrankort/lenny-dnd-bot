@@ -43,12 +43,12 @@ class PaginatedLayoutView(discord.ui.LayoutView):
 
     @abc.abstractmethod
     def build(self) -> None:
-        ...
+        pass
 
     @property
     @abc.abstractmethod
     def entry_count(self) -> int:
-        ...
+        pass
 
     @property
     def max_pages(self) -> int:

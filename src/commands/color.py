@@ -3,12 +3,13 @@ import discord
 
 from embeds import UserActionEmbed
 from logger import log_cmd
+from logic.app_commands import SimpleCommand, SimpleCommandGroup
 from methods import when
 from user_colors import UserColor
 from PIL import Image, ImageDraw, ImageFont
 
 
-class ColorCommandGroup(discord.app_commands.Group):
+class ColorCommandGroup(SimpleCommandGroup):
     name = "color"
     desc = "Set a preferred color to easily identify your actions!"
 
@@ -19,7 +20,7 @@ class ColorCommandGroup(discord.app_commands.Group):
         self.add_command(ColorClearCommand())
 
 
-class ColorSetCommandGroup(discord.app_commands.Group):
+class ColorSetCommandGroup(SimpleCommandGroup):
     name = "set"
     desc = "Set a preferred color."
 
@@ -29,18 +30,10 @@ class ColorSetCommandGroup(discord.app_commands.Group):
         self.add_command(ColorSetRGBCommand())
 
 
-class ColorSetHexCommand(discord.app_commands.Command):
+class ColorSetHexCommand(SimpleCommand):
     name = "hex"
     desc = "Set a preferred color using a hex-value."
     help = "Set a custom color for yourself by providing a hex value."
-    command = "/color set hex <color>"
-
-    def __init__(self):
-        super().__init__(
-            name=self.name,
-            description=self.desc,
-            callback=self.callback,
-        )
 
     async def callback(self, itr: discord.Interaction, hex_color: str):
         log_cmd(itr)
@@ -65,18 +58,10 @@ class ColorSetHexCommand(discord.app_commands.Command):
         )
 
 
-class ColorSetRGBCommand(discord.app_commands.Command):
+class ColorSetRGBCommand(SimpleCommand):
     name = "rgb"
     desc = "Set a preferred color using rgb values."
     help = "Set a custom color for yourself by providing a rgb values."
-    command = "/color set rgb <r> <g> <b>"
-
-    def __init__(self):
-        super().__init__(
-            name=self.name,
-            description=self.desc,
-            callback=self.callback,
-        )
 
     async def callback(
         self,
@@ -102,18 +87,10 @@ class ColorSetRGBCommand(discord.app_commands.Command):
         )
 
 
-class ColorShowCommand(discord.app_commands.Command):
+class ColorShowCommand(SimpleCommand):
     name = "show"
     desc = "Show your current color."
     help = "Shows the color that you are currently using"
-    command = "/color show"
-
-    def __init__(self):
-        super().__init__(
-            name=self.name,
-            description=self.desc,
-            callback=self.callback,
-        )
 
     async def callback(self, itr: discord.Interaction):
         log_cmd(itr)
@@ -154,18 +131,10 @@ class ColorShowCommand(discord.app_commands.Command):
         await itr.response.send_message(embed=embed, file=file)
 
 
-class ColorClearCommand(discord.app_commands.Command):
+class ColorClearCommand(SimpleCommand):
     name = "clear"
     desc = "Clear your preferred color."
     help = "Set your color back to an auto-generated one."
-    command = "/color clear"
-
-    def __init__(self):
-        super().__init__(
-            name=self.name,
-            description=self.desc,
-            callback=self.callback,
-        )
 
     async def callback(self, itr: discord.Interaction):
         log_cmd(itr)

@@ -1,9 +1,11 @@
+import io
 import discord
 
 from embeds import UserActionEmbed
 from logger import log_cmd
 from methods import when
 from user_colors import UserColor
+from PIL import Image, ImageDraw, ImageFont
 
 
 class ColorCommandGroup(discord.app_commands.Group):
@@ -13,6 +15,7 @@ class ColorCommandGroup(discord.app_commands.Group):
     def __init__(self):
         super().__init__(name=self.name, description=self.desc)
         self.add_command(ColorSetCommand())
+        self.add_command(ColorShowCommand())
         self.add_command(ColorClearCommand())
 
 
@@ -50,6 +53,58 @@ class ColorSetCommand(discord.app_commands.Command):
             ),
             ephemeral=True,
         )
+
+
+class ColorShowCommand(discord.app_commands.Command):
+    name = "show"
+    desc = "Show your current color."
+    help = "Shows the color that you are currently using"
+    command = "/color show"
+
+    def __init__(self):
+        super().__init__(
+            name=self.name,
+            description=self.desc,
+            callback=self.callback,
+        )
+
+    async def callback(self, itr: discord.Interaction):
+        log_cmd(itr)
+
+        color = UserColor.get(itr)
+        hex = f"Hex: #{color:06X}"
+        r, g, b = UserColor.to_rgb(color)
+        rgb = f"R: {r}\nG: {g}\nB: {b}"
+
+        # GEN PALETTE IMAGE
+        image = Image.new("RGBA", (256, 256), (r, g, b, 255))
+        draw = ImageDraw.Draw(image)
+
+        font_size = 16
+        font_color = "black" if max([r, g, b]) > 128 else "white"
+        try:
+            font = ImageFont.truetype(
+                font="./assets/fonts/GoogleSansCode-Light.ttf", size=font_size
+            )
+        except OSError:
+            font = ImageFont.load_default(size=font_size)
+
+        image_text = f"{hex}\n\n{rgb}".replace("*", "")
+        padding = font_size // 2
+        y = padding
+        line_height = int((font.getbbox("A")[3] - font.getbbox("A")[1]) * 1.5)
+        for line in image_text.split("\n"):
+            draw.text((padding, y), line, font=font, fill=font_color)
+            y += line_height
+
+        buffer = io.BytesIO()
+        image.save(buffer, format="PNG")
+        buffer.seek(0)
+        file = discord.File(fp=buffer, filename="color.png")
+
+        embed = UserActionEmbed(itr=itr, title="Your current color", description=hex)
+        embed.set_image(url=f"attachment://{file.filename}")
+        await itr.response.send_message(embed=embed, file=file)
 
 
 class ColorClearCommand(discord.app_commands.Command):

@@ -268,6 +268,10 @@ class HelpEmbed(discord.Embed):
 
             return "\n".join(group_desc)
 
+        raise NotImplementedError(
+            f"app_command type '{type(cmd)}' not implemented in _get_command_desc_line!"
+        )
+
     def load_tab(self, tab: HelpTab):
         self.clear_fields()
 

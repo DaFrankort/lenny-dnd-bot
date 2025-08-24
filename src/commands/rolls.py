@@ -46,9 +46,6 @@ class RollCommand(SimpleCommand):
     desc = "Roll your d20s!"
     help = "Roll a single dice expression."
 
-    def __init__(self):
-        super().__init__()
-
     async def diceroll_autocomplete(self, itr: discord.Interaction, current: str):
         return await func_diceroll_autocomplete(itr, current)
 
@@ -87,9 +84,6 @@ class AdvantageRollCommand(SimpleCommand):
     name = "advantage"
     desc = "Lucky you! Roll and take the best of two!"
     help = "Roll the expression twice, use the highest result."
-
-    def __init__(self):
-        super().__init__()
 
     async def diceroll_autocomplete(self, itr: discord.Interaction, current: str):
         return await func_diceroll_autocomplete(itr, current)
@@ -130,9 +124,6 @@ class DisadvantageRollCommand(SimpleCommand):
     desc = "Tough luck chump... Roll twice and suck it."
     help = "Roll the expression twice, use the lowest result."
 
-    def __init__(self):
-        super().__init__()
-
     async def diceroll_autocomplete(self, itr: discord.Interaction, current: str):
         return await func_diceroll_autocomplete(itr, current)
 
@@ -171,9 +162,6 @@ class D20Command(SimpleCommand):
     name = "d20"
     desc = "Just roll a clean d20!"
     help = "Rolls a basic 1d20 with no modifiers."
-
-    def __init__(self):
-        super().__init__()
 
     async def callback(self, itr: discord.Interaction):
         self.log(itr)

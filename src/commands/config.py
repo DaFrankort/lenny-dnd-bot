@@ -94,9 +94,6 @@ class ConfigCommand(SimpleCommand):
 
     data: DNDData
 
-    def __init__(self):
-        super().__init__()
-
     async def callback(self, itr: discord.Interaction):
         self.log(itr)
         if itr.guild is None:

@@ -304,9 +304,6 @@ class TokenGenCommand(SimpleCommand):
     desc = "Turn an image into a 5e.tools-style token."
     help = "Generates a token image from an image attachment."
 
-    def __init__(self):
-        super().__init__()
-
     @app_commands.describe(
         image="The image to turn into a token.",
         frame_hue="Hue shift to apply to the token-frame (Gold: 0 | Red: -30 | Blue: 180 | Green: 80).",
@@ -366,9 +363,6 @@ class TokenGenUrlCommand(SimpleCommand):
     name = "tokengenurl"
     desc = "Turn an image url into a 5e.tools-style token."
     help = "Generates a token image from an image url."
-
-    def __init__(self):
-        super().__init__()
 
     @app_commands.describe(
         url="The image-url to generate a token from.",

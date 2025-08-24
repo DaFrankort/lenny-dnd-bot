@@ -253,9 +253,6 @@ class ShortcutCommand(SimpleCommand):
     desc = "Create & edit roll shortcuts, ideal for people who can't read character sheets!"
     help = "Create, edit and remove roll-shortcuts, which can be referred to in dice-roll commands."
 
-    def __init__(self):
-        super().__init__()
-
     async def callback(self, itr: discord.Interaction):
         self.log(itr)
         embed = ShortcutEmbed(itr)

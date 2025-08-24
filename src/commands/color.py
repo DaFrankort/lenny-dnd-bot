@@ -21,9 +21,6 @@ class ColorSetCommand(SimpleCommand):
     desc = "Set a preferred color using a hex-value."
     help = "Set a custom color for yourself by providing a hex value."
 
-    def __init__(self):
-        super().__init__()
-
     async def callback(self, itr: discord.Interaction, hex_color: str):
         self.log(itr)
 
@@ -52,8 +49,8 @@ class ColorClearCommand(SimpleCommand):
     desc = "Clear your preferred color."
     help = "Set your color back to an auto-generated one."
 
-    def __init__(self):
-        super().__init__()
+    # def __init__(self):
+    #     super().__init__()
 
     async def callback(self, itr: discord.Interaction):
         self.log(itr)

@@ -28,9 +28,6 @@ class DistributionCommand(SimpleCommand):
     desc = "Show the probability distribution of an expression."
     help = "Generates an image of the distribution of an expression."
 
-    def __init__(self):
-        super().__init__()
-
     @app_commands.choices(advantage=DISTRIBUTION_COMMAND_ADVANTAGE_CHOICES)
     async def callback(
         self,

@@ -30,11 +30,11 @@ async def send_DNDObject_lookup_result(
         await send_dnd_embed(itr, found[0])
 
 
-class LookupSpellCommand(discord.app_commands.Command):
+class SearchSpellCommand(discord.app_commands.Command):
     name = "spell"
     desc = "Get the details for a spell."
     help = "Looks up a spell by name."
-    command = "/spell <spell name>"
+    command = "/search spell <spell name>"
 
     data: DNDData
 
@@ -58,11 +58,11 @@ class LookupSpellCommand(discord.app_commands.Command):
         await send_DNDObject_lookup_result(itr, "spells", found, name)
 
 
-class LookupItemCommand(discord.app_commands.Command):
+class SearchItemCommand(discord.app_commands.Command):
     name = "item"
     desc = "Get the details for an item."
     help = "Looks up an item by name."
-    command = "/item <item name>"
+    command = "/search item <item name>"
 
     data: DNDData
 
@@ -86,11 +86,11 @@ class LookupItemCommand(discord.app_commands.Command):
         await send_DNDObject_lookup_result(itr, "items", found, name)
 
 
-class LookupConditionCommand(discord.app_commands.Command):
+class SearchConditionCommand(discord.app_commands.Command):
     name = "condition"
     desc = "Get the details of a condition or status effect."
     help = "Looks up a condition or status effect by name."
-    command = "/condition <condition name>"
+    command = "/search condition <condition name>"
 
     data: DNDData
 
@@ -114,11 +114,11 @@ class LookupConditionCommand(discord.app_commands.Command):
         await send_DNDObject_lookup_result(itr, "conditions", found, name)
 
 
-class LookupCreatureCommand(discord.app_commands.Command):
+class SearchCreatureCommand(discord.app_commands.Command):
     name = "creature"
     desc = "Get the details of a creature."
     help = "Looks up a creature by name."
-    command = "/creature <creature name>"
+    command = "/search creature <creature name>"
 
     data: DNDData
 
@@ -142,11 +142,11 @@ class LookupCreatureCommand(discord.app_commands.Command):
         await send_DNDObject_lookup_result(itr, "creatures", found, name)
 
 
-class LookupClassCommand(discord.app_commands.Command):
+class SearchClassCommand(discord.app_commands.Command):
     name = "class"
     desc = "Get the details for a character class."
     help = "Looks up a D&D class by name."
-    command = "/class <class name>"
+    command = "/search class <class name>"
 
     data: DNDData
 
@@ -170,11 +170,11 @@ class LookupClassCommand(discord.app_commands.Command):
         await send_DNDObject_lookup_result(itr, "classes", found, name)
 
 
-class LookupRuleCommand(discord.app_commands.Command):
+class SearchRuleCommand(discord.app_commands.Command):
     name = "rule"
     desc = "Get the details of a D&D rule."
     help = "Looks up a D&D rule by name."
-    command = "/rule <rule name>"
+    command = "/search rule <rule name>"
 
     data: DNDData
 
@@ -198,11 +198,11 @@ class LookupRuleCommand(discord.app_commands.Command):
         await send_DNDObject_lookup_result(itr, "rules", found, name)
 
 
-class LookupActionCommand(discord.app_commands.Command):
+class SearchActionCommand(discord.app_commands.Command):
     name = "action"
     desc = "Get the details of a D&D action."
     help = "Looks up a D&D action by name."
-    command = "/action <action name>"
+    command = "/search action <action name>"
 
     data: DNDData
 
@@ -226,11 +226,11 @@ class LookupActionCommand(discord.app_commands.Command):
         await send_DNDObject_lookup_result(itr, "actions", found, name)
 
 
-class LookupFeatCommand(discord.app_commands.Command):
+class SearchFeatCommand(discord.app_commands.Command):
     name = "feat"
     desc = "Get the details of a character feat."
     help = "Looks up a character feat by name."
-    command = "/feat <feat name>"
+    command = "/search feat <feat name>"
 
     data: DNDData
 
@@ -254,11 +254,11 @@ class LookupFeatCommand(discord.app_commands.Command):
         await send_DNDObject_lookup_result(itr, "feats", found, name)
 
 
-class LookupLanguageCommand(discord.app_commands.Command):
+class SearchLanguageCommand(discord.app_commands.Command):
     name = "language"
     desc = "Get the details of a language."
     help = "Looks up a D&D Language by name."
-    command = "/language <language name>"
+    command = "/search language <language name>"
 
     data: DNDData
 
@@ -282,11 +282,11 @@ class LookupLanguageCommand(discord.app_commands.Command):
         await send_DNDObject_lookup_result(itr, "languages", found, name)
 
 
-class LookupBackgroundCommand(discord.app_commands.Command):
+class SearchBackgroundCommand(discord.app_commands.Command):
     name = "background"
     desc = "Get the details of a background."
     help = "Looks up a D&D Background by name."
-    command = "/background <background name>"
+    command = "/search background <background name>"
 
     data: DNDData
 
@@ -310,11 +310,11 @@ class LookupBackgroundCommand(discord.app_commands.Command):
         await send_DNDObject_lookup_result(itr, "background", found, name)
 
 
-class LookupTableCommand(discord.app_commands.Command):
+class SearchTableCommand(discord.app_commands.Command):
     name = "table"
     desc = "Get the details of a table."
     help = "Looks up a D&D Table by name."
-    command = "/table <table name>"
+    command = "/search table <table name>"
 
     data: DNDData
 
@@ -338,11 +338,11 @@ class LookupTableCommand(discord.app_commands.Command):
         await send_DNDObject_lookup_result(itr, "table", found, name)
 
 
-class LookupSpeciesCommand(discord.app_commands.Command):
+class SearchSpeciesCommand(discord.app_commands.Command):
     name = "species"
     desc = "Get the details of a species."
     help = "Looks up a D&D Species by name."
-    command = "/species <species name>"
+    command = "/search species <species name>"
 
     data: DNDData
 
@@ -366,11 +366,11 @@ class LookupSpeciesCommand(discord.app_commands.Command):
         await send_DNDObject_lookup_result(itr, "species", found, name)
 
 
-class LookupAnyCommand(discord.app_commands.Command):
-    name = "search"
-    desc = "Search for a D&D entry."
+class SearchAnyCommand(discord.app_commands.Command):
+    name = "all"
+    desc = "Search for all matching D&D entries."
     help = "Looks up all possible D&D entries for a query."
-    command = "/search <query>"
+    command = "/search all <query>"
 
     data: DNDData
 
@@ -394,3 +394,24 @@ class LookupAnyCommand(discord.app_commands.Command):
         else:
             view = SearchLayoutView(query, results)
             await itr.response.send_message(view=view, ephemeral=True)
+
+
+class SearchCommandGroup(discord.app_commands.Group):
+    name = "search"
+    desc = "Search for a D&D entry."
+
+    def __init__(self, data: DNDData):
+        super().__init__(name=self.name, description=self.desc)
+        self.add_command(SearchSpellCommand(data=data))
+        self.add_command(SearchItemCommand(data=data))
+        self.add_command(SearchConditionCommand(data=data))
+        self.add_command(SearchCreatureCommand(data=data))
+        self.add_command(SearchClassCommand(data=data))
+        self.add_command(SearchRuleCommand(data=data))
+        self.add_command(SearchActionCommand(data=data))
+        self.add_command(SearchFeatCommand(data=data))
+        self.add_command(SearchLanguageCommand(data=data))
+        self.add_command(SearchBackgroundCommand(data=data))
+        self.add_command(SearchTableCommand(data=data))
+        self.add_command(SearchSpeciesCommand(data=data))
+        self.add_command(SearchAnyCommand(data=data))

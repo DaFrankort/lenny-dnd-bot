@@ -8,6 +8,43 @@ from user_colors import UserColor
 from PIL import Image, ImageDraw, ImageFont
 
 
+def get_palette_image(color: discord.Color | int) -> discord.File:
+    if isinstance(color, discord.Color):
+        color = color.value
+    r, g, b = UserColor.to_rgb(color)
+    hex_str = f"#{color:06X}"
+
+    # Draw square
+    image = Image.new("RGBA", (256, 64), (r, g, b, 255))
+    draw = ImageDraw.Draw(image)
+
+    # Draw text
+    font_size = 16
+    luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255
+    font_color = when(luminance > 0.5, "black", "white")
+    try:
+        font = ImageFont.truetype(
+            font="./assets/fonts/GoogleSansCode-Light.ttf", size=font_size
+        )
+    except OSError:
+        font = ImageFont.load_default(size=font_size)
+
+    bbox = draw.textbbox((0, 0), hex_str, font=font)
+    text_w = bbox[2] - bbox[0]
+    text_h = bbox[3] - bbox[1]
+
+    x = (image.width - text_w) // 2
+    y = (image.height - text_h) // 2 - (font_size // 4)
+
+    draw.text((x, y), hex_str, font=font, fill=font_color)
+
+    # Buffer and send
+    buffer = io.BytesIO()
+    image.save(buffer, format="PNG")
+    buffer.seek(0)
+    return discord.File(fp=buffer, filename="color.png")
+
+
 class ColorCommandGroup(SimpleCommandGroup):
     name = "color"
     desc = "Set a preferred color to easily identify your actions!"
@@ -47,14 +84,15 @@ class ColorSetHexCommand(SimpleCommand):
         old_color = f"#{UserColor.get(itr):06X}"
         color = UserColor.parse(hex_color)
         UserColor.save(itr, color)
-        await itr.response.send_message(
-            embed=UserActionEmbed(
-                itr=itr,
-                title=f"{itr.user.display_name} set a new color!",
-                description=f"``{old_color.upper()}`` => ``#{hex_color.upper()}``",
-            ),
-            ephemeral=True,
+        file = get_palette_image(color)
+
+        embed = UserActionEmbed(
+            itr=itr,
+            title=f"{itr.user.display_name} set a new color!",
+            description=f"``{old_color.upper()}`` => ``#{hex_color.upper()}``",
         )
+        embed.set_image(url=f"attachment://{file.filename}")
+        await itr.response.send_message(embed=embed, file=file, ephemeral=True)
 
 
 class ColorSetRGBCommand(SimpleCommand):
@@ -72,62 +110,33 @@ class ColorSetRGBCommand(SimpleCommand):
         self.log(itr)
 
         ro, go, bo = UserColor.to_rgb(UserColor.get(itr))
-        old_rgb_str = f"R ``{ro:03}``, G ``{go:03}``, B ``{bo:03}``"
-        new_rgb_str = f"R ``{r:03}``, G ``{g:03}``, B ``{b:03}``"
+        description = f"R ``{ro:03}`` => ``{r:03}``\nG ``{go:03}`` => ``{g:03}``\nB ``{bo:03}`` => ``{b:03}``"
         color = discord.Color.from_rgb(r, g, b).value
         UserColor.save(itr, color)
-        await itr.response.send_message(
-            embed=UserActionEmbed(
-                itr=itr,
-                title=f"{itr.user.display_name} set a new color!",
-                description=f"{old_rgb_str} => {new_rgb_str}",
-            ),
-            ephemeral=True,
+        file = get_palette_image(color)
+
+        embed = UserActionEmbed(
+            itr=itr,
+            title=f"{itr.user.display_name} set a new color!",
+            description=description,
         )
+        embed.set_image(url=f"attachment://{file.filename}")
+        await itr.response.send_message(embed=embed, file=file, ephemeral=True)
 
 
 class ColorShowCommand(SimpleCommand):
     name = "show"
-    desc = "Show your current color."
-    help = "Shows the color that you are currently using"
+    desc = "Show off your current color!"
+    help = "Shows the color that you are currently using publically."
 
     async def callback(self, itr: discord.Interaction):
         self.log(itr)
 
         color = UserColor.get(itr)
-        hex = f"#{color:06X}"
-        r, g, b = UserColor.to_rgb(color)
+        title = f"{itr.user.display_name}'s color!"
+        file = get_palette_image(color)
 
-        # GEN PALETTE IMAGE
-        image = Image.new("RGBA", (256, 256), (r, g, b, 255))
-        draw = ImageDraw.Draw(image)
-
-        font_size = 16
-        luminance = (
-            0.2126 * r + 0.7152 * g + 0.0722 * b
-        )  # Use luminance to decide font color
-        font_color = "black" if luminance > 128 else "white"
-        try:
-            font = ImageFont.truetype(
-                font="./assets/fonts/GoogleSansCode-Light.ttf", size=font_size
-            )
-        except OSError:
-            font = ImageFont.load_default(size=font_size)
-
-        image_text = hex
-        padding = font_size // 2
-        y = padding
-        line_height = int((font.getbbox("A")[3] - font.getbbox("A")[1]) * 1.5)
-        for line in image_text.split("\n"):
-            draw.text((padding, y), line, font=font, fill=font_color)
-            y += line_height
-
-        buffer = io.BytesIO()
-        image.save(buffer, format="PNG")
-        buffer.seek(0)
-        file = discord.File(fp=buffer, filename="color.png")
-
-        embed = UserActionEmbed(itr=itr, title="Your current color", description=hex)
+        embed = UserActionEmbed(itr=itr, title=title, description="")
         embed.set_image(url=f"attachment://{file.filename}")
         await itr.response.send_message(embed=embed, file=file)
 

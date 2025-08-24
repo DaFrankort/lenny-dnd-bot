@@ -47,7 +47,7 @@ class SimpleCommand(discord.app_commands.Command):
             args.append(arg)
         args_str = " ".join(args)
 
-        return f"/{self.command_name} {args_str}"
+        return f"/{self.command_name} {args_str}".strip()
 
     def log(self, itr: discord.Interaction):
         """Log user's command-usage in the terminal"""
@@ -75,9 +75,7 @@ class SimpleContextMenu(discord.app_commands.ContextMenu):
         )
 
     def log(self, itr: discord.Interaction):
-        logging.info(
-            f"{itr.user.name} => {itr.message.author.name} / {itr.message.id} / Apps / {itr.command.name}"
-        )
+        logging.info(f"{itr.user.name} => {self.name}")
 
     @abstractmethod
     async def callback(self, itr: discord.Interaction):

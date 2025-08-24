@@ -14,16 +14,26 @@ class ColorCommandGroup(discord.app_commands.Group):
 
     def __init__(self):
         super().__init__(name=self.name, description=self.desc)
-        self.add_command(ColorSetCommand())
+        self.add_command(ColorSetCommandGroup())
         self.add_command(ColorShowCommand())
         self.add_command(ColorClearCommand())
 
 
-class ColorSetCommand(discord.app_commands.Command):
+class ColorSetCommandGroup(discord.app_commands.Group):
     name = "set"
+    desc = "Set a preferred color."
+
+    def __init__(self):
+        super().__init__(name=self.name, description=self.desc)
+        self.add_command(ColorSetHexCommand())
+        self.add_command(ColorSetRGBCommand())
+
+
+class ColorSetHexCommand(discord.app_commands.Command):
+    name = "hex"
     desc = "Set a preferred color using a hex-value."
     help = "Set a custom color for yourself by providing a hex value."
-    command = "/color set <color>"
+    command = "/color set hex <color>"
 
     def __init__(self):
         super().__init__(
@@ -50,6 +60,45 @@ class ColorSetCommand(discord.app_commands.Command):
                 itr=itr,
                 title=f"{itr.user.display_name} set a new color!",
                 description=f"``{old_color.upper()}`` => ``#{hex_color.upper()}``",
+            ),
+            ephemeral=True,
+        )
+
+
+class ColorSetRGBCommand(discord.app_commands.Command):
+    name = "rgb"
+    desc = "Set a preferred color using rgb values."
+    help = "Set a custom color for yourself by providing a rgb values."
+    command = "/color set rgb <r> <g> <b>"
+
+    def __init__(self):
+        super().__init__(
+            name=self.name,
+            description=self.desc,
+            callback=self.callback,
+        )
+
+    async def callback(
+        self,
+        itr: discord.Interaction,
+        r: discord.app_commands.Range[int, 0, 255],
+        g: discord.app_commands.Range[int, 0, 255],
+        b: discord.app_commands.Range[int, 0, 255],
+    ):
+        log_cmd(itr)
+
+        old_color = UserColor.to_rgb(UserColor.get(itr))
+        old_rgb_str = (
+            f"R ``{old_color[0]}``, G ``{old_color[1]}``, B ``{old_color[2]}``"
+        )
+        new_rgb_str = f"R ``{r}``, G ``{g}``, B ``{b}``"
+        color = discord.Color.from_rgb(r, g, b).value
+        UserColor.save(itr, color)
+        await itr.response.send_message(
+            embed=UserActionEmbed(
+                itr=itr,
+                title=f"{itr.user.display_name} set a new color!",
+                description=f"{old_rgb_str} => {new_rgb_str}",
             ),
             ephemeral=True,
         )

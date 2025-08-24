@@ -87,11 +87,9 @@ class ColorSetRGBCommand(discord.app_commands.Command):
     ):
         log_cmd(itr)
 
-        old_color = UserColor.to_rgb(UserColor.get(itr))
-        old_rgb_str = (
-            f"R ``{old_color[0]}``, G ``{old_color[1]}``, B ``{old_color[2]}``"
-        )
-        new_rgb_str = f"R ``{r}``, G ``{g}``, B ``{b}``"
+        ro, go, bo = UserColor.to_rgb(UserColor.get(itr))
+        old_rgb_str = f"R ``{ro:03}``, G ``{go:03}``, B ``{bo:03}``"
+        new_rgb_str = f"R ``{r:03}``, G ``{g:03}``, B ``{b:03}``"
         color = discord.Color.from_rgb(r, g, b).value
         UserColor.save(itr, color)
         await itr.response.send_message(
@@ -121,16 +119,16 @@ class ColorShowCommand(discord.app_commands.Command):
         log_cmd(itr)
 
         color = UserColor.get(itr)
-        hex = f"Hex: #{color:06X}"
+        hex = f"#{color:06X}"
         r, g, b = UserColor.to_rgb(color)
-        rgb = f"R: {r}\nG: {g}\nB: {b}"
 
         # GEN PALETTE IMAGE
         image = Image.new("RGBA", (256, 256), (r, g, b, 255))
         draw = ImageDraw.Draw(image)
 
         font_size = 16
-        font_color = "black" if max([r, g, b]) > 128 else "white"
+        luminance = 0.2126*r + 0.7152*g + 0.0722*b  # Use luminance to decide font color
+        font_color = "black" if luminance > 128 else "white"
         try:
             font = ImageFont.truetype(
                 font="./assets/fonts/GoogleSansCode-Light.ttf", size=font_size
@@ -138,7 +136,7 @@ class ColorShowCommand(discord.app_commands.Command):
         except OSError:
             font = ImageFont.load_default(size=font_size)
 
-        image_text = f"{hex}\n\n{rgb}".replace("*", "")
+        image_text = hex
         padding = font_size // 2
         y = padding
         line_height = int((font.getbbox("A")[3] - font.getbbox("A")[1]) * 1.5)

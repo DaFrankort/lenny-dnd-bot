@@ -9,21 +9,6 @@ from commands.config import ConfigCommand
 from commands.distribution import DistributionCommand
 from commands.help import HelpCommand
 from commands.initiative import InitiativeCommand
-from commands.lookup import (
-    LookupActionCommand,
-    LookupAnyCommand,
-    LookupBackgroundCommand,
-    LookupClassCommand,
-    LookupConditionCommand,
-    LookupCreatureCommand,
-    LookupFeatCommand,
-    LookupItemCommand,
-    LookupLanguageCommand,
-    LookupRuleCommand,
-    LookupSpeciesCommand,
-    LookupSpellCommand,
-    LookupTableCommand,
-)
 from commands.plansession import PlanSessionCommand
 from commands.playsound import PlaySoundCommand
 from commands.rolls import (
@@ -32,6 +17,7 @@ from commands.rolls import (
     DisadvantageRollCommand,
     RollCommand,
 )
+from commands.search import SearchCommandGroup
 from commands.shortcut import ShortcutCommand
 from commands.stats import StatsCommand
 from commands.tokengen import TokenGenCommand, TokenGenUrlCommand
@@ -94,21 +80,7 @@ class Bot(discord.Client):
         self.tree.add_command(ColorCommandGroup())
         self.tree.add_command(NameGenCommand(data=self.data))
         self.tree.add_command(ConfigCommand())
-
-        # D&D lookup commands
-        self.tree.add_command(LookupSpellCommand(data=self.data))
-        self.tree.add_command(LookupItemCommand(data=self.data))
-        self.tree.add_command(LookupConditionCommand(data=self.data))
-        self.tree.add_command(LookupCreatureCommand(data=self.data))
-        self.tree.add_command(LookupClassCommand(data=self.data))
-        self.tree.add_command(LookupRuleCommand(data=self.data))
-        self.tree.add_command(LookupActionCommand(data=self.data))
-        self.tree.add_command(LookupFeatCommand(data=self.data))
-        self.tree.add_command(LookupLanguageCommand(data=self.data))
-        self.tree.add_command(LookupBackgroundCommand(data=self.data))
-        self.tree.add_command(LookupTableCommand(data=self.data))
-        self.tree.add_command(LookupSpeciesCommand(data=self.data))
-        self.tree.add_command(LookupAnyCommand(data=self.data))
+        self.tree.add_command(SearchCommandGroup(data=self.data))
 
         # Context menus
         self.tree.add_command(DeleteContextMenu())

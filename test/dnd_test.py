@@ -3,7 +3,6 @@ import discord
 import pytest_asyncio
 from config import Config
 from dnd import DNDData
-from search import search_from_query
 
 
 class TestDndData:
@@ -40,6 +39,6 @@ class TestDndData:
         sources = Config.allowed_sources(server=self.server)
         for query in self.queries:
             try:
-                search_from_query(query, self.dnd_data, allowed_sources=sources)
+                self.dnd_data.search(query, allowed_sources=sources)
             except Exception:
                 assert False, "search_from_query threw an error."

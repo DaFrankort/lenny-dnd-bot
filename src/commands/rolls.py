@@ -1,9 +1,9 @@
 import re
 import discord
 
+from app_commands import SimpleCommand
 from dice import DiceExpression, DiceExpressionCache, DiceRollMode
 from embeds import UserActionEmbed
-from logger import log_cmd
 from voice_chat import VC
 
 
@@ -41,18 +41,13 @@ async def func_reason_autocomplete(
     return DiceExpressionCache.get_autocomplete_reason_suggestions(itr, current)
 
 
-class RollCommand(discord.app_commands.Command):
+class RollCommand(SimpleCommand):
     name = "roll"
     desc = "Roll your d20s!"
     help = "Roll a single dice expression."
-    command = "/roll <dice notation> [reason]"
 
     def __init__(self):
-        super().__init__(
-            name=self.name,
-            description=self.desc,
-            callback=self.callback,
-        )
+        super().__init__()
 
     async def diceroll_autocomplete(self, itr: discord.Interaction, current: str):
         return await func_diceroll_autocomplete(itr, current)
@@ -70,7 +65,7 @@ class RollCommand(discord.app_commands.Command):
         diceroll: str,
         reason: str = None,
     ):
-        log_cmd(itr)
+        self.log(itr)
         dice_notation, reason = _get_diceroll_shortcut(itr, diceroll, reason)
         expression = DiceExpression(
             dice_notation, mode=DiceRollMode.Normal, reason=reason
@@ -88,18 +83,13 @@ class RollCommand(discord.app_commands.Command):
         await VC.play_dice_roll(itr, expression, reason)
 
 
-class AdvantageRollCommand(discord.app_commands.Command):
+class AdvantageRollCommand(SimpleCommand):
     name = "advantage"
     desc = "Lucky you! Roll and take the best of two!"
     help = "Roll the expression twice, use the highest result."
-    command = "/advantage <dice notation> [reason]"
 
     def __init__(self):
-        super().__init__(
-            name=self.name,
-            description=self.desc,
-            callback=self.callback,
-        )
+        super().__init__()
 
     async def diceroll_autocomplete(self, itr: discord.Interaction, current: str):
         return await func_diceroll_autocomplete(itr, current)
@@ -117,7 +107,7 @@ class AdvantageRollCommand(discord.app_commands.Command):
         diceroll: str,
         reason: str = None,
     ):
-        log_cmd(itr)
+        self.log(itr)
         dice_notation, reason = _get_diceroll_shortcut(itr, diceroll, reason)
         expression = DiceExpression(
             dice_notation, DiceRollMode.Advantage, reason=reason
@@ -135,18 +125,13 @@ class AdvantageRollCommand(discord.app_commands.Command):
         await VC.play_dice_roll(itr, expression, reason)
 
 
-class DisadvantageRollCommand(discord.app_commands.Command):
+class DisadvantageRollCommand(SimpleCommand):
     name = "disadvantage"
     desc = "Tough luck chump... Roll twice and suck it."
     help = "Roll the expression twice, use the lowest result."
-    command = "/disadvantage <dice notation> [reason]"
 
     def __init__(self):
-        super().__init__(
-            name=self.name,
-            description=self.desc,
-            callback=self.callback,
-        )
+        super().__init__()
 
     async def diceroll_autocomplete(self, itr: discord.Interaction, current: str):
         return await func_diceroll_autocomplete(itr, current)
@@ -164,7 +149,7 @@ class DisadvantageRollCommand(discord.app_commands.Command):
         diceroll: str,
         reason: str = None,
     ):
-        log_cmd(itr)
+        self.log(itr)
         dice_notation, reason = _get_diceroll_shortcut(itr, diceroll, reason)
         expression = DiceExpression(
             dice_notation, DiceRollMode.Disadvantage, reason=reason
@@ -182,21 +167,16 @@ class DisadvantageRollCommand(discord.app_commands.Command):
         await VC.play_dice_roll(itr, expression, reason)
 
 
-class D20Command(discord.app_commands.Command):
+class D20Command(SimpleCommand):
     name = "d20"
     desc = "Just roll a clean d20!"
     help = "Rolls a basic 1d20 with no modifiers."
-    command = "/d20"
 
     def __init__(self):
-        super().__init__(
-            name=self.name,
-            description=self.desc,
-            callback=self.callback,
-        )
+        super().__init__()
 
     async def callback(self, itr: discord.Interaction):
-        log_cmd(itr)
+        self.log(itr)
         expression = DiceExpression("1d20", DiceRollMode.Normal)
         await itr.response.send_message(
             embed=UserActionEmbed(

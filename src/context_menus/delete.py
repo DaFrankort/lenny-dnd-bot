@@ -1,19 +1,16 @@
 import discord
 
-from logger import log_cmd
+from app_commands import SimpleContextMenu
 
 
-class DeleteContextMenu(discord.app_commands.ContextMenu):
+class DeleteContextMenu(SimpleContextMenu):
     name = "Delete message"
 
     def __init__(self):
-        super().__init__(
-            name=self.name,
-            callback=self.callback,
-        )
+        super().__init__()
 
     async def callback(self, itr: discord.Interaction, message: discord.Message):
-        log_cmd(itr)
+        self.log(itr)
         if message.author.id != itr.client.user.id:
             await itr.response.send_message(
                 f"❌ {itr.client.user.name} can only delete their own messages ❌",

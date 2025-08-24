@@ -1,25 +1,20 @@
 import discord
 
+from app_commands import SimpleCommand
 from embeds import UserActionEmbed
-from logger import log_cmd
 from stats import Stats
 
 
-class StatsCommand(discord.app_commands.Command):
+class StatsCommand(SimpleCommand):
     name = "stats"
     desc = "Roll stats for a new character, using the 4d6 drop lowest method."
     help = "Performs six dice rolls using the 4d6 drop lowest method, providing you with six values to use for your new character's stats."
-    command = "/stats"
 
     def __init__(self):
-        super().__init__(
-            name=self.name,
-            description=self.desc,
-            callback=self.callback,
-        )
+        super().__init__()
 
     async def callback(self, itr: discord.Interaction):
-        log_cmd(itr)
+        self.log(itr)
         stats = Stats(itr)
         embed = UserActionEmbed(
             itr=itr,

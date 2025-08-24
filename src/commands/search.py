@@ -2,10 +2,10 @@ import logging
 
 import discord
 
+from app_commands import SimpleCommand, SimpleCommandGroup
 from config import Config
 from dnd import DNDData, DNDObject, send_dnd_embed
 from embeds import MultiDNDSelectView, NoResultsFoundEmbed
-from logger import log_cmd
 from search import SearchLayoutView
 
 
@@ -30,21 +30,16 @@ async def send_DNDObject_lookup_result(
         await send_dnd_embed(itr, found[0])
 
 
-class SearchSpellCommand(discord.app_commands.Command):
+class SearchSpellCommand(SimpleCommand):
     name = "spell"
     desc = "Get the details for a spell."
     help = "Looks up a spell by name."
-    command = "/search spell <spell name>"
 
     data: DNDData
 
     def __init__(self, data: DNDData):
         self.data = data
-        super().__init__(
-            name=self.name,
-            description=self.desc,
-            callback=self.callback,
-        )
+        super().__init__()
 
     async def name_autocomplete(self, itr: discord.Interaction, current: str):
         sources = Config.allowed_sources(server=itr.guild)
@@ -52,27 +47,22 @@ class SearchSpellCommand(discord.app_commands.Command):
 
     @discord.app_commands.autocomplete(name=name_autocomplete)
     async def callback(self, itr: discord.Interaction, name: str):
-        log_cmd(itr)
+        self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         found = self.data.spells.get(name, sources)
         await send_DNDObject_lookup_result(itr, "spells", found, name)
 
 
-class SearchItemCommand(discord.app_commands.Command):
+class SearchItemCommand(SimpleCommand):
     name = "item"
     desc = "Get the details for an item."
     help = "Looks up an item by name."
-    command = "/search item <item name>"
 
     data: DNDData
 
     def __init__(self, data: DNDData):
         self.data = data
-        super().__init__(
-            name=self.name,
-            description=self.desc,
-            callback=self.callback,
-        )
+        super().__init__()
 
     async def name_autocomplete(self, itr: discord.Interaction, current: str):
         sources = Config.allowed_sources(server=itr.guild)
@@ -80,27 +70,22 @@ class SearchItemCommand(discord.app_commands.Command):
 
     @discord.app_commands.autocomplete(name=name_autocomplete)
     async def callback(self, itr: discord.Interaction, name: str):
-        log_cmd(itr)
+        self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         found = self.data.items.get(name, sources)
         await send_DNDObject_lookup_result(itr, "items", found, name)
 
 
-class SearchConditionCommand(discord.app_commands.Command):
+class SearchConditionCommand(SimpleCommand):
     name = "condition"
     desc = "Get the details of a condition or status effect."
     help = "Looks up a condition or status effect by name."
-    command = "/search condition <condition name>"
 
     data: DNDData
 
     def __init__(self, data: DNDData):
         self.data = data
-        super().__init__(
-            name=self.name,
-            description=self.desc,
-            callback=self.callback,
-        )
+        super().__init__()
 
     async def name_autocomplete(self, itr: discord.Interaction, current: str):
         sources = Config.allowed_sources(server=itr.guild)
@@ -108,27 +93,22 @@ class SearchConditionCommand(discord.app_commands.Command):
 
     @discord.app_commands.autocomplete(name=name_autocomplete)
     async def callback(self, itr: discord.Interaction, name: str):
-        log_cmd(itr)
+        self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         found = self.data.conditions.get(name, sources)
         await send_DNDObject_lookup_result(itr, "conditions", found, name)
 
 
-class SearchCreatureCommand(discord.app_commands.Command):
+class SearchCreatureCommand(SimpleCommand):
     name = "creature"
     desc = "Get the details of a creature."
     help = "Looks up a creature by name."
-    command = "/search creature <creature name>"
 
     data: DNDData
 
     def __init__(self, data: DNDData):
         self.data = data
-        super().__init__(
-            name=self.name,
-            description=self.desc,
-            callback=self.callback,
-        )
+        super().__init__()
 
     async def name_autocomplete(self, itr: discord.Interaction, current: str):
         sources = Config.allowed_sources(server=itr.guild)
@@ -136,27 +116,22 @@ class SearchCreatureCommand(discord.app_commands.Command):
 
     @discord.app_commands.autocomplete(name=name_autocomplete)
     async def callback(self, itr: discord.Interaction, name: str):
-        log_cmd(itr)
+        self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         found = self.data.creatures.get(name, sources)
         await send_DNDObject_lookup_result(itr, "creatures", found, name)
 
 
-class SearchClassCommand(discord.app_commands.Command):
+class SearchClassCommand(SimpleCommand):
     name = "class"
     desc = "Get the details for a character class."
     help = "Looks up a D&D class by name."
-    command = "/search class <class name>"
 
     data: DNDData
 
     def __init__(self, data: DNDData):
         self.data = data
-        super().__init__(
-            name=self.name,
-            description=self.desc,
-            callback=self.callback,
-        )
+        super().__init__()
 
     async def name_autocomplete(self, itr: discord.Interaction, current: str):
         sources = Config.allowed_sources(server=itr.guild)
@@ -164,27 +139,22 @@ class SearchClassCommand(discord.app_commands.Command):
 
     @discord.app_commands.autocomplete(name=name_autocomplete)
     async def callback(self, itr: discord.Interaction, name: str):
-        log_cmd(itr)
+        self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         found = self.data.classes.get(name, sources)
         await send_DNDObject_lookup_result(itr, "classes", found, name)
 
 
-class SearchRuleCommand(discord.app_commands.Command):
+class SearchRuleCommand(SimpleCommand):
     name = "rule"
     desc = "Get the details of a D&D rule."
     help = "Looks up a D&D rule by name."
-    command = "/search rule <rule name>"
 
     data: DNDData
 
     def __init__(self, data: DNDData):
         self.data = data
-        super().__init__(
-            name=self.name,
-            description=self.desc,
-            callback=self.callback,
-        )
+        super().__init__()
 
     async def name_autocomplete(self, itr: discord.Interaction, current: str):
         sources = Config.allowed_sources(server=itr.guild)
@@ -192,27 +162,22 @@ class SearchRuleCommand(discord.app_commands.Command):
 
     @discord.app_commands.autocomplete(name=name_autocomplete)
     async def callback(self, itr: discord.Interaction, name: str):
-        log_cmd(itr)
+        self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         found = self.data.rules.get(name, sources)
         await send_DNDObject_lookup_result(itr, "rules", found, name)
 
 
-class SearchActionCommand(discord.app_commands.Command):
+class SearchActionCommand(SimpleCommand):
     name = "action"
     desc = "Get the details of a D&D action."
     help = "Looks up a D&D action by name."
-    command = "/search action <action name>"
 
     data: DNDData
 
     def __init__(self, data: DNDData):
         self.data = data
-        super().__init__(
-            name=self.name,
-            description=self.desc,
-            callback=self.callback,
-        )
+        super().__init__()
 
     async def name_autocomplete(self, itr: discord.Interaction, current: str):
         sources = Config.allowed_sources(server=itr.guild)
@@ -220,27 +185,22 @@ class SearchActionCommand(discord.app_commands.Command):
 
     @discord.app_commands.autocomplete(name=name_autocomplete)
     async def callback(self, itr: discord.Interaction, name: str):
-        log_cmd(itr)
+        self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         found = self.data.actions.get(name, sources)
         await send_DNDObject_lookup_result(itr, "actions", found, name)
 
 
-class SearchFeatCommand(discord.app_commands.Command):
+class SearchFeatCommand(SimpleCommand):
     name = "feat"
     desc = "Get the details of a character feat."
     help = "Looks up a character feat by name."
-    command = "/search feat <feat name>"
 
     data: DNDData
 
     def __init__(self, data: DNDData):
         self.data = data
-        super().__init__(
-            name=self.name,
-            description=self.desc,
-            callback=self.callback,
-        )
+        super().__init__()
 
     async def name_autocomplete(self, itr: discord.Interaction, current: str):
         sources = Config.allowed_sources(server=itr.guild)
@@ -248,27 +208,22 @@ class SearchFeatCommand(discord.app_commands.Command):
 
     @discord.app_commands.autocomplete(name=name_autocomplete)
     async def callback(self, itr: discord.Interaction, name: str):
-        log_cmd(itr)
+        self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         found = self.data.feats.get(name, sources)
         await send_DNDObject_lookup_result(itr, "feats", found, name)
 
 
-class SearchLanguageCommand(discord.app_commands.Command):
+class SearchLanguageCommand(SimpleCommand):
     name = "language"
     desc = "Get the details of a language."
     help = "Looks up a D&D Language by name."
-    command = "/search language <language name>"
 
     data: DNDData
 
     def __init__(self, data: DNDData):
         self.data = data
-        super().__init__(
-            name=self.name,
-            description=self.desc,
-            callback=self.callback,
-        )
+        super().__init__()
 
     async def name_autocomplete(self, itr: discord.Interaction, current: str):
         sources = Config.allowed_sources(server=itr.guild)
@@ -276,27 +231,22 @@ class SearchLanguageCommand(discord.app_commands.Command):
 
     @discord.app_commands.autocomplete(name=name_autocomplete)
     async def callback(self, itr: discord.Interaction, name: str):
-        log_cmd(itr)
+        self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         found = self.data.languages.get(name, sources)
         await send_DNDObject_lookup_result(itr, "languages", found, name)
 
 
-class SearchBackgroundCommand(discord.app_commands.Command):
+class SearchBackgroundCommand(SimpleCommand):
     name = "background"
     desc = "Get the details of a background."
     help = "Looks up a D&D Background by name."
-    command = "/search background <background name>"
 
     data: DNDData
 
     def __init__(self, data: DNDData):
         self.data = data
-        super().__init__(
-            name=self.name,
-            description=self.desc,
-            callback=self.callback,
-        )
+        super().__init__()
 
     async def name_autocomplete(self, itr: discord.Interaction, current: str):
         sources = Config.allowed_sources(server=itr.guild)
@@ -304,27 +254,22 @@ class SearchBackgroundCommand(discord.app_commands.Command):
 
     @discord.app_commands.autocomplete(name=name_autocomplete)
     async def callback(self, itr: discord.Interaction, name: str):
-        log_cmd(itr)
+        self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         found = self.data.backgrounds.get(name, sources)
         await send_DNDObject_lookup_result(itr, "background", found, name)
 
 
-class SearchTableCommand(discord.app_commands.Command):
+class SearchTableCommand(SimpleCommand):
     name = "table"
     desc = "Get the details of a table."
     help = "Looks up a D&D Table by name."
-    command = "/search table <table name>"
 
     data: DNDData
 
     def __init__(self, data: DNDData):
         self.data = data
-        super().__init__(
-            name=self.name,
-            description=self.desc,
-            callback=self.callback,
-        )
+        super().__init__()
 
     async def name_autocomplete(self, itr: discord.Interaction, current: str):
         sources = Config.allowed_sources(server=itr.guild)
@@ -332,27 +277,22 @@ class SearchTableCommand(discord.app_commands.Command):
 
     @discord.app_commands.autocomplete(name=name_autocomplete)
     async def callback(self, itr: discord.Interaction, name: str):
-        log_cmd(itr)
+        self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         found = self.data.tables.get(name, sources)
         await send_DNDObject_lookup_result(itr, "table", found, name)
 
 
-class SearchSpeciesCommand(discord.app_commands.Command):
+class SearchSpeciesCommand(SimpleCommand):
     name = "species"
     desc = "Get the details of a species."
     help = "Looks up a D&D Species by name."
-    command = "/search species <species name>"
 
     data: DNDData
 
     def __init__(self, data: DNDData):
         self.data = data
-        super().__init__(
-            name=self.name,
-            description=self.desc,
-            callback=self.callback,
-        )
+        super().__init__()
 
     async def name_autocomplete(self, itr: discord.Interaction, current: str):
         sources = Config.allowed_sources(server=itr.guild)
@@ -360,30 +300,25 @@ class SearchSpeciesCommand(discord.app_commands.Command):
 
     @discord.app_commands.autocomplete(name=name_autocomplete)
     async def callback(self, itr: discord.Interaction, name: str):
-        log_cmd(itr)
+        self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         found = self.data.species.get(name, sources)
         await send_DNDObject_lookup_result(itr, "species", found, name)
 
 
-class SearchAnyCommand(discord.app_commands.Command):
+class SearchAnyCommand(SimpleCommand):
     name = "all"
     desc = "Search for all matching D&D entries."
     help = "Looks up all possible D&D entries for a query."
-    command = "/search all <query>"
 
     data: DNDData
 
     def __init__(self, data: DNDData):
         self.data = data
-        super().__init__(
-            name=self.name,
-            description=self.desc,
-            callback=self.callback,
-        )
+        super().__init__()
 
     async def callback(self, itr: discord.Interaction, query: str):
-        log_cmd(itr)
+        self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         results = self.data.search(query, sources)
         logging.debug(f"Found {len(results.get_all())} results for '{query}'")
@@ -396,12 +331,12 @@ class SearchAnyCommand(discord.app_commands.Command):
             await itr.response.send_message(view=view, ephemeral=True)
 
 
-class SearchCommandGroup(discord.app_commands.Group):
+class SearchCommandGroup(SimpleCommandGroup):
     name = "search"
     desc = "Search for a D&D entry."
 
     def __init__(self, data: DNDData):
-        super().__init__(name=self.name, description=self.desc)
+        super().__init__()
         self.add_command(SearchSpellCommand(data=data))
         self.add_command(SearchItemCommand(data=data))
         self.add_command(SearchConditionCommand(data=data))

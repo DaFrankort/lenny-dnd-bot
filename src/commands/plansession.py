@@ -1,6 +1,7 @@
 import datetime
 import discord
 
+from app_commands import SimpleCommand
 from methods import when
 
 
@@ -65,18 +66,13 @@ class SessionPlanPoll(discord.Poll):
             self.add_answer(text=f"{day_text} ({relative_text})", emoji=emoji)
 
 
-class PlanSessionCommand(discord.app_commands.Command):
+class PlanSessionCommand(SimpleCommand):
     name = "plansession"
     desc = "Stop squandering and poll your party's availability in x weeks!"
     help = "Creates a poll for players to select their availability in x weeks. Generates poll-answers from Monday - Sunday, along with an 'Earlier' and 'Later' option. If 0 is specified it will poll for the remaining days in the current week."
-    command = "/plansession <in-weeks>"
 
     def __init__(self):
-        super().__init__(
-            name=self.name,
-            description=self.desc,
-            callback=self.callback,
-        )
+        super().__init__()
 
     @discord.app_commands.describe(
         in_weeks="How many weeks from now? (0 = this week, 1 = next week, ...)",
@@ -88,5 +84,6 @@ class PlanSessionCommand(discord.app_commands.Command):
         in_weeks: discord.app_commands.Range[int, 0, 48],
         poll_duration: discord.app_commands.Range[int, 1, 168] = 24,
     ):
+        self.log(itr)
         poll = SessionPlanPoll(in_weeks, poll_duration)
         await itr.response.send_message(poll=poll)

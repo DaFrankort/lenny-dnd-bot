@@ -1,8 +1,8 @@
 import discord
 
+from app_commands import SimpleCommand
 from dice import DiceExpressionCache
 from embeds import SuccessEmbed, UserActionEmbed
-from logger import log_cmd
 from modals import SimpleModal
 
 
@@ -248,20 +248,15 @@ class ShortcutEmbed(UserActionEmbed):
         self.view = ShortcutBaseView(shortcuts)
 
 
-class ShortcutCommand(discord.app_commands.Command):
+class ShortcutCommand(SimpleCommand):
     name = "shortcut"
     desc = "Create & edit roll shortcuts, ideal for people who can't read character sheets!"
     help = "Create, edit and remove roll-shortcuts, which can be referred to in dice-roll commands."
-    command = "/shortcut"
 
     def __init__(self):
-        super().__init__(
-            name=self.name,
-            description=self.desc,
-            callback=self.callback,
-        )
+        super().__init__()
 
     async def callback(self, itr: discord.Interaction):
-        log_cmd(itr)
+        self.log(itr)
         embed = ShortcutEmbed(itr)
         await itr.response.send_message(embed=embed, view=embed.view, ephemeral=True)

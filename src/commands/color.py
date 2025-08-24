@@ -1,6 +1,6 @@
 import discord
 
-from app_commands import SimpleCommand, SimpleCommandGroup
+from logic.app_commands import SimpleCommand, SimpleCommandGroup
 from embeds import UserActionEmbed
 from methods import when
 from user_colors import UserColor

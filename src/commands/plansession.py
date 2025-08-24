@@ -1,7 +1,7 @@
 import datetime
 import discord
 
-from app_commands import SimpleCommand
+from logic.app_commands import SimpleCommand
 from methods import when
 
 

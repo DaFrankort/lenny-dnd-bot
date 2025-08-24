@@ -1,6 +1,6 @@
 import discord
 
-from app_commands import SimpleCommand
+from logic.app_commands import SimpleCommand
 from initiative import InitiativeContainerView, InitiativeTracker
 from voice_chat import VC, SoundType
 

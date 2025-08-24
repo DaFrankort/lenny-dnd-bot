@@ -1,6 +1,6 @@
 import discord
 
-from app_commands import SimpleCommand
+from logic.app_commands import SimpleCommand
 from embeds import UserActionEmbed
 from stats import Stats
 

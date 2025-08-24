@@ -1,7 +1,7 @@
 import re
 import discord
 
-from app_commands import SimpleCommand
+from logic.app_commands import SimpleCommand
 from dice import DiceExpression, DiceExpressionCache, DiceRollMode
 from embeds import UserActionEmbed
 from voice_chat import VC

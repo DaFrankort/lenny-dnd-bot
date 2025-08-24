@@ -1,7 +1,7 @@
 import dataclasses
 import discord
 
-from app_commands import SimpleCommand
+from logic.app_commands import SimpleCommand
 
 
 @dataclasses.dataclass

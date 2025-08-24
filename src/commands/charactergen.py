@@ -1,6 +1,6 @@
 import discord
 
-from app_commands import SimpleCommand
+from logic.app_commands import SimpleCommand
 from dnd import DNDData, Gender
 from embeds import SimpleEmbed
 

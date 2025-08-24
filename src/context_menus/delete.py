@@ -1,6 +1,6 @@
 import discord
 
-from app_commands import SimpleContextMenu
+from logic.app_commands import SimpleContextMenu
 
 
 class DeleteContextMenu(SimpleContextMenu):

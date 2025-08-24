@@ -2,7 +2,7 @@ import logging
 
 import discord
 
-from app_commands import SimpleCommand, SimpleCommandGroup
+from logic.app_commands import SimpleCommand, SimpleCommandGroup
 from config import Config
 from dnd import DNDData, DNDObject, send_dnd_embed
 from embeds import MultiDNDSelectView, NoResultsFoundEmbed

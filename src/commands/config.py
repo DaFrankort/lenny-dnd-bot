@@ -1,6 +1,6 @@
 import discord
 
-from app_commands import SimpleCommand
+from logic.app_commands import SimpleCommand
 from components.items import SimpleSeparator
 from config import Config
 from dnd import DNDData, Source, SourceList

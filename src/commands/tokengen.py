@@ -8,7 +8,7 @@ from discord import app_commands
 import discord
 import numpy as np
 
-from app_commands import SimpleCommand
+from logic.app_commands import SimpleCommand
 from PIL import Image, ImageDraw, ImageFont
 
 TOKEN_FRAME = Image.open("./assets/images/token_border.png").convert("RGBA")

@@ -1,7 +1,7 @@
 from discord import Interaction, app_commands
 
 from charts import get_distribution_chart
-from app_commands import SimpleCommand
+from logic.app_commands import SimpleCommand
 from dice import DiceRollMode
 from distribution import DiceDistributionEmbed, get_distribution
 from embeds import SimpleEmbed

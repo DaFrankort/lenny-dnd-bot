@@ -6,7 +6,7 @@ from config import Config
 from dnd import DNDData, DNDObject, send_dnd_embed
 from embeds import MultiDNDSelectView, NoResultsFoundEmbed
 from logger import log_cmd
-from search import SearchLayoutView, search_from_query
+from search import SearchLayoutView
 
 
 async def send_DNDObject_lookup_result(
@@ -385,7 +385,7 @@ class LookupAnyCommand(discord.app_commands.Command):
     async def callback(self, itr: discord.Interaction, query: str):
         log_cmd(itr)
         sources = Config.allowed_sources(server=itr.guild)
-        results = search_from_query(query, self.data, sources)
+        results = self.data.search(query, sources)
         logging.debug(f"Found {len(results.get_all())} results for '{query}'")
 
         if len(results.get_all()) == 0:

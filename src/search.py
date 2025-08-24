@@ -1,40 +1,12 @@
 import discord
 from discord import ui
-from rapidfuzz import fuzz
 from components.items import SimpleSeparator, TitleTextDisplay
 from components.paginated_view import PaginatedLayoutView
 from dnd import (
-    DNDData,
     DNDSearchResults,
     DNDObject,
     send_dnd_embed,
 )
-
-
-def __search_matches(query: str, name: str, threshold: float) -> bool:
-    query = query.lower()
-    name = name.lower()
-
-    return fuzz.partial_ratio(query, name) > threshold
-
-
-def search_from_query(
-    query: str,
-    data: DNDData,
-    allowed_sources: set[str],
-    threshold=75.0,
-):
-    query = query.strip().lower()
-    results = DNDSearchResults()
-
-    for data_list in data:
-        for entry in data_list.entries:
-            if entry.source not in allowed_sources:
-                continue
-            if __search_matches(query, entry.name, threshold):
-                results.add(entry)
-
-    return results
 
 
 class SearchSelectButton(ui.Button):

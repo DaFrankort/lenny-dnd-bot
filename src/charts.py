@@ -59,6 +59,11 @@ def get_distribution_chart(
 def get_radar_chart(
     itr: discord.Interaction, results: list[str], labels: list[str] = None
 ) -> discord.File:
+    # Shift results so result[0] goes to the end
+    results = results[-1:] + results[:-1]
+    if labels is not None:
+        labels = labels[-1:] + labels[:-1]
+
     N = len(results)
     values = results + results[:1]  # repeat first to close polygon
 
@@ -67,6 +72,9 @@ def get_radar_chart(
 
     # Create radar chart
     fig, ax = plt.subplots(subplot_kw=dict(polar=True))
+    ax.set_theta_offset(np.pi)  # Start on the left
+    ax.set_theta_direction(-1)  # Move
+
     ax.set_xticks(angles[:-1])
     if labels is None:
         ax.set_xticklabels([str(r) for r in results])

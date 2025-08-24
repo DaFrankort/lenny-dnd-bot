@@ -48,6 +48,7 @@ class TestBotCommands:
         )
         self.mock_interaction.user.display_name = "TestUser"
         self.mock_interaction.guild = MagicMock(spec=discord.Guild)
+        self.mock_interaction.guild.id = 1234
         self.mock_interaction.channel = MagicMock(spec=discord.TextChannel)
         self.mock_interaction.response = MagicMock()
         self.mock_interaction.response.send_message = AsyncMock()

@@ -1,12 +1,10 @@
-import discord
-import discord.app_commands
 from discord import Interaction, app_commands
 
 from charts import get_distribution_chart
+from logic.app_commands import SimpleCommand
 from dice import DiceRollMode
 from distribution import DiceDistributionEmbed, get_distribution
 from embeds import SimpleEmbed
-from logger import log_cmd
 
 
 DISTRIBUTION_COMMAND_ADVANTAGE_CHOICES = [
@@ -25,18 +23,10 @@ DISTRIBUTION_COMMAND_ADVANTAGE_CHOICES = [
 ]
 
 
-class DistributionCommand(discord.app_commands.Command):
+class DistributionCommand(SimpleCommand):
     name = "distribution"
     desc = "Show the probability distribution of an expression."
     help = "Generates an image of the distribution of an expression."
-    command = "/distribution <expression> [advantage] [min_to_beat]"
-
-    def __init__(self):
-        super().__init__(
-            name=self.name,
-            description=self.desc,
-            callback=self.callback,
-        )
 
     @app_commands.choices(advantage=DISTRIBUTION_COMMAND_ADVANTAGE_CHOICES)
     async def callback(
@@ -46,7 +36,7 @@ class DistributionCommand(discord.app_commands.Command):
         advantage: str = DiceRollMode.Normal.value,
         min_to_beat: int | None = None,
     ):
-        log_cmd(itr)
+        self.log(itr)
         await itr.response.defer()
         try:
             distribution = get_distribution(expression, advantage=advantage)

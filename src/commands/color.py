@@ -1,36 +1,28 @@
 import discord
 
+from logic.app_commands import SimpleCommand, SimpleCommandGroup
 from embeds import UserActionEmbed
-from logger import log_cmd
 from methods import when
 from user_colors import UserColor
 
 
-class ColorCommandGroup(discord.app_commands.Group):
+class ColorCommandGroup(SimpleCommandGroup):
     name = "color"
     desc = "Set a preferred color to easily identify your actions!"
 
     def __init__(self):
-        super().__init__(name=self.name, description=self.desc)
+        super().__init__()
         self.add_command(ColorSetCommand())
         self.add_command(ColorClearCommand())
 
 
-class ColorSetCommand(discord.app_commands.Command):
+class ColorSetCommand(SimpleCommand):
     name = "set"
     desc = "Set a preferred color using a hex-value."
     help = "Set a custom color for yourself by providing a hex value."
-    command = "/color set <color>"
-
-    def __init__(self):
-        super().__init__(
-            name=self.name,
-            description=self.desc,
-            callback=self.callback,
-        )
 
     async def callback(self, itr: discord.Interaction, hex_color: str):
-        log_cmd(itr)
+        self.log(itr)
 
         if not UserColor.validate(hex_color):
             await itr.response.send_message(
@@ -52,21 +44,13 @@ class ColorSetCommand(discord.app_commands.Command):
         )
 
 
-class ColorClearCommand(discord.app_commands.Command):
+class ColorClearCommand(SimpleCommand):
     name = "clear"
     desc = "Clear your preferred color."
     help = "Set your color back to an auto-generated one."
-    command = "/color clear"
-
-    def __init__(self):
-        super().__init__(
-            name=self.name,
-            description=self.desc,
-            callback=self.callback,
-        )
 
     async def callback(self, itr: discord.Interaction):
-        log_cmd(itr)
+        self.log(itr)
 
         removed = UserColor.remove(itr)
         message = when(

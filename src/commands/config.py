@@ -1,10 +1,10 @@
 import discord
 
+from logic.app_commands import SimpleCommand
 from components.items import SimpleSeparator
 from config import Config
 from dnd import DNDData, Source, SourceList
 from embeds import SimpleEmbed
-from logger import log_cmd
 from components.paginated_view import PaginatedLayoutView
 
 
@@ -87,23 +87,15 @@ class ConfigSourcesView(PaginatedLayoutView):
         return sources[start:end]
 
 
-class ConfigCommand(discord.app_commands.Command):
+class ConfigCommand(SimpleCommand):
     name = "config"
     desc = "Configure your server's settings!"
     help = "Open up an overview you can use to configure the bot's settings in your server."
-    command = "/config"
 
     data: DNDData
 
-    def __init__(self):
-        super().__init__(
-            name=self.name,
-            description=self.desc,
-            callback=self.callback,
-        )
-
     async def callback(self, itr: discord.Interaction):
-        log_cmd(itr)
+        self.log(itr)
         if itr.guild is None:
             title = "Cannot change sources!"
             desc = "Sources can only be enabled and disabled in a server."

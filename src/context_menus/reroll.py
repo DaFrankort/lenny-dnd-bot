@@ -1,22 +1,19 @@
 import discord
 
+from logic.app_commands import SimpleContextMenu
 from dice import DiceExpression, DiceExpressionCache, DiceRollMode
 from embeds import UserActionEmbed
-from logger import log_cmd
 from voice_chat import VC
 
 
-class RerollContextMenu(discord.app_commands.ContextMenu):
+class RerollContextMenu(SimpleContextMenu):
     name = "Re-roll"
 
     def __init__(self):
-        super().__init__(
-            name=self.name,
-            callback=self.callback,
-        )
+        super().__init__()
 
     async def callback(self, itr: discord.Interaction, message: discord.Message):
-        log_cmd(itr)
+        self.log(itr)
         if message.author.id != itr.client.user.id:
             await itr.response.send_message(
                 f"❌ Only works on dice-roll messages sent by {itr.client.user.name} ❌",

@@ -1,5 +1,6 @@
 import discord
 
+from logic.app_commands import SimpleCommand
 from dnd import DNDData, Gender
 from embeds import SimpleEmbed
 
@@ -10,21 +11,16 @@ GenderChoices = [
 ]
 
 
-class NameGenCommand(discord.app_commands.Command):
+class NameGenCommand(SimpleCommand):
     name = "namegen"
     desc = "Generate a random name depending on species and gender!"
     help = "Get a random name for a humanoid, species and gender can be specified but will default to random values."
-    command = "/namegen [species] [gender]"
 
     data: DNDData
 
     def __init__(self, data: DNDData):
         self.data = data
-        super().__init__(
-            name=self.name,
-            description=self.desc,
-            callback=self.callback,
-        )
+        super().__init__()
 
     async def species_autocomplete(self, _: discord.Interaction, current: str):
         species = self.data.names.get_species()
@@ -48,6 +44,7 @@ class NameGenCommand(discord.app_commands.Command):
         species: str = None,
         gender: str = Gender.OTHER.value,
     ):
+        self.log(itr)
         gender = Gender(gender)
         name, new_species, new_gender = self.data.names.get_random(species, gender)
 

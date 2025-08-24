@@ -4,10 +4,15 @@ import discord
 
 
 class SimpleCommandGroup(discord.app_commands.Group):
-    name: str
-    desc: str
+    name: str = None
+    desc: str = None
 
     def __init__(self):
+        if self.name is None:
+            raise NotImplementedError(f"'name' not defined in {type(self)}")
+        if self.desc is None:
+            raise NotImplementedError(f"'desc' not defined in {type(self)}")
+
         super().__init__(name=self.name, description=self.desc)
 
 
@@ -66,9 +71,12 @@ class SimpleCommand(discord.app_commands.Command):
 
 
 class SimpleContextMenu(discord.app_commands.ContextMenu):
-    name: str
+    name: str = None
 
     def __init__(self):
+        if self.name is None:
+            raise NotImplementedError(f"'name' not defined in {type(self)}")
+
         super().__init__(
             name=self.name,
             callback=self.callback,

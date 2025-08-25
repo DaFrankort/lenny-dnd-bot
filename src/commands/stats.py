@@ -59,9 +59,15 @@ class StatsVisualiseCommand(SimpleCommand):
         )
         color = UserColor.get(itr)
         chart_image = get_radar_chart(
-            results=[str, dex, con, int, wis, cha],
-            labels=["STR", "DEX", "CON", "INT", "WIS", "CHA"],
-            color=color
+            results=[
+                (str, "STR"),
+                (dex, "DEX"),
+                (con, "CON"),
+                (int, "INT"),
+                (wis, "WIS"),
+                (cha, "CHA"),
+            ],
+            color=color,
         )
         embed.set_image(url=f"attachment://{chart_image.filename}")
         await itr.response.send_message(embed=embed, file=chart_image)

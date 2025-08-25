@@ -57,18 +57,23 @@ def get_distribution_chart(
 
 
 def get_radar_chart(
-    results: list[str],
-    labels: list[str] = None,
+    results: list[int] | list[tuple[int, str]],
     offset: int = 1,
     color: int = discord.Color.dark_green().value,
 ) -> discord.File:
-    # We shift results by -1, to make sure the first result is generally top left.
-    results = results[-offset:] + results[:-offset]
-    if labels is not None:
-        labels = labels[-offset:] + labels[:-offset]
+    results = (
+        results[-offset:] + results[:-offset]
+    )  # Shift results, to show them in a different spot.
 
-    N = len(results)
-    values = results + results[:1]  # repeat first to close polygon
+    if isinstance(results[0], tuple):
+        values = [v for v, _ in results]
+        labels = [f"{v}\n{label}" for v, label in results]
+    else:
+        values = results
+        labels = [str(v) for v in results]
+
+    N = len(values)
+    values = values + values[:1]  # repeat first to close polygon
 
     angles = np.linspace(0, 2 * np.pi, N, endpoint=False).tolist()
     angles += angles[:1]
@@ -79,14 +84,8 @@ def get_radar_chart(
     ax.set_theta_direction(-1)  # Move
 
     ax.set_xticks(angles[:-1])
-    if labels is None:
-        ax.set_xticklabels([str(r) for r in results])
-    else:
-        for i, label in enumerate(labels):
-            labels[i] = f"{results[i]}\n{label}"
-        ax.set_xticklabels(labels)
+    ax.set_xticklabels(labels)
     ax.set_ylim(0, max(18, max(values)))
-
     ax.set_yticklabels([])  # Remove numbers on radial rings
 
     r, g, b = discord.Color(color).to_rgb()

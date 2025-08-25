@@ -4,6 +4,7 @@ from charts import get_radar_chart
 from logic.app_commands import SimpleCommand, SimpleCommandGroup
 from embeds import UserActionEmbed
 from stats import Stats
+from user_colors import UserColor
 
 
 class StatsCommandGroup(SimpleCommandGroup):
@@ -29,7 +30,8 @@ class StatsRollCommand(SimpleCommand):
             title=stats.get_embed_title(),
             description=stats.get_embed_description(),
         )
-        chart_image = stats.get_radar_chart(itr)
+        color = UserColor.get(itr)
+        chart_image = stats.get_radar_chart(color)
         embed.set_image(url=f"attachment://{chart_image.filename}")
         await itr.response.send_message(embed=embed, file=chart_image)
 
@@ -55,10 +57,11 @@ class StatsVisualiseCommand(SimpleCommand):
             title=f"{itr.user.display_name}'s stats visualised!",
             description="",
         )
+        color = UserColor.get(itr)
         chart_image = get_radar_chart(
-            itr=itr,
             results=[str, dex, con, int, wis, cha],
             labels=["STR", "DEX", "CON", "INT", "WIS", "CHA"],
+            color=color
         )
         embed.set_image(url=f"attachment://{chart_image.filename}")
         await itr.response.send_message(embed=embed, file=chart_image)

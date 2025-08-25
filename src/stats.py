@@ -35,6 +35,6 @@ class Stats:
         message += f"\n**Total**: {total}"
         return message
 
-    def get_radar_chart(self, itr: discord.Interaction) -> discord.File:
+    def get_radar_chart(self, color: int = discord.Color.dark_green()) -> discord.File:
         results = [result for _, result in self.stats]
-        return get_radar_chart(itr=itr, results=results)
+        return get_radar_chart(results=results, color=color)

@@ -57,12 +57,15 @@ def get_distribution_chart(
 
 
 def get_radar_chart(
-    itr: discord.Interaction, results: list[str], labels: list[str] = None
+    results: list[str],
+    labels: list[str] = None,
+    offset: int = 1,
+    color: int = discord.Color.dark_green().value,
 ) -> discord.File:
-    # Shift results so result[0] goes to the end
-    results = results[-1:] + results[:-1]
+    # We shift results by -1, to make sure the first result is generally top left.
+    results = results[-offset:] + results[:-offset]
     if labels is not None:
-        labels = labels[-1:] + labels[:-1]
+        labels = labels[-offset:] + labels[:-offset]
 
     N = len(results)
     values = results + results[:1]  # repeat first to close polygon
@@ -86,7 +89,7 @@ def get_radar_chart(
 
     ax.set_yticklabels([])  # Remove numbers on radial rings
 
-    r, g, b = discord.Color(UserColor.get(itr)).to_rgb()
+    r, g, b = discord.Color(color).to_rgb()
     color = (r / 255.0, g / 255.0, b / 255.0)
     ax.plot(angles, values, color=color, linewidth=2)
     ax.fill(angles, values, color=color, alpha=0.4)

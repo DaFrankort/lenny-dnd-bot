@@ -797,6 +797,25 @@ class DNDData(object):
         yield self.tables
         yield self.species
 
+    def search(
+        self,
+        query: str,
+        allowed_sources: set[str],
+        threshold=75.0,
+    ) -> "DNDSearchResults":
+        query = query.strip().lower()
+        results = DNDSearchResults()
+        for entries in self:
+            for entry in entries.entries:
+                name = entry.name.strip().lower()
+                source = entry.source
+
+                if source not in allowed_sources:
+                    continue
+                if fuzz.partial_ratio(query, name) > threshold:
+                    results.add(entry)
+        return results
+
 
 class DNDSearchResults(object):
     spells: list[Spell]

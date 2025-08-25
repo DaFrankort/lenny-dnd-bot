@@ -8,9 +8,9 @@ from components.items import SimpleSeparator, TitleTextDisplay
 from dnd import DNDTable
 from embeds import UserActionEmbed
 from logger import log_button_press
-from methods import build_table
+from methods import FontType, build_table, get_font
 from voice_chat import VC, SoundType
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 
 
 class DNDTableRollButton(ui.Button):
@@ -84,12 +84,7 @@ class DNDTableContainerView(ui.LayoutView):
             )  # Rebuild table, but wider
             font_size = 64
             padding = font_size // 2
-            try:
-                font = ImageFont.truetype(
-                    font="./assets/fonts/GoogleSansCode-Light.ttf", size=font_size
-                )
-            except OSError:
-                font = ImageFont.load_default(size=font_size)
+            font = get_font(FontType.MONOSPACE, font_size)
             lines = table_string.replace("```", "").splitlines()
 
             # Calculate image dimensions

@@ -4,26 +4,11 @@ import discord
 from discord import app_commands
 from dotenv import load_dotenv
 from commands.charactergen import NameGenCommand
-from commands.color import ColorCommand
+from commands.color import ColorCommandGroup
 from commands.config import ConfigCommand
 from commands.distribution import DistributionCommand
 from commands.help import HelpCommand
 from commands.initiative import InitiativeCommand
-from commands.lookup import (
-    LookupActionCommand,
-    LookupAnyCommand,
-    LookupBackgroundCommand,
-    LookupClassCommand,
-    LookupConditionCommand,
-    LookupCreatureCommand,
-    LookupFeatCommand,
-    LookupItemCommand,
-    LookupLanguageCommand,
-    LookupRuleCommand,
-    LookupSpeciesCommand,
-    LookupSpellCommand,
-    LookupTableCommand,
-)
 from commands.plansession import PlanSessionCommand
 from commands.playsound import PlaySoundCommand
 from commands.rolls import (
@@ -32,8 +17,9 @@ from commands.rolls import (
     DisadvantageRollCommand,
     RollCommand,
 )
+from commands.search import SearchCommandGroup
 from commands.shortcut import ShortcutCommand
-from commands.stats import StatsCommand
+from commands.stats import StatsCommandGroup
 from commands.tokengen import TokenGenCommand, TokenGenUrlCommand
 from context_menus.delete import DeleteContextMenu
 from context_menus.reroll import RerollContextMenu
@@ -80,7 +66,7 @@ class Bot(discord.Client):
         # Commands
         self.tree.add_command(DistributionCommand())
         self.tree.add_command(HelpCommand(tree=self.tree))
-        self.tree.add_command(StatsCommand())
+        self.tree.add_command(StatsCommandGroup())
         self.tree.add_command(RollCommand())
         self.tree.add_command(AdvantageRollCommand())
         self.tree.add_command(DisadvantageRollCommand())
@@ -91,24 +77,10 @@ class Bot(discord.Client):
         self.tree.add_command(InitiativeCommand(initiatives=self.initiatives))
         self.tree.add_command(PlanSessionCommand())
         self.tree.add_command(PlaySoundCommand())
-        self.tree.add_command(ColorCommand())
+        self.tree.add_command(ColorCommandGroup())
         self.tree.add_command(NameGenCommand(data=self.data))
         self.tree.add_command(ConfigCommand())
-
-        # D&D lookup commands
-        self.tree.add_command(LookupSpellCommand(data=self.data))
-        self.tree.add_command(LookupItemCommand(data=self.data))
-        self.tree.add_command(LookupConditionCommand(data=self.data))
-        self.tree.add_command(LookupCreatureCommand(data=self.data))
-        self.tree.add_command(LookupClassCommand(data=self.data))
-        self.tree.add_command(LookupRuleCommand(data=self.data))
-        self.tree.add_command(LookupActionCommand(data=self.data))
-        self.tree.add_command(LookupFeatCommand(data=self.data))
-        self.tree.add_command(LookupLanguageCommand(data=self.data))
-        self.tree.add_command(LookupBackgroundCommand(data=self.data))
-        self.tree.add_command(LookupTableCommand(data=self.data))
-        self.tree.add_command(LookupSpeciesCommand(data=self.data))
-        self.tree.add_command(LookupAnyCommand(data=self.data))
+        self.tree.add_command(SearchCommandGroup(data=self.data))
 
         # Context menus
         self.tree.add_command(DeleteContextMenu())

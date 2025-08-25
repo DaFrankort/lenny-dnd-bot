@@ -8,8 +8,10 @@ from discord import app_commands
 import discord
 import numpy as np
 
-from logger import log_cmd
-from PIL import Image, ImageDraw, ImageFont
+from logic.app_commands import SimpleCommand
+from PIL import Image, ImageDraw
+
+from methods import FontType, get_font
 
 TOKEN_FRAME = Image.open("./assets/images/token_border.png").convert("RGBA")
 TOKEN_BG = Image.open("./assets/images/token_bg.jpg").convert("RGBA")
@@ -243,11 +245,7 @@ def add_number_to_tokenimage(
     label = label.resize(label_size)
 
     # Prepare text & font
-    try:
-        font = ImageFont.truetype("./assets/fonts/Merienda-Light.ttf", font_size)
-    except OSError:
-        font = ImageFont.load_default(font_size)
-
+    font = get_font(FontType.FANTASY, font_size)
     draw = ImageDraw.Draw(label)
     text = str(number)
 
@@ -299,18 +297,10 @@ TokenGenVerAlignmentChoices = [
 ]
 
 
-class TokenGenCommand(discord.app_commands.Command):
+class TokenGenCommand(SimpleCommand):
     name = "tokengen"
     desc = "Turn an image into a 5e.tools-style token."
     help = "Generates a token image from an image attachment."
-    command = "/tokengen <image-attachment> [hue-shift] [h_alignment] [v_alignment]"
-
-    def __init__(self):
-        super().__init__(
-            name=self.name,
-            description=self.desc,
-            callback=self.callback,
-        )
 
     @app_commands.describe(
         image="The image to turn into a token.",
@@ -332,7 +322,7 @@ class TokenGenCommand(discord.app_commands.Command):
         v_alignment: str = AlignV.CENTER.value,
         variants: app_commands.Range[int, 0, 10] = 0,
     ):
-        log_cmd(itr)
+        self.log(itr)
 
         if not image.content_type.startswith("image"):
             await itr.response.send_message(
@@ -367,18 +357,10 @@ class TokenGenCommand(discord.app_commands.Command):
         )
 
 
-class TokenGenUrlCommand(discord.app_commands.Command):
+class TokenGenUrlCommand(SimpleCommand):
     name = "tokengenurl"
     desc = "Turn an image url into a 5e.tools-style token."
     help = "Generates a token image from an image url."
-    command = "/tokengenurl <image-url> [hue-shift] [h_alignment] [v_alignment]"
-
-    def __init__(self):
-        super().__init__(
-            name=self.name,
-            description=self.desc,
-            callback=self.callback,
-        )
 
     @app_commands.describe(
         url="The image-url to generate a token from.",
@@ -400,7 +382,7 @@ class TokenGenUrlCommand(discord.app_commands.Command):
         v_alignment: str = AlignV.CENTER.value,
         variants: app_commands.Range[int, 0, 10] = 0,
     ):
-        log_cmd(itr)
+        self.log(itr)
 
         if not url.startswith("http"):  # TODO properly validate urls
             await itr.response.send_message(

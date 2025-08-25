@@ -1,7 +1,7 @@
 import dataclasses
 import discord
 
-from logger import log_cmd
+from logic.app_commands import SimpleCommand
 
 
 @dataclasses.dataclass
@@ -109,20 +109,7 @@ class HelpTabList(object):
     DND = HelpTab(
         tab="dnd",
         name="D&D Resources",
-        commands=[
-            "spell",
-            "item",
-            "condition",
-            "creature",
-            "class",
-            "feat",
-            "rule",
-            "action",
-            "language",
-            "background",
-            "table",
-            "search",
-        ],
+        commands=["search"],
         text="You can look up D&D information from [5e.tools](https://5e.tools/) using the following commands:",
         info=[],
     )
@@ -181,6 +168,21 @@ class HelpTabList(object):
         ],
     )
 
+    Config = HelpTab(
+        tab="config",
+        name="Bot configuration",
+        commands=["config"],
+        text="You can configure the bot behavior in your server using the following commands:",
+        info=[
+            (
+                "Server Configuration",
+                [
+                    "The bot can only be configured in servers and will always use the default settings in private messages."
+                ],
+            )
+        ],
+    )
+
     @property
     def tabs(self) -> list[HelpTab]:
         return [
@@ -190,6 +192,7 @@ class HelpTabList(object):
             self.Character,
             self.DND,
             self.Initiative,
+            self.Config,
         ]
 
     @property
@@ -252,6 +255,26 @@ class HelpEmbed(discord.Embed):
         found_tab = HelpTabs.find(tab)
         self.load_tab(found_tab)
 
+    def _get_command_desc_line(
+        self, cmd: discord.app_commands.Command | discord.app_commands.Group
+    ):
+        if isinstance(cmd, discord.app_commands.Command):
+            command_comm = cmd.command
+            command_help = cmd.help
+            return f"``{command_comm}``\n{command_help}\n"
+
+        if isinstance(cmd, discord.app_commands.Group):
+            group_desc = []
+            for group_cmd in cmd.commands:
+                desc = self._get_command_desc_line(group_cmd)
+                group_desc.append(desc)
+
+            return "\n".join(group_desc)
+
+        raise NotImplementedError(
+            f"app_command type '{type(cmd)}' not implemented in _get_command_desc_line!"
+        )
+
     def load_tab(self, tab: HelpTab):
         self.clear_fields()
 
@@ -267,9 +290,8 @@ class HelpEmbed(discord.Embed):
 
         for com in commands:
             command: discord.app_commands.Command = self.tree.get_command(com)
-            command_comm = command.command
-            command_help = command.help
-            commands_desc.append(f"``{command_comm}``\n{command_help}\n")
+            command_desc = self._get_command_desc_line(command)
+            commands_desc.append(command_desc)
 
         self.add_field(name="", value="\n".join(commands_desc), inline=False)
 
@@ -303,24 +325,19 @@ class HelpEmbed(discord.Embed):
         return choices
 
 
-class HelpCommand(discord.app_commands.Command):
+class HelpCommand(SimpleCommand):
     name = "help"
     desc = "Get an overview of all commands."
     help = "Show the help tab for the given section. If no section is provided, this overview is given."
-    command = "/help [tab]"
 
     tree: discord.app_commands.CommandTree
 
     def __init__(self, tree: discord.app_commands.CommandTree):
         self.tree = tree
-        super().__init__(
-            name=self.name,
-            description=self.desc,
-            callback=self.callback,
-        )
+        super().__init__()
 
     @discord.app_commands.choices(tab=HelpEmbed.get_tab_choices())
     async def callback(self, itr: discord.Interaction, tab: str = None):
-        log_cmd(itr)
+        self.log(itr)
         embed = HelpEmbed(self.tree, tab=tab)
         await itr.response.send_message(embed=embed, view=embed.view, ephemeral=True)

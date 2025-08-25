@@ -168,6 +168,21 @@ class HelpTabList(object):
         ],
     )
 
+    Config = HelpTab(
+        tab="config",
+        name="Bot configuration",
+        commands=["config"],
+        text="You can configure the bot behavior in your server using the following commands:",
+        info=[
+            (
+                "Server Configuration",
+                [
+                    "The bot can only be configured in servers and will always use the default settings in private messages."
+                ],
+            )
+        ],
+    )
+
     @property
     def tabs(self) -> list[HelpTab]:
         return [
@@ -177,6 +192,7 @@ class HelpTabList(object):
             self.Character,
             self.DND,
             self.Initiative,
+            self.Config,
         ]
 
     @property

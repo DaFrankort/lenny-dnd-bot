@@ -192,7 +192,7 @@ class HelpTabList(object):
             self.Character,
             self.DND,
             self.Initiative,
-            self.Config
+            self.Config,
         ]
 
     @property

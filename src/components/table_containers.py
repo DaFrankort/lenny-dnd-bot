@@ -5,12 +5,12 @@ from rich.table import Table
 from rich.console import Console
 from discord import ui
 from components.items import SimpleSeparator, TitleTextDisplay
+from components.paginated_view import PaginatedLayoutView
 from dnd import DNDTable
 from embeds import UserActionEmbed
 from logger import log_button_press
-from methods import FontType, build_table, get_font
+from methods import build_table_from_rows
 from voice_chat import VC, SoundType
-from PIL import Image, ImageDraw
 
 
 class DNDTableRollButton(ui.Button):
@@ -54,66 +54,63 @@ class DNDTableRollButton(ui.Button):
         await VC.play(itr, sound_type=SoundType.ROLL)
 
 
-class DNDTableContainerView(ui.LayoutView):
+class DNDTableContainerView(PaginatedLayoutView):
     file: discord.File = None
+    table: DNDTable
+    tables: list[str]
+
+    @property
+    def max_pages(self) -> int:
+        # The max pages are purely depended on the stringified tables
+        return len(self.tables)
 
     def __init__(self, table: DNDTable):
-        super().__init__(timeout=None)
+        super().__init__()
+        self.table = table
+        self.tables = []
+
+        # Calculate the longest sub-tables for the pagination
+        # Not particularly optimal, but tables have a maximum of 100 rows
+        # so it should be fast enough
+        headers = self.table.table["value"]["headers"]
+        rows = self.table.table["value"]["rows"]
+        rows_end = len(rows)
+        while len(rows) > 0:
+            built = build_table_from_rows(headers, rows[:rows_end])
+            if len(built) < 4000:
+                self.tables.append(built)
+                rows = rows[rows_end:]
+                rows_end = len(rows)
+            else:
+                rows_end -= 1
+
+        self.build()
+
+    def build(self) -> None:
+        self.clear_items()
         container = ui.Container(accent_color=discord.Color.dark_green())
 
         title_display = TitleTextDisplay(
-            name=table.name, source=table.source, url=table.url
+            name=self.table.name, source=self.table.source, url=self.table.url
         )
-        if table.is_rollable:
+        if self.table.is_rollable:
             title_section = ui.Section(
-                title_display, accessory=DNDTableRollButton(table)
+                title_display, accessory=DNDTableRollButton(self.table)
             )
             container.add_item(title_section)
         else:
             container.add_item(title_display)
 
-        table_string = build_table(table.table["value"])
-        if len(table_string) < 4000:
-            table_display = ui.TextDisplay(table_string)
-            container.add_item(table_display)
-        else:
-            container.add_item(SimpleSeparator())
+        table_string = self.tables[self.page]
+        table_display = ui.TextDisplay(table_string)
+        container.add_item(table_display)
 
-            table_string = build_table(
-                table.table["value"], 112, True
-            )  # Rebuild table, but wider
-            font_size = 64
-            padding = font_size // 2
-            font = get_font(FontType.MONOSPACE, font_size)
-            lines = table_string.replace("```", "").splitlines()
-
-            # Calculate image dimensions
-            max_width = max([font.getlength(line) for line in lines])
-            line_height = int((font.getbbox("A")[3] - font.getbbox("A")[1]) * 1.5)
-            img_height = line_height * len(lines) + 4 * padding
-            img_width = int(max_width) + 4 * padding
-
-            # Draw image with text
-            img = Image.new("RGB", (img_width, img_height), color=(10, 10, 25))
-            draw = ImageDraw.Draw(img)
-            y = padding
-            for line in lines:
-                draw.text((padding * 2, y), line, font=font, fill="white")
-                y += line_height
-
-            buffer = io.BytesIO()
-            img.save(buffer, format="PNG")
-            buffer.seek(0)
-            self.file = discord.File(
-                fp=buffer, filename=table.name.lower().replace(" ", "_") + ".png"
-            )
-
-            container.add_item(
-                ui.MediaGallery(discord.MediaGalleryItem(media=self.file))
-            )
-
-        if table.footnotes:
-            for footnote in table.footnotes:
+        if self.table.footnotes:
+            for footnote in self.table.footnotes:
                 container.add_item(ui.TextDisplay(f"-# {footnote}"))
+
+        if len(self.tables) > 1:
+            container.add_item(SimpleSeparator())
+            container.add_item(self.navigation_footer())
 
         self.add_item(container)

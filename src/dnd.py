@@ -589,7 +589,7 @@ class DNDTable(DNDObject):
 
     @abstractmethod
     def get_embed(self, itr: discord.Interaction) -> discord.Embed:
-        from components.containers import DNDTableContainerView
+        from components.table_containers import DNDTableContainerView
 
         return DNDTableContainerView(self)
 

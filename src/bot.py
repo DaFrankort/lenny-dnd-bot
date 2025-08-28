@@ -22,6 +22,7 @@ from commands.shortcut import ShortcutCommand
 from commands.stats import StatsCommandGroup
 from commands.tokengen import TokenGenCommand, TokenGenUrlCommand
 from context_menus.delete import DeleteContextMenu
+from context_menus.request_timestamp import RequestTimestampContextMenu
 from context_menus.reroll import RerollContextMenu
 
 
@@ -85,6 +86,7 @@ class Bot(discord.Client):
         # Context menus
         self.tree.add_command(DeleteContextMenu())
         self.tree.add_command(RerollContextMenu())
+        self.tree.add_command(RequestTimestampContextMenu())
 
         logging.info("Registered slash-commands")
 

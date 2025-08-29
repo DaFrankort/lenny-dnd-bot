@@ -225,7 +225,13 @@ class TestBotCommands:
             ("help", {}),
             (
                 "timestamp relative",
-                {"s": [0, 30], "m": [0, 30], "h": [0, 12], "d": [0, 5], "w": [0, 4]},
+                {
+                    "seconds": [0, 30],
+                    "minutes": [0, 30],
+                    "hours": [0, 12],
+                    "days": [0, 5],
+                    "weeks": [0, 4],
+                },
             ),
             (
                 "timestamp date",

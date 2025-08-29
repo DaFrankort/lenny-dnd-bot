@@ -36,30 +36,30 @@ class TimestampRelativeCommand(SimpleCommand):
     async def callback(
         self,
         itr: discord.Interaction,
-        s: discord.app_commands.Range[int, 0, 60] = 0,
-        m: discord.app_commands.Range[int, 0, 60] = 0,
-        h: discord.app_commands.Range[int, 0, 24] = 0,
-        d: discord.app_commands.Range[int, 0, 7] = 0,
-        w: discord.app_commands.Range[int, 0, 54] = 0,
+        seconds: discord.app_commands.Range[int, 0, 60] = 0,
+        minutes: discord.app_commands.Range[int, 0, 60] = 0,
+        hours: discord.app_commands.Range[int, 0, 24] = 0,
+        days: discord.app_commands.Range[int, 0, 7] = 0,
+        weeks: discord.app_commands.Range[int, 0, 54] = 0,
     ):
-        seconds = (
-            s * multipliers["s"]
-            + m * multipliers["m"]
-            + h * multipliers["h"]
-            + d * multipliers["d"]
-            + w * multipliers["w"]
+        total_seconds = (
+            seconds * multipliers["s"]
+            + minutes * multipliers["m"]
+            + hours * multipliers["h"]
+            + days * multipliers["d"]
+            + weeks * multipliers["w"]
         )
 
-        if seconds == 0:
+        if total_seconds == 0:
             await send_error_message(itr, "You must specify a time!")
 
         now = discord.utils.utcnow().replace(second=0, microsecond=0)
         base_time = int(now.timestamp())
-        unix_timestamp = base_time + seconds
+        unix_timestamp = base_time + total_seconds
         timestamp = f"<t:{unix_timestamp}:R>"
 
         embed = RelativeTimestampEmbed(timestamp=timestamp)
-        await itr.response.send_message(embed=embed)
+        await itr.response.send_message(embed=embed, ephemeral=True)
 
 
 class TimestampButton(discord.ui.Button):
@@ -133,4 +133,4 @@ class TimestampDateCommand(SimpleCommand):
         unix_timestamp = int(dt_utc.replace(tzinfo=datetime.timezone.utc).timestamp())
 
         view = TimestampDatesContainerView(unix_timestamp)
-        await itr.response.send_message(view=view)
+        await itr.response.send_message(view=view, ephemeral=True)

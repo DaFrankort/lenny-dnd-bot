@@ -1,7 +1,7 @@
 import re
 import discord
-from embeds import SimpleEmbed
 from logic.app_commands import SimpleContextMenu, send_error_message
+from logic.time import TIME_MULTIPLIERS, RelativeTimestampEmbed, get_relative_timestamp
 
 
 class RequestTimestampContextMenu(SimpleContextMenu):
@@ -25,24 +25,13 @@ class RequestTimestampContextMenu(SimpleContextMenu):
             )
             return
 
-        multipliers = {
-            "s": 1,
-            "m": 60,
-            "h": 3600,
-            "d": 86400,
-            "w": 604800,
-        }
-
         seconds = 0
         for amount, unit in matches:
             unit = unit.lower()
-            if unit not in multipliers:
+            if unit not in TIME_MULTIPLIERS:
                 continue
-            seconds += int(amount) * multipliers[unit]
+            seconds += float(amount) * TIME_MULTIPLIERS[unit]
 
-        base_time = int(message.created_at.timestamp())
-        unix_timestamp = base_time + seconds
-        timestamp = f"<t:{unix_timestamp}:R>"
-
-        embed = SimpleEmbed(title=timestamp, description=f"```{timestamp}```")
+        timestamp = get_relative_timestamp(message.created_at(), seconds)
+        embed = RelativeTimestampEmbed(timestamp=timestamp)
         await itr.response.send_message(embed=embed, ephemeral=True)

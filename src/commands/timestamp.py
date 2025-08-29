@@ -1,21 +1,8 @@
 import datetime
 import discord
 from components.items import TitleTextDisplay
-from embeds import SimpleEmbed
 from logic.app_commands import SimpleCommand, SimpleCommandGroup, send_error_message
-
-multipliers = {
-    "s": 1,
-    "m": 60,
-    "h": 3600,
-    "d": 86400,
-    "w": 604800,
-}
-
-
-class RelativeTimestampEmbed(SimpleEmbed):
-    def __init__(self, timestamp: str):
-        super().__init__(title=timestamp, description=f"```{timestamp}```")
+from logic.time import TIME_MULTIPLIERS, RelativeTimestampEmbed, get_relative_timestamp
 
 
 class TimestampCommandGroup(SimpleCommandGroup):
@@ -38,7 +25,7 @@ class TimestampRelativeCommand(SimpleCommand):
         minutes="Minutes from now (0-60)",
         hours="Hours from now (0-24)",
         days="Days from now (0-7)",
-        weeks="Weeks from now (0-999)"
+        weeks="Weeks from now (0-999)",
     )
     async def callback(
         self,
@@ -50,21 +37,18 @@ class TimestampRelativeCommand(SimpleCommand):
         weeks: discord.app_commands.Range[int, 0, 999] = 0,
     ):
         total_seconds = (
-            seconds * multipliers["s"]
-            + minutes * multipliers["m"]
-            + hours * multipliers["h"]
-            + days * multipliers["d"]
-            + weeks * multipliers["w"]
+            seconds * TIME_MULTIPLIERS["s"]
+            + minutes * TIME_MULTIPLIERS["m"]
+            + hours * TIME_MULTIPLIERS["h"]
+            + days * TIME_MULTIPLIERS["d"]
+            + weeks * TIME_MULTIPLIERS["w"]
         )
 
         if total_seconds == 0:
             await send_error_message(itr, "You must specify a time!")
+            return
 
-        now = discord.utils.utcnow().replace(second=0, microsecond=0)
-        base_time = int(now.timestamp())
-        unix_timestamp = base_time + total_seconds
-        timestamp = f"<t:{unix_timestamp}:R>"
-
+        timestamp = get_relative_timestamp(discord.utils.utcnow(), seconds)
         embed = RelativeTimestampEmbed(timestamp=timestamp)
         await itr.response.send_message(embed=embed, ephemeral=True)
 
@@ -106,9 +90,9 @@ class TimestampDateCommand(SimpleCommand):
     help = "Will generate all variants of timestamps to copy paste in discord."
 
     @discord.app_commands.describe(
-        time="Time in HHMM format (e.g. 0930 or 15:45).",
+        time="Time in HHMM or HH format (e.g. 930, 15:45 or 20).",
         timezone="Timezone offset from UTC (between -14 and +14).",
-        date="Optional date in DD/MM/YYYY format (defaults to today)."
+        date="Optional date in DD/MM/YYYY format (defaults to today).",
     )
     async def callback(
         self,
@@ -119,18 +103,27 @@ class TimestampDateCommand(SimpleCommand):
     ):
         base_date = discord.utils.utcnow().date()
         if date:
+            date = date.strip()
             try:
+                if len(date) == 5:  # DD/MM => 5 characters
+                    year = discord.utils.utcnow().year
+                    date = f"{date}/{year}"
                 base_date = datetime.datetime.strptime(date, "%d/%m/%Y").date()
             except Exception as e:
                 await send_error_message(itr, f"Invalid input: {e}")
                 return
 
-        time = time.replace(":", "")
-        if not time.isdigit() or len(time) != 4:
+        time = time.replace(":", "").strip()
+        if not time.isdigit() or not (1 <= len(time) <= 4):
             await send_error_message(
-                itr, "Time must be in HHMM format (e.g. `0930` or `15:45`)."
+                itr,
+                "Time must be in HHMM or HH format (e.g. `0930`, `15:45`, `700`, or `7`).",
             )
             return
+
+        if len(time) <= 2:
+            time = f"{time}00"
+        time = time.zfill(4)
 
         hours, minutes = divmod(int(time), 100)
         try:

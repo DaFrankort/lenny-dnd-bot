@@ -231,9 +231,9 @@ class TestBotCommands:
                 "timestamp date",
                 [
                     {
-                        "time": ["1240", "7:40"],
+                        "time": ["1838", "7:40"],
                         "timezone": [2, -6],
-                        "date": [None, "21/02/2025"],
+                        "date": [None, "05/03/2025"],
                     },
                     {"time": "Wrong", "timezone": 0},
                 ],

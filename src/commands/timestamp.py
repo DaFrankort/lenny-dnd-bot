@@ -92,7 +92,7 @@ class TimestampDateCommand(SimpleCommand):
     @discord.app_commands.describe(
         time="Time in HHMM or HH format (e.g. 930, 15:45 or 20).",
         timezone="Timezone offset from UTC (between -14 and +14).",
-        date="Optional date in DD/MM/YYYY format (defaults to today).",
+        date="Optional date in DD/MM/YYYY or DD/MM format (defaults to today).",
     )
     async def callback(
         self,
@@ -103,7 +103,7 @@ class TimestampDateCommand(SimpleCommand):
     ):
         base_date = discord.utils.utcnow().date()
         if date:
-            date = date.strip()
+            date = date.replace(".", "/").strip()
             try:
                 if len(date) == 5:  # DD/MM => 5 characters
                     year = discord.utils.utcnow().year

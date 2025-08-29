@@ -33,6 +33,13 @@ class TimestampRelativeCommand(SimpleCommand):
     desc = "Generate a 'in x'-style timestamp, relative from when you use this command."
     help = "Generates a relative timestamp like this example: <t:2102148000:R>"
 
+    @discord.app_commands.describe(
+        seconds="Seconds from now (0-60)",
+        minutes="Minutes from now (0-60)",
+        hours="Hours from now (0-24)",
+        days="Days from now (0-7)",
+        weeks="Weeks from now (0-999)"
+    )
     async def callback(
         self,
         itr: discord.Interaction,
@@ -40,7 +47,7 @@ class TimestampRelativeCommand(SimpleCommand):
         minutes: discord.app_commands.Range[int, 0, 60] = 0,
         hours: discord.app_commands.Range[int, 0, 24] = 0,
         days: discord.app_commands.Range[int, 0, 7] = 0,
-        weeks: discord.app_commands.Range[int, 0, 54] = 0,
+        weeks: discord.app_commands.Range[int, 0, 999] = 0,
     ):
         total_seconds = (
             seconds * multipliers["s"]
@@ -98,6 +105,11 @@ class TimestampDateCommand(SimpleCommand):
     desc = "Generate a timestamp which is synced between timezones."
     help = "Will generate all variants of timestamps to copy paste in discord."
 
+    @discord.app_commands.describe(
+        time="Time in HHMM format (e.g. 0930 or 15:45).",
+        timezone="Timezone offset from UTC (between -14 and +14).",
+        date="Optional date in DD/MM/YYYY format (defaults to today)."
+    )
     async def callback(
         self,
         itr: discord.Interaction,

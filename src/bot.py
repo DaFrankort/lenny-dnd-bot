@@ -20,9 +20,10 @@ from commands.rolls import (
 from commands.search import SearchCommandGroup
 from commands.shortcut import ShortcutCommand
 from commands.stats import StatsCommandGroup
+from commands.timestamp import TimestampCommandGroup
 from commands.tokengen import TokenGenCommand, TokenGenUrlCommand
 from context_menus.delete import DeleteContextMenu
-from context_menus.request_timestamp import RequestTimestampContextMenu
+from context_menus.timestamp import RequestTimestampContextMenu
 from context_menus.reroll import RerollContextMenu
 
 
@@ -82,6 +83,7 @@ class Bot(discord.Client):
         self.tree.add_command(NameGenCommand(data=self.data))
         self.tree.add_command(ConfigCommand())
         self.tree.add_command(SearchCommandGroup(data=self.data))
+        self.tree.add_command(TimestampCommandGroup())
 
         # Context menus
         self.tree.add_command(DeleteContextMenu())

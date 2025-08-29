@@ -104,13 +104,29 @@ class TimestampDateCommand(SimpleCommand):
         base_date = discord.utils.utcnow().date()
         if date:
             date = date.replace(".", "/").strip()
+            parts = date.split("/")
+
             try:
-                if len(date) == 5:  # DD/MM => 5 characters
+                if len(parts) == 1:  # DD
+                    day = int(parts[0])
+                    month = discord.utils.utcnow().month
                     year = discord.utils.utcnow().year
-                    date = f"{date}/{year}"
+                    date = f"{day:02d}/{month:02d}/{year}"
+                elif len(parts) == 2:  # DD/MM
+                    day, month = map(int, parts)
+                    year = discord.utils.utcnow().year
+                    date = f"{day:02d}/{month:02d}/{year}"
+                elif len(parts) == 3:  # DD/MM/YYYY
+                    pass
+                else:
+                    raise ValueError("Invalid date format")
+
                 base_date = datetime.datetime.strptime(date, "%d/%m/%Y").date()
-            except Exception as e:
-                await send_error_message(itr, f"Invalid input: {e}")
+            except Exception:
+                await send_error_message(
+                    itr,
+                    "Date must be in `DD`, `DD/MM`, or `DD/MM/YYYY` format, and must be a valid date!",
+                )
                 return
 
         time = time.replace(":", "").strip()

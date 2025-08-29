@@ -223,6 +223,21 @@ class TestBotCommands:
                 {"sound": [mock_sound(), mock_image()]},
             ),
             ("help", {}),
+            (
+                "timestamp relative",
+                {"s": [0, 30], "m": [0, 30], "h": [0, 12], "d": [0, 5], "w": [0, 4]},
+            ),
+            (
+                "timestamp date",
+                [
+                    {
+                        "time": ["1240", "7:40"],
+                        "timezone": [2, -6],
+                        "date": [None, "21/02/2025"],
+                    },
+                    {"time": "Wrong", "timezone": 0},
+                ],
+            ),
             # ("", {"": "", "": ""}),
         ],
     )

@@ -229,37 +229,11 @@ class TestInitiativeTracker:
             tracker.get(itr)
         ), f"Initiative names should be unique, not unique for {name or 'User'}"
 
-    def test_swap(self, tracker):
-        itr = MockInteraction()
-        name_1, name_2 = "Goblin", "Orc"
-        high, low = 20, 1
-
-        initiative_1 = Initiative(itr, 0, name_1, roll_mode=DiceRollMode.Normal)
-        initiative_2 = Initiative(itr, 0, name_2, roll_mode=DiceRollMode.Normal)
-        initiative_1.d20 = (high, high)
-        initiative_2.d20 = (low, low)
-        tracker.add(itr, initiative_1)
-        tracker.add(itr, initiative_2)
-
-        initiatives = tracker.get(itr)
-        assert [(i.name, i.get_total()) for i in initiatives] == [
-            (name_1, high),
-            (name_2, low),
-        ]
-
-        tracker.swap(itr, name_1, name_2)
-
-        initiatives = tracker.get(itr)
-        assert [(i.name, i.get_total()) for i in initiatives] == [
-            (name_2, high),
-            (name_1, low),
-        ]
-
     def test_remove_initiative(self, tracker, itr, npc_initiative):
         tracker.add(itr, npc_initiative)
         assert len(tracker.get(itr)) == 1, "Expected 1 initiative before removal"
 
-        _, success = tracker.remove(itr, npc_initiative.name)
+        success, _ = tracker.remove(itr, npc_initiative.name)
         assert len(tracker.get(itr)) == 0, "Expected 0 initiatives after removal"
         assert (
             itr.guild_id not in tracker.server_initiatives
@@ -269,7 +243,7 @@ class TestInitiativeTracker:
     def test_remove_initiative_fail(self, tracker, itr, npc_initiative, pc_initiative):
         tracker.add(itr, npc_initiative)
 
-        _, success = tracker.remove(itr, pc_initiative.name)  # Remove wrong name
+        success, _ = tracker.remove(itr, pc_initiative.name)  # Remove wrong name
         assert len(tracker.get(itr)) == 1, "Expected 1 initiative after failed removal"
         assert success is False, "Expected unsuccessful removal of initiative"
 

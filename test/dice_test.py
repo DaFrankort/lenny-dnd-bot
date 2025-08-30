@@ -166,7 +166,7 @@ class TestDiceExpressionCache:
         ), f"User ID {user_id} should not be in cache for invalid expression."
 
     def test_store_shortcut_valid(self, itr):
-        description, success = DiceExpressionCache.store_shortcut(
+        success, description = DiceExpressionCache.store_shortcut(
             itr, "quickattack", "1d6+3", "Fast strike"
         )
 
@@ -177,7 +177,7 @@ class TestDiceExpressionCache:
         assert success is True, "Success should be True for valid shortcut."
 
     def test_store_shortcut_invalid(self, itr):
-        description, success = DiceExpressionCache.store_shortcut(
+        success, description = DiceExpressionCache.store_shortcut(
             itr, "failshot", "1d8+WRONG", None
         )
 
@@ -190,7 +190,7 @@ class TestDiceExpressionCache:
             }
         }
 
-        desc, success = DiceExpressionCache.remove_shortcut(itr, "fireball")
+        success, desc = DiceExpressionCache.remove_shortcut(itr, "fireball")
         assert success is True, "Shortcut should be removed successfully."
         assert (
             "fireball" not in DiceExpressionCache._data[str(itr.user.id)]["shortcuts"]
@@ -198,7 +198,7 @@ class TestDiceExpressionCache:
 
     def test_remove_shortcut_fail(self, itr):
         DiceExpressionCache._data = {}
-        desc, success = DiceExpressionCache.remove_shortcut(itr, "doesnotexist")
+        success, desc = DiceExpressionCache.remove_shortcut(itr, "doesnotexist")
         assert (
             success is False
         ), "Should return False when trying to remove non-existent shortcut."

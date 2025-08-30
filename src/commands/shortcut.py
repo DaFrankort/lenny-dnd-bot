@@ -55,7 +55,7 @@ class DiceShortcutAddModal(SimpleModal):
         notation = self.get_str(self.notation)
         reason = self.get_str(self.reason)
 
-        description, success = DiceExpressionCache.store_shortcut(
+        success, description = DiceExpressionCache.store_shortcut(
             itr, name, notation, reason
         )
         await update_shortcut_embed(itr)
@@ -101,7 +101,7 @@ class DiceShortcutEditModal(SimpleModal):
         notation = self.get_str(self.notation)
         reason = self.get_str(self.reason)
 
-        description, success = DiceExpressionCache.store_shortcut(
+        success, description = DiceExpressionCache.store_shortcut(
             itr, self.name, notation, reason
         )
 
@@ -194,7 +194,7 @@ class ShortcutRemoveSelect(discord.ui.Select):
 
     async def callback(self, itr: discord.Interaction):
         name = str(self.values[0])
-        description, success = DiceExpressionCache.remove_shortcut(itr, name)
+        success, description = DiceExpressionCache.remove_shortcut(itr, name)
 
         await update_shortcut_embed(itr)
 

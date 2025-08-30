@@ -370,14 +370,14 @@ class DiceExpressionCache:
     @classmethod
     def store_shortcut(
         cls, itr: Interaction, name: str, dice_notation: str, reason: str | None
-    ) -> tuple[str, bool]:
+    ) -> tuple[bool, str]:
         """
         Stores a new roll-shortcut, overwrites it if the name already exists.
         Returns a description and a boolean indicating success.
         """
         expression = DiceExpression(dice_notation, DiceRollMode.Normal, reason)
         if len(expression.roll.errors) > 0:
-            return expression.description, False  # Only insert valid notations
+            return False, expression.description  # Only insert valid notations
 
         user_id = str(itr.user.id)
         data = cls._load_data()
@@ -392,28 +392,28 @@ class DiceExpressionCache:
         cls._save_data()
 
         if not reason:
-            return f"- Expression: ``{dice_notation}``", True
-        return f"- Expression: {dice_notation}\n- Reason: {reason}", True
+            return True, f"- Expression: ``{dice_notation}``"
+        return True, f"- Expression: {dice_notation}\n- Reason: {reason}"
 
     @classmethod
-    def remove_shortcut(cls, itr: Interaction, name: str) -> tuple[str, bool]:
+    def remove_shortcut(cls, itr: Interaction, name: str) -> tuple[bool, str]:
         """Removes a shortcut for a user. Returns a description and a success bool."""
         user_id = str(itr.user.id)
         data = cls._load_data()
         user_data = data.get(user_id)
 
         if not user_data or "shortcuts" not in user_data:
-            return "You don't have any shortcuts...", False
+            return False, "You don't have any shortcuts..."
 
         if name not in user_data["shortcuts"]:
             return (
-                f"Shortcut by name {name} could not be found, already deleted?",
                 False,
+                f"Shortcut by name {name} could not be found, already deleted?",
             )
 
         del user_data["shortcuts"][name]
         cls._save_data()
-        return f"Removed shortcut ``{name}`` from your shortcuts!", True
+        return True, f"Removed shortcut ``{name}`` from your shortcuts!"
 
     @classmethod
     def get_shortcut(cls, itr: Interaction, name: str) -> object | None:

@@ -208,69 +208,11 @@ class InitiativeTracker:
         )  # Sort by query match => fuzzy score => alphabetically
         return [choice for _, _, choice in choices[:limit]]
 
-    def swap(self, itr: Interaction, target_a: str, target_b: str) -> tuple[str, bool]:
-        """
-        ## DEPRECATED, NOT USED RIGHT NOW ALTHOUGH MAY BE RE-IMPLEMENTED IN THE FUTURE? ##
-
-        Swaps the initiative values between two initiatives identified by their names.
-        Returns a tuple containing a message string explaining the result of the swap and a boolean indicating whether the swap was successful.
-        """
-
-        target_a = self._sanitize_name(target_a)
-        target_b = self._sanitize_name(target_b)
-
-        if target_a == target_b:
-            return (
-                f"Cannot swap target with itself!\n``{target_a}`` was specified twice.",
-                False,
-            )
-
-        index_a = -1
-        index_b = -1
-        for i, initiative in enumerate(self.get(itr)):
-            name = self._sanitize_name(initiative.name)
-            if name == target_a:
-                index_a = i
-            if name == target_b:
-                index_b = i
-
-        if index_a == -1 and index_b == -1:
-            return (
-                f"No initiatives found matching ``{target_a}`` or ``{target_b}``.\nMake sure targets are exact name-matches.",
-                False,
-            )
-        elif index_a == -1:
-            return (
-                f"No initiatives found matching ``{target_a}``.\nMake sure targets are exact name-matches.",
-                False,
-            )
-        elif index_b == -1:
-            return (
-                f"No initiatives found matching ``{target_b}``.\nMake sure targets are exact name-matches.",
-                False,
-            )
-
-        initiatives = self.get(itr)
-        initiative_a = initiatives[index_a]
-        initiative_b = initiatives[index_b]
-
-        prev_total_a = initiative_a.get_total()  # pre-swap values
-        initiative_a.set_value(initiative_b.get_total())
-        initiative_b.set_value(prev_total_a)
-
-        guild_id = itr.guild_id  # Swap initiatives
-        self.server_initiatives[guild_id][index_a] = initiative_b
-        self.server_initiatives[guild_id][index_b] = initiative_a
-        return (
-            f"``{initiative_a.name}`` <=> ``{initiative_b.name}``",
-            True,
-        )
-
-    def remove(self, itr: Interaction, name: str | None) -> tuple[str, bool]:
+    def remove(self, itr: Interaction, name: str | None) -> tuple[bool, str]:
         """Remove an initiative from the list. Returns a message and a success flag."""
         guild_id = int(itr.guild_id)
         if guild_id not in self.server_initiatives:
-            return f"No initiatives to remove in {itr.guild.name.title()}.", False
+            return False, f"No initiatives to remove in {itr.guild.name.title()}."
 
         if name is None:
             name = itr.user.display_name
@@ -285,8 +227,8 @@ class InitiativeTracker:
 
         if removal_index == -1:
             return (
-                f"No initiatives found matching ``{name}``.\n Make sure targets are exact name-matches.",
                 False,
+                f"No initiatives found matching ``{name}``.\n Make sure targets are exact name-matches.",
             )
 
         if removal_index != -1:
@@ -296,10 +238,10 @@ class InitiativeTracker:
             del self.server_initiatives[guild_id]
 
         if sanitized_name == self._sanitize_name(itr.user.display_name):
-            return f"{itr.user.display_name} removed their own Initiative.", True
+            return True, f"{itr.user.display_name} removed their own Initiative."
         return (
-            f"{itr.user.display_name} removed Initiative for ``{name.title()}``.",
             True,
+            f"{itr.user.display_name} removed Initiative for ``{name.title()}``.",
         )
 
     def add_bulk(
@@ -466,7 +408,7 @@ class InitiativeDeleteModal(_InitiativeModal):
         self.log_inputs(itr)
 
         name = self.get_str(self.name)
-        text, success = self.tracker.remove(itr, name)
+        success, text = self.tracker.remove(itr, name)
         view = InitiativeContainerView(itr, self.tracker)
 
         if success:

@@ -238,7 +238,7 @@ class InitiativeTracker:
             del self.server_initiatives[guild_id]
 
         if sanitized_name == self._sanitize_name(itr.user.display_name):
-            return f"{itr.user.display_name} removed their own Initiative.", True
+            return True, f"{itr.user.display_name} removed their own Initiative."
         return (
             True,
             f"{itr.user.display_name} removed Initiative for ``{name.title()}``.",

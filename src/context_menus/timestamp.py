@@ -18,7 +18,9 @@ class RequestTimestampContextMenu(SimpleContextMenu):
             )
             return
 
-        matches = re.findall(r"(\d+)\s*([smhdw])", message.content, re.IGNORECASE)
+        matches = re.findall(
+            r"(\d+(?:[.,]\d+)?)\s*([smhdw])", message.content, re.IGNORECASE
+        )
         if not matches:
             await send_error_message(
                 itr, "Couldn't find any mention of times in that message."
@@ -30,8 +32,9 @@ class RequestTimestampContextMenu(SimpleContextMenu):
             unit = unit.lower()
             if unit not in TIME_MULTIPLIERS:
                 continue
+            amount = amount.replace(",", ".")
             seconds += float(amount) * TIME_MULTIPLIERS[unit]
 
-        timestamp = get_relative_timestamp(message.created_at(), seconds)
+        timestamp = get_relative_timestamp(message.created_at, seconds)
         embed = RelativeTimestampEmbed(timestamp=timestamp)
         await itr.response.send_message(embed=embed, ephemeral=True)

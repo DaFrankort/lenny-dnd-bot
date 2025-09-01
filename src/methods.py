@@ -1,6 +1,7 @@
 from enum import Enum
 import io
 import logging
+from typing import Iterable
 import rich
 from rich.table import Table
 from rich.console import Console
@@ -45,6 +46,15 @@ def build_table(value, width: int | None = 56, show_lines: bool = False) -> str:
     buffer.close()
 
     return table_string
+
+
+def build_table_from_rows(
+    headers: list[str],
+    rows: list[Iterable[str]],
+    width: int | None = 56,
+    show_lines: bool = False,
+) -> str:
+    return build_table({"headers": headers, "rows": rows}, width, show_lines)
 
 
 class FontType(Enum):

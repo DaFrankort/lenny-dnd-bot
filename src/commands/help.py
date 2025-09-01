@@ -85,7 +85,7 @@ class HelpTabList(object):
     Utility = HelpTab(
         tab="utility",
         name="Discord Utilities",
-        commands=["color", "plansession", "playsound"],
+        commands=["color", "plansession", "playsound", "timestamp"],
         text=None,
         info=[
             (

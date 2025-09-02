@@ -6,7 +6,6 @@ from dnd import DNDData
 
 
 class TestDndData:
-    dnd_data = DNDData()
     queries: list[str] = [
         "fireball",
         "dagger",
@@ -27,7 +26,7 @@ class TestDndData:
     def test_dnddatalist_search(self):
         sources = Config.allowed_sources(server=self.server)
         for query in self.queries:
-            for data in self.dnd_data:
+            for data in DNDData.instance():
                 try:
                     data.search(query, allowed_sources=sources)
                 except Exception:
@@ -39,6 +38,6 @@ class TestDndData:
         sources = Config.allowed_sources(server=self.server)
         for query in self.queries:
             try:
-                self.dnd_data.search(query, allowed_sources=sources)
+                DNDData.search(query, allowed_sources=sources)
             except Exception:
                 assert False, "search_from_query threw an error."

@@ -880,4 +880,4 @@ class DNDSearchResults(object):
         return len(self.get_all())
 
 
-Data = DNDData()  # Global Object
+Data = DNDData()

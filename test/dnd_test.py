@@ -2,11 +2,10 @@ from unittest.mock import MagicMock
 import discord
 import pytest_asyncio
 from config import Config
-from dnd import DNDData
+from dnd import Data
 
 
 class TestDndData:
-    dnd_data = DNDData()
     queries: list[str] = [
         "fireball",
         "dagger",
@@ -27,7 +26,7 @@ class TestDndData:
     def test_dnddatalist_search(self):
         sources = Config.allowed_sources(server=self.server)
         for query in self.queries:
-            for data in self.dnd_data:
+            for data in Data:
                 try:
                     data.search(query, allowed_sources=sources)
                 except Exception:
@@ -39,6 +38,6 @@ class TestDndData:
         sources = Config.allowed_sources(server=self.server)
         for query in self.queries:
             try:
-                self.dnd_data.search(query, allowed_sources=sources)
+                Data.search(query, allowed_sources=sources)
             except Exception:
                 assert False, "search_from_query threw an error."

@@ -4,7 +4,7 @@ import discord
 
 from logic.app_commands import SimpleCommand, SimpleCommandGroup
 from config import Config
-from dnd import DNDData, DNDObject, send_dnd_embed
+from dnd import DNDObject, Data, send_dnd_embed
 from embeds import MultiDNDSelectView, NoResultsFoundEmbed
 from search import SearchLayoutView
 
@@ -37,13 +37,13 @@ class SearchSpellCommand(SimpleCommand):
 
     async def name_autocomplete(self, itr: discord.Interaction, current: str):
         sources = Config.allowed_sources(server=itr.guild)
-        return DNDData.instance().spells.get_autocomplete_suggestions(current, sources)
+        return Data.spells.get_autocomplete_suggestions(current, sources)
 
     @discord.app_commands.autocomplete(name=name_autocomplete)
     async def callback(self, itr: discord.Interaction, name: str):
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
-        found = DNDData.instance().spells.get(name, sources)
+        found = Data.spells.get(name, sources)
         await send_DNDObject_lookup_result(itr, "spells", found, name)
 
 
@@ -54,13 +54,13 @@ class SearchItemCommand(SimpleCommand):
 
     async def name_autocomplete(self, itr: discord.Interaction, current: str):
         sources = Config.allowed_sources(server=itr.guild)
-        return DNDData.instance().items.get_autocomplete_suggestions(current, sources)
+        return Data.items.get_autocomplete_suggestions(current, sources)
 
     @discord.app_commands.autocomplete(name=name_autocomplete)
     async def callback(self, itr: discord.Interaction, name: str):
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
-        found = DNDData.instance().items.get(name, sources)
+        found = Data.items.get(name, sources)
         await send_DNDObject_lookup_result(itr, "items", found, name)
 
 
@@ -71,15 +71,13 @@ class SearchConditionCommand(SimpleCommand):
 
     async def name_autocomplete(self, itr: discord.Interaction, current: str):
         sources = Config.allowed_sources(server=itr.guild)
-        return DNDData.instance().conditions.get_autocomplete_suggestions(
-            current, sources
-        )
+        return Data.conditions.get_autocomplete_suggestions(current, sources)
 
     @discord.app_commands.autocomplete(name=name_autocomplete)
     async def callback(self, itr: discord.Interaction, name: str):
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
-        found = DNDData.instance().conditions.get(name, sources)
+        found = Data.conditions.get(name, sources)
         await send_DNDObject_lookup_result(itr, "conditions", found, name)
 
 
@@ -90,15 +88,13 @@ class SearchCreatureCommand(SimpleCommand):
 
     async def name_autocomplete(self, itr: discord.Interaction, current: str):
         sources = Config.allowed_sources(server=itr.guild)
-        return DNDData.instance().creatures.get_autocomplete_suggestions(
-            current, sources
-        )
+        return Data.creatures.get_autocomplete_suggestions(current, sources)
 
     @discord.app_commands.autocomplete(name=name_autocomplete)
     async def callback(self, itr: discord.Interaction, name: str):
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
-        found = DNDData.instance().creatures.get(name, sources)
+        found = Data.creatures.get(name, sources)
         await send_DNDObject_lookup_result(itr, "creatures", found, name)
 
 
@@ -109,13 +105,13 @@ class SearchClassCommand(SimpleCommand):
 
     async def name_autocomplete(self, itr: discord.Interaction, current: str):
         sources = Config.allowed_sources(server=itr.guild)
-        return DNDData.instance().classes.get_autocomplete_suggestions(current, sources)
+        return Data.classes.get_autocomplete_suggestions(current, sources)
 
     @discord.app_commands.autocomplete(name=name_autocomplete)
     async def callback(self, itr: discord.Interaction, name: str):
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
-        found = DNDData.instance().classes.get(name, sources)
+        found = Data.classes.get(name, sources)
         await send_DNDObject_lookup_result(itr, "classes", found, name)
 
 
@@ -126,13 +122,13 @@ class SearchRuleCommand(SimpleCommand):
 
     async def name_autocomplete(self, itr: discord.Interaction, current: str):
         sources = Config.allowed_sources(server=itr.guild)
-        return DNDData.instance().rules.get_autocomplete_suggestions(current, sources)
+        return Data.rules.get_autocomplete_suggestions(current, sources)
 
     @discord.app_commands.autocomplete(name=name_autocomplete)
     async def callback(self, itr: discord.Interaction, name: str):
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
-        found = DNDData.instance().rules.get(name, sources)
+        found = Data.rules.get(name, sources)
         await send_DNDObject_lookup_result(itr, "rules", found, name)
 
 
@@ -143,13 +139,13 @@ class SearchActionCommand(SimpleCommand):
 
     async def name_autocomplete(self, itr: discord.Interaction, current: str):
         sources = Config.allowed_sources(server=itr.guild)
-        return DNDData.instance().actions.get_autocomplete_suggestions(current, sources)
+        return Data.actions.get_autocomplete_suggestions(current, sources)
 
     @discord.app_commands.autocomplete(name=name_autocomplete)
     async def callback(self, itr: discord.Interaction, name: str):
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
-        found = DNDData.instance().actions.get(name, sources)
+        found = Data.actions.get(name, sources)
         await send_DNDObject_lookup_result(itr, "actions", found, name)
 
 
@@ -160,13 +156,13 @@ class SearchFeatCommand(SimpleCommand):
 
     async def name_autocomplete(self, itr: discord.Interaction, current: str):
         sources = Config.allowed_sources(server=itr.guild)
-        return DNDData.instance().feats.get_autocomplete_suggestions(current, sources)
+        return Data.feats.get_autocomplete_suggestions(current, sources)
 
     @discord.app_commands.autocomplete(name=name_autocomplete)
     async def callback(self, itr: discord.Interaction, name: str):
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
-        found = DNDData.instance().feats.get(name, sources)
+        found = Data.feats.get(name, sources)
         await send_DNDObject_lookup_result(itr, "feats", found, name)
 
 
@@ -177,15 +173,13 @@ class SearchLanguageCommand(SimpleCommand):
 
     async def name_autocomplete(self, itr: discord.Interaction, current: str):
         sources = Config.allowed_sources(server=itr.guild)
-        return DNDData.instance().languages.get_autocomplete_suggestions(
-            current, sources
-        )
+        return Data.languages.get_autocomplete_suggestions(current, sources)
 
     @discord.app_commands.autocomplete(name=name_autocomplete)
     async def callback(self, itr: discord.Interaction, name: str):
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
-        found = DNDData.instance().languages.get(name, sources)
+        found = Data.languages.get(name, sources)
         await send_DNDObject_lookup_result(itr, "languages", found, name)
 
 
@@ -196,15 +190,13 @@ class SearchBackgroundCommand(SimpleCommand):
 
     async def name_autocomplete(self, itr: discord.Interaction, current: str):
         sources = Config.allowed_sources(server=itr.guild)
-        return DNDData.instance().backgrounds.get_autocomplete_suggestions(
-            current, sources
-        )
+        return Data.backgrounds.get_autocomplete_suggestions(current, sources)
 
     @discord.app_commands.autocomplete(name=name_autocomplete)
     async def callback(self, itr: discord.Interaction, name: str):
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
-        found = DNDData.instance().backgrounds.get(name, sources)
+        found = Data.backgrounds.get(name, sources)
         await send_DNDObject_lookup_result(itr, "background", found, name)
 
 
@@ -215,13 +207,13 @@ class SearchTableCommand(SimpleCommand):
 
     async def name_autocomplete(self, itr: discord.Interaction, current: str):
         sources = Config.allowed_sources(server=itr.guild)
-        return DNDData.instance().tables.get_autocomplete_suggestions(current, sources)
+        return Data.tables.get_autocomplete_suggestions(current, sources)
 
     @discord.app_commands.autocomplete(name=name_autocomplete)
     async def callback(self, itr: discord.Interaction, name: str):
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
-        found = DNDData.instance().tables.get(name, sources)
+        found = Data.tables.get(name, sources)
         await send_DNDObject_lookup_result(itr, "table", found, name)
 
 
@@ -232,13 +224,13 @@ class SearchSpeciesCommand(SimpleCommand):
 
     async def name_autocomplete(self, itr: discord.Interaction, current: str):
         sources = Config.allowed_sources(server=itr.guild)
-        return DNDData.instance().species.get_autocomplete_suggestions(current, sources)
+        return Data.species.get_autocomplete_suggestions(current, sources)
 
     @discord.app_commands.autocomplete(name=name_autocomplete)
     async def callback(self, itr: discord.Interaction, name: str):
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
-        found = DNDData.instance().species.get(name, sources)
+        found = Data.species.get(name, sources)
         await send_DNDObject_lookup_result(itr, "species", found, name)
 
 
@@ -250,7 +242,7 @@ class SearchAnyCommand(SimpleCommand):
     async def callback(self, itr: discord.Interaction, query: str):
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
-        results = DNDData.search(query, sources)
+        results = Data.search(query, sources)
         logging.debug(f"Found {len(results.get_all())} results for '{query}'")
 
         if len(results.get_all()) == 0:

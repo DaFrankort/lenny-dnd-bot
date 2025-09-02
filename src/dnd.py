@@ -8,7 +8,7 @@ import random
 import discord
 from rapidfuzz import fuzz
 from discord.app_commands import Choice
-from typing import Literal, Optional, Union, TypedDict
+from typing import Literal, Union, TypedDict
 
 from dice import DiceExpression
 
@@ -751,8 +751,6 @@ class SourceList(object):
 
 
 class DNDData(object):
-    _instance: Optional["DNDData"] = None
-
     spells: SpellList
     items: ItemList
     conditions: ConditionList
@@ -799,22 +797,15 @@ class DNDData(object):
         yield self.tables
         yield self.species
 
-    @classmethod
-    def instance(cls) -> "DNDData":
-        if cls._instance is None:
-            cls._instance = cls()
-        return cls._instance
-
-    @classmethod
     def search(
-        cls,
+        self,
         query: str,
         allowed_sources: set[str],
         threshold=75.0,
     ) -> "DNDSearchResults":
         query = query.strip().lower()
         results = DNDSearchResults()
-        for entries in cls.instance():
+        for entries in self:
             for entry in entries.entries:
                 name = entry.name.strip().lower()
                 source = entry.source
@@ -887,3 +878,6 @@ class DNDSearchResults(object):
 
     def __len__(self) -> int:
         return len(self.get_all())
+
+
+Data = DNDData()  # Global Object

@@ -878,3 +878,6 @@ class DNDSearchResults(object):
 
     def __len__(self) -> int:
         return len(self.get_all())
+
+
+Data = DNDData()

@@ -25,9 +25,6 @@ from commands.tokengen import TokenGenCommand, TokenGenUrlCommand
 from context_menus.delete import DeleteContextMenu
 from context_menus.timestamp import RequestTimestampContextMenu
 from context_menus.reroll import RerollContextMenu
-
-
-from dnd import DNDData
 from initiative import (
     InitiativeTracker,
 )
@@ -38,7 +35,6 @@ class Bot(discord.Client):
     tree: app_commands.CommandTree
     token: str
     guild_id: int | None
-    data: DNDData
     initiatives: InitiativeTracker
     voice_enabled: bool
 
@@ -59,7 +55,6 @@ class Bot(discord.Client):
         self.guild_id = int(guild_id) if guild_id is not None else None
         self.voice_enabled = voice
 
-        self.data = DNDData()
         self.initiatives = InitiativeTracker()
 
     def _register_commands(self):
@@ -80,10 +75,10 @@ class Bot(discord.Client):
         self.tree.add_command(PlanSessionCommand())
         self.tree.add_command(PlaySoundCommand())
         self.tree.add_command(ColorCommandGroup())
-        self.tree.add_command(NameGenCommand(data=self.data))
+        self.tree.add_command(NameGenCommand())
         self.tree.add_command(CharacterGenCommand())
         self.tree.add_command(ConfigCommand())
-        self.tree.add_command(SearchCommandGroup(data=self.data))
+        self.tree.add_command(SearchCommandGroup())
         self.tree.add_command(TimestampCommandGroup())
 
         # Context menus

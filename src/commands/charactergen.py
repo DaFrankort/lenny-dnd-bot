@@ -64,20 +64,18 @@ class CharacterGenCommand(SimpleCommand):
     help = "Generates a random D&D 5e character, using XPHB classes, species and backgrounds."
 
     def _get_random_xphb_object(self, entries: list[DNDObject]) -> DNDObject:
-        xphb_entries = [e for e in entries if e.source == "XPHB"]
+        xphb_entries = [e for e in entries if e.source == "XPHB" and "(" not in e.name]
         return random.choice(xphb_entries)
 
     def _get_dnd_table(self, table_name: str) -> DNDTable:
         table: DNDTable = None
-        for t in Data.tables.get(table_name):
-            print(t.name)
+        for t in Data.tables.get(query=table_name, allowed_sources=set(["XPHB"])):
             if t.name == table_name:
                 table = t
                 break
 
         if table is None:
-            error_message = f"CharacterGen - Table '{table_name}' no longer exists in 5e.tools, charactergen will not work without it."
-            raise ModuleNotFoundError(error_message)
+            raise f"CharacterGen - Table '{table_name}' no longer exists in 5e.tools, charactergen will not work without it."
         return table
 
     def get_optimal_background(self, char_class: Class) -> Background:
@@ -86,12 +84,9 @@ class CharacterGenCommand(SimpleCommand):
         # By gathering the recommended backgrounds for our class, we can easily select a random one from there.
         # NOTE: Only XPHB classes have primary abilities, so this will not work with older data than XPHB.
 
-        background_table = self._get_dnd_table(
-            "Choose a Background; Ability Scores and Backgrounds"
-        )
-        recommended_backgrounds: set[str] = (
-            set()
-        )  # Use a set to avoid duplicate backgrounds
+        table_name = "Choose a Background; Ability Scores and Backgrounds"
+        background_table = self._get_dnd_table(table_name)
+        recommended_backgrounds: set[str] = set()
         for row in background_table.table["value"]["rows"]:
             if row[0].lower() in char_class.primary_ability.lower():
                 recommended_backgrounds.update(
@@ -106,30 +101,29 @@ class CharacterGenCommand(SimpleCommand):
         background: Background = self._get_random_xphb_object(backgrounds)
         return background
 
-    def get_optimal_stats(self, char_class: Class):
+    def get_optimal_stats(
+        self, itr: discord.Interaction, char_class: Class
+    ) -> list[tuple[int, str]]:
         # We want to divide our rolled stats optimally, for this we use the Assign Ability Scores; table.
         # From there we look for the 'optimal' ability score array belonging to our class.
         # Then both stat rows are sorted from large to small, so that we can overwrite the 'optimal' stats with our actual rolled stats.
         # At the end we re-sort the list to be in the standard D&D order (Str, Dex, Con, Int, Wis, Cha)
 
-        ability_table = self._get_dnd_table(
-            "Assign Ability Scores; Standard Array by Class"
-        )
+        table_name = "Assign Ability Scores; Standard Array by Class"
+        ability_table = self._get_dnd_table(table_name)
         headers = ability_table.table["value"]["headers"][1:]  # skip "Class"
         optimal_stats = None
         for row in ability_table.table["value"]["rows"]:
-            if row[0].lower() != char_class.name.lower():
+            if row[0].lower() == char_class.name.lower():
                 values = row[1:]
                 optimal_stats = [(int(val), stat) for stat, val in zip(headers, values)]
                 optimal_stats.sort(key=lambda x: x[0], reverse=True)
                 break
-
         if optimal_stats is None:
-            error_message = f"CharacterGen - Class '{char_class.name}' does not exist in Standard Array table!"
-            raise ModuleNotFoundError(error_message)
+            raise f"CharacterGen - Class '{char_class.name}' does not exist in Standard Array table!"
 
-        stats = Stats()
-        rolled_stats = [val for val, _ in stats.stats]
+        stats = Stats(itr)
+        rolled_stats = [val for _, val in stats.stats]
         rolled_stats.sort(reverse=True)
 
         character_stats: list[tuple[int, str]] = [
@@ -141,7 +135,7 @@ class CharacterGenCommand(SimpleCommand):
         return character_stats
 
     async def callback(self, itr: discord.Interaction):
-        # TODO Move sections to private methods, for cleanup
+        self.log(itr)
         color = UserColor.get(itr)
         char_class: Class = self._get_random_xphb_object(Data.classes.entries)
         species: Species = self._get_random_xphb_object(Data.species.entries)
@@ -149,12 +143,12 @@ class CharacterGenCommand(SimpleCommand):
 
         background = self.get_optimal_background(char_class)
 
-        # ===== CHARACTER BACKSTORY =====
-        # TODO Determine backstory?
-        # --- Table: Class Training; I became...
-        # --- Table: Background; I became...
+        # # ===== CHARACTER BACKSTORY =====
+        # # TODO Determine backstory?
+        # # --- Table: Class Training; I became...
+        # # --- Table: Background; I became...
 
-        stats = self.get_optimal_stats(char_class)
+        stats = self.get_optimal_stats(itr, char_class)
         chart_image = get_radar_chart(results=stats, color=color)
 
         # TODO Apply background's ability score boosts
@@ -163,6 +157,6 @@ class CharacterGenCommand(SimpleCommand):
 
         # ===== SEND RESULT =====
         description = f"*{species.name} - {char_class.name} - {background.name}*"
-        embed = SimpleEmbed(title=full_name, description=description)
+        embed = SimpleEmbed(title=full_name, description=description, color=color)
         embed.set_image(url=f"attachment://{chart_image.filename}")
         await itr.response.send_message(embed=embed, file=chart_image)

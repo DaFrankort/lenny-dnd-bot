@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock
 from bot import Bot
 from dice import DiceRollMode
 from dnd import Data, Gender
-from test.utils.mocking import IMG_URL, mock_image, mock_sound
+from utils.mocking import IMG_URL, mock_image, mock_sound
 from utils.test_utils import enum_values, listify
 from commands.tokengen import AlignH, AlignV
 

@@ -6,7 +6,7 @@ from dice import (
     DiceExpressionCache,
     DiceRollMode,
 )
-from utils.mock_discord_interaction import MockInteraction
+from utils.mocking import MockInteraction
 
 
 class TestDiceExpression:

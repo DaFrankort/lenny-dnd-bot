@@ -5,11 +5,11 @@ import pytest_asyncio
 from unittest.mock import AsyncMock, MagicMock
 
 from bot import Bot
-from dnd import Gender
-from utils.test_utils import listify
+from dice import DiceRollMode
+from dnd import Data, Gender
+from test.utils.mocking import IMG_URL, mock_image, mock_sound
+from utils.test_utils import enum_values, listify
 from commands.tokengen import AlignH, AlignV
-
-img_url = r"https://img.lovepik.com/element/40116/9419.png_1200.png"
 
 
 def get_cmd_from_group(
@@ -38,22 +38,6 @@ def get_cmd(
         return get_cmd_from_group(root, parts[1:])
     else:
         return commands.get(name)
-
-
-def mock_image() -> discord.Attachment:
-    image = MagicMock(spec=discord.Attachment)
-    image.url = img_url
-    image.content_type = MagicMock()
-    image.content_type = "image"
-    return image
-
-
-def mock_sound() -> discord.Attachment:
-    sound = MagicMock(spec=discord.Attachment)
-    sound.url = r"https://diviextended.com/wp-content/uploads/2021/10/sound-of-waves-marine-drive-mumbai.mp3"
-    sound.content_type = MagicMock()
-    sound.content_type = "audio"
-    return sound
 
 
 class TestBotCommands:
@@ -123,7 +107,10 @@ class TestBotCommands:
             ("search item", {"name": ["Sword", "abcdef"]}),
             ("search condition", {"name": ["Poisoned", "abcdef"]}),
             ("search creature", {"name": ["Goblin", "abcdef"]}),
-            ("search class", {"name": ["Wizard", "abcdef"]}),
+            (
+                "search class",
+                {"name": ["Wizard", "Fighter", "abcdef"]},
+            ),  # Search spellcaster & non spellcaster classes, since they render differently
             ("search rule", {"name": ["Action", "abcdef"]}),
             ("search action", {"name": ["Attack", "abcdef"]}),
             ("search feat", {"name": ["Tough", "abcdef"]}),
@@ -134,19 +121,22 @@ class TestBotCommands:
             (
                 "search all",
                 [
-                    {"query": "Barb"},
-                    {"query": "qwertyuiopasdfghjkl;zxcvbnm,./1234567890"},
+                    {
+                        "query": [
+                            "Barb",
+                            "Sailor",
+                            "qwertyuiopasdfghjkl;zxcvbnm,./1234567890",
+                        ]
+                    },  # Sailor can give problematic results, ensure this does not re-occur.
                 ],
             ),
             (
                 "namegen",
                 {
-                    "species": [None, "Human", "foobar"],
-                    "gender": [
-                        Gender.FEMALE.value,
-                        Gender.MALE.value,
-                        Gender.OTHER.value,
-                    ],
+                    "species": [None, "foobar"].extend(
+                        [spec.title() for spec in Data.names.get_species()]
+                    ),
+                    "gender": enum_values(Gender),
                 },
             ),
             (
@@ -171,19 +161,11 @@ class TestBotCommands:
                     {"image": mock_image(), "frame_hue": [-180, 0, 180]},
                     {
                         "image": mock_image(),
-                        "h_alignment": [
-                            AlignH.RIGHT.value,
-                            AlignH.CENTER.value,
-                            AlignH.LEFT.value,
-                        ],
+                        "h_alignment": enum_values(AlignH),
                     },
                     {
                         "image": mock_image(),
-                        "v_alignment": [
-                            AlignV.BOTTOM.value,
-                            AlignV.CENTER.value,
-                            AlignV.TOP.value,
-                        ],
+                        "v_alignment": enum_values(AlignV),
                     },
                     {"image": mock_image(), "variants": [0, 3, 10]},
                 ],
@@ -191,25 +173,17 @@ class TestBotCommands:
             (
                 "tokengenurl",
                 [
-                    {"url": img_url},
-                    {"url": img_url, "frame_hue": [-180, 0, 180]},
+                    {"url": IMG_URL},
+                    {"url": IMG_URL, "frame_hue": [-180, 0, 180]},
                     {
-                        "url": img_url,
-                        "h_alignment": [
-                            AlignH.RIGHT.value,
-                            AlignH.CENTER.value,
-                            AlignH.LEFT.value,
-                        ],
+                        "url": IMG_URL,
+                        "h_alignment": enum_values(AlignH),
                     },
                     {
-                        "url": img_url,
-                        "v_alignment": [
-                            AlignV.BOTTOM.value,
-                            AlignV.CENTER.value,
-                            AlignV.TOP.value,
-                        ],
+                        "url": IMG_URL,
+                        "v_alignment": enum_values(AlignV),
                     },
-                    {"url": img_url, "variants": [0, 3, 10]},
+                    {"url": IMG_URL, "variants": [0, 3, 10]},
                     {"url": "NotAUrl"},
                 ],
             ),
@@ -251,6 +225,14 @@ class TestBotCommands:
                     {"time": "Wrong", "timezone": 0},
                     {"time": "1830", "timezone": 0, "date": ["Wrong", "32", "05/13"]},
                 ],
+            ),
+            (
+                "distribution",
+                {
+                    "expression": ["1d20", "1d8ro1"],
+                    "advantage": enum_values(DiceRollMode),
+                    "min_to_beat": [None, "5"],
+                },
             ),
             # ("", {"": "", "": ""}),
         ],

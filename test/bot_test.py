@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock
 from bot import Bot
 from dice import DiceRollMode
 from dnd import Data, Gender
-from utils.mocking import IMG_URL, mock_image, mock_sound
+from utils.mocking import mock_image, mock_sound
 from utils.test_utils import enum_values, listify
 from commands.tokengen import AlignH, AlignV
 
@@ -173,17 +173,17 @@ class TestBotCommands:
             (
                 "tokengenurl",
                 [
-                    {"url": IMG_URL},
-                    {"url": IMG_URL, "frame_hue": [-180, 0, 180]},
+                    {"url": mock_image().url},
+                    {"url": mock_image().url, "frame_hue": [-180, 0, 180]},
                     {
-                        "url": IMG_URL,
+                        "url": mock_image().url,
                         "h_alignment": enum_values(AlignH),
                     },
                     {
-                        "url": IMG_URL,
+                        "url": mock_image().url,
                         "v_alignment": enum_values(AlignV),
                     },
-                    {"url": IMG_URL, "variants": [0, 3, 10]},
+                    {"url": mock_image().url, "variants": [0, 3, 10]},
                     {"url": "NotAUrl"},
                 ],
             ),

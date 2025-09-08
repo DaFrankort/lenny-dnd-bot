@@ -2,8 +2,6 @@ from unittest.mock import MagicMock
 
 import discord
 
-IMG_URL = r"https://img.lovepik.com/element/40116/9419.png_1200.png"
-
 
 class MockUser:
     """Mock user class to simulate Discord users."""
@@ -30,7 +28,8 @@ def _mock_attachment(url: str, content_type: str) -> discord.Attachment:
 
 
 def mock_image() -> discord.Attachment:
-    return _mock_attachment(IMG_URL, "image")
+    img_url = r"https://img.lovepik.com/element/40116/9419.png_1200.png"
+    return _mock_attachment(img_url, "image")
 
 
 def mock_sound() -> discord.Attachment:

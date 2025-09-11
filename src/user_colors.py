@@ -39,13 +39,16 @@ class UserColor:
         return discord.Color.from_str(hex_color).value
 
     @staticmethod
-    def generate(interaction: discord.Interaction) -> int:
+    def generate(seed: discord.Interaction | str) -> int:
         """
         Generates a hex value from a username.
         Converts the first 6 characters of a user's display name into a hex value for color.
         """
         hex_value = ""
         hex_place = 0
+
+        if isinstance(seed, discord.Interaction):
+            seed = seed.user.display_name
 
         # This cute little function converts characters into unicode
         # I made it so the the alpha_value assignment line wouldn't be so hard to read
@@ -55,8 +58,8 @@ class UserColor:
         while hex_place < 6:
             try:
                 alpha_value = get_alpha(
-                    interaction.user.display_name[hex_place]
-                ) * get_alpha(interaction.user.display_name[hex_place + 1])
+                    seed[hex_place]
+                ) * get_alpha(seed[hex_place + 1])
             except IndexError:
                 # When username is shorter than 6 characters, inserts replacement value.
                 # Value can be changed to 255 for light and blue colors, 0 for dark and red colors.

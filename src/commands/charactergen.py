@@ -67,13 +67,12 @@ class CharacterGenCommand(SimpleCommand):
         xphb_entries = [e for e in entries if e.source == "XPHB" and "(" not in e.name]
         return random.choice(xphb_entries)
 
-    def _get_dnd_table(self, table_name: str) -> DNDTable:
+    def _get_dnd_table(self, table_name: str, source: str = "XPHB") -> DNDTable:
         table: DNDTable = None
-        for t in Data.tables.get(query=table_name, allowed_sources=set(["XPHB"])):
+        for t in Data.tables.get(query=table_name, allowed_sources=set([source])):
             if t.name == table_name:
                 table = t
                 break
-
         if table is None:
             raise f"CharacterGen - Table '{table_name}' no longer exists in 5e.tools, charactergen will not work without it."
         return table
@@ -136,27 +135,50 @@ class CharacterGenCommand(SimpleCommand):
 
     async def callback(self, itr: discord.Interaction):
         self.log(itr)
-        color = UserColor.get(itr)
-        char_class: Class = self._get_random_xphb_object(Data.classes.entries)
         species: Species = self._get_random_xphb_object(Data.species.entries)
-        full_name, _, _ = Data.names.get_random(species.name, Gender.OTHER)
-
+        full_name, _, gender = Data.names.get_random(species.name, Gender.OTHER)
+        char_class: Class = self._get_random_xphb_object(Data.classes.entries)
         background = self.get_optimal_background(char_class)
 
-        # # ===== CHARACTER BACKSTORY =====
-        # # TODO Determine backstory?
-        # # --- Table: Class Training; I became...
-        # # --- Table: Background; I became...
+        color = discord.Color(UserColor.generate(full_name))
+        description = f"*{gender.value} {species.name} {char_class.name}*".title()
+        print(f"{description} {background.name}")
+        embed = SimpleEmbed(title=full_name, description=description, color=color)
+
+        class_backstory_table = self._get_dnd_table(f"Class Training; I became... [{char_class.name}]", "XGE")
+        class_backstory = class_backstory_table.table["value"]["headers"][1].replace("...", " ") + class_backstory_table.roll()[0][1]
+        class_text = f"{class_backstory}\n\nAbilities: {char_class.primary_ability}\n"
+        embed.add_field(
+            name=f"{char_class.emoji} {char_class.name}",
+            value=class_text,
+            inline=False
+        )
+
+        bg_abilties = ', '.join([
+            f"__{ability}__" if ability in char_class.primary_ability else ability
+            for ability in background.abilities
+        ])
+        background_text = f"Abilities: {bg_abilties}"
+        embed.add_field(
+            name=f"{background.emoji} {background.name}",
+            value=background_text,
+            inline=False
+        )
+
+        class_equipment = [info["value"] for info in char_class.base_info if "equipment" in info["name"].lower()][0]
+        background_equipment = [part for part in background.description[0]["value"].split("\n") if "equipment" in part.lower()][0]
+        background_equipment = background_equipment.replace("• **Equipment**:", "").strip()
+        equipment_text = f"- __{char_class.name}:__ {class_equipment}\n- __{background.name}:__ {background_equipment}"
+        embed.add_field(
+            name="🎒 Starting Equipment",
+            value=equipment_text,
+            inline=False
+        )
 
         stats = self.get_optimal_stats(itr, char_class)
-        chart_image = get_radar_chart(results=stats, color=color)
-
-        # TODO Apply background's ability score boosts
-        # --- Prioritize stats related to the class
-        # --- Keep stats as even as possible => uneven does not give bonus on modifiers
+        chart_image = get_radar_chart(results=stats, color=color.value)
 
         # ===== SEND RESULT =====
-        description = f"*{species.name} - {char_class.name} - {background.name}*"
-        embed = SimpleEmbed(title=full_name, description=description, color=color)
+
         embed.set_image(url=f"attachment://{chart_image.filename}")
         await itr.response.send_message(embed=embed, file=chart_image)

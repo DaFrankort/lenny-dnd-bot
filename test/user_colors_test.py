@@ -1,4 +1,5 @@
 import os
+import discord
 import pytest
 from user_colors import UserColor
 from utils.mock_discord_interaction import MockInteraction
@@ -24,9 +25,9 @@ class TestUserColor:
         parsed = UserColor.parse(hex_value)
         assert isinstance(parsed, int), "Parsed value is not an integer."
 
-    def test_generate(self):
-        interaction = MockInteraction()
-        generated_color = UserColor.generate(interaction)
+    @pytest.mark.parametrize("seed", [MockInteraction(), "Billy"])
+    def test_generate(self, seed: discord.Interaction | str):
+        generated_color = UserColor.generate(seed)
         assert isinstance(generated_color, int), "Generated color is not an integer."
         assert UserColor.validate(
             hex(generated_color)[2:]

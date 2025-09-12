@@ -193,13 +193,15 @@ class CharacterGenCommand(SimpleCommand):
             [f"- {size}" for size in species.sizes]
         )
         species_emoji = "🧝‍♀️" if gender is Gender.FEMALE else "🧝‍♂️"
-        species_text = f"{species_speed_text}\n{species_size_text}"
+        species_text = (
+            f"{species_speed_text}\n{species_size_text}\n[More...]({species.url})"
+        )
         embed.add_field(
             name=f"{species_emoji} {species.name}", value=species_text, inline=True
         )
 
         # Class info
-        class_text = f"Primary Abilities:\n- {char_class.primary_ability}"
+        class_text = f"Primary Abilities:\n- {char_class.primary_ability}\n[More...]({char_class.url})"
         class_emoji = "🧙‍♀️" if gender is Gender.FEMALE else "🧙‍♂️"
         embed.add_field(
             name=f"{class_emoji} {char_class.name}", value=class_text, inline=True
@@ -216,7 +218,7 @@ class CharacterGenCommand(SimpleCommand):
                 for ability in background.abilities
             ]
         )
-        background_text = f"Abilities:\n{bg_abilties}"
+        background_text = f"Abilities:\n{bg_abilties}\n[More...]({background.url})"
         embed.add_field(
             name=f"{background.emoji} {background.name}",
             value=background_text,
@@ -254,7 +256,7 @@ class CharacterGenCommand(SimpleCommand):
                 return f"- {abs(mod)}"
             return f"+ {mod}"
 
-        headers = ["Ability", "Ability Score", "Modifier"]
+        headers = ["Ability", "Score", "Mod"]
         rows = []
         for stat, boosted in zip(stats, boosted_stats):
             base_value, name = stat

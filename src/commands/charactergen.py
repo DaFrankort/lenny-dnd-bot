@@ -2,6 +2,7 @@ import random
 import discord
 
 from charts import get_radar_chart
+from components.items import SimpleSeparator, TitleTextDisplay
 from logic.app_commands import SimpleCommand
 from dnd import Background, Class, Data, DNDObject, DNDTable, Gender, Species
 from embeds import SimpleEmbed
@@ -59,6 +60,101 @@ class NameGenCommand(SimpleCommand):
         await itr.response.send_message(embed=embed)
 
 
+class CharacterGenContainerView(discord.ui.LayoutView):
+    file: discord.File = None
+
+    def _build_ability_table(
+        self,
+        background: Background,
+        stats: list[tuple[int, str]],
+        boosted_stats: list[tuple[int, str]],
+    ):
+        def ability_modifier(score: int) -> str:
+            mod = (score - 10) // 2
+            if mod < 0:
+                return f"- {abs(mod)}"
+            return f"+ {mod}"
+
+        headers = ["Ability", "Score", "Mod"]
+        rows = []
+        for stat, boosted in zip(stats, boosted_stats):
+            base_value, name = stat
+            boosted_value, _ = boosted
+
+            bg_abilities = [f"{a[:3].lower()}." for a in background.abilities]
+            if name.lower() in bg_abilities:
+                name += "*"  # mark bg abilities
+
+            ability_value = str(base_value)
+            if boosted_value != base_value:
+                diff = boosted_value - base_value
+                ability_value = f"{base_value} + {diff}"
+
+            mod = ability_modifier(boosted_value)
+            rows.append([name, ability_value, mod])
+
+        return build_table_from_rows(headers=headers, rows=rows)
+
+    def __init__(
+        self,
+        name: str,
+        gender: Gender,
+        species: Species,
+        char_class: Class,
+        background: Background,
+        stats: list[tuple[int, str]],
+        boosted_stats: list[tuple[int, str]],
+        backstory: str,
+    ):
+        super().__init__(timeout=None)
+        color = discord.Color(UserColor.generate(name))
+        container = discord.ui.Container(accent_color=color)
+        container.add_item(TitleTextDisplay(name))
+
+        btn_row = discord.ui.ActionRow()
+        species_emoji = "🧝‍♀️" if gender is Gender.FEMALE else "🧝‍♂️"
+        species_btn = discord.ui.Button(
+            style=discord.ButtonStyle.url,
+            label=species.name,
+            emoji=species_emoji,
+            url=species.url,
+        )
+        btn_row.add_item(species_btn)
+        class_emoji = "🧙‍♀️" if gender is Gender.FEMALE else "🧙‍♂️"
+        class_btn = discord.ui.Button(
+            style=discord.ButtonStyle.url,
+            label=char_class.name,
+            emoji=class_emoji,
+            url=char_class.url,
+        )
+        btn_row.add_item(class_btn)
+        background_btn = discord.ui.Button(
+            style=discord.ButtonStyle.url,
+            label=background.name,
+            emoji=background.emoji,
+            url=background.url,
+        )
+        btn_row.add_item(background_btn)
+
+        container.add_item(btn_row)
+        container.add_item(SimpleSeparator())
+        container.add_item(discord.ui.TextDisplay(backstory))
+        container.add_item(SimpleSeparator())
+
+        ability_table = self._build_ability_table(background, stats, boosted_stats)
+        total = sum([val for val, _ in stats])
+        ability_desc = ability_table + f"\n**Total**: {total} + 3"
+
+        self.file = get_radar_chart(
+            results=stats, boosted_results=boosted_stats, color=color.value
+        )
+        ability_image = discord.ui.Thumbnail(media=self.file)
+        ability_section = discord.ui.Section(ability_desc, accessory=ability_image)
+        container.add_item(ability_section)
+
+        self.add_item(container)
+
+
 class CharacterGenCommand(SimpleCommand):
     name = "charactergen"
     desc = "Generate a random D&D character!"
@@ -68,14 +164,18 @@ class CharacterGenCommand(SimpleCommand):
         xphb_entries = [e for e in entries if e.source == "XPHB" and "(" not in e.name]
         return random.choice(xphb_entries)
 
-    def _get_dnd_table(self, table_name: str, source: str = "XPHB") -> DNDTable:
+    def _get_dnd_table(
+        self, table_name: str, source: str = "XPHB", raise_errors: bool = True
+    ) -> DNDTable:
         table: DNDTable = None
         for t in Data.tables.get(query=table_name, allowed_sources=set([source])):
             if t.name == table_name:
                 table = t
                 break
         if table is None:
-            raise f"CharacterGen - Table '{table_name}' no longer exists in 5e.tools, charactergen will not work without it."
+            if raise_errors:
+                raise f"CharacterGen - Table '{table_name}' no longer exists in 5e.tools, charactergen will not work without it."
+            return None
         return table
 
     def get_optimal_background(self, char_class: Class) -> Background:
@@ -174,6 +274,19 @@ class CharacterGenCommand(SimpleCommand):
 
         return new_stats
 
+    def get_backstory(self, table_name: str, object: DNDObject) -> str:
+        table_name = f"{table_name} [{object.name}]"
+        table = self._get_dnd_table(table_name, "XGE", False)
+        if table is None:
+            return ""
+
+        reason = table.roll()[0][1]
+        if not reason.startswith("I "):
+            reason = reason[0].lower() + reason[1:]
+
+        prefix = table.table["value"]["headers"][1].replace("...", " ")
+        return prefix + reason
+
     async def callback(self, itr: discord.Interaction):
         self.log(itr)
         species: Species = self._get_random_xphb_object(Data.species.entries)
@@ -181,63 +294,23 @@ class CharacterGenCommand(SimpleCommand):
         char_class: Class = self._get_random_xphb_object(Data.classes.entries)
         background = self.get_optimal_background(char_class)
 
-        color = discord.Color(UserColor.generate(full_name))
-        title = f"{full_name}"
-        species_emoji = "🧝‍♀️" if gender is Gender.FEMALE else "🧝‍♂️"
-        class_emoji = "🧙‍♀️" if gender is Gender.FEMALE else "🧙‍♂️"
-        embed = SimpleEmbed(title=title, description=None, color=color)
-        embed.add_field(
-            name="", value=f"{species_emoji} [{species.name}]({species.url})"
-        )
-        embed.add_field(
-            name="", value=f"{class_emoji} [{char_class.name}]({char_class.url})"
-        )
-        embed.add_field(
-            name="", value=f"{background.emoji} [{background.name}]({background.url})"
-        )
+        class_backstory = self.get_backstory("Class Training; I became...", char_class)
+        background_backstory = self.get_backstory("Background; I became...", background)
+        backstory = class_backstory + "\n" + background_backstory
 
-        # Stats
         stats = self.get_optimal_stats(itr, char_class)
         boosted_stats = self.apply_bg_boosts(
             stats=stats, background=background, char_class=char_class
         )
 
-        def ability_modifier(score: int) -> str:
-            mod = (score - 10) // 2
-            if mod < 0:
-                return f"- {abs(mod)}"
-            return f"+ {mod}"
-
-        headers = ["Ability", "Score", "Mod"]
-        rows = []
-        for stat, boosted in zip(stats, boosted_stats):
-            base_value, name = stat
-            boosted_value, _ = boosted
-
-            if name.lower() in [
-                f"{bg_ability[:3].lower()}." for bg_ability in background.abilities
-            ]:
-                name += "*"  # mark bg abilities
-
-            ability_value = str(base_value)
-            if boosted_value != base_value:
-                diff = boosted_value - base_value
-                ability_value = f"{base_value} + {diff}"
-
-            mod = ability_modifier(boosted_value)
-
-            rows.append([name, ability_value, mod])
-
-
-
-        ability_table = build_table_from_rows(headers=headers, rows=rows)
-        total = sum([val for val, _ in stats])
-        ability_desc = "-# Background abilities are marked with a *\n" + ability_table + f"**Total**: {total} + 3"
-        embed.add_field(name=f"Ability Scores", value=ability_desc, inline=False)
-
-        chart_image = get_radar_chart(
-            results=stats, boosted_results=boosted_stats, color=color.value
+        view = CharacterGenContainerView(
+            full_name,
+            gender,
+            species,
+            char_class,
+            background,
+            stats,
+            boosted_stats,
+            backstory,
         )
-
-        embed.set_image(url=f"attachment://{chart_image.filename}")
-        await itr.response.send_message(embed=embed, file=chart_image)
+        await itr.response.send_message(view=view, file=view.file)

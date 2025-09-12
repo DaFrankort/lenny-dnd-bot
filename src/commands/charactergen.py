@@ -214,6 +214,11 @@ class CharacterGenCommand(SimpleCommand):
             base_value, name = stat
             boosted_value, _ = boosted
 
+            if name.lower() in [
+                f"{bg_ability[:3].lower()}." for bg_ability in background.abilities
+            ]:
+                name += "*"  # mark bg abilities
+
             ability_value = str(base_value)
             if boosted_value != base_value:
                 diff = boosted_value - base_value
@@ -223,14 +228,12 @@ class CharacterGenCommand(SimpleCommand):
 
             rows.append([name, ability_value, mod])
 
+
+
         ability_table = build_table_from_rows(headers=headers, rows=rows)
         total = sum([val for val, _ in stats])
-
-        embed.add_field(
-            name="Ability Scores",
-            value=ability_table + f"\n**Total:** {total} + 3",
-            inline=False,
-        )
+        ability_desc = "-# Background abilities are marked with a *\n" + ability_table + f"**Total**: {total} + 3"
+        embed.add_field(name=f"Ability Scores", value=ability_desc, inline=False)
 
         chart_image = get_radar_chart(
             results=stats, boosted_results=boosted_stats, color=color.value

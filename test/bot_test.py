@@ -252,6 +252,7 @@ class TestBotCommands:
                     {"time": "1830", "timezone": 0, "date": ["Wrong", "32", "05/13"]},
                 ],
             ),
+            ("charactergen", {}),
             # ("", {"": "", "": ""}),
         ],
     )

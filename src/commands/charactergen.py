@@ -80,7 +80,6 @@ class CharacterGenCommand(SimpleCommand):
     def get_optimal_background(self, char_class: Class) -> Background:
         # To get an optimal background, we need to base ourselves off of the class' primary ability
         # We make use of the Choose a Background; table, this table shows which backgrounds would match well with your primary abilit(ies).
-        # By gathering the recommended backgrounds for our class, we can easily select a random one from there.
         # NOTE: Only XPHB classes have primary abilities, so this will not work with older data than XPHB.
 
         table_name = "Choose a Background; Ability Scores and Backgrounds"
@@ -104,8 +103,7 @@ class CharacterGenCommand(SimpleCommand):
         self, itr: discord.Interaction, char_class: Class
     ) -> list[tuple[int, str]]:
         # We want to divide our rolled stats optimally, for this we use the Assign Ability Scores; table.
-        # From there we look for the 'optimal' ability score array belonging to our class.
-        # Then both stat rows are sorted from large to small, so that we can overwrite the 'optimal' stats with our actual rolled stats.
+        # optimal stats and rolled stats are sorted from large to small, so that we can overwrite the 'optimal' stats with our actual rolled stats.
         # At the end we re-sort the list to be in the standard D&D order (Str, Dex, Con, Int, Wis, Cha)
 
         table_name = "Assign Ability Scores; Standard Array by Class"
@@ -133,6 +131,48 @@ class CharacterGenCommand(SimpleCommand):
         character_stats.sort(key=lambda x: headers.index(x[1]))
         return character_stats
 
+    def apply_bg_boosts(
+        self, stats: list[tuple[int, str]], background: Background, char_class: Class
+    ):
+        bg_abilities = [f"{ability[:3].title()}." for ability in background.abilities]
+        abilities = [(value, name) for value, name in stats if name in bg_abilities]
+        abilities.sort(key=lambda x: x[0], reverse=True)
+
+        up_each_by_one = True
+        if abilities[2][0] < 13:  # Lowest ability below 13.
+            up_each_by_one = False
+        elif abilities[0][0] % 2 == 0:  # Highest value is round number
+            up_each_by_one = False
+
+        if not up_each_by_one:
+            primary_abilities = {
+                f"{word[:3].title()}."
+                for word in char_class.primary_ability.replace(" or ", " ")
+                .replace(" and ", " ")
+                .split()
+            }
+            abilities.sort(key=lambda x: (x[1] not in primary_abilities, -x[0]))
+
+        if up_each_by_one:
+            updated = [(value + 1, name) for value, name in abilities]
+        else:
+            updated = [
+                (abilities[0][0] + 2, abilities[0][1]),
+                (abilities[1][0] + 1, abilities[1][1]),
+                abilities[2],
+            ]
+
+        new_stats = [
+            (
+                next((val, nm) for val, nm in updated if nm == name)
+                if name in bg_abilities
+                else (val, name)
+            )
+            for val, name in stats
+        ]
+
+        return new_stats
+
     async def callback(self, itr: discord.Interaction):
         self.log(itr)
         species: Species = self._get_random_xphb_object(Data.species.entries)
@@ -141,42 +181,69 @@ class CharacterGenCommand(SimpleCommand):
         background = self.get_optimal_background(char_class)
 
         color = discord.Color(UserColor.generate(full_name))
-        description = f"*{gender.value} {species.name} {char_class.name}*".title()
-        print(f"{description} {background.name}")
-        embed = SimpleEmbed(title=full_name, description=description, color=color)
+        title = f"{full_name}"
+        embed = SimpleEmbed(title=title, description=None, color=color)
 
-        class_backstory_table = self._get_dnd_table(f"Class Training; I became... [{char_class.name}]", "XGE")
-        class_backstory = class_backstory_table.table["value"]["headers"][1].replace("...", " ") + class_backstory_table.roll()[0][1]
-        class_text = f"{class_backstory}\n\nAbilities: {char_class.primary_ability}\n"
+        species_speed_text = "Speed:\n" + "\n".join(
+            [f"- {speed}" for speed in species.speed]
+        )
+        species_size_text = "Size:\n" + "\n".join(
+            [f"- {size}" for size in species.sizes]
+        )
+        species_emoji = "🧝‍♀️" if gender is Gender.FEMALE else "🧝‍♂️"
+        species_text = f"{species_speed_text}\n{species_size_text}"
         embed.add_field(
-            name=f"{char_class.emoji} {char_class.name}",
-            value=class_text,
-            inline=False
+            name=f"{species_emoji} {species.name}", value=species_text, inline=True
         )
 
-        bg_abilties = ', '.join([
-            f"__{ability}__" if ability in char_class.primary_ability else ability
-            for ability in background.abilities
-        ])
-        background_text = f"Abilities: {bg_abilties}"
+        class_text = f"Primary Abilities:\n- {char_class.primary_ability}"
+        class_emoji = "🧙‍♀️" if gender is Gender.FEMALE else "🧙‍♂️"
+        embed.add_field(
+            name=f"{class_emoji} {char_class.name}", value=class_text, inline=True
+        )
+
+        bg_abilties = "\n".join(
+            [
+                (
+                    f"- __{ability}__"
+                    if ability in char_class.primary_ability
+                    else f"- {ability}"
+                )
+                for ability in background.abilities
+            ]
+        )
+        background_text = f"Abilities:\n{bg_abilties}"
         embed.add_field(
             name=f"{background.emoji} {background.name}",
             value=background_text,
-            inline=False
+            inline=True,
         )
 
-        class_equipment = [info["value"] for info in char_class.base_info if "equipment" in info["name"].lower()][0]
-        background_equipment = [part for part in background.description[0]["value"].split("\n") if "equipment" in part.lower()][0]
-        background_equipment = background_equipment.replace("• **Equipment**:", "").strip()
+        class_equipment = [
+            info["value"]
+            for info in char_class.base_info
+            if "equipment" in info["name"].lower()
+        ][0]
+        background_equipment = [
+            part
+            for part in background.description[0]["value"].split("\n")
+            if "equipment" in part.lower()
+        ][0]
+        background_equipment = background_equipment.replace(
+            "• **Equipment**:", ""
+        ).strip()
         equipment_text = f"- __{char_class.name}:__ {class_equipment}\n- __{background.name}:__ {background_equipment}"
         embed.add_field(
-            name="🎒 Starting Equipment",
-            value=equipment_text,
-            inline=False
+            name="🎒 Starting Equipment", value=equipment_text, inline=False
         )
 
         stats = self.get_optimal_stats(itr, char_class)
-        chart_image = get_radar_chart(results=stats, color=color.value)
+        boosted_stats = self.apply_bg_boosts(
+            stats=stats, background=background, char_class=char_class
+        )
+        chart_image = get_radar_chart(
+            results=stats, boosted_results=boosted_stats, color=color.value
+        )
 
         # ===== SEND RESULT =====
 

@@ -5,6 +5,7 @@ from charts import get_radar_chart
 from logic.app_commands import SimpleCommand
 from dnd import Background, Class, Data, DNDObject, DNDTable, Gender, Species
 from embeds import SimpleEmbed
+from methods import build_table_from_rows, when
 from stats import Stats
 from user_colors import UserColor
 
@@ -184,6 +185,7 @@ class CharacterGenCommand(SimpleCommand):
         title = f"{full_name}"
         embed = SimpleEmbed(title=title, description=None, color=color)
 
+        # Species info
         species_speed_text = "Speed:\n" + "\n".join(
             [f"- {speed}" for speed in species.speed]
         )
@@ -196,12 +198,14 @@ class CharacterGenCommand(SimpleCommand):
             name=f"{species_emoji} {species.name}", value=species_text, inline=True
         )
 
+        # Class info
         class_text = f"Primary Abilities:\n- {char_class.primary_ability}"
         class_emoji = "🧙‍♀️" if gender is Gender.FEMALE else "🧙‍♂️"
         embed.add_field(
             name=f"{class_emoji} {char_class.name}", value=class_text, inline=True
         )
 
+        # Background info
         bg_abilties = "\n".join(
             [
                 (
@@ -219,6 +223,7 @@ class CharacterGenCommand(SimpleCommand):
             inline=True,
         )
 
+        # Equipment info
         class_equipment = [
             info["value"]
             for info in char_class.base_info
@@ -237,15 +242,45 @@ class CharacterGenCommand(SimpleCommand):
             name="🎒 Starting Equipment", value=equipment_text, inline=False
         )
 
+        # Stats
         stats = self.get_optimal_stats(itr, char_class)
         boosted_stats = self.apply_bg_boosts(
             stats=stats, background=background, char_class=char_class
         )
+
+        def ability_modifier(score: int) -> str:
+            mod = (score - 10) // 2
+            if mod < 0:
+                return f"- {abs(mod)}"
+            return f"+ {mod}"
+
+        headers = ["Ability", "Ability Score", "Modifier"]
+        rows = []
+        for stat, boosted in zip(stats, boosted_stats):
+            base_value, name = stat
+            boosted_value, _ = boosted
+
+            ability_value = str(base_value)
+            if boosted_value != base_value:
+                diff = boosted_value - base_value
+                ability_value = f"{base_value} + {diff}"
+
+            mod = ability_modifier(boosted_value)
+
+            rows.append([name, ability_value, mod])
+
+        ability_table = build_table_from_rows(headers=headers, rows=rows)
+        total = sum([val for val, _ in stats])
+
+        embed.add_field(
+            name="📊 Ability Scores",
+            value=ability_table + f"\n**Total:** {total} + 3",
+            inline=True,
+        )
+
         chart_image = get_radar_chart(
             results=stats, boosted_results=boosted_stats, color=color.value
         )
-
-        # ===== SEND RESULT =====
 
         embed.set_image(url=f"attachment://{chart_image.filename}")
         await itr.response.send_message(embed=embed, file=chart_image)

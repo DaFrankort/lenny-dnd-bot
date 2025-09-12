@@ -6,7 +6,7 @@ from components.items import SimpleSeparator, TitleTextDisplay
 from logic.app_commands import SimpleCommand
 from dnd import Background, Class, Data, DNDObject, DNDTable, Gender, Species
 from embeds import SimpleEmbed
-from methods import build_table_from_rows, when
+from methods import build_table_from_rows
 from stats import Stats
 from user_colors import UserColor
 

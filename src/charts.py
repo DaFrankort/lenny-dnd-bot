@@ -1,4 +1,3 @@
-from colorsys import hsv_to_rgb, rgb_to_hsv
 import io
 import math
 import discord

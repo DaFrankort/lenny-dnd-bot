@@ -183,65 +183,17 @@ class CharacterGenCommand(SimpleCommand):
 
         color = discord.Color(UserColor.generate(full_name))
         title = f"{full_name}"
-        embed = SimpleEmbed(title=title, description=None, color=color)
-
-        # Species info
-        species_speed_text = "Speed:\n" + "\n".join(
-            [f"- {speed}" for speed in species.speed]
-        )
-        species_size_text = "Size:\n" + "\n".join(
-            [f"- {size}" for size in species.sizes]
-        )
         species_emoji = "🧝‍♀️" if gender is Gender.FEMALE else "🧝‍♂️"
-        species_text = (
-            f"{species_speed_text}\n{species_size_text}\n[More...]({species.url})"
-        )
-        embed.add_field(
-            name=f"{species_emoji} {species.name}", value=species_text, inline=True
-        )
-
-        # Class info
-        class_text = f"Primary Abilities:\n- {char_class.primary_ability}\n[More...]({char_class.url})"
         class_emoji = "🧙‍♀️" if gender is Gender.FEMALE else "🧙‍♂️"
+        embed = SimpleEmbed(title=title, description=None, color=color)
         embed.add_field(
-            name=f"{class_emoji} {char_class.name}", value=class_text, inline=True
+            name="", value=f"{species_emoji} [{species.name}]({species.url})"
         )
-
-        # Background info
-        bg_abilties = "\n".join(
-            [
-                (
-                    f"- __{ability}__"
-                    if ability in char_class.primary_ability
-                    else f"- {ability}"
-                )
-                for ability in background.abilities
-            ]
-        )
-        background_text = f"Abilities:\n{bg_abilties}\n[More...]({background.url})"
         embed.add_field(
-            name=f"{background.emoji} {background.name}",
-            value=background_text,
-            inline=True,
+            name="", value=f"{class_emoji} [{char_class.name}]({char_class.url})"
         )
-
-        # Equipment info
-        class_equipment = [
-            info["value"]
-            for info in char_class.base_info
-            if "equipment" in info["name"].lower()
-        ][0]
-        background_equipment = [
-            part
-            for part in background.description[0]["value"].split("\n")
-            if "equipment" in part.lower()
-        ][0]
-        background_equipment = background_equipment.replace(
-            "• **Equipment**:", ""
-        ).strip()
-        equipment_text = f"- __{char_class.name}:__ {class_equipment}\n- __{background.name}:__ {background_equipment}"
         embed.add_field(
-            name="🎒 Starting Equipment", value=equipment_text, inline=False
+            name="", value=f"{background.emoji} [{background.name}]({background.url})"
         )
 
         # Stats
@@ -275,9 +227,9 @@ class CharacterGenCommand(SimpleCommand):
         total = sum([val for val, _ in stats])
 
         embed.add_field(
-            name="📊 Ability Scores",
+            name="Ability Scores",
             value=ability_table + f"\n**Total:** {total} + 3",
-            inline=True,
+            inline=False,
         )
 
         chart_image = get_radar_chart(

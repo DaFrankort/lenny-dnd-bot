@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from embeds import SimpleEmbed
+from embed import SimpleEmbed
 
 
 TIME_MULTIPLIERS = {

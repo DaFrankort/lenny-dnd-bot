@@ -2,7 +2,7 @@ import discord
 
 from logic.app_commands import SimpleCommand
 from dnd import Data, Gender
-from embeds import SimpleEmbed
+from embed import SimpleEmbed
 
 GenderChoices = [
     discord.app_commands.Choice(name="Female", value=Gender.FEMALE.value),

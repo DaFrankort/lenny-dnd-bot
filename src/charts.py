@@ -91,26 +91,18 @@ def get_radar_chart(
     # Create radar chart
     fig, ax = plt.subplots(subplot_kw=dict(polar=True))
     ax.set_theta_offset(np.pi)  # Start on the left
-    ax.set_theta_direction(-1)  # Move
+    ax.set_theta_direction(-1)  # Shift one to the right
 
     ax.set_xticks(angles[:-1])
     ax.set_xticklabels(labels)
+    ax.set_ylim(0, max(18, max(values)))
     if boosted_results:
-        ax.set_ylim(0, max(18, max(max(values), max(boosted_values))))
-    else:
-        ax.set_ylim(0, max(18, max(values)))
+        ax.set_ylim(0, max(18, max(boosted_values)))
     ax.set_yticklabels([])  # Remove numbers on radial rings
 
     if boosted_results:
         boosted_rgb = (1.0, 1.0, 1.0)
-        ax.plot(
-            angles,
-            boosted_values,
-            color=boosted_rgb,
-            linewidth=1,
-            linestyle="--",
-            label="Boosted",
-        )
+        ax.plot(angles, boosted_values, color=boosted_rgb, linewidth=1, linestyle="--")
         ax.fill(angles, boosted_values, color=boosted_rgb, alpha=0.1)
 
     r, g, b = discord.Color(color).to_rgb()

@@ -3,7 +3,7 @@ import discord
 
 from charts import get_radar_chart
 from components.items import SimpleSeparator, TitleTextDisplay
-from logic.app_commands import SimpleCommand
+from logic.app_commands import SimpleCommand, send_error_message
 from dnd import Background, Class, Data, DNDObject, DNDTable, Gender, Species
 from embeds import SimpleEmbed
 from methods import build_table_from_rows
@@ -49,15 +49,19 @@ class NameGenCommand(SimpleCommand):
         name, new_species, new_gender = Data.names.get_random(species, gender)
 
         if name is None:
-            await itr.response.send_message(
-                "❌ Can't generate names at this time ❌", ephemeral=True
-            )
+            await send_error_message(itr, "Can't generate names at this time")
             return
 
         description = f"*{new_gender.value} {new_species}*".title()
 
         embed = SimpleEmbed(title=name, description=description)
         await itr.response.send_message(embed=embed)
+
+
+class CharacterGenInfoButton(discord.ui.Button):
+    def __init__(self, object: DNDObject, emoji: str):
+        style = discord.ButtonStyle.url
+        super().__init__(style=style, label=object.name, emoji=emoji, url=object.url)
 
 
 class CharacterGenContainerView(discord.ui.LayoutView):
@@ -69,12 +73,6 @@ class CharacterGenContainerView(discord.ui.LayoutView):
         stats: list[tuple[int, str]],
         boosted_stats: list[tuple[int, str]],
     ):
-        def ability_modifier(score: int) -> str:
-            mod = (score - 10) // 2
-            if mod < 0:
-                return f"- {abs(mod)}"
-            return f"+ {mod}"
-
         headers = ["Ability", "Score", "Mod"]
         rows = []
         for stat, boosted in zip(stats, boosted_stats):
@@ -90,7 +88,9 @@ class CharacterGenContainerView(discord.ui.LayoutView):
                 diff = boosted_value - base_value
                 ability_value = f"{base_value} + {diff}"
 
-            mod = ability_modifier(boosted_value)
+            mod = (boosted_value - 10) // 2
+            mod = f"- {mod}" if mod < 0 else f"+ {abs(mod)}"
+
             rows.append([name, ability_value, mod])
 
         return build_table_from_rows(headers=headers, rows=rows)
@@ -113,30 +113,12 @@ class CharacterGenContainerView(discord.ui.LayoutView):
 
         btn_row = discord.ui.ActionRow()
         species_emoji = "🧝‍♀️" if gender is Gender.FEMALE else "🧝‍♂️"
-        species_btn = discord.ui.Button(
-            style=discord.ButtonStyle.url,
-            label=species.name,
-            emoji=species_emoji,
-            url=species.url,
-        )
-        btn_row.add_item(species_btn)
         class_emoji = "🧙‍♀️" if gender is Gender.FEMALE else "🧙‍♂️"
-        class_btn = discord.ui.Button(
-            style=discord.ButtonStyle.url,
-            label=char_class.name,
-            emoji=class_emoji,
-            url=char_class.url,
-        )
-        btn_row.add_item(class_btn)
-        background_btn = discord.ui.Button(
-            style=discord.ButtonStyle.url,
-            label=background.name,
-            emoji=background.emoji,
-            url=background.url,
-        )
-        btn_row.add_item(background_btn)
-
+        btn_row.add_item(CharacterGenInfoButton(species, species_emoji))
+        btn_row.add_item(CharacterGenInfoButton(char_class, class_emoji))
+        btn_row.add_item(CharacterGenInfoButton(background, background.emoji))
         container.add_item(btn_row)
+
         container.add_item(SimpleSeparator())
         container.add_item(discord.ui.TextDisplay(backstory))
         container.add_item(SimpleSeparator())
@@ -179,9 +161,13 @@ class CharacterGenCommand(SimpleCommand):
         return table
 
     def get_optimal_background(self, char_class: Class) -> Background:
-        # To get an optimal background, we need to base ourselves off of the class' primary ability
-        # We make use of the Choose a Background; table, this table shows which backgrounds would match well with your primary abilit(ies).
-        # NOTE: Only XPHB classes have primary abilities, so this will not work with older data than XPHB.
+        """
+        Determines and returns an optimal Background for a given character class based on its primary ability.
+
+        This method uses the "Choose a Background; Ability Scores and Backgrounds" table to find backgrounds
+        that best match the class's primary ability. Only classes from the XPHB (Expanded Player's Handbook)
+        are supported, as older data may not include primary abilities.
+        """
 
         table_name = "Choose a Background; Ability Scores and Backgrounds"
         background_table = self._get_dnd_table(table_name)
@@ -203,9 +189,11 @@ class CharacterGenCommand(SimpleCommand):
     def get_optimal_stats(
         self, itr: discord.Interaction, char_class: Class
     ) -> list[tuple[int, str]]:
-        # We want to divide our rolled stats optimally, for this we use the Assign Ability Scores; table.
-        # optimal stats and rolled stats are sorted from large to small, so that we can overwrite the 'optimal' stats with our actual rolled stats.
-        # At the end we re-sort the list to be in the standard D&D order (Str, Dex, Con, Int, Wis, Cha)
+        """
+        To optimally assign rolled stats, we use the 'Assign Ability Scores; Standard Array by Class' table.
+        Both the optimal stats and rolled stats are sorted from highest to lowest, so we can match the best rolled values to the most important abilities.
+        Finally, the list is reordered to follow the standard D&D stat order: Str, Dex, Con, Int, Wis, Cha.
+        """
 
         table_name = "Assign Ability Scores; Standard Array by Class"
         ability_table = self._get_dnd_table(table_name)
@@ -246,12 +234,10 @@ class CharacterGenCommand(SimpleCommand):
             up_each_by_one = False
 
         if not up_each_by_one:
-            primary_abilities = {
-                f"{word[:3].title()}."
-                for word in char_class.primary_ability.replace(" or ", " ")
-                .replace(" and ", " ")
-                .split()
-            }
+            class_abilities = char_class.primary_ability.replace(" or ", " ")
+            class_abilities = class_abilities.replace(" and ", " ")
+            class_abilities = class_abilities.split()
+            primary_abilities = [f"{word[:3].title()}." for word in class_abilities]
             abilities.sort(key=lambda x: (x[1] not in primary_abilities, -x[0]))
 
         if up_each_by_one:
@@ -263,14 +249,12 @@ class CharacterGenCommand(SimpleCommand):
                 abilities[2],
             ]
 
-        new_stats = [
-            (
-                next((val, nm) for val, nm in updated if nm == name)
-                if name in bg_abilities
-                else (val, name)
-            )
-            for val, name in stats
-        ]
+        new_stats = []
+        for val, name in stats:
+            if name in bg_abilities:
+                new_stats.append(next((v, n) for v, n in updated if n == name))
+                continue
+            new_stats.append((val, name))
 
         return new_stats
 

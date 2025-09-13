@@ -1,8 +1,9 @@
 import discord
-
-from logic.app_commands import SimpleCommand
+from embeds.charactergen import CharacterGenContainerView
+from logic.app_commands import SimpleCommand, send_error_message
 from dnd import Data, Gender
 from embed import SimpleEmbed
+from logic.charactergen import generate_dnd_character
 
 GenderChoices = [
     discord.app_commands.Choice(name="Female", value=Gender.FEMALE.value),
@@ -43,12 +44,22 @@ class NameGenCommand(SimpleCommand):
         name, new_species, new_gender = Data.names.get_random(species, gender)
 
         if name is None:
-            await itr.response.send_message(
-                "❌ Can't generate names at this time ❌", ephemeral=True
-            )
+            await send_error_message(itr, "Can't generate names at this time")
             return
 
         description = f"*{new_gender.value} {new_species}*".title()
 
         embed = SimpleEmbed(title=name, description=description)
         await itr.response.send_message(embed=embed)
+
+
+class CharacterGenCommand(SimpleCommand):
+    name = "charactergen"
+    desc = "Generate a random D&D character!"
+    help = "Generates a random D&D 5e character, using XPHB classes, species and backgrounds."
+
+    async def callback(self, itr: discord.Interaction):
+        self.log(itr)
+        result = generate_dnd_character(itr)
+        view = CharacterGenContainerView(result)
+        await itr.response.send_message(view=view, file=view.chart)

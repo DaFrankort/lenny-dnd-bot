@@ -3,7 +3,7 @@ import os
 import discord
 from discord import app_commands
 from dotenv import load_dotenv
-from commands.charactergen import NameGenCommand
+from commands.charactergen import CharacterGenCommand, NameGenCommand
 from commands.color import ColorCommandGroup
 from commands.config import ConfigCommand
 from commands.distribution import DistributionCommand
@@ -76,6 +76,7 @@ class Bot(discord.Client):
         self.tree.add_command(PlaySoundCommand())
         self.tree.add_command(ColorCommandGroup())
         self.tree.add_command(NameGenCommand())
+        self.tree.add_command(CharacterGenCommand())
         self.tree.add_command(ConfigCommand())
         self.tree.add_command(SearchCommandGroup())
         self.tree.add_command(TimestampCommandGroup())

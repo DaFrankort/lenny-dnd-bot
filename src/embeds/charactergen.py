@@ -39,7 +39,7 @@ class CharacterGenContainerView(ui.LayoutView):
                 ability_value = f"{base_value} + {diff}"
 
             mod = (boosted_value - 10) // 2
-            mod = f"- {mod}" if mod < 0 else f"+ {abs(mod)}"
+            mod = f"- {abs(mod)}" if mod < 0 else f"+ {mod}"
 
             rows.append([name, ability_value, mod])
 

@@ -3,7 +3,7 @@ import discord
 from dnd import Data, Gender
 from embed import SimpleEmbed
 from logic.app_commands import SimpleCommand, send_error_message
-from logic.namegen import NameGenResult, generate_name
+from logic.namegen import generate_name
 
 
 GenderChoices = [

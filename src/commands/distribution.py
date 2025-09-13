@@ -2,23 +2,23 @@ from discord import Interaction, app_commands
 
 from charts import get_distribution_chart
 from logic.app_commands import SimpleCommand
-from dice import DiceRollMode
 from distribution import DiceDistributionEmbed, get_distribution
-from embeds import SimpleEmbed
+from embeds2 import SimpleEmbed
+from logic.roll import Advantage
 
 
 DISTRIBUTION_COMMAND_ADVANTAGE_CHOICES = [
     app_commands.Choice(
-        name=DiceRollMode.Advantage.value,
-        value=DiceRollMode.Advantage.value,
+        name=Advantage.Advantage,
+        value=Advantage.Advantage,
     ),
     app_commands.Choice(
-        name=DiceRollMode.Disadvantage.value,
-        value=DiceRollMode.Disadvantage.value,
+        name=Advantage.Disadvantage,
+        value=Advantage.Disadvantage,
     ),
     app_commands.Choice(
-        name=DiceRollMode.Normal.value,
-        value=DiceRollMode.Normal.value,
+        name=Advantage.Normal,
+        value=Advantage.Normal,
     ),
 ]
 
@@ -33,7 +33,7 @@ class DistributionCommand(SimpleCommand):
         self,
         itr: Interaction,
         expression: str,
-        advantage: str = DiceRollMode.Normal.value,
+        advantage: str = Advantage.Normal,
         min_to_beat: int | None = None,
     ):
         self.log(itr)

@@ -4,11 +4,11 @@ import time
 import discord
 from discord import Interaction, Message, NotFound, ui
 from components.items import SimpleSeparator
-from dice import DiceRollMode
-from embeds import SimpleEmbed, SuccessEmbed, UserActionEmbed
+from embeds2 import SimpleEmbed, SuccessEmbed, UserActionEmbed
 from rapidfuzz import fuzz
 from discord.app_commands import Choice
 from logger import log_button_press
+from logic.roll import Advantage
 from modals import SimpleModal
 from voice_chat import VC, SoundType
 
@@ -33,7 +33,7 @@ class Initiative:
     name: str
     d20: tuple[int, int]
     modifier: int
-    roll_mode: DiceRollMode
+    roll_mode: Advantage
     is_npc: bool
     owner: discord.User
 
@@ -45,7 +45,7 @@ class Initiative:
         itr: Interaction,
         modifier: int,
         name: str | None,
-        roll_mode: DiceRollMode,
+        roll_mode: Advantage,
     ):
         self.is_npc = name is not None
         self.name = name or itr.user.display_name
@@ -65,10 +65,10 @@ class Initiative:
         if self.is_npc:
             title_parts.append(f"for {self.name}")
 
-        if self.roll_mode == DiceRollMode.Advantage:
+        if self.roll_mode == Advantage.Advantage:
             title_parts.append("with Advantage")
 
-        elif self.roll_mode == DiceRollMode.Disadvantage:
+        elif self.roll_mode == Advantage.Disadvantage:
             title_parts.append("with Disadvantage")
 
         self.title = " ".join(title_parts).strip() + "!"
@@ -86,7 +86,7 @@ class Initiative:
 
         description = ""
         description += get_roll_line(self.d20[0])
-        if self.roll_mode != DiceRollMode.Normal:
+        if self.roll_mode != Advantage.Normal:
             description += get_roll_line(self.d20[1])
         description += f"\n**Initiative: {self.get_total()}**"
 
@@ -95,10 +95,10 @@ class Initiative:
     def get_total(self):
         roll = self.d20[0]
 
-        if self.roll_mode == DiceRollMode.Advantage:
+        if self.roll_mode == Advantage.Advantage:
             roll = max(self.d20)
 
-        elif self.roll_mode == DiceRollMode.Disadvantage:
+        elif self.roll_mode == Advantage.Disadvantage:
             roll = min(self.d20)
 
         return roll + self.modifier
@@ -250,7 +250,7 @@ class InitiativeTracker:
         modifier: int,
         name: str,
         amount: int,
-        roll_mode: DiceRollMode,
+        roll_mode: Advantage,
         shared: bool,
     ) -> tuple[str, str, bool]:
         """Adds many initiatives to a server. Returns a title and description for the embed and a boolean to signify if everything was added succesfully."""
@@ -279,8 +279,8 @@ class InitiativeTracker:
             self.add(itr, initiative)
 
         title = f"{itr.user.display_name} rolled Initiative for {amount} {name.strip().title()}(s)"
-        title += " with Advantage" if roll_mode == DiceRollMode.Advantage else ""
-        title += " with Disadvantage" if roll_mode == DiceRollMode.Disadvantage else ""
+        title += " with Advantage" if roll_mode == Advantage.Advantage else ""
+        title += " with Disadvantage" if roll_mode == Advantage.Disadvantage else ""
         title += "!"
 
         return title, description, True
@@ -325,8 +325,8 @@ class InitiativeRollModal(_InitiativeModal):
 
         mode = self.get_choice(
             self.mode,
-            DiceRollMode.Normal,
-            {"a": DiceRollMode.Advantage, "d": DiceRollMode.Disadvantage},
+            Advantage.Normal,
+            {"a": Advantage.Advantage, "d": Advantage.Disadvantage},
         )
         initiative = Initiative(itr, modifier, name, mode)
         success = self.tracker.add(itr, initiative)
@@ -378,7 +378,7 @@ class InitiativeSetModal(_InitiativeModal):
             )
             return
 
-        initiative = Initiative(itr, value, name, DiceRollMode.Normal)
+        initiative = Initiative(itr, value, name, Advantage.Normal)
         initiative.set_value(value)
         self.tracker.add(itr, initiative)
 
@@ -475,8 +475,8 @@ class InitiativeBulkModal(_InitiativeModal):
 
         mode = self.get_choice(
             self.mode,
-            DiceRollMode.Normal,
-            {"a": DiceRollMode.Advantage, "d": DiceRollMode.Disadvantage},
+            Advantage.Normal,
+            {"a": Advantage.Advantage, "d": Advantage.Disadvantage},
         )
         shared = self.get_choice(self.shared, False, {"t": True})
 

@@ -1,161 +1,62 @@
-import re
 import discord
 
+from embeds.roll import RollEmbed
 from logic.app_commands import SimpleCommand
-from dice import DiceExpression, DiceExpressionCache, DiceRollMode
-from embeds import UserActionEmbed
+from dice import DiceExpressionCache
+from logic.roll import Advantage, roll
 from voice_chat import VC
 
 
-def _get_diceroll_shortcut(
-    itr: discord.Interaction, diceroll: str, reason: str | None
-) -> tuple[str, str | None]:
-    shortcuts = DiceExpressionCache.get_user_shortcuts(itr)
-    if not shortcuts:
-        return diceroll, reason
+class _AbstractRollCommand(SimpleCommand):
+    advantage: Advantage
 
-    parts = re.split(r"([+\-*/()])", diceroll)
-    shortcut_reason = None
-    for part in parts:
-        part = part.strip()
+    async def diceroll_autocomplete(self, itr: discord.Interaction, current: str):
+        return await DiceExpressionCache.get_autocomplete_suggestions(itr, current)
 
-        if part in shortcuts:
-            shortcut = shortcuts[part]
-            expression = shortcut["expression"]
-            reason = shortcut["reason"]
-            diceroll = diceroll.replace(part, expression)
-            shortcut_reason = reason
+    async def reason_autocomplete(self, itr: discord.Interaction, current: str):
+        return await DiceExpressionCache.get_autocomplete_reason_suggestions(
+            itr, current
+        )
 
-    return diceroll, reason or shortcut_reason
+    @discord.app_commands.autocomplete(
+        diceroll=diceroll_autocomplete,
+        reason=reason_autocomplete,
+    )
+    async def callback(
+        self,
+        itr: discord.Interaction,
+        diceroll: str,
+        reason: str | None = None,
+    ):
+        self.log(itr)
+        result = roll(diceroll, self.advantage)
+        if result.error is not None:
+            DiceExpressionCache.store_expression(itr, result.expression, reason)
 
-
-async def func_diceroll_autocomplete(
-    itr: discord.Interaction, current: str
-) -> list[discord.app_commands.Choice[str]]:
-    return DiceExpressionCache.get_autocomplete_suggestions(itr, current)
-
-
-async def func_reason_autocomplete(
-    itr: discord.Interaction, current: str
-) -> list[discord.app_commands.Choice[str]]:
-    return DiceExpressionCache.get_autocomplete_reason_suggestions(itr, current)
+        embed = RollEmbed(itr, result, reason)
+        await itr.response.send_message(embed=embed, ephemeral=embed.ephemeral)
+        await VC.play_dice_roll(itr, result, reason)
 
 
-class RollCommand(SimpleCommand):
+class RollCommand(_AbstractRollCommand):
     name = "roll"
     desc = "Roll your d20s!"
     help = "Roll a single dice expression."
-
-    async def diceroll_autocomplete(self, itr: discord.Interaction, current: str):
-        return await func_diceroll_autocomplete(itr, current)
-
-    async def reason_autocomplete(self, itr: discord.Interaction, current: str):
-        return await func_reason_autocomplete(itr, current)
-
-    @discord.app_commands.autocomplete(
-        diceroll=diceroll_autocomplete,
-        reason=reason_autocomplete,
-    )
-    async def callback(
-        self,
-        itr: discord.Interaction,
-        diceroll: str,
-        reason: str = None,
-    ):
-        self.log(itr)
-        dice_notation, reason = _get_diceroll_shortcut(itr, diceroll, reason)
-        expression = DiceExpression(
-            dice_notation, mode=DiceRollMode.Normal, reason=reason
-        )
-        DiceExpressionCache.store_expression(itr, expression, diceroll)
-
-        await itr.response.send_message(
-            embed=UserActionEmbed(
-                itr=itr,
-                title=expression.title,
-                description=expression.description,
-            ),
-            ephemeral=expression.ephemeral,
-        )
-        await VC.play_dice_roll(itr, expression, reason)
+    advantage = Advantage.Normal
 
 
-class AdvantageRollCommand(SimpleCommand):
+class AdvantageRollCommand(_AbstractRollCommand):
     name = "advantage"
     desc = "Lucky you! Roll and take the best of two!"
     help = "Roll the expression twice, use the highest result."
-
-    async def diceroll_autocomplete(self, itr: discord.Interaction, current: str):
-        return await func_diceroll_autocomplete(itr, current)
-
-    async def reason_autocomplete(self, itr: discord.Interaction, current: str):
-        return await func_reason_autocomplete(itr, current)
-
-    @discord.app_commands.autocomplete(
-        diceroll=diceroll_autocomplete,
-        reason=reason_autocomplete,
-    )
-    async def callback(
-        self,
-        itr: discord.Interaction,
-        diceroll: str,
-        reason: str = None,
-    ):
-        self.log(itr)
-        dice_notation, reason = _get_diceroll_shortcut(itr, diceroll, reason)
-        expression = DiceExpression(
-            dice_notation, DiceRollMode.Advantage, reason=reason
-        )
-        DiceExpressionCache.store_expression(itr, expression, diceroll)
-
-        await itr.response.send_message(
-            embed=UserActionEmbed(
-                itr=itr,
-                title=expression.title,
-                description=expression.description,
-            ),
-            ephemeral=expression.ephemeral,
-        )
-        await VC.play_dice_roll(itr, expression, reason)
+    advantage = Advantage.Advantage
 
 
-class DisadvantageRollCommand(SimpleCommand):
+class DisadvantageRollCommand(_AbstractRollCommand):
     name = "disadvantage"
     desc = "Tough luck chump... Roll twice and suck it."
     help = "Roll the expression twice, use the lowest result."
-
-    async def diceroll_autocomplete(self, itr: discord.Interaction, current: str):
-        return await func_diceroll_autocomplete(itr, current)
-
-    async def reason_autocomplete(self, itr: discord.Interaction, current: str):
-        return await func_reason_autocomplete(itr, current)
-
-    @discord.app_commands.autocomplete(
-        diceroll=diceroll_autocomplete,
-        reason=reason_autocomplete,
-    )
-    async def callback(
-        self,
-        itr: discord.Interaction,
-        diceroll: str,
-        reason: str = None,
-    ):
-        self.log(itr)
-        dice_notation, reason = _get_diceroll_shortcut(itr, diceroll, reason)
-        expression = DiceExpression(
-            dice_notation, DiceRollMode.Disadvantage, reason=reason
-        )
-        DiceExpressionCache.store_expression(itr, expression, diceroll)
-
-        await itr.response.send_message(
-            embed=UserActionEmbed(
-                itr=itr,
-                title=expression.title,
-                description=expression.description,
-            ),
-            ephemeral=expression.ephemeral,
-        )
-        await VC.play_dice_roll(itr, expression, reason)
+    advantage = Advantage.Disadvantage
 
 
 class D20Command(SimpleCommand):
@@ -165,13 +66,7 @@ class D20Command(SimpleCommand):
 
     async def callback(self, itr: discord.Interaction):
         self.log(itr)
-        expression = DiceExpression("1d20", DiceRollMode.Normal)
-        await itr.response.send_message(
-            embed=UserActionEmbed(
-                itr=itr,
-                title=expression.title,
-                description=expression.description,
-            ),
-            ephemeral=expression.ephemeral,
-        )
-        await VC.play_dice_roll(itr, expression)
+        result = roll("1d20", Advantage.Normal)
+        embed = RollEmbed(itr, result)
+        await itr.response.send_message(embed=embed, ephemeral=embed.ephemeral)
+        await VC.play_dice_roll(itr, result)

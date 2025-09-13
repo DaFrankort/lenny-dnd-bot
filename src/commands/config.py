@@ -4,7 +4,7 @@ from logic.app_commands import SimpleCommand
 from components.items import SimpleSeparator
 from config import Config
 from dnd import DNDData, Source, SourceList
-from embeds import SimpleEmbed
+from embeds2 import SimpleEmbed
 from components.paginated_view import PaginatedLayoutView
 
 

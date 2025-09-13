@@ -10,8 +10,6 @@ from rapidfuzz import fuzz
 from discord.app_commands import Choice
 from typing import Literal, Union, TypedDict
 
-from dice import DiceExpression
-
 
 def _read_dnd_data(path: str) -> list[dict]:
     if not os.path.exists(path):
@@ -216,7 +214,7 @@ class Spell(DNDObject):
 
     @abstractmethod
     def get_embed(self, itr: discord.Interaction) -> discord.Embed:
-        from embeds import SpellEmbed
+        from embeds2 import SpellEmbed
 
         return SpellEmbed(itr, self)
 
@@ -277,7 +275,7 @@ class Item(DNDObject):
 
     @abstractmethod
     def get_embed(self, itr: discord.Interaction) -> discord.Embed:
-        from embeds import ItemEmbed
+        from embeds2 import ItemEmbed
 
         return ItemEmbed(self)
 
@@ -308,7 +306,7 @@ class Condition(DNDObject):
 
     @abstractmethod
     def get_embed(self, itr: discord.Interaction) -> discord.Embed:
-        from embeds import ConditionEmbed
+        from embeds2 import ConditionEmbed
 
         return ConditionEmbed(self)
 
@@ -350,7 +348,7 @@ class Creature(DNDObject):
 
     @abstractmethod
     def get_embed(self, itr: discord.Interaction) -> discord.Embed:
-        from embeds import CreatureEmbed
+        from embeds2 import CreatureEmbed
 
         return CreatureEmbed(self)
 
@@ -394,7 +392,7 @@ class Class(DNDObject):
 
     @abstractmethod
     def get_embed(self, itr: discord.Interaction) -> discord.Embed:
-        from embeds import ClassEmbed
+        from embeds2 import ClassEmbed
 
         return ClassEmbed(self)
 
@@ -424,7 +422,7 @@ class Rule(DNDObject):
 
     @abstractmethod
     def get_embed(self, itr: discord.Interaction) -> discord.Embed:
-        from embeds import RuleEmbed
+        from embeds2 import RuleEmbed
 
         return RuleEmbed(self)
 
@@ -454,7 +452,7 @@ class Action(DNDObject):
 
     @abstractmethod
     def get_embed(self, itr: discord.Interaction) -> discord.Embed:
-        from embeds import ActionEmbed
+        from embeds2 import ActionEmbed
 
         return ActionEmbed(self)
 
@@ -488,7 +486,7 @@ class Feat(DNDObject):
 
     @abstractmethod
     def get_embed(self, itr: discord.Interaction) -> discord.Embed:
-        from embeds import FeatEmbed
+        from embeds2 import FeatEmbed
 
         return FeatEmbed(self)
 
@@ -526,7 +524,7 @@ class Language(DNDObject):
 
     @abstractmethod
     def get_embed(self, itr: discord.Interaction) -> discord.Embed:
-        from embeds import LanguageEmbed
+        from embeds2 import LanguageEmbed
 
         return LanguageEmbed(self)
 
@@ -556,7 +554,7 @@ class Background(DNDObject):
 
     @abstractmethod
     def get_embed(self, itr: discord.Interaction) -> discord.Embed:
-        from embeds import BackgroundEmbed
+        from embeds2 import BackgroundEmbed
 
         return BackgroundEmbed(self)
 
@@ -597,18 +595,21 @@ class DNDTable(DNDObject):
     def is_rollable(self) -> bool:
         return self.dice_notation is not None
 
-    def roll(self) -> tuple[list[str] | None, DiceExpression | None]:
-        if not self.is_rollable:
-            return None, None
+    def roll(self):  # -> tuple[list[str] | None, DiceExpression | None]:
+        return None, None
 
-        expression = DiceExpression(self.dice_notation)
-        result = expression.roll.value
-        rows = self.table["value"]["rows"]
-        for row in rows:
-            range = row[0]
-            if range["min"] <= result <= range["max"]:
-                return row, expression
-        return None, expression
+        # Temporarily disabled
+        # if not self.is_rollable:
+        #     return None, None
+        #
+        # expression = DiceExpression(self.dice_notation)
+        # result = expression.roll.value
+        # rows = self.table["value"]["rows"]
+        # for row in rows:
+        #     range = row[0]
+        #     if range["min"] <= result <= range["max"]:
+        #         return row, expression
+        # return None, expression
 
 
 class DNDTableList(DNDObjectList):
@@ -647,7 +648,7 @@ class Species(DNDObject):
 
     @abstractmethod
     def get_embed(self, itr: discord.Interaction) -> discord.Embed:
-        from embeds import SpeciesEmbed
+        from embeds2 import SpeciesEmbed
 
         return SpeciesEmbed(self)
 

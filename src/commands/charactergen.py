@@ -4,7 +4,7 @@ import discord
 from charts import get_radar_chart
 from logic.app_commands import SimpleCommand
 from dnd import Background, Class, Data, DNDObject, DNDTable, Gender, Species
-from embeds import SimpleEmbed
+from embeds2 import SimpleEmbed
 from stats import Stats
 from user_colors import UserColor
 

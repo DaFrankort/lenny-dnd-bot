@@ -1,5 +1,5 @@
 import discord
-from dice import DiceRollMode
+from logic.roll import Advantage
 from user_colors import UserColor
 import d20distribution
 import d20distribution.distribution
@@ -10,9 +10,9 @@ def get_distribution(
 ) -> d20distribution.distribution.DiceDistribution:
     distribution = d20distribution.parse(expression)
 
-    if advantage == DiceRollMode.Advantage.value:
+    if advantage == Advantage.Advantage:
         distribution = distribution.advantage()
-    elif advantage == DiceRollMode.Disadvantage.value:
+    elif advantage == Advantage.Disadvantage:
         distribution = distribution.disadvantage()
 
     return distribution
@@ -31,9 +31,9 @@ class DiceDistributionEmbed(discord.Embed):
     ):
         color = UserColor.get(itr)
 
-        if advantage == DiceRollMode.Advantage.value:
+        if advantage == Advantage.Advantage:
             title_suffix = " with advantage!"
-        elif advantage == DiceRollMode.Disadvantage.value:
+        elif advantage == Advantage.Disadvantage:
             title_suffix = " with disadvantage!"
         else:
             title_suffix = "!"

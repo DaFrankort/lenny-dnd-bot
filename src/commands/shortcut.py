@@ -2,7 +2,7 @@ import discord
 
 from logic.app_commands import SimpleCommand
 from dice import DiceExpressionCache
-from embeds import SuccessEmbed, UserActionEmbed
+from embeds2 import SuccessEmbed, UserActionEmbed
 from modals import SimpleModal
 
 

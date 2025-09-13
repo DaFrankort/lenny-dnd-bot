@@ -2,7 +2,7 @@ import io
 import discord
 
 from logic.app_commands import SimpleCommand, SimpleCommandGroup
-from embeds import UserActionEmbed
+from embeds2 import UserActionEmbed
 from methods import FontType, get_font, when
 from user_colors import UserColor
 from PIL import Image, ImageDraw

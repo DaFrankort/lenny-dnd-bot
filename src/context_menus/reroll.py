@@ -1,8 +1,9 @@
 import discord
 
+from embeds.roll import RollEmbed
 from logic.app_commands import SimpleContextMenu
-from dice import DiceExpression, DiceExpressionCache, DiceRollMode
-from embeds import UserActionEmbed
+from dice import DiceExpressionCache
+from logic.roll import Advantage, roll
 from voice_chat import VC
 
 
@@ -40,13 +41,13 @@ class RerollContextMenu(SimpleContextMenu):
         )
         if "disadvantage" in dice_notation:
             # Check 'disadvantage' before 'advantage', may give a false positive otherwise.
-            mode = DiceRollMode.Disadvantage
+            advantage = Advantage.Disadvantage
             dice_notation = dice_notation.replace("with disadvantage", "")
         elif "advantage" in dice_notation:
-            mode = DiceRollMode.Advantage
+            advantage = Advantage.Advantage
             dice_notation = dice_notation.replace("with advantage", "")
         else:
-            mode = DiceRollMode.Normal
+            advantage = Advantage.Normal
         dice_notation = dice_notation.strip()
 
         reason = None
@@ -60,16 +61,10 @@ class RerollContextMenu(SimpleContextMenu):
                     reason = label.replace("*", "")
                     break
 
-        expression = DiceExpression(expression=dice_notation, mode=mode, reason=reason)
-        expression.title = expression.title.replace("Rolling", "Re-rolling")
-        DiceExpressionCache.store_expression(itr, expression, dice_notation)
+        result = roll(dice_notation, advantage, reason)
+        if result.error is not None:
+            DiceExpressionCache.store_expression(itr, result.expression, reason)
 
-        await itr.response.send_message(
-            embed=UserActionEmbed(
-                itr=itr,
-                title=expression.title,
-                description=expression.description,
-            ),
-            ephemeral=expression.ephemeral,
-        )
-        await VC.play_dice_roll(itr, expression, reason)
+        embed = RollEmbed(itr, result, reason=reason, is_reroll=True)
+        await itr.response.send_message(embed=embed, ephemeral=embed.ephemeral)
+        await VC.play_dice_roll(itr, result, reason)

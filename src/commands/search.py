@@ -5,7 +5,7 @@ import discord
 from logic.app_commands import SimpleCommand, SimpleCommandGroup
 from config import Config
 from dnd import DNDObject, Data, send_dnd_embed
-from embeds import MultiDNDSelectView, NoResultsFoundEmbed
+from embed import MultiDNDSelectView, NoResultsFoundEmbed
 from search import SearchLayoutView
 
 

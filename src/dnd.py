@@ -216,7 +216,7 @@ class Spell(DNDObject):
 
     @abstractmethod
     def get_embed(self, itr: discord.Interaction) -> discord.Embed:
-        from embeds import SpellEmbed
+        from embed import SpellEmbed
 
         return SpellEmbed(itr, self)
 
@@ -277,7 +277,7 @@ class Item(DNDObject):
 
     @abstractmethod
     def get_embed(self, itr: discord.Interaction) -> discord.Embed:
-        from embeds import ItemEmbed
+        from embed import ItemEmbed
 
         return ItemEmbed(self)
 
@@ -308,7 +308,7 @@ class Condition(DNDObject):
 
     @abstractmethod
     def get_embed(self, itr: discord.Interaction) -> discord.Embed:
-        from embeds import ConditionEmbed
+        from embed import ConditionEmbed
 
         return ConditionEmbed(self)
 
@@ -350,7 +350,7 @@ class Creature(DNDObject):
 
     @abstractmethod
     def get_embed(self, itr: discord.Interaction) -> discord.Embed:
-        from embeds import CreatureEmbed
+        from embed import CreatureEmbed
 
         return CreatureEmbed(self)
 
@@ -394,7 +394,7 @@ class Class(DNDObject):
 
     @abstractmethod
     def get_embed(self, itr: discord.Interaction) -> discord.Embed:
-        from embeds import ClassEmbed
+        from embed import ClassEmbed
 
         return ClassEmbed(self)
 
@@ -424,7 +424,7 @@ class Rule(DNDObject):
 
     @abstractmethod
     def get_embed(self, itr: discord.Interaction) -> discord.Embed:
-        from embeds import RuleEmbed
+        from embed import RuleEmbed
 
         return RuleEmbed(self)
 
@@ -454,7 +454,7 @@ class Action(DNDObject):
 
     @abstractmethod
     def get_embed(self, itr: discord.Interaction) -> discord.Embed:
-        from embeds import ActionEmbed
+        from embed import ActionEmbed
 
         return ActionEmbed(self)
 
@@ -488,7 +488,7 @@ class Feat(DNDObject):
 
     @abstractmethod
     def get_embed(self, itr: discord.Interaction) -> discord.Embed:
-        from embeds import FeatEmbed
+        from embed import FeatEmbed
 
         return FeatEmbed(self)
 
@@ -526,7 +526,7 @@ class Language(DNDObject):
 
     @abstractmethod
     def get_embed(self, itr: discord.Interaction) -> discord.Embed:
-        from embeds import LanguageEmbed
+        from embed import LanguageEmbed
 
         return LanguageEmbed(self)
 
@@ -556,7 +556,7 @@ class Background(DNDObject):
 
     @abstractmethod
     def get_embed(self, itr: discord.Interaction) -> discord.Embed:
-        from embeds import BackgroundEmbed
+        from embed import BackgroundEmbed
 
         return BackgroundEmbed(self)
 
@@ -647,7 +647,7 @@ class Species(DNDObject):
 
     @abstractmethod
     def get_embed(self, itr: discord.Interaction) -> discord.Embed:
-        from embeds import SpeciesEmbed
+        from embed import SpeciesEmbed
 
         return SpeciesEmbed(self)
 

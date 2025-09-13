@@ -1,8 +1,10 @@
-import datetime
 import discord
-from components.items import TitleTextDisplay
+from embeds.timestamp import RelativeTimestampEmbed, TimestampDatesContainerView
 from logic.app_commands import SimpleCommand, SimpleCommandGroup, send_error_message
-from logic.time import TIME_MULTIPLIERS, RelativeTimestampEmbed, get_relative_timestamp
+from logic.timestamp import (
+    get_date_timestamp,
+    get_relative_timestamp_from_now,
+)
 
 
 class TimestampCommandGroup(SimpleCommandGroup):
@@ -36,52 +38,15 @@ class TimestampRelativeCommand(SimpleCommand):
         days: discord.app_commands.Range[int, 0, 7] = 0,
         weeks: discord.app_commands.Range[int, 0, 999] = 0,
     ):
-        total_seconds = (
-            seconds * TIME_MULTIPLIERS["s"]
-            + minutes * TIME_MULTIPLIERS["m"]
-            + hours * TIME_MULTIPLIERS["h"]
-            + days * TIME_MULTIPLIERS["d"]
-            + weeks * TIME_MULTIPLIERS["w"]
+        self.log(itr)
+        success, result = get_relative_timestamp_from_now(
+            seconds, minutes, hours, days, weeks
         )
-
-        if total_seconds == 0:
-            await send_error_message(itr, "You must specify a time!")
+        if not success:
+            await send_error_message(itr, result)
             return
-
-        timestamp = get_relative_timestamp(discord.utils.utcnow(), seconds)
-        embed = RelativeTimestampEmbed(timestamp=timestamp)
+        embed = RelativeTimestampEmbed(timestamp=result)
         await itr.response.send_message(embed=embed, ephemeral=True)
-
-
-class TimestampButton(discord.ui.Button):
-    timestamp: str
-
-    def __init__(self, timestamp: str):
-        super().__init__(style=discord.ButtonStyle.primary, label="Clip")
-        self.timestamp = timestamp
-
-    async def callback(self, itr: discord.Interaction):
-        await itr.response.send_message(f"{self.timestamp}", ephemeral=True)
-
-
-class TimestampDatesContainerView(discord.ui.LayoutView):
-    def __init__(self, unix_timestamp: int):
-        super().__init__(timeout=None)
-        container = discord.ui.Container(accent_color=discord.Color.dark_green())
-
-        title = f"Timestamps for <t:{unix_timestamp}:f>"
-        container.add_item(TitleTextDisplay(name=title))
-
-        formats = ["t", "T", "d", "D", "f", "F", "R"]
-        for format in formats:
-            timestamp = f"<t:{unix_timestamp}:{format}>"
-            button = TimestampButton(timestamp=timestamp)
-            section = discord.ui.Section(f"## {timestamp}", accessory=button)
-
-            container.add_item(section)
-            container.add_item(discord.ui.TextDisplay(f"```{timestamp}```"))
-
-        self.add_item(container)
 
 
 class TimestampDateCommand(SimpleCommand):
@@ -101,57 +66,10 @@ class TimestampDateCommand(SimpleCommand):
         timezone: discord.app_commands.Range[int, -14, 14],
         date: str = None,
     ):
-        base_date = discord.utils.utcnow().date()
-        if date:
-            date = date.replace(".", "/").strip()
-            parts = date.split("/")
-
-            try:
-                if len(parts) == 1:  # DD
-                    day = int(parts[0])
-                    month = discord.utils.utcnow().month
-                    year = discord.utils.utcnow().year
-                    date = f"{day:02d}/{month:02d}/{year}"
-                elif len(parts) == 2:  # DD/MM
-                    day, month = map(int, parts)
-                    year = discord.utils.utcnow().year
-                    date = f"{day:02d}/{month:02d}/{year}"
-                elif len(parts) == 3:  # DD/MM/YYYY
-                    pass
-                else:
-                    raise ValueError("Invalid date format")
-
-                base_date = datetime.datetime.strptime(date, "%d/%m/%Y").date()
-            except Exception:
-                await send_error_message(
-                    itr,
-                    "Date must be in `DD`, `DD/MM`, or `DD/MM/YYYY` format, and must be a valid date!",
-                )
-                return
-
-        time = time.replace(":", "").strip()
-        if not time.isdigit() or not (1 <= len(time) <= 4):
-            await send_error_message(
-                itr,
-                "Time must be in HHMM or HH format (e.g. `0930`, `15:45`, `700`, or `7`).",
-            )
+        self.log(itr)
+        success, result = get_date_timestamp(time, timezone, date)
+        if not success:
+            await send_error_message(result)
             return
-
-        if len(time) <= 2:
-            time = f"{time}00"
-        time = time.zfill(4)
-
-        hours, minutes = divmod(int(time), 100)
-        try:
-            dt = datetime.datetime.combine(
-                base_date, datetime.time(hour=hours, minute=minutes)
-            )
-        except ValueError as e:
-            await send_error_message(itr, f"Invalid time: {e}")
-            return
-
-        dt_utc = dt - datetime.timedelta(hours=timezone)  # Adjust for timezone
-        unix_timestamp = int(dt_utc.replace(tzinfo=datetime.timezone.utc).timestamp())
-
-        view = TimestampDatesContainerView(unix_timestamp)
+        view = TimestampDatesContainerView(result)
         await itr.response.send_message(view=view, ephemeral=True)

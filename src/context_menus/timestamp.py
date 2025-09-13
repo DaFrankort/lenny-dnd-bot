@@ -1,7 +1,7 @@
-import re
 import discord
+from embeds.timestamp import RelativeTimestampEmbed
 from logic.app_commands import SimpleContextMenu, send_error_message
-from logic.time import TIME_MULTIPLIERS, RelativeTimestampEmbed, get_relative_timestamp
+from logic.timestamp import get_relative_timestamp_from_message
 
 
 class RequestTimestampContextMenu(SimpleContextMenu):
@@ -18,23 +18,9 @@ class RequestTimestampContextMenu(SimpleContextMenu):
             )
             return
 
-        matches = re.findall(
-            r"(\d+(?:[.,]\d+)?)\s*([smhdw])", message.content, re.IGNORECASE
-        )
-        if not matches:
-            await send_error_message(
-                itr, "Couldn't find any mention of times in that message."
-            )
+        success, result = get_relative_timestamp_from_message(message)
+        if not success:
+            await send_error_message(itr, result)
             return
-
-        seconds = 0
-        for amount, unit in matches:
-            unit = unit.lower()
-            if unit not in TIME_MULTIPLIERS:
-                continue
-            amount = amount.replace(",", ".")
-            seconds += float(amount) * TIME_MULTIPLIERS[unit]
-
-        timestamp = get_relative_timestamp(message.created_at, seconds)
-        embed = RelativeTimestampEmbed(timestamp=timestamp)
+        embed = RelativeTimestampEmbed(timestamp=result)
         await itr.response.send_message(embed=embed, ephemeral=True)

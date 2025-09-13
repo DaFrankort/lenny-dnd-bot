@@ -1,12 +1,9 @@
-import random
 import discord
-
 from embeds.charactergen import CharacterGenContainerView
 from logic.app_commands import SimpleCommand, send_error_message
-from dnd import Background, Class, Data, DNDObject, DNDTable, Gender, Species
+from dnd import Data, Gender
 from embed import SimpleEmbed
 from logic.charactergen import generate_dnd_character
-from stats import Stats
 
 GenderChoices = [
     discord.app_commands.Choice(name="Female", value=Gender.FEMALE.value),

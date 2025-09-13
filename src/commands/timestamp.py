@@ -69,7 +69,7 @@ class TimestampDateCommand(SimpleCommand):
         self.log(itr)
         success, result = get_date_timestamp(time, timezone, date)
         if not success:
-            await send_error_message(result)
+            await send_error_message(itr, result)
             return
         view = TimestampDatesContainerView(result)
         await itr.response.send_message(view=view, ephemeral=True)

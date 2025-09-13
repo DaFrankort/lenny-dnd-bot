@@ -57,9 +57,9 @@ class UserColor:
 
         while hex_place < 6:
             try:
-                alpha_value = get_alpha(seed[hex_place]) * get_alpha(
-                    seed[hex_place + 1]
-                )
+                alpha_curr = get_alpha(seed[hex_place])
+                alpha_next = get_alpha(seed[hex_place + 1])
+                alpha_value = alpha_curr * alpha_next
             except IndexError:
                 # When username is shorter than 6 characters, inserts replacement value.
                 # Value can be changed to 255 for light and blue colors, 0 for dark and red colors.

@@ -35,11 +35,11 @@ def get_relative_timestamp_from_now(
     return timestamp
 
 
-def get_relative_timestamp_from_message(message: discord.Message) -> tuple[bool, str]:
+def get_relative_timestamp_from_message(message: discord.Message) -> str | None:
     regex = r"(\d+(?:[.,]\d+)?)\s*([smhdw])"
     matches = re.findall(regex, message.content, re.IGNORECASE)
     if not matches:
-        return False, "Couldn't find any mention of times in that message."
+        return None
 
     seconds = 0
     for amount, unit in matches:
@@ -50,7 +50,7 @@ def get_relative_timestamp_from_message(message: discord.Message) -> tuple[bool,
         seconds += float(amount) * TIME_MULTIPLIERS[unit]
 
     timestamp = _get_relative_timestamp(message.created_at, seconds)
-    return True, timestamp
+    return timestamp
 
 
 def _parse_date_from_string(date: str) -> datetime.date:

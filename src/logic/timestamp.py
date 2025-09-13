@@ -21,7 +21,7 @@ def _get_relative_timestamp(start: datetime, delay_seconds: int | float) -> str:
 
 def get_relative_timestamp_from_now(
     seconds: int, minutes: int, hours: int, days: int, weeks: int
-) -> tuple[bool, str]:
+) -> str:
     now = discord.utils.utcnow()
     total_seconds = (
         seconds * TIME_MULTIPLIERS["s"]
@@ -31,11 +31,8 @@ def get_relative_timestamp_from_now(
         + weeks * TIME_MULTIPLIERS["w"]
     )
 
-    if total_seconds == 0:
-        return False, "You must specifiy a time!"
-
     timestamp = _get_relative_timestamp(start=now, delay_seconds=total_seconds)
-    return True, timestamp
+    return timestamp
 
 
 def get_relative_timestamp_from_message(message: discord.Message) -> tuple[bool, str]:

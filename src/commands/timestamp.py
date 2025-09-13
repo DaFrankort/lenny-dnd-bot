@@ -39,12 +39,7 @@ class TimestampRelativeCommand(SimpleCommand):
         weeks: discord.app_commands.Range[int, 0, 999] = 0,
     ):
         self.log(itr)
-        success, result = get_relative_timestamp_from_now(
-            seconds, minutes, hours, days, weeks
-        )
-        if not success:
-            await send_error_message(itr, result)
-            return
+        result = get_relative_timestamp_from_now(seconds, minutes, hours, days, weeks)
         embed = RelativeTimestampEmbed(timestamp=result)
         await itr.response.send_message(embed=embed, ephemeral=True)
 

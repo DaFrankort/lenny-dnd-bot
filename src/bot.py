@@ -3,12 +3,13 @@ import os
 import discord
 from discord import app_commands
 from dotenv import load_dotenv
-from commands.charactergen import CharacterGenCommand, NameGenCommand
+from commands.charactergen import CharacterGenCommand
 from commands.color import ColorCommandGroup
 from commands.config import ConfigCommand
 from commands.distribution import DistributionCommand
 from commands.help import HelpCommand
 from commands.initiative import InitiativeCommand
+from commands.namegen import NameGenCommand
 from commands.plansession import PlanSessionCommand
 from commands.playsound import PlaySoundCommand
 from commands.rolls import (

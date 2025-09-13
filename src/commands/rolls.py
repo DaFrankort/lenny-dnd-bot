@@ -3,7 +3,7 @@ import discord
 
 from logic.app_commands import SimpleCommand
 from dice import DiceExpression, DiceExpressionCache, DiceRollMode
-from embeds import UserActionEmbed
+from embed import UserActionEmbed
 from voice_chat import VC
 
 

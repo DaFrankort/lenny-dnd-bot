@@ -7,7 +7,7 @@ from discord import ui
 from components.items import SimpleSeparator, TitleTextDisplay
 from components.paginated_view import PaginatedLayoutView
 from dnd import DNDTable
-from embeds import UserActionEmbed
+from embed import UserActionEmbed
 from logger import log_button_press
 from methods import build_table_from_rows
 from voice_chat import VC, SoundType

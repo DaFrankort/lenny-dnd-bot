@@ -5,7 +5,7 @@ import discord
 from discord import Interaction, Message, NotFound, ui
 from components.items import SimpleSeparator
 from dice import DiceRollMode
-from embeds import SimpleEmbed, SuccessEmbed, UserActionEmbed
+from embed import SimpleEmbed, SuccessEmbed, UserActionEmbed
 from rapidfuzz import fuzz
 from discord.app_commands import Choice
 from logger import log_button_press

@@ -60,7 +60,12 @@ class MultiDNDSelect(discord.ui.Select):
         logging.debug(
             f"{self.name}: user {interaction.user.display_name} selected option {index}: '{entry.name}`"
         )
-        await interaction.response.send_message(embed=entry.get_embed(interaction))
+
+        embed = entry.get_embed(interaction)
+        if isinstance(embed, discord.Embed):
+            await interaction.response.send_message(embed=embed)
+        elif isinstance(embed, discord.ui.LayoutView):
+            await interaction.response.send_message(view=embed)
 
 
 class MultiDNDSelectView(discord.ui.View):

@@ -1,6 +1,6 @@
 import discord
 from embeds.timestamp import RelativeTimestampEmbed, TimestampDatesContainerView
-from logic.app_commands import SimpleCommand, SimpleCommandGroup, send_error_message
+from logic.app_commands import SimpleCommand, SimpleCommandGroup
 from logic.timestamp import (
     get_date_timestamp,
     get_relative_timestamp_from_now,
@@ -62,9 +62,6 @@ class TimestampDateCommand(SimpleCommand):
         date: str = None,
     ):
         self.log(itr)
-        success, result = get_date_timestamp(time, timezone, date)
-        if not success:
-            await send_error_message(itr, result)
-            return
+        result = get_date_timestamp(time, timezone, date)
         view = TimestampDatesContainerView(result)
         await itr.response.send_message(view=view, ephemeral=True)

@@ -76,22 +76,20 @@ def _parse_date_from_string(date: str) -> datetime.date:
     return base_date
 
 
-def get_date_timestamp(time: str, timezone: int, date: str) -> tuple[bool, int | str]:
+def get_date_timestamp(time: str, timezone: int, date: str) -> str:
     base_date = discord.utils.utcnow().date()
     if date:
         date = date.replace(".", "/").strip()
         try:
             base_date = _parse_date_from_string(date)
         except Exception:
-            return (
-                False,
+            raise SyntaxError(
                 "Date must be in `DD`, `DD/MM`, or `DD/MM/YYYY` format, and must be a valid date!",
             )
 
     time = time.replace(":", "").strip()
     if not time.isdigit() or not (1 <= len(time) <= 4):
-        return (
-            False,
+        raise SyntaxError(
             "Time must be in HHMM or HH format (e.g. `0930`, `15:45`, `700`, or `7`).",
         )
 
@@ -105,8 +103,8 @@ def get_date_timestamp(time: str, timezone: int, date: str) -> tuple[bool, int |
             base_date, datetime.time(hour=hours, minute=minutes)
         )
     except ValueError as e:
-        return False, f"Invalid time: {e}"
+        raise ValueError(f"Invalid time: {str(e)}")
 
     dt_utc = dt - datetime.timedelta(hours=timezone)  # Adjust for timezone
     unix_timestamp = int(dt_utc.replace(tzinfo=datetime.timezone.utc).timestamp())
-    return True, unix_timestamp
+    return unix_timestamp

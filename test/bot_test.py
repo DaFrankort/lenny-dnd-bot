@@ -248,8 +248,6 @@ class TestBotCommands:
                             "5",
                         ],
                     },
-                    {"time": "Wrong", "timezone": 0},
-                    {"time": "1830", "timezone": 0, "date": ["Wrong", "32", "05/13"]},
                 ],
             ),
             ("charactergen", {}),
@@ -276,6 +274,39 @@ class TestBotCommands:
                     pytest.fail(
                         f"Error while running command /{cmd_name} with args {args}: {e}"
                     )
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "cmd_name, arguments",
+        [
+            (
+                "timestamp date",
+                [
+                    {"time": "Wrong", "timezone": 0},
+                    {"time": "1830", "timezone": 0, "date": ["Wrong", "32", "05/13"]},
+                ],
+            ),
+            # ("", {"": "", "": ""}),
+        ],
+    )
+    async def test_slash_commands_expecting_failure(
+        self,
+        commands: list[discord.app_commands.Command],
+        cmd_name: str,
+        arguments: dict | list[dict],
+    ):
+        # This is the same test as test_slash_commands, except
+        # we expect errors to be thrown
+        cmd = get_cmd(commands, cmd_name)
+        assert cmd is not None, f"{cmd_name} command not found"
+
+        arguments = listify(arguments)
+
+        for arg_set in arguments:
+            arg_variants = self.expand_arg_variants(arg_set)
+            for args in arg_variants:
+                with pytest.raises(Exception):
+                    await cmd.callback(itr=self.mock_interaction, **args)
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(

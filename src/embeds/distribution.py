@@ -2,7 +2,7 @@ import discord
 from discord.utils import MISSING
 from dice import DiceRollMode
 from logic.distribution import DistributionResult
-from user_colors import UserColor
+from logic.color import UserColor
 
 
 class DistributionEmbed(discord.Embed):

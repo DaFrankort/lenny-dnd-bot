@@ -16,7 +16,7 @@ from dnd import (
     Condition,
 )
 from methods import build_table
-from user_colors import UserColor
+from logic.color import UserColor
 
 HORIZONTAL_LINE = "~~-------------------------------------------------------------------------------------~~"
 

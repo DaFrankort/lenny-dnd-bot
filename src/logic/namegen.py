@@ -1,5 +1,5 @@
 from dnd import Data, Gender
-from user_colors import UserColor
+from logic.color import UserColor
 
 
 class NameGenResult(object):

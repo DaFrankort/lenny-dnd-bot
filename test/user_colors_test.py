@@ -1,7 +1,7 @@
 import os
 import discord
 import pytest
-from user_colors import UserColor
+from logic.color import UserColor
 from utils.mock_discord_interaction import MockInteraction
 
 

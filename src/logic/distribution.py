@@ -7,7 +7,7 @@ import discord
 from matplotlib import pyplot as plt
 
 from dice import DiceRollMode
-from user_colors import UserColor
+from logic.color import UserColor
 
 
 class DistributionResult(object):

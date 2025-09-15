@@ -42,9 +42,6 @@ class NameGenCommand(SimpleCommand):
     ):
         self.log(itr)
         result = generate_name(species, gender)
-        if result is None:
-            await send_error_message(itr, "Can't generate names at this time")
-            return
         embed = SimpleEmbed(
             title=result.name, description=result.desc, color=result.color
         )

@@ -1,6 +1,6 @@
 import logging
 import discord
-from config import Config, is_source_phb2014
+from logic.config import Config, is_source_phb2014
 from dnd import (
     Background,
     Class,

@@ -36,7 +36,7 @@ class RollEmbed(UserActionEmbed):
 
         roll = result.roll
         description.append("")
-        description.append(f"🎲 {reason}: {roll.total}")
+        description.append(f"🎲 **{reason}: {roll.total}**")
 
         if roll.is_natural_twenty:
             description.append("🎯 **Critical Hit!**")

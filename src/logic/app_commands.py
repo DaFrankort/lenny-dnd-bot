@@ -42,6 +42,7 @@ class SimpleCommand(discord.app_commands.Command):
             raise NotImplementedError(f"'help' not defined in {type(self)}")
 
         super().__init__(name=self.name, description=self.desc, callback=self.callback)
+        self.on_error = self.error_handler
 
     @property
     def command_name(self) -> str:
@@ -80,6 +81,14 @@ class SimpleCommand(discord.app_commands.Command):
     @abstractmethod
     async def callback(self, itr: discord.Interaction):
         raise NotImplementedError
+
+    async def error_handler(
+        self,
+        _,
+        itr: discord.Interaction,
+        error: discord.app_commands.AppCommandError,
+    ):
+        await itr.response.send_message(str(error), ephemeral=True)
 
 
 class SimpleContextMenu(discord.app_commands.ContextMenu):

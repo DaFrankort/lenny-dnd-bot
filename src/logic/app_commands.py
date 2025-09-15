@@ -8,6 +8,13 @@ async def send_error_message(itr: discord.Interaction, message: str, emoji: str 
     await itr.response.send_message(message, ephemeral=True)
 
 
+async def send_warning_message(
+    itr: discord.Interaction, message: str, emoji: str = "⚠️"
+):
+    message = f"{emoji} {message} {emoji}"
+    await itr.response.send_message(message, ephemeral=True)
+
+
 class SimpleCommandGroup(discord.app_commands.Group):
     name: str = None
     desc: str = None

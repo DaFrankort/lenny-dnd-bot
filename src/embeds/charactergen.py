@@ -5,7 +5,7 @@ from components.items import SimpleSeparator, TitleTextDisplay
 from dnd import Background, DNDObject, Gender
 from logic.charactergen import CharacterGenResult
 from methods import build_table_from_rows
-from user_colors import UserColor
+from logic.color import UserColor
 
 
 class _CharacterGenInfoButton(ui.Button):

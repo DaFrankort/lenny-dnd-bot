@@ -151,7 +151,7 @@ class TestBotCommands:
             ),
             (
                 "color set hex",
-                {"hex_color": ["#ff00ff", "ff00ff", "Not A color"]},
+                {"hex_color": ["#ff00ff", "ff00ff"]},
             ),
             (
                 "color set rgb",
@@ -285,6 +285,10 @@ class TestBotCommands:
                     {"time": "Wrong", "timezone": 0},
                     {"time": "1830", "timezone": 0, "date": ["Wrong", "32", "05/13"]},
                 ],
+            ),
+            (
+                "color set hex",
+                {"hex_color": "Green"},
             ),
             # ("", {"": "", "": ""}),
         ],

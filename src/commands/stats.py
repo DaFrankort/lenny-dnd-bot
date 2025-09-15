@@ -4,7 +4,7 @@ from charts import get_radar_chart
 from logic.app_commands import SimpleCommand, SimpleCommandGroup
 from embed import UserActionEmbed
 from stats import Stats
-from user_colors import UserColor
+from logic.color import UserColor
 
 
 class StatsCommandGroup(SimpleCommandGroup):

@@ -4,7 +4,7 @@ from embeds.distribution import DistributionEmbed
 from logic.app_commands import SimpleCommand
 from dice import DiceRollMode
 from logic.distribution import distribution
-from user_colors import UserColor
+from logic.color import UserColor
 
 
 DISTRIBUTION_COMMAND_ADVANTAGE_CHOICES = [

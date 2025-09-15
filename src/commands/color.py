@@ -1,43 +1,14 @@
-import io
 import discord
 
-from logic.app_commands import SimpleCommand, SimpleCommandGroup
+from embeds.color import ColorSetEmbed, ColorShowEmbed
+from logic.app_commands import (
+    SimpleCommand,
+    SimpleCommandGroup,
+    send_error_message,
+    send_warning_message,
+)
 from embed import UserActionEmbed
-from methods import FontType, get_font, when
-from user_colors import UserColor
-from PIL import Image, ImageDraw
-
-
-def get_palette_image(color: discord.Color | int) -> discord.File:
-    if isinstance(color, discord.Color):
-        color = color.value
-    r, g, b = UserColor.to_rgb(color)
-    hex_str = f"#{color:06X}"
-
-    # Draw square
-    image = Image.new("RGBA", (256, 64), (r, g, b, 255))
-    draw = ImageDraw.Draw(image)
-
-    # Draw text
-    font_size = 16
-    luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255
-    font_color = when(luminance > 0.5, "black", "white")
-    font = get_font(FontType.MONOSPACE, font_size)
-
-    bbox = draw.textbbox((0, 0), hex_str, font=font)
-    text_w = bbox[2] - bbox[0]
-    text_h = bbox[3] - bbox[1]
-
-    x = (image.width - text_w) // 2
-    y = (image.height - text_h) // 2 - (font_size // 4)
-
-    draw.text((x, y), hex_str, font=font, fill=font_color)
-
-    # Buffer and send
-    buffer = io.BytesIO()
-    image.save(buffer, format="PNG")
-    buffer.seek(0)
-    return discord.File(fp=buffer, filename="color.png")
+from logic.color import UserColor, get_palette_image, save_hex_color, save_rgb_color
 
 
 class ColorCommandGroup(SimpleCommandGroup):
@@ -68,26 +39,9 @@ class ColorSetHexCommand(SimpleCommand):
 
     async def callback(self, itr: discord.Interaction, hex_color: str):
         self.log(itr)
-
-        if not UserColor.validate(hex_color):
-            await itr.response.send_message(
-                "⚠️ Invalid hex value: Must be 6 valid hexadecimal characters (0-9, A-F), optionally starting with a # symbol. (eg. ff00ff / #ff00ff) ⚠️",
-                ephemeral=True,
-            )
-            return
-
-        old_color = f"#{UserColor.get(itr):06X}"
-        color = UserColor.parse(hex_color)
-        UserColor.save(itr, color)
-        file = get_palette_image(color)
-
-        embed = UserActionEmbed(
-            itr=itr,
-            title=f"{itr.user.display_name} set a new color!",
-            description=f"``{old_color.upper()}`` => ``#{hex_color.upper()}``",
-        )
-        embed.set_image(url=f"attachment://{file.filename}")
-        await itr.response.send_message(embed=embed, file=file, ephemeral=True)
+        result = save_hex_color(itr, hex_color)
+        embed = ColorSetEmbed(itr, result)
+        await itr.response.send_message(embed=embed, file=embed.file, ephemeral=True)
 
 
 class ColorSetRGBCommand(SimpleCommand):
@@ -103,20 +57,9 @@ class ColorSetRGBCommand(SimpleCommand):
         b: discord.app_commands.Range[int, 0, 255],
     ):
         self.log(itr)
-
-        ro, go, bo = UserColor.to_rgb(UserColor.get(itr))
-        description = f"R ``{ro:03}`` => ``{r:03}``\nG ``{go:03}`` => ``{g:03}``\nB ``{bo:03}`` => ``{b:03}``"
-        color = discord.Color.from_rgb(r, g, b).value
-        UserColor.save(itr, color)
-        file = get_palette_image(color)
-
-        embed = UserActionEmbed(
-            itr=itr,
-            title=f"{itr.user.display_name} set a new color!",
-            description=description,
-        )
-        embed.set_image(url=f"attachment://{file.filename}")
-        await itr.response.send_message(embed=embed, file=file, ephemeral=True)
+        result = save_rgb_color(itr, r, g, b)
+        embed = ColorSetEmbed(itr, result)
+        await itr.response.send_message(embed=embed, file=embed.file, ephemeral=True)
 
 
 class ColorShowCommand(SimpleCommand):
@@ -126,14 +69,9 @@ class ColorShowCommand(SimpleCommand):
 
     async def callback(self, itr: discord.Interaction):
         self.log(itr)
-
         color = UserColor.get(itr)
-        title = f"{itr.user.display_name}'s color!"
-        file = get_palette_image(color)
-
-        embed = UserActionEmbed(itr=itr, title=title, description="")
-        embed.set_image(url=f"attachment://{file.filename}")
-        await itr.response.send_message(embed=embed, file=file)
+        embed = ColorShowEmbed(itr, color)
+        await itr.response.send_message(embed=embed, file=embed.file)
 
 
 class ColorClearCommand(SimpleCommand):
@@ -143,11 +81,8 @@ class ColorClearCommand(SimpleCommand):
 
     async def callback(self, itr: discord.Interaction):
         self.log(itr)
-
         removed = UserColor.remove(itr)
-        message = when(
-            removed,
-            "❌ Cleared user-defined color. ❌",
-            "⚠️ You have not yet set a color. ⚠️",
-        )
-        await itr.response.send_message(message, ephemeral=True)
+        if removed:
+            await send_error_message(itr, "Cleared user-defined color.")
+        else:
+            await send_warning_message(itr, "You have not yet set a color.")

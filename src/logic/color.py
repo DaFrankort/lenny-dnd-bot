@@ -1,7 +1,83 @@
+import io
 import os
 import discord
 import json
 import re
+from methods import FontType, get_font, when
+from PIL import Image, ImageDraw
+
+
+def get_palette_image(color: discord.Color | int) -> discord.File:
+    if isinstance(color, discord.Color):
+        color = color.value
+    r, g, b = UserColor.to_rgb(color)
+    hex_str = f"#{color:06X}"
+
+    # Draw square
+    image = Image.new("RGBA", (256, 64), (r, g, b, 255))
+    draw = ImageDraw.Draw(image)
+
+    # Draw text
+    font_size = 16
+    luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255
+    font_color = when(luminance > 0.5, "black", "white")
+    font = get_font(FontType.MONOSPACE, font_size)
+
+    bbox = draw.textbbox((0, 0), hex_str, font=font)
+    text_w = bbox[2] - bbox[0]
+    text_h = bbox[3] - bbox[1]
+
+    x = (image.width - text_w) // 2
+    y = (image.height - text_h) // 2 - (font_size // 4)
+
+    draw.text((x, y), hex_str, font=font, fill=font_color)
+
+    # Buffer and send
+    buffer = io.BytesIO()
+    image.save(buffer, format="PNG")
+    buffer.seek(0)
+    return discord.File(fp=buffer, filename="color.png")
+
+
+class UserColorSaveResult(object):
+    color: int
+    description: str
+
+    def __init__(self):
+        self.color = None
+        self.description = None
+
+
+def save_hex_color(itr: discord.Interaction, hex_color: str) -> UserColorSaveResult:
+    if not UserColor.validate(hex_color):
+        raise SyntaxError(
+            "Invalid hex value: Must be 6 valid hexadecimal characters (0-9, A-F), optionally starting with a # symbol. (eg. ff00ff / #ff00ff)"
+        )
+    result = UserColorSaveResult()
+
+    old_color = f"#{UserColor.get(itr):06X}"
+    description = f"``{old_color.upper()}`` => ``#{hex_color.upper()}``"
+    result.description = description
+
+    color = UserColor.parse(hex_color)
+    UserColor.save(itr, color)
+    result.color = color
+    return result
+
+
+def save_rgb_color(
+    itr: discord.Interaction, r: int, g: int, b: int
+) -> UserColorSaveResult:
+    result = UserColorSaveResult()
+
+    ro, go, bo = UserColor.to_rgb(UserColor.get(itr))
+    description = f"R ``{ro:03}`` => ``{r:03}``\nG ``{go:03}`` => ``{g:03}``\nB ``{bo:03}`` => ``{b:03}``"
+    result.description = description
+
+    color = discord.Color.from_rgb(r, g, b).value
+    UserColor.save(itr, color)
+    result.color = color
+    return result
 
 
 class UserColor:

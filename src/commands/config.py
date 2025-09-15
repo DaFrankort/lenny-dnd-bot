@@ -1,6 +1,6 @@
 import discord
 
-from embeds.logic import ConfigSourcesView
+from embeds.config import ConfigSourcesView
 from logic.app_commands import SimpleCommand
 from dnd import DNDData
 

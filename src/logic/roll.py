@@ -208,7 +208,7 @@ def _roll_single(expression: str) -> SingleRollResult:
     return SingleRollResult(str(roll.expr), roll.total, special, contains_dice)
 
 
-def roll(expression: str, mode: DiceRollMode) -> RollResult:
+def roll(expression: str, mode: DiceRollMode = DiceRollMode.Normal) -> RollResult:
     result = RollResult()
 
     try:

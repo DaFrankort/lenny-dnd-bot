@@ -601,7 +601,7 @@ class DNDTable(DNDObject):
         if not self.is_rollable:
             return None, None
 
-        result = roll(self.dice_notation, DiceRollMode.Normal)
+        result = roll(self.dice_notation)
         result = result.roll.total
         rows = self.table["value"]["rows"]
         for row in rows:

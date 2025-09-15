@@ -12,7 +12,7 @@ from commands.initiative import InitiativeCommand
 from commands.namegen import NameGenCommand
 from commands.plansession import PlanSessionCommand
 from commands.playsound import PlaySoundCommand
-from commands.rolls import (
+from commands.roll import (
     AdvantageRollCommand,
     D20Command,
     DisadvantageRollCommand,

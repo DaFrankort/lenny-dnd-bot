@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 import pytest
 from dice import (
     DiceExpression,
-    DiceExpressionCache,
+    DiceCache,
     DiceRollMode,
 )
 from utils.mock_discord_interaction import MockInteraction
@@ -120,8 +120,8 @@ class TestDiceExpressionCache:
     @pytest.fixture(autouse=True)
     def setup(self, tmp_path):
         self.test_path = tmp_path / "dice_cache.json"
-        DiceExpressionCache.PATH = self.test_path
-        DiceExpressionCache._data = {}  # Reset cache before each test
+        DiceCache.PATH = self.test_path
+        DiceCache._data = {}  # Reset cache before each test
 
     @pytest.fixture
     def itr(self):
@@ -144,9 +144,9 @@ class TestDiceExpressionCache:
         return mock_expr
 
     def test_store_expression_adds_to_cache(self, itr, valid_expression):
-        DiceExpressionCache.store_expression(itr, valid_expression, "1d20+5")
+        DiceCache.store_expression(itr, valid_expression, "1d20+5")
         user_id = str(itr.user.id)
-        data = DiceExpressionCache._data
+        data = DiceCache._data
         reason = valid_expression.reason
 
         assert user_id in data, f"User ID {user_id} should be in cache data."
@@ -158,14 +158,14 @@ class TestDiceExpressionCache:
         ), f"'{reason}' should be in last_used_reason for user."
 
     def test_store_expression_does_not_add_invalid(self, itr, invalid_expression):
-        DiceExpressionCache.store_expression(itr, invalid_expression, "2d6")
+        DiceCache.store_expression(itr, invalid_expression, "2d6")
         user_id = str(itr.user.id)
 
         assert (
-            user_id not in DiceExpressionCache._data
+            user_id not in DiceCache._data
         ), f"User ID {user_id} should not be in cache for invalid expression."
 
     def test_get_autocomplete_suggestions_empty(self, itr):
-        DiceExpressionCache._data = {}
-        suggestions = DiceExpressionCache.get_autocomplete_suggestions(itr, "")
+        DiceCache._data = {}
+        suggestions = DiceCache.get_autocomplete_suggestions(itr, "")
         assert suggestions == [], "Suggestions should be empty when no data is present."

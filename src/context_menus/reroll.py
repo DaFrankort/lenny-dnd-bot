@@ -1,7 +1,7 @@
 import discord
 
 from logic.app_commands import SimpleContextMenu
-from dice import DiceExpression, DiceExpressionCache, DiceRollMode
+from dice import DiceExpression, DiceCache, DiceRollMode
 from embed import UserActionEmbed
 from voice_chat import VC
 
@@ -62,7 +62,7 @@ class RerollContextMenu(SimpleContextMenu):
 
         expression = DiceExpression(expression=dice_notation, mode=mode, reason=reason)
         expression.title = expression.title.replace("Rolling", "Re-rolling")
-        DiceExpressionCache.store_expression(itr, expression, dice_notation)
+        DiceCache.store_expression(itr, expression, dice_notation)
 
         await itr.response.send_message(
             embed=UserActionEmbed(

@@ -6,7 +6,7 @@ Powered by [5e.tools](https://5e.tools/) for up-to-date 5e data.
 
 ## Features
 
-- **Dice Roll Commands**: Easily roll dice with flexible expressions, such as `2d6`, `1d20+6`, or `1d8+4+2d6`. Create and use custom shortcuts for your favorite or most-used rolls.
+- **Dice Roll Commands**: Easily roll dice with flexible expressions, such as `2d6`, `1d20+6`, or `1d8+4+2d6`.
 - **D&D Data Lookup**: Look up D&D data and get detailed information about them directly in Discord, powered by [5e.tools](https://5e.tools/).
 - **Customizable Color Embeds**: Customize the colors of your dice roll embeds for better visual appeal and easy identification, auto-generated if not specified.
 - **Character Stat Rolling**: Automatically roll and generate D&D character stats.
@@ -88,7 +88,6 @@ Roll D&D dice using dice-expressions (e.g. `2d6` / `1d20+2`).
 - `/advantage <dice-expression> [reason]` – Rolls twice, highlights the highest result.
 - `/disadvantage <dice-expression> [reason]` – Rolls twice, highlights the lowest result.
 - `/d20` - Rolls a basic 1d20 without any modifiers.
-- `/shortcut` – Manage your own dice expression shortcuts. Create, edit, or remove shortcuts to quickly roll complex or frequently used expressions. For example, save a shortcut named "Fire Bolt" with the expression **1d10** and reason **Fire**. Later, simply use `/roll "Fire Bolt"` to roll with your saved settings.
 
 ### D&D Data lookup
 

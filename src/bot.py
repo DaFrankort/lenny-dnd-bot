@@ -19,7 +19,6 @@ from commands.rolls import (
     RollCommand,
 )
 from commands.search import SearchCommandGroup
-from commands.shortcut import ShortcutCommand
 from commands.stats import StatsCommandGroup
 from commands.timestamp import TimestampCommandGroup
 from commands.tokengen import TokenGenCommand, TokenGenUrlCommand
@@ -69,7 +68,6 @@ class Bot(discord.Client):
         self.tree.add_command(AdvantageRollCommand())
         self.tree.add_command(DisadvantageRollCommand())
         self.tree.add_command(D20Command())
-        self.tree.add_command(ShortcutCommand())
         self.tree.add_command(TokenGenCommand())
         self.tree.add_command(TokenGenUrlCommand())
         self.tree.add_command(InitiativeCommand(initiatives=self.initiatives))

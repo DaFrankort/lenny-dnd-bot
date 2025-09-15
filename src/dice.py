@@ -312,7 +312,7 @@ class DiceExpressionCache:
 
     @classmethod
     def _get_user_data_template(cls) -> object:
-        return {"last_used": [], "last_used_reason": [], "shortcuts": {}}
+        return {"last_used": [], "last_used_reason": []}
 
     @classmethod
     def _load_data(cls):
@@ -343,7 +343,6 @@ class DiceExpressionCache:
 
         notation = typed_notation
         if expression.roll.expression == typed_notation.strip().lower():
-            # Shortcut used
             notation = expression.roll.expression
             reason = expression.reason
 
@@ -368,74 +367,11 @@ class DiceExpressionCache:
         cls._save_data()
 
     @classmethod
-    def store_shortcut(
-        cls, itr: Interaction, name: str, dice_notation: str, reason: str | None
-    ) -> tuple[bool, str]:
-        """
-        Stores a new roll-shortcut, overwrites it if the name already exists.
-        Returns a description and a boolean indicating success.
-        """
-        expression = DiceExpression(dice_notation, DiceRollMode.Normal, reason)
-        if len(expression.roll.errors) > 0:
-            return False, expression.description  # Only insert valid notations
-
-        user_id = str(itr.user.id)
-        data = cls._load_data()
-        user_data = data.get(user_id, cls._get_user_data_template())
-
-        user_data["shortcuts"][name] = {
-            "expression": dice_notation,
-            "reason": reason.title() if reason else None,
-        }
-
-        data[user_id] = user_data
-        cls._save_data()
-
-        if not reason:
-            return True, f"- Expression: ``{dice_notation}``"
-        return True, f"- Expression: {dice_notation}\n- Reason: {reason}"
-
-    @classmethod
-    def remove_shortcut(cls, itr: Interaction, name: str) -> tuple[bool, str]:
-        """Removes a shortcut for a user. Returns a description and a success bool."""
-        user_id = str(itr.user.id)
-        data = cls._load_data()
-        user_data = data.get(user_id)
-
-        if not user_data or "shortcuts" not in user_data:
-            return False, "You don't have any shortcuts..."
-
-        if name not in user_data["shortcuts"]:
-            return (
-                False,
-                f"Shortcut by name {name} could not be found, already deleted?",
-            )
-
-        del user_data["shortcuts"][name]
-        cls._save_data()
-        return True, f"Removed shortcut ``{name}`` from your shortcuts!"
-
-    @classmethod
-    def get_shortcut(cls, itr: Interaction, name: str) -> object | None:
-        """Gets a user's shortcut by name, case-sensitive."""
-        user_id = str(itr.user.id)
-        data = cls._load_data()
-        return data.get(user_id, {}).get("shortcuts", {}).get(name, None)
-
-    @classmethod
-    def get_user_shortcuts(cls, itr: Interaction) -> object | None:
-        """Returns a dict with all of the user's shortcuts"""
-        user_id = str(itr.user.id)
-        data = cls._load_data()
-        return data.get(user_id, {}).get("shortcuts", None)
-
-    @classmethod
     def get_autocomplete_suggestions(
         cls, itr: Interaction, query: str
     ) -> list[Choice[str]]:
         """
         Returns auto-complete choices for the last roll expressions a user used when no query is given.
-        If query is given, will try to suggest user's shortcuts, using smart-append.
         """
         user_id = str(itr.user.id)
         user_data = cls._load_data().get(user_id, cls._get_user_data_template())
@@ -445,11 +381,13 @@ class DiceExpressionCache:
             return []
 
         query = query.strip().lower().replace(" ", "")
-        if query == "":
-            return [Choice(name=expr, value=expr) for expr in reversed(last_used)]
+        filtered = [
+            Choice(name=roll, value=roll)
+            for roll in reversed(last_used)
+            if query in roll.lower()
+        ]
 
-        # Autocompleting a user's expression to last_used can be intrusive, as it will overwrite what they typed (e.g. if a user typed 1d20+6, then typed 1d20, it would autocorrect it to 1d20+6, which may not be what the player wanted)
-        return cls.get_shortcut_autocomplete_suggestions(itr, query, True)
+        return filtered[:25]
 
     @classmethod
     def get_autocomplete_reason_suggestions(
@@ -509,38 +447,3 @@ class DiceExpressionCache:
             discord.app_commands.Choice(name=reason, value=reason)
             for reason in filtered_reasons[:25]
         ]
-
-    @classmethod
-    def get_shortcut_autocomplete_suggestions(
-        cls, itr: Interaction, query: str, smart_suggest=False
-    ) -> list[Choice[str]]:
-        """
-        Returns a list of `Choice[str]` objects for autocomplete, based on the user's saved shortcuts.
-        If `smart_suggest` is True, suggests shortcuts as part of a dice expression (e.g., after an operator).
-        Only provides suggestions for "EDIT" or "REMOVE" actions, if action argument is found within the interaction.
-        """
-        action = itr.namespace.action if hasattr(itr.namespace, "action") else None
-        if action and action.upper() not in ["EDIT", "REMOVE"]:
-            return []  # Don't autocomplete for actions that are not edit or delete.
-
-        user_id = str(itr.user.id)
-        data = DiceExpressionCache._load_data()
-        shortcuts = data.get(user_id, {}).get("shortcuts", {})
-
-        if not smart_suggest:
-            query = query.strip().lower()
-            choices = [
-                Choice(name=k, value=k) for k in shortcuts.keys() if query in k.lower()
-            ]
-            return choices[:25]
-
-        # Smart Suggest
-        parts = re.split(r"([+\-*/()])", query)
-        query = parts[-1].strip().lower()
-        choices = []
-        for key in shortcuts.keys():
-            if query in key.lower():
-                parts[-1] = key
-                suggestion = "".join(parts)
-                choices.append(Choice(name=suggestion, value=suggestion))
-        return choices[:25]

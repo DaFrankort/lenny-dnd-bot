@@ -118,7 +118,6 @@ class TestBotCommands:
                     "reason": [None, "Fire"],
                 },
             ),
-            ("shortcut", {}),
             ("search spell", {"name": ["Fire Bolt", "abcdef"]}),
             ("search item", {"name": ["Sword", "abcdef"]}),
             ("search condition", {"name": ["Poisoned", "abcdef"]}),

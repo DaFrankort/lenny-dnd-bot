@@ -7,8 +7,7 @@ from logic.app_commands import (
     send_error_message,
     send_warning_message,
 )
-from embed import UserActionEmbed
-from logic.color import UserColor, get_palette_image, save_hex_color, save_rgb_color
+from logic.color import UserColor, save_hex_color, save_rgb_color
 
 
 class ColorCommandGroup(SimpleCommandGroup):

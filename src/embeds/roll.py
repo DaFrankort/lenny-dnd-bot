@@ -6,14 +6,22 @@ from logic.roll import DiceRollMode, RollResult
 
 class RollEmbed(UserActionEmbed):
     def __init__(
-        self, itr: discord.Interaction, result: RollResult, reason: str | None
+        self,
+        itr: discord.Interaction,
+        result: RollResult,
+        reason: str | None,
+        reroll: bool = False,
     ):
         title_suffix = ""
         if result.mode == DiceRollMode.Advantage:
             title_suffix = " with advantage"
         elif result.mode == DiceRollMode.Disadvantage:
             title_suffix = " with disadvantage"
-        title = f"Rolled {result.expression}{title_suffix}!"
+
+        if reroll:
+            title = f"Re-rolling {result.expression}{title_suffix}!"
+        else:
+            title = f"Rolling {result.expression}{title_suffix}!"
 
         if reason is None:
             reason = "Result"

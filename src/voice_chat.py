@@ -8,7 +8,6 @@ import shutil
 import discord
 from discord import Interaction
 
-from dice import DiceExpression
 from logic.roll import RollResult
 
 

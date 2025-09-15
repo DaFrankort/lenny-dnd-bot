@@ -48,11 +48,11 @@ class UserColorSaveResult(object):
         self.description = None
 
 
-def save_hex_color(
-    itr: discord.Interaction, hex_color: str
-) -> UserColorSaveResult | None:
+def save_hex_color(itr: discord.Interaction, hex_color: str) -> UserColorSaveResult:
     if not UserColor.validate(hex_color):
-        return None
+        raise SyntaxError(
+            "Invalid hex value: Must be 6 valid hexadecimal characters (0-9, A-F), optionally starting with a # symbol. (eg. ff00ff / #ff00ff)"
+        )
     result = UserColorSaveResult()
 
     old_color = f"#{UserColor.get(itr):06X}"
@@ -62,6 +62,7 @@ def save_hex_color(
     color = UserColor.parse(hex_color)
     UserColor.save(itr, color)
     result.color = color
+    return result
 
 
 def save_rgb_color(

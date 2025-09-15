@@ -40,12 +40,6 @@ class ColorSetHexCommand(SimpleCommand):
     async def callback(self, itr: discord.Interaction, hex_color: str):
         self.log(itr)
         result = save_hex_color(itr, hex_color)
-        if result is None:
-            await send_warning_message(
-                itr,
-                "Invalid hex value: Must be 6 valid hexadecimal characters (0-9, A-F), optionally starting with a # symbol. (eg. ff00ff / #ff00ff)",
-            )
-            return
         embed = ColorSetEmbed(itr, result)
         await itr.response.send_message(embed=embed, file=embed.file, ephemeral=True)
 

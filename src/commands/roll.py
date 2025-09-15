@@ -11,10 +11,10 @@ class _AbstractRollCommand(SimpleCommand):
     mode: DiceRollMode
 
     async def diceroll_autocomplete(self, itr: discord.Interaction, current: str):
-        return await DiceCache.get_autocomplete_suggestions(itr, current)
+        return DiceCache.get_autocomplete_suggestions(itr, current)
 
     async def reason_autocomplete(self, itr: discord.Interaction, current: str):
-        return await DiceCache.get_autocomplete_reason_suggestions(itr, current)
+        return DiceCache.get_autocomplete_reason_suggestions(itr, current)
 
     @discord.app_commands.autocomplete(
         diceroll=diceroll_autocomplete,

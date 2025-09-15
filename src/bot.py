@@ -28,7 +28,7 @@ from context_menus.reroll import RerollContextMenu
 from initiative import (
     InitiativeTracker,
 )
-from voice_chat import VC, Sounds
+from logic.voice_chat import VC, Sounds
 
 
 class Bot(discord.Client):

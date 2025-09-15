@@ -10,7 +10,7 @@ from dnd import DNDTable
 from embed import UserActionEmbed
 from logger import log_button_press
 from methods import build_table_from_rows
-from voice_chat import VC, SoundType
+from logic.voice_chat import VC, SoundType
 
 
 class DNDTableRollButton(ui.Button):

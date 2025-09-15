@@ -3,7 +3,7 @@ import discord
 from logic.app_commands import SimpleCommand
 from dice import DiceExpression, DiceExpressionCache, DiceRollMode
 from embed import UserActionEmbed
-from voice_chat import VC
+from logic.voice_chat import VC
 
 
 async def func_diceroll_autocomplete(

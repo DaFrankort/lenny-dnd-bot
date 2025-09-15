@@ -2,7 +2,7 @@ import discord
 
 from logic.app_commands import SimpleCommand
 from embed import SuccessEmbed
-from voice_chat import VC
+from logic.voice_chat import VC
 
 
 class PlaySoundCommand(SimpleCommand):

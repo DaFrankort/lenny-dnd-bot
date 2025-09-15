@@ -10,7 +10,7 @@ from rapidfuzz import fuzz
 from discord.app_commands import Choice
 from typing import Literal, Union, TypedDict
 
-from dice import DiceExpression
+from logic.roll import DiceRollMode, RollResult, roll
 
 
 def _read_dnd_data(path: str) -> list[dict]:
@@ -597,18 +597,18 @@ class DNDTable(DNDObject):
     def is_rollable(self) -> bool:
         return self.dice_notation is not None
 
-    def roll(self) -> tuple[list[str] | None, DiceExpression | None]:
+    def roll(self) -> tuple[list[str] | None, RollResult | None]:
         if not self.is_rollable:
             return None, None
 
-        expression = DiceExpression(self.dice_notation)
-        result = expression.roll.value
+        result = roll(self.dice_notation, DiceRollMode.Normal)
+        result = result.roll.total
         rows = self.table["value"]["rows"]
         for row in rows:
             range = row[0]
             if range["min"] <= result <= range["max"]:
-                return row, expression
-        return None, expression
+                return row, result
+        return None, result
 
 
 class DNDTableList(DNDObjectList):

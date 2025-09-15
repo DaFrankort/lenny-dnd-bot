@@ -1,32 +1,9 @@
-import re
 import discord
 
 from logic.app_commands import SimpleCommand
 from dice import DiceExpression, DiceExpressionCache, DiceRollMode
 from embed import UserActionEmbed
 from voice_chat import VC
-
-
-def _get_diceroll_shortcut(
-    itr: discord.Interaction, diceroll: str, reason: str | None
-) -> tuple[str, str | None]:
-    shortcuts = DiceExpressionCache.get_user_shortcuts(itr)
-    if not shortcuts:
-        return diceroll, reason
-
-    parts = re.split(r"([+\-*/()])", diceroll)
-    shortcut_reason = None
-    for part in parts:
-        part = part.strip()
-
-        if part in shortcuts:
-            shortcut = shortcuts[part]
-            expression = shortcut["expression"]
-            reason = shortcut["reason"]
-            diceroll = diceroll.replace(part, expression)
-            shortcut_reason = reason
-
-    return diceroll, reason or shortcut_reason
 
 
 async def func_diceroll_autocomplete(
@@ -63,10 +40,7 @@ class RollCommand(SimpleCommand):
         reason: str = None,
     ):
         self.log(itr)
-        dice_notation, reason = _get_diceroll_shortcut(itr, diceroll, reason)
-        expression = DiceExpression(
-            dice_notation, mode=DiceRollMode.Normal, reason=reason
-        )
+        expression = DiceExpression(diceroll, mode=DiceRollMode.Normal, reason=reason)
         DiceExpressionCache.store_expression(itr, expression, diceroll)
 
         await itr.response.send_message(
@@ -102,10 +76,7 @@ class AdvantageRollCommand(SimpleCommand):
         reason: str = None,
     ):
         self.log(itr)
-        dice_notation, reason = _get_diceroll_shortcut(itr, diceroll, reason)
-        expression = DiceExpression(
-            dice_notation, DiceRollMode.Advantage, reason=reason
-        )
+        expression = DiceExpression(diceroll, DiceRollMode.Advantage, reason=reason)
         DiceExpressionCache.store_expression(itr, expression, diceroll)
 
         await itr.response.send_message(
@@ -141,10 +112,7 @@ class DisadvantageRollCommand(SimpleCommand):
         reason: str = None,
     ):
         self.log(itr)
-        dice_notation, reason = _get_diceroll_shortcut(itr, diceroll, reason)
-        expression = DiceExpression(
-            dice_notation, DiceRollMode.Disadvantage, reason=reason
-        )
+        expression = DiceExpression(diceroll, DiceRollMode.Disadvantage, reason=reason)
         DiceExpressionCache.store_expression(itr, expression, diceroll)
 
         await itr.response.send_message(

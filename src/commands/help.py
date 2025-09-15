@@ -43,7 +43,6 @@ class HelpTabList(object):
             "d20",
             "advantage",
             "disadvantage",
-            "shortcut",
             "distribution",
         ],
         text="You can roll dice using the following commands:",
@@ -55,16 +54,6 @@ class HelpTabList(object):
                     "For example, ``1d20 + 6`` rolls a single 20-sided die and adds 6 to the result, these notations are expandable to combine a large number of dice.",
                     "Besides basic math operators (``+``, ``-``, ``/``, ``*``), ``NdN`` and numbers, you can also use modifiers [documented on this site.](https://d20.readthedocs.io/en/latest/start.html#grammar)",
                     "*Note: Dice notations are sometimes referred to as dice expressions instead.*",
-                ],
-            ),
-            (
-                "Shortcuts",
-                [
-                    "Shortcuts let you save dice rolls or modifiers you use frequently under a custom name, so you don't have to type out the full notation each time.",
-                    '- For example, if you often roll **1d8+3+2d6** for a sneak attack, you can create a shortcut called "SNEAK".',
-                    '- Once you\'ve saved a shortcut, you can use it in any dice expression like so ``/roll "SNEAK"``.',
-                    '- You can also use your shortcuts within expressions, like so: ``/roll "SNEAK+5"``, this will evaluate to **1d8+3+1d6__+5__**',
-                    "- Shortcuts can also have default roll reasons. This reason will be used whenever you use the shortcut, unless you specify another reason.",
                 ],
             ),
             (

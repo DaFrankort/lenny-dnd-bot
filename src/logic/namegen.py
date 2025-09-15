@@ -13,7 +13,7 @@ class NameGenResult(object):
         self.color = None
 
 
-def generate_name(species: str | None, gender: str) -> NameGenResult | None:
+def generate_name(species: str | None, gender: str) -> NameGenResult:
     result = NameGenResult()
 
     gender = Gender(gender)
@@ -25,4 +25,4 @@ def generate_name(species: str | None, gender: str) -> NameGenResult | None:
         result.color = UserColor.generate(name)
         return result
     else:
-        return None
+        raise LookupError("Can't generate names at this time")

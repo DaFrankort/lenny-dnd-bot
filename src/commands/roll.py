@@ -37,7 +37,7 @@ class _AbstractRollCommand(SimpleCommand):
         embed = RollEmbed(itr, result, reason)
 
         await itr.response.send_message(embed=embed)
-        await VC.play_dice_roll(itr, result.expression, reason)
+        await VC.play_dice_roll(itr, result, reason)
 
 
 class RollCommand(_AbstractRollCommand):
@@ -74,4 +74,4 @@ class D20Command(SimpleCommand):
         result = roll("1d20", DiceRollMode.Normal)
         embed = RollEmbed(itr, result, None)
         await itr.response.send_message(embed=embed)
-        await VC.play_dice_roll(itr, "1d20")
+        await VC.play_dice_roll(itr, result)

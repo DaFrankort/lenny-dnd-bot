@@ -597,18 +597,18 @@ class DNDTable(DNDObject):
     def is_rollable(self) -> bool:
         return self.dice_notation is not None
 
-    def roll(self) -> tuple[list[str] | None, RollResult | None]:
+    def roll(self) -> None | tuple[any, RollResult]:
         if not self.is_rollable:
-            return None, None
+            return None
 
         result = roll(self.dice_notation)
-        result = result.roll.total
         rows = self.table["value"]["rows"]
         for row in rows:
             range = row[0]
-            if range["min"] <= result <= range["max"]:
+            if range["min"] <= result.roll.total <= range["max"]:
                 return row, result
-        return None, result
+
+        return None
 
 
 class DNDTableList(DNDObjectList):

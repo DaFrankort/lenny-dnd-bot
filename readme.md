@@ -73,7 +73,6 @@ You can add the following arguments if you wish:
 - `--verbose, --no-verbose` - Run with or without debug-logging.
 - `--voice, --no-voice` - Run with or without voice-chat functionalities.
 
-Alternatively you can run the provided `run.bat` file (on Windows), which will always enforce the latest version with the latest submodule-versions.
 The bot should now be online, don't forget to invite it to your servers!
 
 ## Usage

@@ -82,10 +82,8 @@ def _is_only_dice_modifiers_and_additions(node: d20.Number) -> bool:
 
 
 def _extract_dice(node: d20.Number) -> list[d20.Dice | d20.Die]:
-    if isinstance(node, d20.Dice):
-        return [node]
-    if isinstance(node, d20.Die):
-        return [node]
+    if isinstance(node, d20.Die) or isinstance(node, d20.Dice):
+        return node.keptset
     if isinstance(node, d20.Literal):
         return []
     if isinstance(node, d20.Parenthetical):

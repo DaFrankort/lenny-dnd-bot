@@ -13,7 +13,7 @@ class NameGenResult(object):
         self.color = None
 
 
-def generate_name(species: str | None, gender: str) -> NameGenResult | None:
+def generate_name(species: str | None, gender: str) -> NameGenResult:
     result = NameGenResult()
 
     gender = Gender(gender)

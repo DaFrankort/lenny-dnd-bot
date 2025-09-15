@@ -205,7 +205,7 @@ def _roll_single(expression: str) -> SingleRollResult:
 
     contains_dice = _contains_dice(roll.expr)
 
-    return SingleRollResult(str(roll.expr), roll.total, special, contains_dice)
+    return SingleRollResult(str(roll), roll.total, special, contains_dice)
 
 
 def roll(expression: str, mode: DiceRollMode = DiceRollMode.Normal) -> RollResult:

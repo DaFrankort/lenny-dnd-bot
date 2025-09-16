@@ -8,7 +8,7 @@ import shutil
 import discord
 from discord import Interaction
 
-from dice import DiceExpression
+from logic.roll import RollResult
 
 
 class SoundType(Enum):
@@ -119,10 +119,8 @@ class VC:
             os.mkdir(VC.TEMP_PATH)
 
     @staticmethod
-    async def play_dice_roll(
-        itr: Interaction, expression: DiceExpression, reason: str = None
-    ):
-        roll = expression.roll
+    async def play_dice_roll(itr: Interaction, result: RollResult, reason: str = None):
+        roll = result.roll
         sound_type = SoundType.ROLL
 
         reason = "" if not reason else reason.lower().strip()

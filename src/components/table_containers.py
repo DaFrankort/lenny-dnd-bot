@@ -9,8 +9,54 @@ from components.paginated_view import PaginatedLayoutView
 from dnd import DNDTable
 from embed import UserActionEmbed
 from logger import log_button_press
+from logic.app_commands import send_error_message
+from logic.color import UserColor
+from logic.roll import RollResult
 from methods import build_table_from_rows
 from logic.voice_chat import VC, SoundType
+
+
+class DNDTableEntryView(discord.ui.LayoutView):
+    def __init__(
+        self,
+        itr: discord.Interaction,
+        table: DNDTable,
+        headers: str,
+        row: any,
+        result: RollResult,
+    ):
+        super().__init__(timeout=None)
+
+        color = UserColor.get(itr)
+        container = ui.Container(accent_color=color)
+
+        title_display = TitleTextDisplay(
+            name=f"{table.name} - Rolled {result.roll.total}!",
+            url=table.url,
+        )
+        reroll_button = DNDTableRollButton(table)
+        reroll_button.label = "Re-roll"
+        title_section = ui.Section(title_display, accessory=reroll_button)
+
+        console_table = Table(style=None, box=rich.box.ROUNDED)
+
+        # Omit the first header and first row value
+        for header in headers[1:]:
+            console_table.add_column(header, justify="left", style=None)
+        console_table.add_row(*row[1:])
+
+        buffer = io.StringIO()
+        console = Console(file=buffer, width=56)
+        console.print(console_table)
+        description = f"```{buffer.getvalue()}```"
+        buffer.close()
+
+        text_display = ui.TextDisplay(description)
+
+        container.add_item(title_section)
+        container.add_item(text_display)
+
+        self.add_item(container)
 
 
 class DNDTableRollButton(ui.Button):
@@ -24,33 +70,24 @@ class DNDTableRollButton(ui.Button):
         log_button_press(
             itr=itr, button=self, location=f"Table Roll - {self.table.name}"
         )
-        row, expression = self.table.roll()
-        if row is None or expression is None:
+        result = self.table.roll()
+        if result is None:
             # Disable button to prevent further attempts, since it will keep failing.
             self.disabled = True
             self.style = discord.ButtonStyle.gray
-            await itr.response.send_message(
-                "❌ Couldn't roll table, something went wrong. ❌"
-            )
+            await send_error_message(itr, "Couldn't roll table, something went wrong")
             await itr.message.edit(view=self)
             return
 
-        console_table = Table(style=None, box=rich.box.ROUNDED)
-        # Omit the first header and first row value
-        for header in self.table.table["value"]["headers"][1:]:
-            console_table.add_column(header, justify="left", style=None)
-        console_table.add_row(*row[1:])
-
-        buffer = io.StringIO()
-        console = Console(file=buffer, width=56)
-        console.print(console_table)
-        description = f"```{buffer.getvalue()}```"
-        buffer.close()
-
-        embed = UserActionEmbed(itr=itr, title=expression.title, description="")
-        embed.description = description
-        embed.title = f"{self.table.name} [{expression.roll.value}]"
-        await itr.response.send_message(embed=embed)
+        row, result = result
+        view = DNDTableEntryView(
+            itr,
+            self.table,
+            self.table.table["value"]["headers"],
+            row,
+            result,
+        )
+        await itr.response.send_message(view=view)
         await VC.play(itr, sound_type=SoundType.ROLL)
 
 

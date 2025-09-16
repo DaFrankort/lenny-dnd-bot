@@ -4,11 +4,11 @@ import time
 import discord
 from discord import Interaction, Message, NotFound, ui
 from components.items import SimpleSeparator
-from dice import DiceRollMode
 from embed import SimpleEmbed, SuccessEmbed, UserActionEmbed
 from rapidfuzz import fuzz
 from discord.app_commands import Choice
 from logger import log_button_press
+from logic.roll import DiceRollMode
 from modals import SimpleModal
 from logic.voice_chat import VC, SoundType
 

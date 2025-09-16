@@ -2,9 +2,9 @@ from discord import Interaction, app_commands
 
 from embeds.distribution import DistributionEmbed
 from logic.app_commands import SimpleCommand
-from dice import DiceRollMode
 from logic.distribution import distribution
 from logic.color import UserColor
+from logic.roll import DiceRollMode
 
 
 DISTRIBUTION_COMMAND_ADVANTAGE_CHOICES = [

@@ -1,8 +1,8 @@
 import discord
 from discord.utils import MISSING
-from dice import DiceRollMode
 from logic.distribution import DistributionResult
 from logic.color import UserColor
+from logic.roll import DiceRollMode
 
 
 class DistributionEmbed(discord.Embed):

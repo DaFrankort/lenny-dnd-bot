@@ -6,8 +6,8 @@ from d20distribution.distribution import DiceDistribution
 import discord
 from matplotlib import pyplot as plt
 
-from dice import DiceRollMode
 from logic.color import UserColor
+from logic.roll import DiceRollMode
 
 
 class DistributionResult(object):

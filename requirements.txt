@@ -8,6 +8,6 @@ pytest-asyncio==1.2.0
 pillow==11.3.0
 numpy==2.3.3
 d20==1.1.2
-matplotlib==3.10.5
+matplotlib==3.10.6
 toml==0.10.2
 d20distribution @ git+https://github.com/pipieter/d20distribution@main

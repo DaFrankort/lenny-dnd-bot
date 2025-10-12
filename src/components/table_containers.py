@@ -7,7 +7,6 @@ from discord import ui
 from components.items import SimpleSeparator, TitleTextDisplay
 from components.paginated_view import PaginatedLayoutView
 from dnd import DNDTable
-from embed import UserActionEmbed
 from logger import log_button_press
 from logic.app_commands import send_error_message
 from logic.color import UserColor

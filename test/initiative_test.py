@@ -1,8 +1,8 @@
 import pytest
-from dice import DiceRollMode
+from logic.roll import DiceRollMode
 from utils.mock_discord_interaction import MockInteraction, MockUser
 
-from initiative import Initiative, InitiativeTracker
+from logic.initiative import Initiative, InitiativeTracker
 
 
 class TestInitiative:

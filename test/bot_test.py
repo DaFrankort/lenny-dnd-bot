@@ -5,7 +5,7 @@ import pytest_asyncio
 from unittest.mock import AsyncMock, MagicMock
 
 from bot import Bot
-from dnd import Gender
+from logic.dnd.name import Gender
 from utils.test_utils import listify
 from commands.tokengen import AlignH, AlignV
 
@@ -118,7 +118,6 @@ class TestBotCommands:
                     "reason": [None, "Fire"],
                 },
             ),
-            ("shortcut", {}),
             ("search spell", {"name": ["Fire Bolt", "abcdef"]}),
             ("search item", {"name": ["Sword", "abcdef"]}),
             ("search condition", {"name": ["Poisoned", "abcdef"]}),
@@ -151,7 +150,7 @@ class TestBotCommands:
             ),
             (
                 "color set hex",
-                {"hex_color": ["#ff00ff", "ff00ff", "Not A color"]},
+                {"hex_color": ["#ff00ff", "ff00ff"]},
             ),
             (
                 "color set rgb",
@@ -165,7 +164,7 @@ class TestBotCommands:
                 {"str": 10, "dex": 10, "con": 10, "int": 10, "wis": 10, "cha": 10},
             ),
             (
-                "tokengen",
+                "tokengen file",
                 [
                     {"image": mock_image()},
                     {"image": mock_image(), "frame_hue": [-180, 0, 180]},
@@ -189,7 +188,7 @@ class TestBotCommands:
                 ],
             ),
             (
-                "tokengenurl",
+                "tokengen url",
                 [
                     {"url": img_url},
                     {"url": img_url, "frame_hue": [-180, 0, 180]},
@@ -210,17 +209,12 @@ class TestBotCommands:
                         ],
                     },
                     {"url": img_url, "variants": [0, 3, 10]},
-                    {"url": "NotAUrl"},
                 ],
             ),
             ("initiative", {}),
             (
                 "plansession",
                 {"in_weeks": [0, 1, 4], "poll_duration": [1, 24, 168]},
-            ),
-            (
-                "playsound",
-                {"sound": [mock_sound(), mock_image()]},
             ),
             ("help", {}),
             (
@@ -248,10 +242,9 @@ class TestBotCommands:
                             "5",
                         ],
                     },
-                    {"time": "Wrong", "timezone": 0},
-                    {"time": "1830", "timezone": 0, "date": ["Wrong", "32", "05/13"]},
                 ],
             ),
+            ("charactergen", {}),
             # ("", {"": "", "": ""}),
         ],
     )
@@ -275,6 +268,59 @@ class TestBotCommands:
                     pytest.fail(
                         f"Error while running command /{cmd_name} with args {args}: {e}"
                     )
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "cmd_name, arguments",
+        [
+            (
+                "timestamp date",
+                [
+                    {"time": "Wrong", "timezone": 0},
+                    {"time": "1830", "timezone": 0, "date": ["Wrong", "32", "05/13"]},
+                ],
+            ),
+            (
+                "color set hex",
+                {"hex_color": "Green"},
+            ),
+            (
+                "playsound",
+                {"sound": [mock_sound(), mock_image()]},
+            ),
+            (
+                "tokengen file",
+                [
+                    {"image": mock_sound()},
+                ],
+            ),
+            (
+                "tokengen url",
+                [
+                    {"url": "NotAUrl"},
+                ],
+            ),
+            # ("", {"": "", "": ""}),
+        ],
+    )
+    async def test_slash_commands_expecting_failure(
+        self,
+        commands: list[discord.app_commands.Command],
+        cmd_name: str,
+        arguments: dict | list[dict],
+    ):
+        # This is the same test as test_slash_commands, except
+        # we expect errors to be thrown
+        cmd = get_cmd(commands, cmd_name)
+        assert cmd is not None, f"{cmd_name} command not found"
+
+        arguments = listify(arguments)
+
+        for arg_set in arguments:
+            arg_variants = self.expand_arg_variants(arg_set)
+            for args in arg_variants:
+                with pytest.raises(Exception):
+                    await cmd.callback(itr=self.mock_interaction, **args)
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(

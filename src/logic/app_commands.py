@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from enum import Enum
 import logging
 import discord
 
@@ -92,7 +93,12 @@ class SimpleCommand(discord.app_commands.Command):
         itr: discord.Interaction,
         error: discord.app_commands.AppCommandError,
     ):
-        await itr.response.send_message(str(error), ephemeral=True)
+        if itr.response.is_done():
+            await itr.followup.send(str(error), ephemeral=True)
+            message = await itr.original_response()
+            await message.delete(delay=10)
+        else:
+            await itr.response.send_message(str(error), ephemeral=True)
 
 
 class SimpleContextMenu(discord.app_commands.ContextMenu):

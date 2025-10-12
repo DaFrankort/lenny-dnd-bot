@@ -164,7 +164,7 @@ class TestBotCommands:
                 {"str": 10, "dex": 10, "con": 10, "int": 10, "wis": 10, "cha": 10},
             ),
             (
-                "tokengen",
+                "tokengen file",
                 [
                     {"image": mock_image()},
                     {"image": mock_image(), "frame_hue": [-180, 0, 180]},
@@ -188,7 +188,7 @@ class TestBotCommands:
                 ],
             ),
             (
-                "tokengenurl",
+                "tokengen url",
                 [
                     {"url": img_url},
                     {"url": img_url, "frame_hue": [-180, 0, 180]},
@@ -209,7 +209,6 @@ class TestBotCommands:
                         ],
                     },
                     {"url": img_url, "variants": [0, 3, 10]},
-                    {"url": "NotAUrl"},
                 ],
             ),
             ("initiative", {}),
@@ -288,6 +287,18 @@ class TestBotCommands:
             (
                 "playsound",
                 {"sound": [mock_sound(), mock_image()]},
+            ),
+            (
+                "tokengen file",
+                [
+                    {"image": mock_sound()},
+                ],
+            ),
+            (
+                "tokengen url",
+                [
+                    {"url": "NotAUrl"},
+                ],
             ),
             # ("", {"": "", "": ""}),
         ],

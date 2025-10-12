@@ -5,14 +5,14 @@ from logic.config import Config
 from logic.dnd.source import Source, SourceList
 
 
-class ConfigSourcesButton(discord.ui.Button):
+class ConfigManageSourcesButton(discord.ui.Button):
     source: Source
     server: discord.Guild
     config: Config
     allowed: bool
     sources_view: "ConfigSourcesView"
 
-    def __init__(self, view: "ConfigSourcesView", source: Source, server: discord.Guild):
+    def __init__(self, view: "ConfigSourcesView", source: Source, server: discord.Guild, allow_configuration: bool):
         super().__init__()
         self.source = source
         self.server = server
@@ -29,6 +29,8 @@ class ConfigSourcesButton(discord.ui.Button):
             self.label = "Disabled"
             self.style = discord.ButtonStyle.red
 
+        self.disabled = not allow_configuration
+
     async def callback(self, itr: discord.Interaction):
         if self.allowed:
             self.config.disallow_source(self.source.id)
@@ -38,20 +40,25 @@ class ConfigSourcesButton(discord.ui.Button):
 
 
 class ConfigSourcesView(PaginatedLayoutView):
+    allow_configuration: bool
     server: discord.Guild
 
-    def __init__(self, server: discord.Guild):
+    def __init__(self, server: discord.Guild, allow_configuration: bool):
         if server is None:
             raise LookupError("Sources can only be enabled and disabled in a server.")
         super().__init__()
         self.server = server
+        self.allow_configuration = allow_configuration
         self.build()
 
     def build(self) -> None:
         self.clear_items()
         container = discord.ui.Container(accent_color=discord.Color.dark_green())
 
-        title = "# Enable Sources"
+        if self.allow_configuration:
+            title = "# Manage Sources"
+        else:
+            title = "# View Sources"
         container.add_item(discord.ui.TextDisplay(title))
         container.add_item(SimpleSeparator())
 
@@ -60,7 +67,7 @@ class ConfigSourcesView(PaginatedLayoutView):
         sources = sorted(sources.entries, key=lambda s: s.name)
         for source in self.viewed_sources:
             text = discord.ui.TextDisplay(source.name)
-            button = ConfigSourcesButton(self, source, self.server)
+            button = ConfigManageSourcesButton(self, source, self.server, self.allow_configuration)
             container.add_item(discord.ui.Section(text, accessory=button))
 
         # Button navigation

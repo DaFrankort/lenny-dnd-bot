@@ -5,9 +5,9 @@ import pytest_asyncio
 from unittest.mock import AsyncMock, MagicMock
 
 from bot import Bot
-from dice import DiceRollMode
 from logic.dnd.data import Data
 from logic.dnd.name import Gender
+from logic.roll import DiceRollMode
 from utils.mocking import mock_image, mock_sound
 from utils.test_utils import enum_values, listify
 from commands.tokengen import AlignH, AlignV
@@ -127,9 +127,7 @@ class TestBotCommands:
             (
                 "namegen",
                 {
-                    "species": [None, "foobar"].extend(
-                        [spec.title() for spec in Data.names.get_species()]
-                    ),
+                    "species": [None, "foobar"].extend([spec.title() for spec in Data.names.get_species()]),
                     "gender": enum_values(Gender),
                 },
             ),

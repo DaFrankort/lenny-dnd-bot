@@ -6,8 +6,8 @@ from rich.console import Console
 from discord import ui
 from components.items import SimpleSeparator, TitleTextDisplay
 from components.paginated_view import PaginatedLayoutView
+from embed import SimpleEmbed
 from logger import log_button_press
-from logic.app_commands import send_error_message
 from logic.color import UserColor
 from logic.dnd.table import DNDTable
 from logic.roll import RollResult
@@ -70,7 +70,10 @@ class DNDTableRollButton(ui.Button):
             # Disable button to prevent further attempts, since it will keep failing.
             self.disabled = True
             self.style = discord.ButtonStyle.gray
-            await send_error_message(itr, "Couldn't roll table, something went wrong")
+            embed = SimpleEmbed(
+                title="Something went wrong!", description="Couldn't roll table, try again later!", color=discord.Color.red()
+            )
+            await itr.response.send_message(embed=embed, ephemeral=True)
             await itr.message.edit(view=self)
             return
 

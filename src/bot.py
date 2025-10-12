@@ -25,9 +25,7 @@ from commands.tokengen import TokenGenCommand, TokenGenUrlCommand
 from context_menus.delete import DeleteContextMenu
 from context_menus.timestamp import RequestTimestampContextMenu
 from context_menus.reroll import RerollContextMenu
-from initiative import (
-    InitiativeTracker,
-)
+from logic.initiative import InitiativeTracker
 from logic.voice_chat import VC, Sounds
 
 

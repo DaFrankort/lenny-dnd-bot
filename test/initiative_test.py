@@ -1,5 +1,5 @@
 import pytest
-from logic.roll import DiceRollMode
+from logic.roll import Advantage
 from utils.mock_discord_interaction import MockInteraction, MockUser
 
 from logic.initiative import Initiative, InitiativeTracker
@@ -9,7 +9,7 @@ class TestInitiative:
     @pytest.mark.parametrize("mod", [5, -5, 0])
     def test_init_no_target(self, mod: int):
         itr = MockInteraction()
-        initiative = Initiative(itr, mod, None, DiceRollMode.Normal)
+        initiative = Initiative(itr, mod, None, Advantage.Normal)
 
         assert (
             initiative.modifier == mod
@@ -27,7 +27,7 @@ class TestInitiative:
     )
     def test_init_with_target(self, mod: int, target: str):
         itr = MockInteraction()
-        initiative = Initiative(itr, mod, target, DiceRollMode.Normal)
+        initiative = Initiative(itr, mod, target, Advantage.Normal)
 
         assert (
             initiative.modifier == mod
@@ -39,13 +39,13 @@ class TestInitiative:
     def test_roll(self):
         itr = MockInteraction()
         for _ in range(50):
-            initiative = Initiative(itr, 0, None, DiceRollMode.Normal)
+            initiative = Initiative(itr, 0, None, Advantage.Normal)
             assert 1 <= initiative.d20[0] <= 20, f"Initiative d20 roll should be value between 1 or 20, was {initiative.d20[0]}"
             assert 1 <= initiative.d20[1] <= 20, f"Initiative d20 roll should be value between 1 or 20, was {initiative.d20[1]}"
 
     def test_roll_advantage(self):
         itr = MockInteraction()
-        initiative = Initiative(itr, 0, None, DiceRollMode.Advantage)
+        initiative = Initiative(itr, 0, None, Advantage.Advantage)
         high = max(initiative.d20)
 
         expected = high + initiative.modifier
@@ -54,7 +54,7 @@ class TestInitiative:
 
     def test_roll_disadvantage(self):
         itr = MockInteraction()
-        initiative = Initiative(itr, 0, None, DiceRollMode.Disadvantage)
+        initiative = Initiative(itr, 0, None, Advantage.Disadvantage)
         low = min(initiative.d20)
 
         expected = low + initiative.modifier
@@ -64,7 +64,7 @@ class TestInitiative:
     @pytest.mark.parametrize("mod", [5, -5, 0])
     def test_get_total(self, mod: int):
         itr = MockInteraction()
-        initiative = Initiative(itr, mod, None, DiceRollMode.Normal)
+        initiative = Initiative(itr, mod, None, Advantage.Normal)
         expected = initiative.d20[0] + mod
         assert initiative.get_total() == expected, "Initiative total should equal random d20 value + modifier."
 
@@ -78,7 +78,7 @@ class TestInitiative:
     )
     def test_set_initiative(self, val, expected_d20, expected_modifier):
         itr = MockInteraction()
-        initiative = Initiative(itr, 0, None, DiceRollMode.Normal)
+        initiative = Initiative(itr, 0, None, Advantage.Normal)
         initiative.set_value(val)
         assert initiative.d20 == (
             expected_d20,
@@ -98,11 +98,11 @@ class TestInitiativeTracker:
 
     @pytest.fixture
     def npc_initiative(self, itr):
-        return Initiative(itr, modifier=2, name="Goblin", roll_mode=DiceRollMode.Normal)
+        return Initiative(itr, modifier=2, name="Goblin", advantage=Advantage.Normal)
 
     @pytest.fixture
     def pc_initiative(self, itr):
-        return Initiative(itr, modifier=1, name=None, roll_mode=DiceRollMode.Normal)
+        return Initiative(itr, modifier=1, name=None, advantage=Advantage.Normal)
 
     def test_add_npc_initiative(self, tracker, itr, npc_initiative):
         success = tracker.add(itr, npc_initiative)
@@ -117,7 +117,7 @@ class TestInitiativeTracker:
     def test_add_pc_initiative_replaces_existing(self, tracker, itr, pc_initiative):
         success = tracker.add(itr, pc_initiative)
 
-        new_pc = Initiative(itr, modifier=5, name=None, roll_mode=DiceRollMode.Normal)
+        new_pc = Initiative(itr, modifier=5, name=None, advantage=Advantage.Normal)
         new_pc.d20 = (20, 20)
         tracker.add(itr, new_pc)
 
@@ -140,8 +140,8 @@ class TestInitiativeTracker:
         itr1 = MockInteraction(guild_id=1)
         itr2 = MockInteraction(MockUser(456, "Bar"), guild_id=2)
 
-        initiative1 = Initiative(itr1, modifier=1, name="Goblin", roll_mode=DiceRollMode.Normal)
-        initiative2 = Initiative(itr2, modifier=3, name="Orc", roll_mode=DiceRollMode.Normal)
+        initiative1 = Initiative(itr1, modifier=1, name="Goblin", advantage=Advantage.Normal)
+        initiative2 = Initiative(itr2, modifier=3, name="Orc", advantage=Advantage.Normal)
 
         tracker.add(itr1, initiative1)
         tracker.add(itr2, initiative2)
@@ -157,7 +157,7 @@ class TestInitiativeTracker:
 
     def test_sorting_order(self, tracker, itr):
         for i in range(50):
-            initiative = Initiative(itr, 3, f"Goblin {i}", roll_mode=DiceRollMode.Normal)
+            initiative = Initiative(itr, 3, f"Goblin {i}", advantage=Advantage.Normal)
             tracker.add(itr, initiative)
 
         sorted_initiatives = tracker.get(itr)
@@ -178,7 +178,7 @@ class TestInitiativeTracker:
     @pytest.mark.parametrize("name", [None, "NPC"])
     def test_names_are_unique(self, name, tracker, itr):
         def add_initiative():
-            initiative = Initiative(itr, 0, name, roll_mode=DiceRollMode.Normal)
+            initiative = Initiative(itr, 0, name, advantage=Advantage.Normal)
             tracker.add(itr, initiative)
 
         add_initiative()
@@ -208,7 +208,7 @@ class TestInitiativeTracker:
         limit = tracker.INITIATIVE_LIMIT
         mod = npc_initiative.modifier
         name = npc_initiative.name
-        tracker.add_bulk(itr, mod, name, limit, DiceRollMode.Normal, False)
+        tracker.add_bulk(itr, mod, name, limit, Advantage.Normal, False)
 
         pre_count = len(tracker.get(itr))
         assert not pre_count > limit, f"Initiatives should not exceed the initiative limit: {pre_count}/{limit}"
@@ -225,7 +225,7 @@ class TestInitiativeTracker:
         amount = limit + 1  # Exceed limit
         mod = npc_initiative.modifier
         name = npc_initiative.name
-        title, description, success = tracker.add_bulk(itr, mod, name, amount, DiceRollMode.Normal, False)
+        title, description, success = tracker.add_bulk(itr, mod, name, amount, Advantage.Normal, False)
 
         count = len(tracker.get(itr))
         assert count < limit, f"Bulk-add should not exceed limit: {count}/{limit}"

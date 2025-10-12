@@ -5,7 +5,7 @@ import discord
 from discord import Interaction, Message, NotFound
 from rapidfuzz import fuzz
 from discord.app_commands import Choice
-from logic.roll import DiceRollMode
+from logic.roll import Advantage
 
 
 async def clean_up_old_message(message: Message, MAX_AGE: int = 600):
@@ -28,7 +28,7 @@ class Initiative:
     name: str
     d20: tuple[int, int]
     modifier: int
-    roll_mode: DiceRollMode
+    advantage: Advantage
     is_npc: bool
     owner: discord.User
 
@@ -40,12 +40,12 @@ class Initiative:
         itr: Interaction,
         modifier: int,
         name: str | None,
-        roll_mode: DiceRollMode,
+        advantage: Advantage,
     ):
         self.is_npc = name is not None
         self.name = name or itr.user.display_name
         self.name = self.name.title().strip()
-        self.roll_mode = roll_mode
+        self.advantage = advantage
         self.d20 = (random.randint(1, 20), random.randint(1, 20))
         self.modifier = modifier
         self.owner = itr.user
@@ -60,10 +60,10 @@ class Initiative:
         if self.is_npc:
             title_parts.append(f"for {self.name}")
 
-        if self.roll_mode == DiceRollMode.Advantage:
+        if self.advantage == Advantage.Advantage:
             title_parts.append("with Advantage")
 
-        elif self.roll_mode == DiceRollMode.Disadvantage:
+        elif self.advantage == Advantage.Disadvantage:
             title_parts.append("with Disadvantage")
 
         self.title = " ".join(title_parts).strip() + "!"
@@ -81,7 +81,7 @@ class Initiative:
 
         description = ""
         description += get_roll_line(self.d20[0])
-        if self.roll_mode != DiceRollMode.Normal:
+        if self.advantage != Advantage.Normal:
             description += get_roll_line(self.d20[1])
         description += f"\n**Initiative: {self.get_total()}**"
 
@@ -90,10 +90,10 @@ class Initiative:
     def get_total(self):
         roll = self.d20[0]
 
-        if self.roll_mode == DiceRollMode.Advantage:
+        if self.advantage == Advantage.Advantage:
             roll = max(self.d20)
 
-        elif self.roll_mode == DiceRollMode.Disadvantage:
+        elif self.advantage == Advantage.Disadvantage:
             roll = min(self.d20)
 
         return roll + self.modifier
@@ -235,7 +235,7 @@ class InitiativeTracker:
         modifier: int,
         name: str,
         amount: int,
-        roll_mode: DiceRollMode,
+        advantage: Advantage,
         shared: bool,
     ) -> tuple[str, str, bool]:
         """Adds many initiatives to a server. Returns a title and description for the embed and a boolean to signify if everything was added succesfully."""
@@ -250,7 +250,7 @@ class InitiativeTracker:
 
         initiatives = []
         for i in range(amount):
-            initiative = Initiative(itr, modifier, f"{name}", roll_mode)
+            initiative = Initiative(itr, modifier, f"{name}", advantage)
             if shared and i != 0:
                 initiative.d20 = initiatives[0].d20
             initiatives.append(initiative)
@@ -264,8 +264,8 @@ class InitiativeTracker:
             self.add(itr, initiative)
 
         title = f"{itr.user.display_name} rolled Initiative for {amount} {name.strip().title()}(s)"
-        title += " with Advantage" if roll_mode == DiceRollMode.Advantage else ""
-        title += " with Disadvantage" if roll_mode == DiceRollMode.Disadvantage else ""
+        title += " with Advantage" if advantage == Advantage.Advantage else ""
+        title += " with Disadvantage" if advantage == Advantage.Disadvantage else ""
         title += "!"
 
         return title, description, True

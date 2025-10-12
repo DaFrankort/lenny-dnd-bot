@@ -1,7 +1,7 @@
 import discord
 from embed import UserActionEmbed
 from logic.app_commands import format_warning_message
-from logic.roll import DiceRollMode, RollResult
+from logic.roll import Advantage, RollResult
 
 
 class RollEmbed(UserActionEmbed):
@@ -13,9 +13,9 @@ class RollEmbed(UserActionEmbed):
         reroll: bool = False,
     ):
         title_suffix = ""
-        if result.mode == DiceRollMode.Advantage:
+        if result.advantage == Advantage.Advantage:
             title_suffix = " with advantage"
-        elif result.mode == DiceRollMode.Disadvantage:
+        elif result.advantage == Advantage.Disadvantage:
             title_suffix = " with disadvantage"
 
         if reroll:

@@ -3,7 +3,7 @@ from discord import Interaction, ui
 from components.items import SimpleSeparator
 from embed import SimpleEmbed, SuccessEmbed, UserActionEmbed
 from logic.initiative import Initiative, InitiativeTracker
-from logic.roll import DiceRollMode
+from logic.roll import Advantage
 from modals import SimpleModal
 from logic.voice_chat import VC, SoundType
 from logger import log_button_press
@@ -23,7 +23,7 @@ class InitiativeRollModal(_InitiativeModal):
         required=False,
         max_length=128,
     )
-    mode = ui.TextInput(
+    advantage = ui.TextInput(
         label="Roll Mode (Normal by default)",
         placeholder="Advantage / Disadvantage",
         required=False,
@@ -42,12 +42,12 @@ class InitiativeRollModal(_InitiativeModal):
             await itr.response.send_message("Initiative Modifier must be a number without decimals.", ephemeral=True)
             return
 
-        mode = self.get_choice(
-            self.mode,
-            DiceRollMode.Normal,
-            {"a": DiceRollMode.Advantage, "d": DiceRollMode.Disadvantage},
+        advantage = self.get_choice(
+            self.advantage,
+            Advantage.Normal,
+            {"a": Advantage.Advantage, "d": Advantage.Disadvantage},
         )
-        initiative = Initiative(itr, modifier, name, mode)
+        initiative = Initiative(itr, modifier, name, advantage)
         success = self.tracker.add(itr, initiative)
 
         if not success:
@@ -94,7 +94,7 @@ class InitiativeSetModal(_InitiativeModal):
             await itr.response.send_message("Value must be a positive number without decimals.", ephemeral=True)
             return
 
-        initiative = Initiative(itr, value, name, DiceRollMode.Normal)
+        initiative = Initiative(itr, value, name, Advantage.Normal)
         initiative.set_value(value)
         self.tracker.add(itr, initiative)
 
@@ -149,7 +149,7 @@ class InitiativeBulkModal(_InitiativeModal):
     )
     name = ui.TextInput(label="Creature's Name", placeholder="Goblin", max_length=128)
     amount = ui.TextInput(label="Amount of creatures to add", placeholder="1", max_length=2)
-    mode = ui.TextInput(
+    advantage = ui.TextInput(
         label="Roll Mode (Normal by default)",
         placeholder="Advantage / Disadvantage",
         required=False,
@@ -185,14 +185,14 @@ class InitiativeBulkModal(_InitiativeModal):
             )
             return
 
-        mode = self.get_choice(
-            self.mode,
-            DiceRollMode.Normal,
-            {"a": DiceRollMode.Advantage, "d": DiceRollMode.Disadvantage},
+        advantage = self.get_choice(
+            self.advantage,
+            Advantage.Normal,
+            {"a": Advantage.Advantage, "d": Advantage.Disadvantage},
         )
         shared = self.get_choice(self.shared, False, {"t": True})
 
-        title, description, success = self.tracker.add_bulk(itr, modifier, name, amount, mode, shared)
+        title, description, success = self.tracker.add_bulk(itr, modifier, name, amount, advantage, shared)
 
         if not success:
             await itr.response.send_message(

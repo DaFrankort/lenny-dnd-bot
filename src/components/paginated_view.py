@@ -68,9 +68,7 @@ class PaginatedLayoutView(discord.ui.LayoutView):
         button_prev_page.disabled = disable_back
 
         current_page = f"Page {self.page + 1} / {self.max_pages}"
-        button_current_page = discord.ui.Button(
-            label=current_page, style=discord.ButtonStyle.gray
-        )
+        button_current_page = discord.ui.Button(label=current_page, style=discord.ButtonStyle.gray)
         button_current_page.callback = lambda itr: self.jump_to_page_sendmodal(itr)
 
         button_next_page = discord.ui.Button(label="→", style=style)

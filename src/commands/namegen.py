@@ -14,13 +14,8 @@ class NameGenCommand(SimpleCommand):
 
     async def species_autocomplete(self, _: discord.Interaction, current: str):
         species = Data.names.get_species()
-        filtered_species = [
-            spec.title() for spec in species if current.lower() in spec.lower()
-        ]
-        return [
-            discord.app_commands.Choice(name=spec, value=spec)
-            for spec in filtered_species[:25]
-        ]
+        filtered_species = [spec.title() for spec in species if current.lower() in spec.lower()]
+        return [discord.app_commands.Choice(name=spec, value=spec) for spec in filtered_species[:25]]
 
     @discord.app_commands.describe(
         species="Request a name from a specific species, selects random species by default.",
@@ -36,7 +31,5 @@ class NameGenCommand(SimpleCommand):
     ):
         self.log(itr)
         result = generate_name(species, gender)
-        embed = SimpleEmbed(
-            title=result.name, description=result.desc, color=result.color
-        )
+        embed = SimpleEmbed(title=result.name, description=result.desc, color=result.color)
         await itr.response.send_message(embed=embed)

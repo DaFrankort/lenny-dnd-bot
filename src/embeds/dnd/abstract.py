@@ -148,9 +148,7 @@ class MultiDNDSelect(discord.ui.Select):
         index = int(self.values[0])
         entry = self.entries[index]
 
-        logging.debug(
-            f"{self.name}: user {interaction.user.display_name} selected option {index}: '{entry.name}`"
-        )
+        logging.debug(f"{self.name}: user {interaction.user.display_name} selected option {index}: '{entry.name}`")
 
         embed = entry.get_embed(interaction)
         if isinstance(embed, discord.Embed):

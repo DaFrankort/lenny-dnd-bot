@@ -20,9 +20,7 @@ class RequestTimestampContextMenu(SimpleContextMenu):
 
         result = get_relative_timestamp_from_message(message)
         if result is None:
-            await send_error_message(
-                itr, "Couldn't find any mention of times in that message."
-            )
+            await send_error_message(itr, "Couldn't find any mention of times in that message.")
             return
         embed = RelativeTimestampEmbed(timestamp=result)
         await itr.response.send_message(embed=embed, ephemeral=True)

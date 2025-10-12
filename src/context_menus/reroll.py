@@ -23,22 +23,16 @@ class RerollContextMenu(SimpleContextMenu):
             return
 
         if not message.embeds or len(message.embeds) == 0:
-            await itr.response.send_message(
-                "❌ Reroll doesn't work on this message type!", ephemeral=True
-            )
+            await itr.response.send_message("❌ Reroll doesn't work on this message type!", ephemeral=True)
             return
 
         embed = message.embeds[0]
         title = embed.author.name or ""
         if not ("Rolling" in title or "Re-rolling" in title):
-            await itr.response.send_message(
-                "❌ Message does not contain a dice-roll!", ephemeral=True
-            )
+            await itr.response.send_message("❌ Message does not contain a dice-roll!", ephemeral=True)
             return
 
-        dice_notation = (
-            title.replace("Rolling ", "").replace("Re-rolling", "").replace("!", "")
-        )
+        dice_notation = title.replace("Rolling ", "").replace("Re-rolling", "").replace("!", "")
         if "disadvantage" in dice_notation:
             # Check 'disadvantage' before 'advantage', may give a false positive otherwise.
             mode = DiceRollMode.Disadvantage
@@ -55,9 +49,7 @@ class RerollContextMenu(SimpleContextMenu):
             lines = embed.fields[0].value.strip().splitlines()
             for line in lines:
                 if line.startswith("🎲") and ":" in line:
-                    label = (
-                        line[1:].split(":", 1)[0].strip()
-                    )  # Remove 🎲 and split before colon
+                    label = line[1:].split(":", 1)[0].strip()  # Remove 🎲 and split before colon
                     reason = label.replace("*", "")
                     break
 

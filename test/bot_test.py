@@ -12,9 +12,7 @@ from commands.tokengen import AlignH, AlignV
 img_url = r"https://img.lovepik.com/element/40116/9419.png_1200.png"
 
 
-def get_cmd_from_group(
-    group: discord.app_commands.Group, parts: list[str]
-) -> discord.app_commands.Command:
+def get_cmd_from_group(group: discord.app_commands.Group, parts: list[str]) -> discord.app_commands.Command:
     """Recursively looks for a command within command-groups."""
     cmd = group.get_command(parts[0])
     if isinstance(cmd, discord.app_commands.Group):
@@ -25,9 +23,7 @@ def get_cmd_from_group(
 def get_cmd(
     commands: dict[
         str,
-        discord.app_commands.Command
-        | discord.app_commands.ContextMenu
-        | discord.app_commands.Group,
+        discord.app_commands.Command | discord.app_commands.ContextMenu | discord.app_commands.Group,
     ],
     name: str,
 ):
@@ -71,9 +67,7 @@ class TestBotCommands:
     def setup(self):
         self.mock_interaction = MagicMock(spec=discord.Interaction)
         self.mock_interaction.user = MagicMock(spec=discord.User)
-        self.mock_interaction.user.id = (
-            123456789  # Static user-id for commands that write user-data to files.
-        )
+        self.mock_interaction.user.id = 123456789  # Static user-id for commands that write user-data to files.
         self.mock_interaction.user.display_name = "TestUser"
         self.mock_interaction.guild = MagicMock(spec=discord.Guild)
         self.mock_interaction.guild.id = 1234
@@ -265,9 +259,7 @@ class TestBotCommands:
                 try:
                     await cmd.callback(itr=self.mock_interaction, **args)
                 except Exception as e:
-                    pytest.fail(
-                        f"Error while running command /{cmd_name} with args {args}: {e}"
-                    )
+                    pytest.fail(f"Error while running command /{cmd_name} with args {args}: {e}")
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
@@ -355,17 +347,11 @@ class TestBotCommands:
         assert cmd is not None, f"Command {cmd_name} not found"
 
         param = cmd._params.get(param_name)
-        assert (
-            param is not None
-        ), f"Parameter '{param_name}' not found in command '{cmd_name}'"
+        assert param is not None, f"Parameter '{param_name}' not found in command '{cmd_name}'"
 
         autocomplete_fn = param.autocomplete
-        assert (
-            autocomplete_fn is not None
-        ), f"No autocomplete function set for parameter '{param_name}' in {cmd_name}"
-        assert not isinstance(
-            autocomplete_fn, bool
-        ), f"No autocomplete function set for parameter '{param_name}' in {cmd_name}"
+        assert autocomplete_fn is not None, f"No autocomplete function set for parameter '{param_name}' in {cmd_name}"
+        assert not isinstance(autocomplete_fn, bool), f"No autocomplete function set for parameter '{param_name}' in {cmd_name}"
 
         queries = listify(queries)
 
@@ -373,6 +359,4 @@ class TestBotCommands:
             try:
                 await autocomplete_fn(cmd, self.mock_interaction, current)
             except Exception as e:
-                pytest.fail(
-                    f"Error while autocompleting '{param_name}' for /{cmd_name} with query '{current}': {e}"
-                )
+                pytest.fail(f"Error while autocompleting '{param_name}' for /{cmd_name} with query '{current}': {e}")

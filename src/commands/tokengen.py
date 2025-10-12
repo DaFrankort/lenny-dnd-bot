@@ -46,9 +46,7 @@ class TokenGenCommand(SimpleCommand):
     ):
         self.log(itr)
         await itr.response.defer()
-        files = await generate_token_from_file(
-            image, frame_hue, h_alignment, v_alignment, variants
-        )
+        files = await generate_token_from_file(image, frame_hue, h_alignment, v_alignment, variants)
         await itr.followup.send(files=files)
 
 
@@ -79,7 +77,5 @@ class TokenGenUrlCommand(SimpleCommand):
     ):
         self.log(itr)
         await itr.response.defer()
-        files = await generate_token_from_url(
-            url, frame_hue, h_alignment, v_alignment, variants
-        )
+        files = await generate_token_from_url(url, frame_hue, h_alignment, v_alignment, variants)
         await itr.followup.send(files=files)

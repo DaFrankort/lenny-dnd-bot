@@ -65,9 +65,7 @@ def save_hex_color(itr: discord.Interaction, hex_color: str) -> UserColorSaveRes
     return result
 
 
-def save_rgb_color(
-    itr: discord.Interaction, r: int, g: int, b: int
-) -> UserColorSaveResult:
+def save_rgb_color(itr: discord.Interaction, r: int, g: int, b: int) -> UserColorSaveResult:
     result = UserColorSaveResult()
 
     ro, go, bo = UserColor.to_rgb(UserColor.get(itr))

@@ -86,9 +86,7 @@ class SearchSelectButton(ui.Button):
         label = f"{object.name} ({object.source})"
         if len(label) > 80:
             label = label[:77] + "..."
-        super().__init__(
-            label=label, emoji=object.emoji, style=discord.ButtonStyle.gray
-        )
+        super().__init__(label=label, emoji=object.emoji, style=discord.ButtonStyle.gray)
 
     async def callback(self, itr: discord.Interaction):
         await send_dnd_embed(itr, self.object)

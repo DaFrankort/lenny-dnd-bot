@@ -11,12 +11,8 @@ from methods import FontType, get_font
 
 TOKEN_FRAME = Image.open("./assets/images/token_border.png").convert("RGBA")
 TOKEN_BG = Image.open("./assets/images/token_bg.jpg").convert("RGBA")
-TOKEN_NUMBER_LABEL = Image.open("./assets/images/token_number_label.png").convert(
-    "RGBA"
-)
-TOKEN_NUMBER_OVERLAY = Image.open("./assets/images/token_number_overlay.png").convert(
-    "RGBA"
-)
+TOKEN_NUMBER_LABEL = Image.open("./assets/images/token_number_label.png").convert("RGBA")
+TOKEN_NUMBER_OVERLAY = Image.open("./assets/images/token_number_overlay.png").convert("RGBA")
 
 
 class AlignH(ChoicedEnum):
@@ -64,9 +60,7 @@ async def open_image(image: discord.Attachment) -> Image.Image | None:
     return base_image
 
 
-def _squarify_image(
-    image: Image.Image, h_align: AlignH, v_align: AlignV
-) -> Image.Image:
+def _squarify_image(image: Image.Image, h_align: AlignH, v_align: AlignV) -> Image.Image:
     """Turn image into a square and adjust focus to match given alignment."""
 
     size = min(image.size)
@@ -205,9 +199,7 @@ def generate_token_variants(
     files = []
     for i in range(amount):
         id = i + 1
-        labeled_image = add_number_to_tokenimage(
-            token_image=token_image, number=id, amount=amount
-        )
+        labeled_image = add_number_to_tokenimage(token_image=token_image, number=id, amount=amount)
         filename = (
             generate_token_url_filename(filename_seed, id)
             if isinstance(filename_seed, str)
@@ -223,13 +215,9 @@ def generate_token_variants(
     return files
 
 
-def add_number_to_tokenimage(
-    token_image: Image.Image, number: int, amount: int
-) -> Image.Image:
+def add_number_to_tokenimage(token_image: Image.Image, number: int, amount: int) -> Image.Image:
     label_size = (72, 72)
-    font_size = (
-        int(min(label_size) * 0.6) if number < 10 else int(min(label_size) * 0.5)
-    )
+    font_size = int(min(label_size) * 0.6) if number < 10 else int(min(label_size) * 0.5)
 
     label = TOKEN_NUMBER_LABEL.copy()
     variant_hue = (number - 1) * (360 / amount)
@@ -292,20 +280,14 @@ async def generate_token_from_file(
 
     img = await open_image(image)
     if img is None:
-        raise ValueError(
-            "Could not process image, please try again later or with another image."
-        )
+        raise ValueError("Could not process image, please try again later or with another image.")
 
     token_image = generate_token_image(img, frame_hue, h_alignment, v_alignment)
 
     if variants != 0:
-        files = generate_token_variants(
-            token_image=token_image, filename_seed=image, amount=variants
-        )
+        files = generate_token_variants(token_image=token_image, filename_seed=image, amount=variants)
         return files
-    file = discord.File(
-        fp=image_to_bytesio(token_image), filename=generate_token_filename(image)
-    )
+    file = discord.File(fp=image_to_bytesio(token_image), filename=generate_token_filename(image))
     return [file]
 
 
@@ -322,11 +304,7 @@ async def generate_token_from_url(
     token_image = generate_token_image(img, frame_hue, h_alignment, v_alignment)
 
     if variants != 0:
-        files = generate_token_variants(
-            token_image=token_image, filename_seed=url, amount=variants
-        )
+        files = generate_token_variants(token_image=token_image, filename_seed=url, amount=variants)
         return files
-    file = discord.File(
-        fp=image_to_bytesio(token_image), filename=generate_token_url_filename(url)
-    )
+    file = discord.File(fp=image_to_bytesio(token_image), filename=generate_token_url_filename(url))
     return [file]

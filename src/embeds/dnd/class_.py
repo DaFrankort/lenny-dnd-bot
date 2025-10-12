@@ -16,21 +16,13 @@ class MultiClassSubclassSelect(discord.ui.Select):
     ):
         options = []
         for subclass_name in character_class.subclass_level_features.keys():
-            if is_source_phb2014(character_class.source) and subclass_name.endswith(
-                "(PHB)"
-            ):
+            if is_source_phb2014(character_class.source) and subclass_name.endswith("(PHB)"):
                 continue  # Only show PHB subclasses for PHB classes
 
-            label = (
-                subclass_name
-                if subclass != subclass_name
-                else f"{subclass_name} [Current]"
-            )
+            label = subclass_name if subclass != subclass_name else f"{subclass_name} [Current]"
             options.append(discord.SelectOption(label=label, value=subclass_name))
 
-        super().__init__(
-            placeholder="Select Subclass", min_values=1, max_values=1, options=options
-        )
+        super().__init__(placeholder="Select Subclass", min_values=1, max_values=1, options=options)
 
         self.character_class = character_class
         self.get_level = get_level
@@ -58,14 +50,10 @@ class MultiClassPageSelect(discord.ui.Select):
         core_label = "Core Info" if page != 0 else "Core Info [Current]"
         options.append(discord.SelectOption(label=core_label, value="0"))
         for level in character_class.level_resources.keys():
-            label = (
-                f"Level {level}" if int(level) != page else f"Level {level} [Current]"
-            )
+            label = f"Level {level}" if int(level) != page else f"Level {level} [Current]"
             options.append(discord.SelectOption(label=label, value=level))
 
-        super().__init__(
-            placeholder="Select Level", min_values=1, max_values=1, options=options
-        )
+        super().__init__(placeholder="Select Level", min_values=1, max_values=1, options=options)
 
         self.character_class = character_class
         self.get_subclass = get_subclass
@@ -91,23 +79,13 @@ class ClassNavigationView(discord.ui.View):
         self.subclass = subclass
 
         if character_class.level_resources:
-            self.add_item(
-                MultiClassPageSelect(
-                    self.character_class, lambda: self.subclass, self.level, self
-                )
-            )
+            self.add_item(MultiClassPageSelect(self.character_class, lambda: self.subclass, self.level, self))
         if character_class.subclass_level_features:
-            self.add_item(
-                MultiClassSubclassSelect(
-                    self.character_class, lambda: self.level, self.subclass, self
-                )
-            )
+            self.add_item(MultiClassSubclassSelect(self.character_class, lambda: self.level, self.subclass, self))
 
 
 class ClassEmbed(DNDObjectEmbed):
-    def __init__(
-        self, character_class: Class, level: int = 0, subclass: str | None = None
-    ):
+    def __init__(self, character_class: Class, level: int = 0, subclass: str | None = None):
         level = max(0, min(20, level))
 
         super().__init__(character_class)
@@ -152,12 +130,8 @@ class ClassEmbed(DNDObjectEmbed):
             # Rest of the descriptions
             descriptions = character_class.level_features.get(str(level), []).copy()
             if subclass:
-                subclass_level_descriptions = (
-                    character_class.subclass_level_features.get(subclass, {})
-                )
-                subclass_description = subclass_level_descriptions.get(
-                    str(level), []
-                ).copy()
+                subclass_level_descriptions = character_class.subclass_level_features.get(subclass, {})
+                subclass_description = subclass_level_descriptions.get(str(level), []).copy()
                 descriptions.extend(subclass_description)
 
             if descriptions:

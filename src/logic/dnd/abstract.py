@@ -118,9 +118,7 @@ class DNDObjectList(abc.ABC):
                 )
                 seen_names.add(e.name)
 
-        choices.sort(
-            key=lambda x: (-x[0], -x[1], x[2].name)
-        )  # Sort by query match => fuzzy score => alphabetically
+        choices.sort(key=lambda x: (-x[0], -x[1], x[2].name))  # Sort by query match => fuzzy score => alphabetically
         return [choice for _, _, choice in choices[:limit]]
 
     def search(

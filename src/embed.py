@@ -3,9 +3,7 @@ from logic.color import UserColor
 
 
 class SimpleEmbed(discord.Embed):
-    def __init__(
-        self, title: str, description: str | None, color: discord.Color = None
-    ) -> None:
+    def __init__(self, title: str, description: str | None, color: discord.Color = None) -> None:
         if not color:
             color = discord.Color.dark_green()
 

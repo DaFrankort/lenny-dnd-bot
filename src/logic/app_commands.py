@@ -13,9 +13,7 @@ async def send_error_message(itr: discord.Interaction, message: str, emoji: str 
     await itr.response.send_message(message, ephemeral=True)
 
 
-async def send_warning_message(
-    itr: discord.Interaction, message: str, emoji: str = "⚠️"
-):
+async def send_warning_message(itr: discord.Interaction, message: str, emoji: str = "⚠️"):
     message = format_warning_message(message, emoji)
     await itr.response.send_message(message, ephemeral=True)
 
@@ -51,9 +49,7 @@ class SimpleCommand(discord.app_commands.Command):
 
     @property
     def command_name(self) -> str:
-        def get_command_string(
-            name: str, cmd: discord.app_commands.Command | discord.app_commands.Group
-        ) -> str:
+        def get_command_string(name: str, cmd: discord.app_commands.Command | discord.app_commands.Group) -> str:
             if cmd.parent:
                 name = f"{cmd.parent.name} {name}"
                 return get_command_string(name, cmd.parent)
@@ -124,6 +120,4 @@ class SimpleContextMenu(discord.app_commands.ContextMenu):
 class ChoicedEnum(Enum):
     @classmethod
     def choices(cls) -> list[discord.app_commands.Choice]:
-        return [
-            discord.app_commands.Choice(name=e.name.title(), value=e.value) for e in cls
-        ]
+        return [discord.app_commands.Choice(name=e.name.title(), value=e.value) for e in cls]

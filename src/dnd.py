@@ -10,7 +10,7 @@ from rapidfuzz import fuzz
 from discord.app_commands import Choice
 from typing import Literal, Union, TypedDict
 
-from logic.roll import RollResult, roll
+from logic.roll import DiceRollMode, RollResult, roll
 
 
 def _read_dnd_data(path: str) -> list[dict]:

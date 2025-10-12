@@ -1,7 +1,7 @@
 import discord
 
 from logic.app_commands import SimpleCommand
-from embed import SimpleEmbed
+from embed import SimpleEmbed, SuccessEmbed
 from logic.voice_chat import VC
 
 

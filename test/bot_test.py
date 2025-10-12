@@ -6,6 +6,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 from bot import Bot
 from dice import DiceRollMode
+from logic.dnd.data import Data
 from logic.dnd.name import Gender
 from utils.mocking import mock_image, mock_sound
 from utils.test_utils import enum_values, listify

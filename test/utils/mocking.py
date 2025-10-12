@@ -9,9 +9,14 @@ class MockUser:
     def __init__(self, user_id: int = 123, display_name: str = "Foo"):
         self.id = user_id
         self.display_name = display_name
+        self.display_avatar = discord.Asset(
+            None,
+            url="https://www.example.com/avatar.png",
+            key="key",
+        )
 
 
-class MockInteraction:
+class MockInteraction(discord.Interaction):
     """Mock interaction class to simulate Discord interactions."""
 
     def __init__(self, user: MockUser = MockUser(), guild_id: int = 999):

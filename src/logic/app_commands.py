@@ -3,6 +3,8 @@ from enum import Enum
 import logging
 import discord
 
+from embed import SimpleEmbed
+
 
 def format_warning_message(message: str, emoji: str = "⚠️"):
     return f"{emoji} {message} {emoji}"
@@ -16,6 +18,24 @@ async def send_error_message(itr: discord.Interaction, message: str, emoji: str 
 async def send_warning_message(itr: discord.Interaction, message: str, emoji: str = "⚠️"):
     message = format_warning_message(message, emoji)
     await itr.response.send_message(message, ephemeral=True)
+
+
+def get_error_embed(error: discord.app_commands.AppCommandError) -> discord.Embed:
+    titles = {
+        "CommandOnCooldown": "You're going too fast!",
+        "MissingPermissions": "You don't have permission to do that!",
+        "BotMissingPermissions": "I don't have permission to do that!",
+        "CheckFailure": "You don't meet the requirements to do that!",
+        "ValueError": "Invalid input!",
+        "RuntimeError": "Can't do that right now!",
+    }
+
+    parts = str(error).split(": ")
+    error_title = titles.get(parts[1], "Something went wrong!")
+    error_msg = ": ".join(parts[2:]) if len(parts) > 2 else ""
+    embed = SimpleEmbed(title=error_title, description=error_msg, color=discord.Color.red())
+
+    return embed
 
 
 class SimpleCommandGroup(discord.app_commands.Group):
@@ -89,12 +109,15 @@ class SimpleCommand(discord.app_commands.Command):
         itr: discord.Interaction,
         error: discord.app_commands.AppCommandError,
     ):
-        if itr.response.is_done():
-            await itr.followup.send(str(error), ephemeral=True)
-            message = await itr.original_response()
-            await message.delete(delay=10)
-        else:
-            await itr.response.send_message(str(error), ephemeral=True)
+        embed = get_error_embed(error)
+
+        if not itr.response.is_done():
+            await itr.response.send_message(embed=embed, ephemeral=True)
+            return
+
+        await itr.followup.send(embed=embed, ephemeral=True)
+        message = await itr.original_response()
+        await message.delete(delay=10)
 
 
 class SimpleContextMenu(discord.app_commands.ContextMenu):

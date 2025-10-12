@@ -9,19 +9,6 @@ from logic.tokengen import (
 )
 
 
-TokenGenHorAlignmentChoices = [
-    app_commands.Choice(name="Left", value=AlignH.LEFT.value),
-    app_commands.Choice(name="Center", value=AlignH.CENTER.value),
-    app_commands.Choice(name="Right", value=AlignH.RIGHT.value),
-]
-
-TokenGenVerAlignmentChoices = [
-    app_commands.Choice(name="Top", value=AlignV.TOP.value),
-    app_commands.Choice(name="Center", value=AlignV.CENTER.value),
-    app_commands.Choice(name="Bottom", value=AlignV.BOTTOM.value),
-]
-
-
 class TokenGenCommandGroup(SimpleCommandGroup):
     name = "tokengen"
     desc = "Create 5e.tools-style creature-tokens."
@@ -45,8 +32,8 @@ class TokenGenCommand(SimpleCommand):
         variants="Create many tokens with label-numbers.",
     )
     @app_commands.choices(
-        h_alignment=TokenGenHorAlignmentChoices,
-        v_alignment=TokenGenVerAlignmentChoices,
+        h_alignment=AlignH.choices(),
+        v_alignment=AlignV.choices(),
     )
     async def callback(
         self,
@@ -78,8 +65,8 @@ class TokenGenUrlCommand(SimpleCommand):
         variants="Create many tokens with label-numbers.",
     )
     @app_commands.choices(
-        h_alignment=TokenGenHorAlignmentChoices,
-        v_alignment=TokenGenVerAlignmentChoices,
+        h_alignment=AlignH.choices(),
+        v_alignment=AlignV.choices(),
     )
     async def callback(
         self,

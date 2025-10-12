@@ -5,8 +5,8 @@ import time
 import aiohttp
 import discord
 import numpy as np
-from enum import Enum
 from PIL import Image, ImageDraw
+from logic.app_commands import ChoicedEnum
 from methods import FontType, get_font
 
 TOKEN_FRAME = Image.open("./assets/images/token_border.png").convert("RGBA")
@@ -19,13 +19,13 @@ TOKEN_NUMBER_OVERLAY = Image.open("./assets/images/token_number_overlay.png").co
 )
 
 
-class AlignH(Enum):
+class AlignH(ChoicedEnum):
     LEFT = "left"
     CENTER = "center"
     RIGHT = "right"
 
 
-class AlignV(Enum):
+class AlignV(ChoicedEnum):
     TOP = "top"
     CENTER = "center"
     BOTTOM = "bottom"

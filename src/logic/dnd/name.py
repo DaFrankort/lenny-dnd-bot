@@ -1,10 +1,10 @@
-from enum import Enum
 import random
 
+from logic.app_commands import ChoicedEnum
 from logic.dnd.abstract import DNDObjectList
 
 
-class Gender(Enum):
+class Gender(ChoicedEnum):
     FEMALE = "female"
     MALE = "male"
     OTHER = "other"

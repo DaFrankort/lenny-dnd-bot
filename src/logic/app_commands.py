@@ -119,3 +119,11 @@ class SimpleContextMenu(discord.app_commands.ContextMenu):
     @abstractmethod
     async def callback(self, itr: discord.Interaction):
         raise NotImplementedError
+
+
+class ChoicedEnum(Enum):
+    @classmethod
+    def choices(cls) -> list[discord.app_commands.Choice]:
+        return [
+            discord.app_commands.Choice(name=e.name.title(), value=e.value) for e in cls
+        ]

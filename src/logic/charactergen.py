@@ -1,5 +1,4 @@
 import random
-import discord
 from logic.dnd.abstract import DNDObject
 from logic.dnd.background import Background
 from logic.dnd.class_ import Class

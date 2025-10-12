@@ -1,6 +1,6 @@
 from embeds.stats import StatsEmbed
 from logic.stats import Stats
-from utils.mock_discord_interaction import MockInteraction
+from utils.mocking import MockInteraction
 
 
 class TestStats:

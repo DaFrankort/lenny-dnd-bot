@@ -2,7 +2,7 @@ import os
 import discord
 import pytest
 from logic.color import UserColor
-from utils.mock_discord_interaction import MockInteraction
+from utils.mocking import MockInteraction
 
 
 class TestUserColor:

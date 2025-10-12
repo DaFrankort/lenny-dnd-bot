@@ -78,7 +78,7 @@ class TestBotCommands:
             (
                 "roll",
                 {
-                    "diceroll": ["1d20+6", "4d8kh3", "DiceExpression"],
+                    "diceroll": ["1d20+6", "4d8kh3", "1d8ro1"],
                     "reason": [None, "Attack"],
                 },
             ),
@@ -86,14 +86,14 @@ class TestBotCommands:
             (
                 "advantage",
                 {
-                    "diceroll": ["1d20+6", "4d8kh3", "DiceExpression"],
+                    "diceroll": ["1d20+6", "4d8kh3", "1d8ro1"],
                     "reason": [None, "Damage"],
                 },
             ),
             (
                 "disadvantage",
                 {
-                    "diceroll": ["1d20+6", "4d8kh3", "DiceExpression"],
+                    "diceroll": ["1d20+6", "4d8kh3", "1d8ro1"],
                     "reason": [None, "Fire"],
                 },
             ),
@@ -246,6 +246,27 @@ class TestBotCommands:
     @pytest.mark.parametrize(
         "cmd_name, arguments",
         [
+            (
+                "roll",
+                {
+                    "diceroll": ["DiceExpression"],
+                    "reason": None,
+                },
+            ),
+            (
+                "advantage",
+                {
+                    "diceroll": "DiceExpression",
+                    "reason": None,
+                },
+            ),
+            (
+                "disadvantage",
+                {
+                    "diceroll": "DiceExpression",
+                    "reason": None,
+                },
+            ),
             (
                 "timestamp date",
                 [

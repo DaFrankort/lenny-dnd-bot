@@ -23,8 +23,8 @@ class TestDiceExpression:
         ["1d", "d", "1d20+(4", "invalid", "1d20d20"],
     )
     def test_is_dice_expression_invalid(self, expression):
-        dice = roll(expression)
-        assert dice.error is not None, f"Dice expression '{expression}' should be invalid."
+        with pytest.raises(Exception):
+            roll(expression)
 
     def test_advantage_roll_count(self):
         normal = roll("1d20", Advantage.Normal)

@@ -217,10 +217,6 @@ class TestBotCommands:
                 "plansession",
                 {"in_weeks": [0, 1, 4], "poll_duration": [1, 24, 168]},
             ),
-            (
-                "playsound",
-                {"sound": [mock_sound(), mock_image()]},
-            ),
             ("help", {}),
             (
                 "timestamp relative",
@@ -288,6 +284,10 @@ class TestBotCommands:
             (
                 "color set hex",
                 {"hex_color": "Green"},
+            ),
+            (
+                "playsound",
+                {"sound": [mock_sound(), mock_image()]},
             ),
             # ("", {"": "", "": ""}),
         ],

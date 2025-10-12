@@ -63,7 +63,7 @@ def get_dnd_embed(itr: discord.Interaction, dnd_object: DNDObject):
 
 async def send_dnd_embed(itr: discord.Interaction, dnd_object: DNDObject):
     await itr.response.defer(thinking=False)
-    embed = get_dnd_embed(itr, dnd_object)  # TODO replace this
+    embed = get_dnd_embed(itr, dnd_object)
     if embed is None:
         await itr.followup.send(f"Could not create an embed for {dnd_object.name}...")
         return

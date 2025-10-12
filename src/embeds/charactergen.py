@@ -2,8 +2,10 @@ import discord
 from discord import ui
 from charts import get_radar_chart
 from components.items import SimpleSeparator, TitleTextDisplay
-from dnd import Background, DNDObject, Gender
 from logic.charactergen import CharacterGenResult
+from logic.dnd.abstract import DNDObject
+from logic.dnd.background import Background
+from logic.dnd.name import Gender
 from methods import build_table_from_rows
 from logic.color import UserColor
 

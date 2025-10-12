@@ -1,8 +1,8 @@
 import discord
 from components.items import SimpleSeparator
 from components.paginated_view import PaginatedLayoutView
-from dnd import Source, SourceList
 from logic.config import Config
+from logic.dnd.source import Source, SourceList
 
 
 class ConfigSourcesButton(discord.ui.Button):

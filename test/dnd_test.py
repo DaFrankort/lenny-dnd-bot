@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 import discord
 import pytest_asyncio
 from logic.config import Config
-from dnd import Data
+from logic.dnd.data import Data
 
 
 class TestDndData:

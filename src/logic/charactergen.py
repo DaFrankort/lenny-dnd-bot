@@ -1,6 +1,12 @@
 import random
 import discord
-from dnd import Background, Class, DNDObject, DNDTable, Data, Gender, Species
+from logic.dnd.abstract import DNDObject
+from logic.dnd.background import Background
+from logic.dnd.class_ import Class
+from logic.dnd.data import Data
+from logic.dnd.name import Gender
+from logic.dnd.species import Species
+from logic.dnd.table import DNDTable
 from stats import Stats
 
 

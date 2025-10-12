@@ -1,8 +1,9 @@
 import discord
 
-from dnd import Data, Gender
 from embed import SimpleEmbed
 from logic.app_commands import SimpleCommand
+from logic.dnd.data import Data
+from logic.dnd.name import Gender
 from logic.namegen import generate_name
 
 

@@ -3,32 +3,30 @@ import os
 import discord
 from discord import app_commands
 from dotenv import load_dotenv
-from commands.charactergen import NameGenCommand
+from commands.charactergen import CharacterGenCommand
 from commands.color import ColorCommandGroup
 from commands.config import ConfigCommand
 from commands.distribution import DistributionCommand
 from commands.help import HelpCommand
 from commands.initiative import InitiativeCommand
+from commands.namegen import NameGenCommand
 from commands.plansession import PlanSessionCommand
 from commands.playsound import PlaySoundCommand
-from commands.rolls import (
+from commands.roll import (
     AdvantageRollCommand,
     D20Command,
     DisadvantageRollCommand,
     RollCommand,
 )
 from commands.search import SearchCommandGroup
-from commands.shortcut import ShortcutCommand
 from commands.stats import StatsCommandGroup
 from commands.timestamp import TimestampCommandGroup
-from commands.tokengen import TokenGenCommand, TokenGenUrlCommand
+from commands.tokengen import TokenGenCommandGroup
 from context_menus.delete import DeleteContextMenu
 from context_menus.timestamp import RequestTimestampContextMenu
 from context_menus.reroll import RerollContextMenu
-from initiative import (
-    InitiativeTracker,
-)
-from voice_chat import VC, Sounds
+from logic.initiative import InitiativeTracker
+from logic.voice_chat import VC, Sounds
 
 
 class Bot(discord.Client):
@@ -68,14 +66,13 @@ class Bot(discord.Client):
         self.tree.add_command(AdvantageRollCommand())
         self.tree.add_command(DisadvantageRollCommand())
         self.tree.add_command(D20Command())
-        self.tree.add_command(ShortcutCommand())
-        self.tree.add_command(TokenGenCommand())
-        self.tree.add_command(TokenGenUrlCommand())
+        self.tree.add_command(TokenGenCommandGroup())
         self.tree.add_command(InitiativeCommand(initiatives=self.initiatives))
         self.tree.add_command(PlanSessionCommand())
         self.tree.add_command(PlaySoundCommand())
         self.tree.add_command(ColorCommandGroup())
         self.tree.add_command(NameGenCommand())
+        self.tree.add_command(CharacterGenCommand())
         self.tree.add_command(ConfigCommand())
         self.tree.add_command(SearchCommandGroup())
         self.tree.add_command(TimestampCommandGroup())

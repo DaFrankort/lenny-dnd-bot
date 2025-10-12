@@ -1,7 +1,7 @@
 import argparse
 import logging
-import os
 from bot import Bot
+import os
 from discord.utils import _ColourFormatter
 
 if __name__ == "__main__":

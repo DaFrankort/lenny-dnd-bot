@@ -5,10 +5,7 @@ from logic.help import HelpSelectOption, HelpTab, HelpTabs
 class HelpSelect(discord.ui.Select):
     def __init__(self, embed: "HelpEmbed", options: list[HelpSelectOption]):
         self.embed = embed
-        self.option_choices = [
-            discord.SelectOption(value=option.value, label=option.label)
-            for option in options
-        ]
+        self.option_choices = [discord.SelectOption(value=option.value, label=option.label) for option in options]
         self.option_choices = sorted(self.option_choices, key=lambda o: o.label)
 
         super().__init__(
@@ -46,9 +43,7 @@ class HelpEmbed(discord.Embed):
         found_tab = HelpTabs.find(tab)
         self.load_tab(found_tab)
 
-    def _get_command_desc_line(
-        self, cmd: discord.app_commands.Command | discord.app_commands.Group
-    ):
+    def _get_command_desc_line(self, cmd: discord.app_commands.Command | discord.app_commands.Group):
         if isinstance(cmd, discord.app_commands.Command):
             command_comm = cmd.command
             command_help = cmd.help
@@ -62,9 +57,7 @@ class HelpEmbed(discord.Embed):
 
             return "\n".join(group_desc)
 
-        raise NotImplementedError(
-            f"app_command type '{type(cmd)}' not implemented in _get_command_desc_line!"
-        )
+        raise NotImplementedError(f"app_command type '{type(cmd)}' not implemented in _get_command_desc_line!")
 
     def load_tab(self, tab: HelpTab):
         self.clear_fields()

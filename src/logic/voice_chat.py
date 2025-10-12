@@ -35,9 +35,7 @@ class VC:
     def check_ffmpeg():
         """Check if FFmpeg is installed and available in PATH. If not installed, disable voice chat functionality."""
         if shutil.which("ffmpeg") is None:
-            logging.warning(
-                "FFmpeg not installed or found in PATH, voice chat features are disabled."
-            )
+            logging.warning("FFmpeg not installed or found in PATH, voice chat features are disabled.")
             VC.voice_available = False
             return
 
@@ -69,18 +67,14 @@ class VC:
 
         client = await voice_channel.connect()
         VC.clients[guild_id] = client
-        logging.info(
-            f"Joined voice channel '{client.channel.name}' in '{client.guild.name}'"
-        )
+        logging.info(f"Joined voice channel '{client.channel.name}' in '{client.guild.name}'")
         asyncio.create_task(VC.monitor_vc(guild_id))
 
     @staticmethod
     async def leave(guild_id: int):
         client = VC.clients.get(guild_id)
         if client:
-            logging.info(
-                f"Left voice channel '{client.channel.name}' in '{client.guild.name}'"
-            )
+            logging.info(f"Left voice channel '{client.channel.name}' in '{client.guild.name}'")
             await client.disconnect()
             del VC.clients[guild_id]
 
@@ -152,9 +146,7 @@ class VC:
         await VC.join(itr)
         client = VC.clients.get(itr.guild_id)
         if not client:
-            raise RuntimeError(
-                "Failed to join your voice channel, does the bot have the correct permissions?"
-            )
+            raise RuntimeError("Failed to join your voice channel, does the bot have the correct permissions?")
 
         os.makedirs(VC.TEMP_PATH, exist_ok=True)
         ext = Path(attachment.filename).suffix
@@ -165,9 +157,7 @@ class VC:
             await asyncio.sleep(1)  # Give time for the stop to take effect
 
         await attachment.save(temp_file)
-        audio_source = discord.FFmpegPCMAudio(
-            source=str(temp_file), options="-filter:a 'dynaudnorm, volume=0.2'"
-        )
+        audio_source = discord.FFmpegPCMAudio(source=str(temp_file), options="-filter:a 'dynaudnorm, volume=0.2'")
 
         client.play(audio_source)
 

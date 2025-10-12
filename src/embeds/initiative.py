@@ -16,9 +16,7 @@ class _InitiativeModal(SimpleModal):
 
 
 class InitiativeRollModal(_InitiativeModal):
-    modifier = ui.TextInput(
-        label="Your Initiative Modifier", placeholder="0", max_length=2, required=False
-    )
+    modifier = ui.TextInput(label="Your Initiative Modifier", placeholder="0", max_length=2, required=False)
     name = ui.TextInput(
         label="Name (Username by default)",
         placeholder="Goblin",
@@ -41,9 +39,7 @@ class InitiativeRollModal(_InitiativeModal):
         name = self.get_str(self.name)
         modifier = self.get_int(self.modifier)
         if modifier is None:
-            await itr.response.send_message(
-                "Initiative Modifier must be a number without decimals.", ephemeral=True
-            )
+            await itr.response.send_message("Initiative Modifier must be a number without decimals.", ephemeral=True)
             return
 
         mode = self.get_choice(
@@ -72,9 +68,7 @@ class InitiativeRollModal(_InitiativeModal):
         await VC.play(itr, sound_type)
         await itr.followup.edit_message(message_id=itr.message.id, view=view)
         await itr.followup.send(
-            embed=UserActionEmbed(
-                itr=itr, title=initiative.title, description=initiative.description
-            ),
+            embed=UserActionEmbed(itr=itr, title=initiative.title, description=initiative.description),
             ephemeral=True,
         )
 
@@ -97,9 +91,7 @@ class InitiativeSetModal(_InitiativeModal):
         name = self.get_str(self.name)
         value = self.get_int(self.value)
         if not value or value < 0:
-            await itr.response.send_message(
-                "Value must be a positive number without decimals.", ephemeral=True
-            )
+            await itr.response.send_message("Value must be a positive number without decimals.", ephemeral=True)
             return
 
         initiative = Initiative(itr, value, name, DiceRollMode.Normal)
@@ -110,9 +102,7 @@ class InitiativeSetModal(_InitiativeModal):
         await VC.play(itr, SoundType.WRITE)
         await itr.response.edit_message(view=view)
         await itr.followup.send(
-            embed=UserActionEmbed(
-                itr=itr, title=initiative.title, description=initiative.description
-            ),
+            embed=UserActionEmbed(itr=itr, title=initiative.title, description=initiative.description),
             ephemeral=True,
         )
 
@@ -158,9 +148,7 @@ class InitiativeBulkModal(_InitiativeModal):
         required=False,
     )
     name = ui.TextInput(label="Creature's Name", placeholder="Goblin", max_length=128)
-    amount = ui.TextInput(
-        label="Amount of creatures to add", placeholder="1", max_length=2
-    )
+    amount = ui.TextInput(label="Amount of creatures to add", placeholder="1", max_length=2)
     mode = ui.TextInput(
         label="Roll Mode (Normal by default)",
         placeholder="Advantage / Disadvantage",
@@ -204,9 +192,7 @@ class InitiativeBulkModal(_InitiativeModal):
         )
         shared = self.get_choice(self.shared, False, {"t": True})
 
-        title, description, success = self.tracker.add_bulk(
-            itr, modifier, name, amount, mode, shared
-        )
+        title, description, success = self.tracker.add_bulk(itr, modifier, name, amount, mode, shared)
 
         if not success:
             await itr.response.send_message(
@@ -241,9 +227,7 @@ class InitiativeClearConfirmModal(_InitiativeModal):
         confirm = str(self.confirm)
         if confirm != "CLEAR":
             await itr.response.send_message(
-                embed=SimpleEmbed(
-                    "Clearing cancelled!", "Type 'CLEAR' in all caps to confirm."
-                ),
+                embed=SimpleEmbed("Clearing cancelled!", "Type 'CLEAR' in all caps to confirm."),
                 ephemeral=True,
             )
             return
@@ -253,9 +237,7 @@ class InitiativeClearConfirmModal(_InitiativeModal):
         await VC.play(itr, SoundType.DELETE)
         await itr.response.edit_message(view=view)
         await itr.followup.send(
-            embed=SimpleEmbed(
-                "Cleared all initiatives!", f"Cleared by {itr.user.display_name}."
-            ),
+            embed=SimpleEmbed("Cleared all initiatives!", f"Cleared by {itr.user.display_name}."),
             ephemeral=True,
         )
 
@@ -265,15 +247,11 @@ class InitiativePlayerRow(ui.ActionRow):
         super().__init__()
         self.tracker = tracker
 
-    @ui.button(
-        label="Roll", style=discord.ButtonStyle.success, custom_id="roll_btn", row=0
-    )
+    @ui.button(label="Roll", style=discord.ButtonStyle.success, custom_id="roll_btn", row=0)
     async def roll_initiative(self, itr: Interaction, button: ui.Button):
         await itr.response.send_modal(InitiativeRollModal(itr, self.tracker))
 
-    @ui.button(
-        label="Set", style=discord.ButtonStyle.success, custom_id="set_btn", row=0
-    )
+    @ui.button(label="Set", style=discord.ButtonStyle.success, custom_id="set_btn", row=0)
     async def set_initiative(self, itr: Interaction, button: ui.Button):
         await itr.response.send_modal(InitiativeSetModal(itr, self.tracker))
 
@@ -292,21 +270,15 @@ class InitiativeDMRow(ui.ActionRow):
         super().__init__()
         self.tracker = tracker
 
-    @ui.button(
-        label="Bulk", style=discord.ButtonStyle.primary, custom_id="bulk_btn", row=1
-    )
+    @ui.button(label="Bulk", style=discord.ButtonStyle.primary, custom_id="bulk_btn", row=1)
     async def bulk_roll_initiative(self, itr: Interaction, button: ui.Button):
         await itr.response.send_modal(InitiativeBulkModal(itr, self.tracker))
 
-    @ui.button(
-        label="Lock", style=discord.ButtonStyle.primary, custom_id="lock_btn", row=1
-    )
+    @ui.button(label="Lock", style=discord.ButtonStyle.primary, custom_id="lock_btn", row=1)
     async def lock(self, itr: Interaction, button: ui.Button):
         log_button_press(itr, button, "InitiativeContainerView")
         await VC.play(itr, SoundType.LOCK)
-        await itr.response.edit_message(
-            view=InitiativeContainerView(itr, self.tracker, True)
-        )
+        await itr.response.edit_message(view=InitiativeContainerView(itr, self.tracker, True))
 
     @ui.button(
         label="Clear Rolls",
@@ -320,23 +292,17 @@ class InitiativeDMRow(ui.ActionRow):
 
 class InitiativeUnlockButton(ui.Button):
     def __init__(self, tracker: InitiativeTracker):
-        super().__init__(
-            style=discord.ButtonStyle.primary, label="Unlock", custom_id="unlock_btn"
-        )
+        super().__init__(style=discord.ButtonStyle.primary, label="Unlock", custom_id="unlock_btn")
         self.tracker = tracker
 
     async def callback(self, itr: Interaction):
         log_button_press(itr, self, "InitiativeContainerView")
         await VC.play(itr, SoundType.LOCK)
-        await itr.response.edit_message(
-            view=InitiativeContainerView(itr, self.tracker, False)
-        )
+        await itr.response.edit_message(view=InitiativeContainerView(itr, self.tracker, False))
 
 
 class InitiativeContainerView(ui.LayoutView):
-    def __init__(
-        self, itr: Interaction, tracker: InitiativeTracker, locked: bool = False
-    ):
+    def __init__(self, itr: Interaction, tracker: InitiativeTracker, locked: bool = False):
         super().__init__(timeout=None)
 
         container = ui.Container(accent_color=discord.Color.dark_green())

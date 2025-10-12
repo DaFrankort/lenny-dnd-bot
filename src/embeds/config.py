@@ -12,9 +12,7 @@ class ConfigSourcesButton(discord.ui.Button):
     allowed: bool
     sources_view: "ConfigSourcesView"
 
-    def __init__(
-        self, view: "ConfigSourcesView", source: Source, server: discord.Guild
-    ):
+    def __init__(self, view: "ConfigSourcesView", source: Source, server: discord.Guild):
         super().__init__()
         self.source = source
         self.server = server

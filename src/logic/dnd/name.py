@@ -31,9 +31,7 @@ class NameTable:
 
             self.tables[species] = table
 
-    def get_random(
-        self, species: str | None, gender: Gender
-    ) -> tuple[str, str, Gender] | tuple[None, None, None]:
+    def get_random(self, species: str | None, gender: Gender) -> tuple[str, str, Gender] | tuple[None, None, None]:
         """
         Species and gender are randomised if not specified.
         Returns the selected name, species and gender in a tuple.

@@ -142,15 +142,9 @@ class InitiativeTracker:
             self.server_initiatives[guild_id] = [initiative]
             return True
 
-        existing = [
-            s_initiative
-            for s_initiative in self.server_initiatives[guild_id]
-            if s_initiative.name == initiative.name
-        ]
+        existing = [s_initiative for s_initiative in self.server_initiatives[guild_id] if s_initiative.name == initiative.name]
         self.server_initiatives[guild_id] = [  # Enforce unique names
-            s_initiative
-            for s_initiative in self.server_initiatives[guild_id]
-            if not (s_initiative.name == initiative.name)
+            s_initiative for s_initiative in self.server_initiatives[guild_id] if not (s_initiative.name == initiative.name)
         ]
 
         # Limit protection (only if initiative is a new creature)
@@ -194,13 +188,9 @@ class InitiativeTracker:
             score = fuzz.partial_ratio(query, name_clean)
             if score > fuzzy_threshold:
                 starts_with_query = name_clean.startswith(query)
-                choices.append(
-                    (starts_with_query, score, Choice(name=e.name, value=e.name))
-                )
+                choices.append((starts_with_query, score, Choice(name=e.name, value=e.name)))
 
-        choices.sort(
-            key=lambda x: (-x[0], -x[1], x[2].name)
-        )  # Sort by query match => fuzzy score => alphabetically
+        choices.sort(key=lambda x: (-x[0], -x[1], x[2].name))  # Sort by query match => fuzzy score => alphabetically
         return [choice for _, _, choice in choices[:limit]]
 
     def remove(self, itr: Interaction, name: str | None) -> tuple[bool, str]:

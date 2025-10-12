@@ -25,9 +25,7 @@ class HelpTabList(object):
         info=[
             (
                 "Additional Info",
-                [
-                    "You can get more information for each command by navigating to its category help tab."
-                ],
+                ["You can get more information for each command by navigating to its category help tab."],
             )
         ],
     )
@@ -162,9 +160,7 @@ class HelpTabList(object):
         info=[
             (
                 "Server Configuration",
-                [
-                    "The bot can only be configured in servers and will always use the default settings in private messages."
-                ],
+                ["The bot can only be configured in servers and will always use the default settings in private messages."],
             )
         ],
     )

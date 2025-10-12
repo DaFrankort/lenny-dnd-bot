@@ -7,9 +7,7 @@ class SessionPlanPoll(discord.Poll):
     def __init__(self, in_weeks: int, poll_duration: int):
         super().__init__(
             question=self._get_question(in_weeks),
-            duration=datetime.timedelta(
-                hours=poll_duration
-            ),  # Minimum required time is 1 hour.
+            duration=datetime.timedelta(hours=poll_duration),  # Minimum required time is 1 hour.
             multiple=True,
         )
 
@@ -30,9 +28,7 @@ class SessionPlanPoll(discord.Poll):
         is_this_week = in_weeks == 0
         # Remaining days of the week + 'later' option
         answer_count_thisweek = 6 - today.weekday() + 1
-        answer_count = when(
-            is_this_week, answer_count_thisweek, 9
-        )  # 9 => 7 days + later/earlier options
+        answer_count = when(is_this_week, answer_count_thisweek, 9)  # 9 => 7 days + later/earlier options
 
         for i in range(answer_count):
             if i == 0 and not is_this_week:
@@ -52,9 +48,7 @@ class SessionPlanPoll(discord.Poll):
                 day_text = day.strftime("%A %d %b")
 
                 day_is_tomorrow = day_offset == 1
-                relative_text = when(
-                    day_is_tomorrow, "Tomorrow", f"In {day_offset} days"
-                )
+                relative_text = when(day_is_tomorrow, "Tomorrow", f"In {day_offset} days")
                 emoji = "📅"
 
             if relative_text is None or in_weeks > 4:

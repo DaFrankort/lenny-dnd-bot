@@ -35,9 +35,7 @@ def _get_random_xphb_object(entries: list[DNDObject]) -> DNDObject:
     return random.choice(xphb_entries)
 
 
-def _get_dnd_table(
-    table_name: str, source: str = "XPHB", raise_errors: bool = True
-) -> DNDTable:
+def _get_dnd_table(table_name: str, source: str = "XPHB", raise_errors: bool = True) -> DNDTable:
     table: DNDTable = None
     for t in Data.tables.get(query=table_name, allowed_sources=set([source])):
         if t.name == table_name:
@@ -66,11 +64,7 @@ def _get_optimal_background(char_class: Class) -> Background:
         if row[0].lower() in char_class.primary_ability.lower():
             recommended_backgrounds.update(r.strip().lower() for r in row[1].split(","))
 
-    backgrounds = [
-        entry
-        for entry in Data.backgrounds.entries
-        if entry.name.lower() in recommended_backgrounds
-    ]
+    backgrounds = [entry for entry in Data.backgrounds.entries if entry.name.lower() in recommended_backgrounds]
     background: Background = _get_random_xphb_object(backgrounds)
     return background
 
@@ -99,17 +93,13 @@ def _get_optimal_stats(char_class: Class) -> list[tuple[int, str]]:
     rolled_stats = [val for _, val in stats.stats]
     rolled_stats.sort(reverse=True)
 
-    character_stats: list[tuple[int, str]] = [
-        (rolled_stats[i], stat_name) for i, (_, stat_name) in enumerate(optimal_stats)
-    ]
+    character_stats: list[tuple[int, str]] = [(rolled_stats[i], stat_name) for i, (_, stat_name) in enumerate(optimal_stats)]
     # Put back in standard stat-order
     character_stats.sort(key=lambda x: headers.index(x[1]))
     return character_stats
 
 
-def _apply_background_boosts(
-    stats: list[tuple[int, str]], background: Background, char_class: Class
-):
+def _apply_background_boosts(stats: list[tuple[int, str]], background: Background, char_class: Class):
     bg_abilities = [f"{ability[:3].title()}." for ability in background.abilities]
     abilities = [(value, name) for value, name in stats if name in bg_abilities]
     abilities.sort(key=lambda x: x[0], reverse=True)
@@ -173,9 +163,7 @@ def generate_dnd_character() -> CharacterGenResult:
     backstory = class_backstory + "\n" + background_backstory
 
     stats = _get_optimal_stats(char_class)
-    boosted_stats = _apply_background_boosts(
-        stats=stats, background=background, char_class=char_class
-    )
+    boosted_stats = _apply_background_boosts(stats=stats, background=background, char_class=char_class)
 
     result.name = name
     result.gender = gender

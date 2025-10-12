@@ -19,9 +19,7 @@ def _get_relative_timestamp(start: datetime, delay_seconds: int | float) -> str:
     return f"<t:{unix_timestamp}:R>"
 
 
-def get_relative_timestamp_from_now(
-    seconds: int, minutes: int, hours: int, days: int, weeks: int
-) -> str:
+def get_relative_timestamp_from_now(seconds: int, minutes: int, hours: int, days: int, weeks: int) -> str:
     now = discord.utils.utcnow()
     total_seconds = (
         seconds * TIME_MULTIPLIERS["s"]
@@ -99,9 +97,7 @@ def get_date_timestamp(time: str, timezone: int, date: str) -> str:
 
     hours, minutes = divmod(int(time), 100)
     try:
-        dt = datetime.datetime.combine(
-            base_date, datetime.time(hour=hours, minute=minutes)
-        )
+        dt = datetime.datetime.combine(base_date, datetime.time(hour=hours, minute=minutes))
     except ValueError as e:
         raise ValueError(f"Invalid time: {str(e)}")
 

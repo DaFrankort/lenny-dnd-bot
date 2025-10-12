@@ -10,20 +10,14 @@ class SimpleModal(Modal):
 
     def log_inputs(self, itr: Interaction):
         """Logs all text input values."""
-        input_values = {
-            child.label: str(child)
-            for child in self.children
-            if isinstance(child, TextInput) and str(child) != ""
-        }
+        input_values = {child.label: str(child) for child in self.children if isinstance(child, TextInput) and str(child) != ""}
 
         username = itr.user.name
         logging.info(f"{username} submitted modal => {input_values}")
 
     async def on_error(self, itr: Interaction, error: Exception):
         self.log_inputs(itr)
-        await itr.response.send_message(
-            "Something went wrong! Please try again later.", ephemeral=True
-        )
+        await itr.response.send_message("Something went wrong! Please try again later.", ephemeral=True)
         raise error
 
     def get_str(self, text_input: TextInput) -> str | None:
@@ -41,9 +35,7 @@ class SimpleModal(Modal):
         except ValueError:
             return None
 
-    def get_choice(
-        self, text_input: TextInput, default: any, choices: dict[str, any]
-    ) -> any:
+    def get_choice(self, text_input: TextInput, default: any, choices: dict[str, any]) -> any:
         """Used to simulate selection-menu functionality, allowing a user to select a certain option."""
         choice = default
         user_input = str(text_input).lower()

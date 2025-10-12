@@ -8,9 +8,7 @@ class LanguageEmbed(DNDObjectEmbed):
         self.description = f"*{language.select_description}*"
 
         if language.speakers:
-            self.add_field(
-                name="Typical Speakers", value=language.speakers, inline=True
-            )
+            self.add_field(name="Typical Speakers", value=language.speakers, inline=True)
         if language.script:
             self.add_field(name="Script", value=language.script, inline=True)
 

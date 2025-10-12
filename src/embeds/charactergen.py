@@ -66,9 +66,7 @@ class CharacterGenContainerView(ui.LayoutView):
         container.add_item(ui.TextDisplay(result.backstory))
         container.add_item(SimpleSeparator())
 
-        ability_table = self._build_ability_table(
-            result.background, result.stats, result.boosted_stats
-        )
+        ability_table = self._build_ability_table(result.background, result.stats, result.boosted_stats)
         total = sum([val for val, _ in result.stats])
         ability_desc = ability_table + f"\n**Total**: {total} + 3"
 

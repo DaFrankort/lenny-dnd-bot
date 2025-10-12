@@ -68,9 +68,7 @@ class DiceCache:
         cls._save_data()
 
     @classmethod
-    def get_autocomplete_suggestions(
-        cls, itr: Interaction, query: str
-    ) -> list[Choice[str]]:
+    def get_autocomplete_suggestions(cls, itr: Interaction, query: str) -> list[Choice[str]]:
         """
         Returns auto-complete choices for the last roll expressions a user used when no query is given.
         """
@@ -82,18 +80,12 @@ class DiceCache:
             return []
 
         query = query.strip().lower().replace(" ", "")
-        filtered = [
-            Choice(name=roll, value=roll)
-            for roll in reversed(last_used)
-            if query in roll.lower()
-        ]
+        filtered = [Choice(name=roll, value=roll) for roll in reversed(last_used) if query in roll.lower()]
 
         return filtered[:25]
 
     @classmethod
-    def get_autocomplete_reason_suggestions(
-        cls, itr: Interaction, query: str
-    ) -> list[Choice[str]]:
+    def get_autocomplete_reason_suggestions(cls, itr: Interaction, query: str) -> list[Choice[str]]:
         """
         Returns auto-complete choices for the last reasons a user used when no query is given.
         If query is given, will suggest reasons containing the query.
@@ -144,7 +136,4 @@ class DiceCache:
             [reason for reason in reasons if query.lower() in reason.lower()],
             key=lambda x: x.lower().index(query),
         )
-        return [
-            discord.app_commands.Choice(name=reason, value=reason)
-            for reason in filtered_reasons[:25]
-        ]
+        return [discord.app_commands.Choice(name=reason, value=reason) for reason in filtered_reasons[:25]]

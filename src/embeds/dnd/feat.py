@@ -8,9 +8,7 @@ class FeatEmbed(DNDObjectEmbed):
         self.description = f"*{feat.select_description}*"
 
         if feat.ability_increase:
-            self.add_field(
-                name="Ability Increase", value=feat.ability_increase, inline=True
-            )
+            self.add_field(name="Ability Increase", value=feat.ability_increase, inline=True)
         if feat.prerequisite:
             self.add_field(name="Requires", value=feat.prerequisite, inline=True)
         if feat.ability_increase or feat.prerequisite:

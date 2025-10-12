@@ -60,15 +60,11 @@ class DNDTableEntryView(discord.ui.LayoutView):
 
 class DNDTableRollButton(ui.Button):
     def __init__(self, table: DNDTable):
-        super().__init__(
-            style=discord.ButtonStyle.primary, label="Roll", custom_id="roll_btn"
-        )
+        super().__init__(style=discord.ButtonStyle.primary, label="Roll", custom_id="roll_btn")
         self.table = table
 
     async def callback(self, itr: discord.Interaction):
-        log_button_press(
-            itr=itr, button=self, location=f"Table Roll - {self.table.name}"
-        )
+        log_button_press(itr=itr, button=self, location=f"Table Roll - {self.table.name}")
         result = self.table.roll()
         if result is None:
             # Disable button to prevent further attempts, since it will keep failing.
@@ -126,13 +122,9 @@ class DNDTableContainerView(PaginatedLayoutView):
         self.clear_items()
         container = ui.Container(accent_color=discord.Color.dark_green())
 
-        title_display = TitleTextDisplay(
-            name=self.table.name, source=self.table.source, url=self.table.url
-        )
+        title_display = TitleTextDisplay(name=self.table.name, source=self.table.source, url=self.table.url)
         if self.table.is_rollable:
-            title_section = ui.Section(
-                title_display, accessory=DNDTableRollButton(self.table)
-            )
+            title_section = ui.Section(title_display, accessory=DNDTableRollButton(self.table))
             container.add_item(title_section)
         else:
             container.add_item(title_display)

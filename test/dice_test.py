@@ -24,9 +24,7 @@ class TestDiceExpression:
     )
     def test_is_dice_expression_invalid(self, expression):
         dice = roll(expression)
-        assert (
-            dice.error is not None
-        ), f"Dice expression '{expression}' should be invalid."
+        assert dice.error is not None, f"Dice expression '{expression}' should be invalid."
 
     def test_advantage_roll_count(self):
         normal = roll("1d20", DiceRollMode.Normal)
@@ -45,9 +43,7 @@ class TestDiceExpression:
             totals = [roll.total for roll in dice.rolls]
             assert dice.roll.total in totals, "Advantage value should be in rolls."
             for roll_ in dice.rolls:
-                assert (
-                    dice.roll.total >= roll_.total
-                ), "Advantage result should be greater or equal to all rolls."
+                assert dice.roll.total >= roll_.total, "Advantage result should be greater or equal to all rolls."
 
     @pytest.mark.parametrize("iterations", [1000])
     def test_disadvantage_is_less(self, iterations):
@@ -57,9 +53,7 @@ class TestDiceExpression:
             totals = [roll.total for roll in dice.rolls]
             assert dice.roll.total in totals, "Disadvantage value should be in rolls."
             for roll_ in dice.rolls:
-                assert (
-                    dice.roll.total <= roll_.total
-                ), "Disadvantage result should be less or equal to all rolls."
+                assert dice.roll.total <= roll_.total, "Disadvantage result should be less or equal to all rolls."
 
     @pytest.mark.parametrize(
         "expression, result",
@@ -72,9 +66,7 @@ class TestDiceExpression:
     )
     def test_mathematical_expressions(self, expression, result):
         dice = roll(expression)
-        assert (
-            dice.roll.total == result
-        ), f"Math expression '{expression}' should equal {result}"
+        assert dice.roll.total == result, f"Math expression '{expression}' should equal {result}"
 
     @pytest.mark.parametrize(
         "expression, min, max, iterations",
@@ -86,9 +78,7 @@ class TestDiceExpression:
     def test_rolls_are_bounded(self, expression, min, max, iterations):
         for _ in range(iterations):
             dice = roll(expression)
-            assert (
-                min <= dice.roll.total <= max
-            ), f"Expression '{expression}' should be within [{min}, {max}]"
+            assert min <= dice.roll.total <= max, f"Expression '{expression}' should be within [{min}, {max}]"
 
     """
     The following three tests are chance-based, where 1000 d20's are rolled for one
@@ -152,9 +142,7 @@ class TestDiceExpressionCache:
         data = DiceCache._data
 
         assert user_id in data, f"User ID {user_id} should be in cache data."
-        assert (
-            expression in data[user_id]["last_used"]
-        ), f"'{expression}' should be in last_used for user."
+        assert expression in data[user_id]["last_used"], f"'{expression}' should be in last_used for user."
 
     @pytest.mark.parametrize(
         "reason",
@@ -165,12 +153,8 @@ class TestDiceExpressionCache:
         user_id = str(itr.user.id)
         data = DiceCache._data
 
-        assert (
-            user_id in data
-        ), f"User ID {user_id} should not be in cache for invalid expression."
-        assert (
-            reason in data[user_id]["last_used_reason"]
-        ), f"'{reason} should be in last_used_reason"
+        assert user_id in data, f"User ID {user_id} should not be in cache for invalid expression."
+        assert reason in data[user_id]["last_used_reason"], f"'{reason} should be in last_used_reason"
 
     def test_get_autocomplete_suggestions_empty(self, itr):
         DiceCache._data = {}

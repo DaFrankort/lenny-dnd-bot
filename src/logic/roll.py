@@ -5,7 +5,7 @@ import d20
 from logic.app_commands import ChoicedEnum
 
 
-class DiceRollMode(ChoicedEnum):
+class Advantage(ChoicedEnum):
     Normal = "normal"
     Advantage = "advantage"
     Disadvantage = "disadvantage"
@@ -165,23 +165,23 @@ class SingleRollResult(object):
 
 class RollResult(object):
     expression: str
-    mode: DiceRollMode
+    advantage: Advantage
     rolls: list[SingleRollResult]
     error: str | None
 
     def __init__(self):
         self.expression = ""
-        self.mode = DiceRollMode.Normal
+        self.advantage = Advantage.Normal
         self.error = None
         self.rolls = []
 
     @property
     def roll(self) -> SingleRollResult:
         totals = [roll.total for roll in self.rolls]
-        match self.mode:
-            case DiceRollMode.Advantage:
+        match self.advantage:
+            case Advantage.Advantage:
                 total = max(totals)
-            case DiceRollMode.Disadvantage:
+            case Advantage.Disadvantage:
                 total = min(totals)
             case _:
                 total = totals[0]
@@ -208,7 +208,7 @@ def _roll_single(expression: str) -> SingleRollResult:
     return SingleRollResult(str(roll), roll.total, special, contains_dice)
 
 
-def roll(expression: str, mode: DiceRollMode = DiceRollMode.Normal) -> RollResult:
+def roll(expression: str, advantage: Advantage = Advantage.Normal) -> RollResult:
     result = RollResult()
 
     try:
@@ -216,8 +216,8 @@ def roll(expression: str, mode: DiceRollMode = DiceRollMode.Normal) -> RollResul
         expression = str(d20.parse(expression, allow_comments=False))
 
         result.expression = expression
-        result.mode = mode
-        if mode in [DiceRollMode.Advantage, DiceRollMode.Disadvantage]:
+        result.advantage = advantage
+        if advantage in [Advantage.Advantage, Advantage.Disadvantage]:
             result.rolls.append(_roll_single(expression))
             result.rolls.append(_roll_single(expression))
         else:

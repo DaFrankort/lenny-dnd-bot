@@ -7,7 +7,7 @@ import discord
 from matplotlib import pyplot as plt
 
 from logic.color import UserColor
-from logic.roll import DiceRollMode
+from logic.roll import Advantage
 
 
 class DistributionResult(object):
@@ -87,9 +87,9 @@ def distribution(
         dist = d20distribution.parse(expression)
         expression = str(d20.parse(expr=expression))
 
-        if advantage == DiceRollMode.Advantage.value:
+        if advantage == Advantage.Advantage.value:
             dist = dist.advantage()
-        elif advantage == DiceRollMode.Disadvantage.value:
+        elif advantage == Advantage.Disadvantage.value:
             dist = dist.disadvantage()
 
         result.expression = expression

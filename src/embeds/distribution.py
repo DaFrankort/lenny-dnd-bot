@@ -2,7 +2,7 @@ import discord
 from discord.utils import MISSING
 from logic.distribution import DistributionResult
 from logic.color import UserColor
-from logic.roll import DiceRollMode
+from logic.roll import Advantage
 
 
 class DistributionEmbed(discord.Embed):
@@ -18,9 +18,9 @@ class DistributionEmbed(discord.Embed):
             super().__init__(color=color, title=title, description=desc)
             return
 
-        if result.advantage == DiceRollMode.Advantage.value:
+        if result.advantage == Advantage.Advantage.value:
             title_suffix = " with advantage"
-        elif result.advantage == DiceRollMode.Disadvantage.value:
+        elif result.advantage == Advantage.Disadvantage.value:
             title_suffix = " with disadvantage"
         else:
             title_suffix = ""

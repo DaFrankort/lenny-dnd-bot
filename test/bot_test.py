@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock
 from bot import Bot
 from logic.dnd.data import Data
 from logic.dnd.name import Gender
-from logic.roll import DiceRollMode
+from logic.roll import Advantage
 from utils.mocking import mock_image, mock_sound
 from utils.test_utils import enum_values, listify
 from commands.tokengen import AlignH, AlignV
@@ -215,7 +215,7 @@ class TestBotCommands:
                 "distribution",
                 {
                     "expression": ["1d20", "1d8ro1"],
-                    "advantage": enum_values(DiceRollMode),
+                    "advantage": enum_values(Advantage),
                     "min_to_beat": [None, "5"],
                 },
             ),

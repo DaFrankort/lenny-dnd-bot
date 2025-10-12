@@ -4,7 +4,7 @@ from embeds.distribution import DistributionEmbed
 from logic.app_commands import SimpleCommand
 from logic.distribution import distribution
 from logic.color import UserColor
-from logic.roll import DiceRollMode
+from logic.roll import Advantage
 
 
 class DistributionCommand(SimpleCommand):
@@ -12,12 +12,12 @@ class DistributionCommand(SimpleCommand):
     desc = "Show the probability distribution of an expression."
     help = "Generates an image of the distribution of an expression."
 
-    @app_commands.choices(advantage=DiceRollMode.choices())
+    @app_commands.choices(advantage=Advantage.choices())
     async def callback(
         self,
         itr: Interaction,
         expression: str,
-        advantage: str = DiceRollMode.Normal.value,
+        advantage: str = Advantage.Normal.value,
         min_to_beat: int | None = None,
     ):
         self.log(itr)

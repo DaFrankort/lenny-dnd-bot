@@ -3,7 +3,7 @@ import discord
 from dice import DiceCache
 from embeds.roll import RollEmbed
 from logic.app_commands import SimpleContextMenu
-from logic.roll import DiceRollMode, roll
+from logic.roll import Advantage, roll
 from logic.voice_chat import VC
 
 
@@ -35,13 +35,13 @@ class RerollContextMenu(SimpleContextMenu):
         dice_notation = title.replace("Rolling ", "").replace("Re-rolling", "").replace("!", "")
         if "disadvantage" in dice_notation:
             # Check 'disadvantage' before 'advantage', may give a false positive otherwise.
-            mode = DiceRollMode.Disadvantage
+            advantage = Advantage.Disadvantage
             dice_notation = dice_notation.replace("with disadvantage", "")
         elif "advantage" in dice_notation:
-            mode = DiceRollMode.Advantage
+            advantage = Advantage.Advantage
             dice_notation = dice_notation.replace("with advantage", "")
         else:
-            mode = DiceRollMode.Normal
+            advantage = Advantage.Normal
         dice_notation = dice_notation.strip()
 
         reason = None
@@ -53,7 +53,7 @@ class RerollContextMenu(SimpleContextMenu):
                     reason = label.replace("*", "")
                     break
 
-        result = roll(dice_notation, mode)
+        result = roll(dice_notation, advantage)
         embed = RollEmbed(itr, result, reason, reroll=True)
         DiceCache.store_expression(itr, dice_notation)
 

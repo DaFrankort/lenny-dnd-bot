@@ -3,12 +3,12 @@ import discord
 from dice import DiceCache
 from embeds.roll import RollEmbed
 from logic.app_commands import SimpleCommand, send_error_message
-from logic.roll import DiceRollMode, roll
+from logic.roll import Advantage, roll
 from logic.voice_chat import VC
 
 
 class _AbstractRollCommand(SimpleCommand):
-    mode: DiceRollMode
+    advantage: Advantage
 
     async def diceroll_autocomplete(self, itr: discord.Interaction, current: str):
         return DiceCache.get_autocomplete_suggestions(itr, current)
@@ -27,7 +27,7 @@ class _AbstractRollCommand(SimpleCommand):
         reason: str = None,
     ):
         self.log(itr)
-        result = roll(diceroll, self.mode)
+        result = roll(diceroll, self.advantage)
         if result.error is not None:
             await send_error_message(itr, result.error)
             return
@@ -45,7 +45,7 @@ class RollCommand(_AbstractRollCommand):
     desc = "Roll your d20s!"
     help = "Roll a single dice expression."
 
-    mode = DiceRollMode.Normal
+    advantage = Advantage.Normal
 
 
 class AdvantageRollCommand(_AbstractRollCommand):
@@ -53,7 +53,7 @@ class AdvantageRollCommand(_AbstractRollCommand):
     desc = "Lucky you! Roll and take the best of two!"
     help = "Roll the expression twice, use the highest result."
 
-    mode = DiceRollMode.Advantage
+    advantage = Advantage.Advantage
 
 
 class DisadvantageRollCommand(_AbstractRollCommand):
@@ -61,7 +61,7 @@ class DisadvantageRollCommand(_AbstractRollCommand):
     desc = "Tough luck chump... Roll twice and suck it."
     help = "Roll the expression twice, use the lowest result."
 
-    mode = DiceRollMode.Disadvantage
+    advantage = Advantage.Disadvantage
 
 
 class D20Command(SimpleCommand):
@@ -71,7 +71,7 @@ class D20Command(SimpleCommand):
 
     async def callback(self, itr: discord.Interaction):
         self.log(itr)
-        result = roll("1d20", DiceRollMode.Normal)
+        result = roll("1d20", Advantage.Normal)
         embed = RollEmbed(itr, result, None)
         await itr.response.send_message(embed=embed)
         await VC.play_dice_roll(itr, result)

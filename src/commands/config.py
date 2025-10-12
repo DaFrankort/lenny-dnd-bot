@@ -2,7 +2,7 @@ import discord
 
 from embeds.config import ConfigSourcesView
 from logic.app_commands import SimpleCommand
-from dnd import DNDData
+from logic.dnd.data import DNDData
 
 
 class ConfigCommand(SimpleCommand):

@@ -21,7 +21,7 @@ from commands.roll import (
 from commands.search import SearchCommandGroup
 from commands.stats import StatsCommandGroup
 from commands.timestamp import TimestampCommandGroup
-from commands.tokengen import TokenGenCommand, TokenGenUrlCommand
+from commands.tokengen import TokenGenCommandGroup
 from context_menus.delete import DeleteContextMenu
 from context_menus.timestamp import RequestTimestampContextMenu
 from context_menus.reroll import RerollContextMenu
@@ -66,8 +66,7 @@ class Bot(discord.Client):
         self.tree.add_command(AdvantageRollCommand())
         self.tree.add_command(DisadvantageRollCommand())
         self.tree.add_command(D20Command())
-        self.tree.add_command(TokenGenCommand())
-        self.tree.add_command(TokenGenUrlCommand())
+        self.tree.add_command(TokenGenCommandGroup())
         self.tree.add_command(InitiativeCommand(initiatives=self.initiatives))
         self.tree.add_command(PlanSessionCommand())
         self.tree.add_command(PlaySoundCommand())

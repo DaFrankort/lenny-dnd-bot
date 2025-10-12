@@ -7,13 +7,6 @@ from logic.dnd.name import Gender
 from logic.namegen import generate_name
 
 
-GenderChoices = [
-    discord.app_commands.Choice(name="Female", value=Gender.FEMALE.value),
-    discord.app_commands.Choice(name="Male", value=Gender.MALE.value),
-    discord.app_commands.Choice(name="Other", value=Gender.OTHER.value),
-]
-
-
 class NameGenCommand(SimpleCommand):
     name = "namegen"
     desc = "Generate a random name depending on species and gender!"
@@ -33,7 +26,7 @@ class NameGenCommand(SimpleCommand):
         species="Request a name from a specific species, selects random species by default.",
         gender="Request name from a specific gender, selects random gender by default.",
     )
-    @discord.app_commands.choices(gender=GenderChoices)
+    @discord.app_commands.choices(gender=Gender.choices())
     @discord.app_commands.autocomplete(species=species_autocomplete)
     async def callback(
         self,

@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 import pytest
 from dice import DiceCache
 from logic.roll import DiceRollMode, roll
-from utils.mock_discord_interaction import MockInteraction
+from utils.mocking import MockInteraction
 
 
 class TestDiceExpression:

@@ -1,6 +1,6 @@
 import pytest
 from logic.roll import DiceRollMode
-from utils.mock_discord_interaction import MockInteraction, MockUser
+from utils.mocking import MockInteraction, MockUser
 
 from logic.initiative import Initiative, InitiativeTracker
 

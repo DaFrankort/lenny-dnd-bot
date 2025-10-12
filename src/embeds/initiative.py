@@ -68,8 +68,9 @@ class InitiativeRollModal(_InitiativeModal):
 
         view = InitiativeContainerView(itr, self.tracker)
         sound_type = SoundType.CREATURE if name else SoundType.PLAYER
+        await itr.response.defer()
         await VC.play(itr, sound_type)
-        await itr.response.edit_message(view=view)
+        await itr.followup.edit_message(message_id=itr.message.id, view=view)
         await itr.followup.send(
             embed=UserActionEmbed(
                 itr=itr, title=initiative.title, description=initiative.description

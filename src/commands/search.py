@@ -2,11 +2,13 @@ import logging
 
 import discord
 
+from embeds.dnd.abstract import MultiDNDSelectView
+from embeds.search import SearchLayoutView, send_dnd_embed
 from logic.app_commands import SimpleCommand, SimpleCommandGroup
 from logic.config import Config
-from dnd import DNDObject, Data, send_dnd_embed
-from embed import MultiDNDSelectView, NoResultsFoundEmbed
-from search import SearchLayoutView
+from embed import NoResultsFoundEmbed
+from logic.dnd.abstract import DNDObject
+from logic.dnd.data import Data
 
 
 async def send_DNDObject_lookup_result(

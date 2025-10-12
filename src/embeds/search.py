@@ -52,11 +52,11 @@ def get_dnd_embed(itr: discord.Interaction, dnd_object: DNDObject):
         case Language():
             return LanguageEmbed(dnd_object)
         case Background():
-            return BackgroundEmbed()
+            return BackgroundEmbed(dnd_object)
         case DNDTable():
             return DNDTableContainerView(dnd_object)
         case Species():
-            return SpeciesEmbed()
+            return SpeciesEmbed(dnd_object)
     logging.error(f"Could not find embed for class {dnd_object.__class__.__name__}")
     return None
 

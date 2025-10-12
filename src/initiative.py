@@ -10,7 +10,7 @@ from discord.app_commands import Choice
 from logger import log_button_press
 from logic.roll import DiceRollMode
 from modals import SimpleModal
-from voice_chat import VC, SoundType
+from logic.voice_chat import VC, SoundType
 
 
 async def clean_up_old_message(message: Message, MAX_AGE: int = 600):

@@ -13,7 +13,7 @@ from logic.app_commands import send_error_message
 from logic.color import UserColor
 from logic.roll import RollResult
 from methods import build_table_from_rows
-from voice_chat import VC, SoundType
+from logic.voice_chat import VC, SoundType
 
 
 class DNDTableEntryView(discord.ui.LayoutView):

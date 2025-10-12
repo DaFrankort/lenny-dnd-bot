@@ -4,7 +4,7 @@ from dice import DiceCache
 from embeds.roll import RollEmbed
 from logic.app_commands import SimpleCommand, send_error_message
 from logic.roll import DiceRollMode, roll
-from voice_chat import VC
+from logic.voice_chat import VC
 
 
 class _AbstractRollCommand(SimpleCommand):

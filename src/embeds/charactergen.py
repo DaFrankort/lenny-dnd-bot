@@ -1,0 +1,82 @@
+import discord
+from discord import ui
+from logic.charts import get_radar_chart
+from components.items import SimpleSeparator, TitleTextDisplay
+from logic.charactergen import CharacterGenResult
+from logic.dnd.abstract import DNDObject
+from logic.dnd.background import Background
+from logic.dnd.name import Gender
+from methods import build_table_from_rows
+from logic.color import UserColor
+
+
+class _CharacterGenInfoButton(ui.Button):
+    def __init__(self, object: DNDObject, emoji: str):
+        style = discord.ButtonStyle.url
+        super().__init__(style=style, label=object.name, emoji=emoji, url=object.url)
+
+
+class CharacterGenContainerView(ui.LayoutView):
+    chart: discord.File = None
+
+    def _build_ability_table(
+        self,
+        background: Background,
+        stats: list[tuple[int, str]],
+        boosted_stats: list[tuple[int, str]],
+    ):
+        headers = ["Ability", "Score", "Mod"]
+        rows = []
+        for stat, boosted in zip(stats, boosted_stats):
+            base_value, name = stat
+            boosted_value, _ = boosted
+
+            bg_abilities = [f"{a[:3].lower()}." for a in background.abilities]
+            if name.lower() in bg_abilities:
+                name += "*"  # mark bg abilities
+
+            ability_value = str(base_value)
+            if boosted_value != base_value:
+                diff = boosted_value - base_value
+                ability_value = f"{base_value} + {diff}"
+
+            mod = (boosted_value - 10) // 2
+            mod = f"- {abs(mod)}" if mod < 0 else f"+ {mod}"
+
+            rows.append([name, ability_value, mod])
+
+        return build_table_from_rows(headers=headers, rows=rows)
+
+    def __init__(self, result: CharacterGenResult):
+        super().__init__(timeout=None)
+        color = discord.Color(UserColor.generate(result.name))
+        container = ui.Container(accent_color=color)
+        container.add_item(TitleTextDisplay(result.name))
+
+        btn_row = ui.ActionRow()
+        species_emoji = "🧝‍♀️" if result.gender is Gender.FEMALE else "🧝‍♂️"
+        btn_row.add_item(_CharacterGenInfoButton(result.species, species_emoji))
+        class_emoji = "🧙‍♀️" if result.gender is Gender.FEMALE else "🧙‍♂️"
+        btn_row.add_item(_CharacterGenInfoButton(result.char_class, class_emoji))
+        bg_emoji = "📕" if result.gender is Gender.FEMALE else "📘"
+        btn_row.add_item(_CharacterGenInfoButton(result.background, bg_emoji))
+        container.add_item(btn_row)
+
+        container.add_item(SimpleSeparator())
+        container.add_item(ui.TextDisplay(result.backstory))
+        container.add_item(SimpleSeparator())
+
+        ability_table = self._build_ability_table(result.background, result.stats, result.boosted_stats)
+        total = sum([val for val, _ in result.stats])
+        ability_desc = ability_table + f"\n**Total**: {total} + 3"
+
+        self.chart = get_radar_chart(
+            results=result.stats,
+            boosted_results=result.boosted_stats,
+            color=color.value,
+        )
+        ability_image = ui.Thumbnail(media=self.chart)
+        ability_section = ui.Section(ability_desc, accessory=ability_image)
+        container.add_item(ability_section)
+
+        self.add_item(container)

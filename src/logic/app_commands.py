@@ -1,10 +1,20 @@
 from abc import abstractmethod
+from enum import Enum
 import logging
 import discord
 
 
+def format_warning_message(message: str, emoji: str = "⚠️"):
+    return f"{emoji} {message} {emoji}"
+
+
 async def send_error_message(itr: discord.Interaction, message: str, emoji: str = "❌"):
     message = f"{emoji} {message} {emoji}"
+    await itr.response.send_message(message, ephemeral=True)
+
+
+async def send_warning_message(itr: discord.Interaction, message: str, emoji: str = "⚠️"):
+    message = format_warning_message(message, emoji)
     await itr.response.send_message(message, ephemeral=True)
 
 
@@ -35,12 +45,11 @@ class SimpleCommand(discord.app_commands.Command):
             raise NotImplementedError(f"'help' not defined in {type(self)}")
 
         super().__init__(name=self.name, description=self.desc, callback=self.callback)
+        self.on_error = self.error_handler
 
     @property
     def command_name(self) -> str:
-        def get_command_string(
-            name: str, cmd: discord.app_commands.Command | discord.app_commands.Group
-        ) -> str:
+        def get_command_string(name: str, cmd: discord.app_commands.Command | discord.app_commands.Group) -> str:
             if cmd.parent:
                 name = f"{cmd.parent.name} {name}"
                 return get_command_string(name, cmd.parent)
@@ -74,6 +83,19 @@ class SimpleCommand(discord.app_commands.Command):
     async def callback(self, itr: discord.Interaction):
         raise NotImplementedError
 
+    async def error_handler(
+        self,
+        _,
+        itr: discord.Interaction,
+        error: discord.app_commands.AppCommandError,
+    ):
+        if itr.response.is_done():
+            await itr.followup.send(str(error), ephemeral=True)
+            message = await itr.original_response()
+            await message.delete(delay=10)
+        else:
+            await itr.response.send_message(str(error), ephemeral=True)
+
 
 class SimpleContextMenu(discord.app_commands.ContextMenu):
     name: str = None
@@ -93,3 +115,9 @@ class SimpleContextMenu(discord.app_commands.ContextMenu):
     @abstractmethod
     async def callback(self, itr: discord.Interaction):
         raise NotImplementedError
+
+
+class ChoicedEnum(Enum):
+    @classmethod
+    def choices(cls) -> list[discord.app_commands.Choice]:
+        return [discord.app_commands.Choice(name=e.name.title(), value=e.value) for e in cls]

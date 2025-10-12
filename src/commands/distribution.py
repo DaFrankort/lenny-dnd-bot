@@ -1,26 +1,10 @@
 from discord import Interaction, app_commands
 
-from charts import get_distribution_chart
+from embeds.distribution import DistributionEmbed
 from logic.app_commands import SimpleCommand
-from dice import DiceRollMode
-from distribution import DiceDistributionEmbed, get_distribution
-from embeds import SimpleEmbed
-
-
-DISTRIBUTION_COMMAND_ADVANTAGE_CHOICES = [
-    app_commands.Choice(
-        name=DiceRollMode.Advantage.value,
-        value=DiceRollMode.Advantage.value,
-    ),
-    app_commands.Choice(
-        name=DiceRollMode.Disadvantage.value,
-        value=DiceRollMode.Disadvantage.value,
-    ),
-    app_commands.Choice(
-        name=DiceRollMode.Normal.value,
-        value=DiceRollMode.Normal.value,
-    ),
-]
+from logic.distribution import distribution
+from logic.color import UserColor
+from logic.roll import DiceRollMode
 
 
 class DistributionCommand(SimpleCommand):
@@ -28,7 +12,7 @@ class DistributionCommand(SimpleCommand):
     desc = "Show the probability distribution of an expression."
     help = "Generates an image of the distribution of an expression."
 
-    @app_commands.choices(advantage=DISTRIBUTION_COMMAND_ADVANTAGE_CHOICES)
+    @app_commands.choices(advantage=DiceRollMode.choices())
     async def callback(
         self,
         itr: Interaction,
@@ -38,15 +22,7 @@ class DistributionCommand(SimpleCommand):
     ):
         self.log(itr)
         await itr.response.defer()
-        try:
-            distribution = get_distribution(expression, advantage=advantage)
-            chart = get_distribution_chart(itr, distribution, min_to_beat or -9999999)
-            embed = DiceDistributionEmbed(
-                itr, expression, distribution, advantage, min_to_beat
-            )
-            embed.set_image(url=f"attachment://{chart.filename}")
-            await itr.followup.send(embed=embed, file=chart)
-        except Exception as e:
-            title = f"Error in {expression}!"
-            desc = f"⚠️ {str(e)}"
-            await itr.followup.send(embed=SimpleEmbed(title=title, description=desc))
+        color = UserColor.get(itr)
+        result = distribution(expression, advantage, color, min_to_beat)
+        embed = DistributionEmbed(itr, result)
+        await itr.followup.send(embed=embed, file=embed.chart)

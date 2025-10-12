@@ -1,9 +1,10 @@
 import discord
 
+from dice import DiceCache
+from embeds.roll import RollEmbed
 from logic.app_commands import SimpleContextMenu
-from dice import DiceExpression, DiceExpressionCache, DiceRollMode
-from embeds import UserActionEmbed
-from voice_chat import VC
+from logic.roll import DiceRollMode, roll
+from logic.voice_chat import VC
 
 
 class RerollContextMenu(SimpleContextMenu):
@@ -22,22 +23,16 @@ class RerollContextMenu(SimpleContextMenu):
             return
 
         if not message.embeds or len(message.embeds) == 0:
-            await itr.response.send_message(
-                "❌ Reroll doesn't work on this message type!", ephemeral=True
-            )
+            await itr.response.send_message("❌ Reroll doesn't work on this message type!", ephemeral=True)
             return
 
         embed = message.embeds[0]
         title = embed.author.name or ""
         if not ("Rolling" in title or "Re-rolling" in title):
-            await itr.response.send_message(
-                "❌ Message does not contain a dice-roll!", ephemeral=True
-            )
+            await itr.response.send_message("❌ Message does not contain a dice-roll!", ephemeral=True)
             return
 
-        dice_notation = (
-            title.replace("Rolling ", "").replace("Re-rolling", "").replace("!", "")
-        )
+        dice_notation = title.replace("Rolling ", "").replace("Re-rolling", "").replace("!", "")
         if "disadvantage" in dice_notation:
             # Check 'disadvantage' before 'advantage', may give a false positive otherwise.
             mode = DiceRollMode.Disadvantage
@@ -54,22 +49,13 @@ class RerollContextMenu(SimpleContextMenu):
             lines = embed.fields[0].value.strip().splitlines()
             for line in lines:
                 if line.startswith("🎲") and ":" in line:
-                    label = (
-                        line[1:].split(":", 1)[0].strip()
-                    )  # Remove 🎲 and split before colon
+                    label = line[1:].split(":", 1)[0].strip()  # Remove 🎲 and split before colon
                     reason = label.replace("*", "")
                     break
 
-        expression = DiceExpression(expression=dice_notation, mode=mode, reason=reason)
-        expression.title = expression.title.replace("Rolling", "Re-rolling")
-        DiceExpressionCache.store_expression(itr, expression, dice_notation)
+        result = roll(dice_notation, mode)
+        embed = RollEmbed(itr, result, reason, reroll=True)
+        DiceCache.store_expression(itr, dice_notation)
 
-        await itr.response.send_message(
-            embed=UserActionEmbed(
-                itr=itr,
-                title=expression.title,
-                description=expression.description,
-            ),
-            ephemeral=expression.ephemeral,
-        )
-        await VC.play_dice_roll(itr, expression, reason)
+        await itr.response.send_message(embed=embed)
+        await VC.play_dice_roll(itr, result, reason)

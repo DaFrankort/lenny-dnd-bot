@@ -1,11 +1,8 @@
 import math
 from unittest.mock import MagicMock
 import pytest
-from dice import (
-    DiceExpression,
-    DiceExpressionCache,
-    DiceRollMode,
-)
+from dice import DiceCache
+from logic.roll import DiceRollMode, roll
 from utils.mocking import MockInteraction
 
 
@@ -18,21 +15,21 @@ class TestDiceExpression:
         ],
     )
     def test_is_dice_expression_valid(self, expression):
-        dice = DiceExpression(expression)
-        assert dice.is_valid, f"Dice expression '{expression}' should be valid."
+        dice = roll(expression)
+        assert dice.error is None, f"Dice expression '{expression}' should be valid."
 
     @pytest.mark.parametrize(
         "expression",
         ["1d", "d", "1d20+(4", "invalid", "1d20d20"],
     )
     def test_is_dice_expression_invalid(self, expression):
-        dice = DiceExpression(expression)
-        assert not dice.is_valid, f"Dice expression '{expression}' should be invalid."
+        dice = roll(expression)
+        assert dice.error is not None, f"Dice expression '{expression}' should be invalid."
 
     def test_advantage_roll_count(self):
-        normal = DiceExpression("1d20", DiceRollMode.Normal)
-        advantage = DiceExpression("1d20", DiceRollMode.Advantage)
-        disadvantage = DiceExpression("1d20", DiceRollMode.Disadvantage)
+        normal = roll("1d20", DiceRollMode.Normal)
+        advantage = roll("1d20", DiceRollMode.Advantage)
+        disadvantage = roll("1d20", DiceRollMode.Disadvantage)
 
         assert len(normal.rolls) == 1, "Normal rolls should only have one roll."
         assert len(advantage.rolls) == 2, "Advantage rolls should have two rolls."
@@ -42,25 +39,21 @@ class TestDiceExpression:
     def test_advantage_is_greater(self, iterations):
         # Monte Carlo test to see if advantage is always the greatest of the two numbers
         for _ in range(iterations):
-            dice = DiceExpression("1d20+5", DiceRollMode.Advantage)
-            values = [roll.value for roll in dice.rolls]
-            assert dice.roll.value in values, "Advantage value should be in rolls."
-            for roll in dice.rolls:
-                assert (
-                    dice.roll.value >= roll.value
-                ), "Advantage result should be greater or equal to all rolls."
+            dice = roll("1d20+5", DiceRollMode.Advantage)
+            totals = [roll.total for roll in dice.rolls]
+            assert dice.roll.total in totals, "Advantage value should be in rolls."
+            for roll_ in dice.rolls:
+                assert dice.roll.total >= roll_.total, "Advantage result should be greater or equal to all rolls."
 
     @pytest.mark.parametrize("iterations", [1000])
     def test_disadvantage_is_less(self, iterations):
         # Same as test_advantage_is_greater, except for disadvantage
         for _ in range(iterations):
-            dice = DiceExpression("1d20+5", DiceRollMode.Disadvantage)
-            values = [roll.value for roll in dice.rolls]
-            assert dice.roll.value in values, "Disadvantage value should be in rolls."
-            for roll in dice.rolls:
-                assert (
-                    dice.roll.value <= roll.value
-                ), "Disadvantage result should be less or equal to all rolls."
+            dice = roll("1d20+5", DiceRollMode.Disadvantage)
+            totals = [roll.total for roll in dice.rolls]
+            assert dice.roll.total in totals, "Disadvantage value should be in rolls."
+            for roll_ in dice.rolls:
+                assert dice.roll.total <= roll_.total, "Disadvantage result should be less or equal to all rolls."
 
     @pytest.mark.parametrize(
         "expression, result",
@@ -72,10 +65,8 @@ class TestDiceExpression:
         ],
     )
     def test_mathematical_expressions(self, expression, result):
-        dice = DiceExpression(expression)
-        assert (
-            dice.roll.value == result
-        ), f"Math expression '{expression}' should equal {result}"
+        dice = roll(expression)
+        assert dice.roll.total == result, f"Math expression '{expression}' should equal {result}"
 
     @pytest.mark.parametrize(
         "expression, min, max, iterations",
@@ -86,10 +77,8 @@ class TestDiceExpression:
     )
     def test_rolls_are_bounded(self, expression, min, max, iterations):
         for _ in range(iterations):
-            dice = DiceExpression(expression)
-            assert (
-                min <= dice.roll.value <= max
-            ), f"Expression '{expression}' should be within [{min}, {max}]"
+            dice = roll(expression)
+            assert min <= dice.roll.total <= max, f"Expression '{expression}' should be within [{min}, {max}]"
 
     """
     The following three tests are chance-based, where 1000 d20's are rolled for one
@@ -97,31 +86,31 @@ class TestDiceExpression:
     """
 
     def test_is_nat_one(self):
-        dice = DiceExpression("1000d20kl1+5+5+5")
+        dice = roll("1d20ma1+5+5+5")
         assert dice.roll.is_natural_one, "Dice roll should be natural one."
 
     def test_is_nat_twenty(self):
-        dice = DiceExpression("1000d20kh1+5+5+5")
+        dice = roll("1d20mi20+5+5+5")
         assert dice.roll.is_natural_twenty, "Dice roll should be natural twenty."
 
     def test_is_dirty_twenty(self):
-        dice = DiceExpression("1000d20kh1ma17+3")
+        dice = roll("1d20mi17ma17+3")
         assert dice.roll.is_dirty_twenty, "Dice roll should be dirty twenty."
 
     def test_contains_dice(self):
-        dice1 = DiceExpression("1d20+5")
-        dice2 = DiceExpression("120 + 5")
+        dice1 = roll("1d20+5")
+        dice2 = roll("120 + 5")
 
-        assert "Expression contains no dice." not in dice1.description
-        assert "Expression contains no dice." in dice2.description
+        assert dice1.roll.contains_dice
+        assert not dice2.roll.contains_dice
 
 
 class TestDiceExpressionCache:
     @pytest.fixture(autouse=True)
     def setup(self, tmp_path):
         self.test_path = tmp_path / "dice_cache.json"
-        DiceExpressionCache.PATH = self.test_path
-        DiceExpressionCache._data = {}  # Reset cache before each test
+        DiceCache.PATH = self.test_path
+        DiceCache._data = {}  # Reset cache before each test
 
     @pytest.fixture
     def itr(self):
@@ -143,103 +132,31 @@ class TestDiceExpressionCache:
         mock_expr.description = "An invalid roll"
         return mock_expr
 
-    def test_store_expression_adds_to_cache(self, itr, valid_expression):
-        DiceExpressionCache.store_expression(itr, valid_expression, "1d20+5")
+    @pytest.mark.parametrize(
+        "expression",
+        ["1d20+5", "123+456", "6"],
+    )
+    def test_store_expression_adds_to_cache(self, itr, expression: str):
+        DiceCache.store_expression(itr, expression)
         user_id = str(itr.user.id)
-        data = DiceExpressionCache._data
-        reason = valid_expression.reason
+        data = DiceCache._data
 
         assert user_id in data, f"User ID {user_id} should be in cache data."
-        assert (
-            "1d20+5" in data[user_id]["last_used"]
-        ), "'1d20+5' should be in last_used for user."
-        assert (
-            reason in data[user_id]["last_used_reason"]
-        ), f"'{reason}' should be in last_used_reason for user."
+        assert expression in data[user_id]["last_used"], f"'{expression}' should be in last_used for user."
 
-    def test_store_expression_does_not_add_invalid(self, itr, invalid_expression):
-        DiceExpressionCache.store_expression(itr, invalid_expression, "2d6")
+    @pytest.mark.parametrize(
+        "reason",
+        ["reason", "attack", "1d20"],
+    )
+    def test_store_reason(self, itr, reason: str):
+        DiceCache.store_reason(itr, reason)
         user_id = str(itr.user.id)
+        data = DiceCache._data
 
-        assert (
-            user_id not in DiceExpressionCache._data
-        ), f"User ID {user_id} should not be in cache for invalid expression."
-
-    def test_store_shortcut_valid(self, itr):
-        success, description = DiceExpressionCache.store_shortcut(
-            itr, "quickattack", "1d6+3", "Fast strike"
-        )
-
-        user_data = DiceExpressionCache._data[str(itr.user.id)]
-        assert (
-            "quickattack" in user_data["shortcuts"]
-        ), "'quickattack' should be in user's shortcuts."
-        assert success is True, "Success should be True for valid shortcut."
-
-    def test_store_shortcut_invalid(self, itr):
-        success, description = DiceExpressionCache.store_shortcut(
-            itr, "failshot", "1d8+WRONG", None
-        )
-
-        assert success is False, "Success should be False for invalid shortcut."
-
-    def test_remove_shortcut_success(self, itr):
-        DiceExpressionCache._data = {
-            str(itr.user.id): {
-                "shortcuts": {"fireball": {"expression": "8d6", "reason": "big boom"}}
-            }
-        }
-
-        success, desc = DiceExpressionCache.remove_shortcut(itr, "fireball")
-        assert success is True, "Shortcut should be removed successfully."
-        assert (
-            "fireball" not in DiceExpressionCache._data[str(itr.user.id)]["shortcuts"]
-        ), "'fireball' should not be in user's shortcuts after removal."
-
-    def test_remove_shortcut_fail(self, itr):
-        DiceExpressionCache._data = {}
-        success, desc = DiceExpressionCache.remove_shortcut(itr, "doesnotexist")
-        assert (
-            success is False
-        ), "Should return False when trying to remove non-existent shortcut."
-
-    def test_get_shortcut_found(self, itr):
-        user_id = str(itr.user.id)
-        DiceExpressionCache._data = {
-            user_id: {"shortcuts": {"blast": {"expression": "2d10", "reason": "boom"}}}
-        }
-
-        result = DiceExpressionCache.get_shortcut(itr, "blast")
-        assert (
-            result["expression"] == "2d10"
-        ), "Should return correct expression for found shortcut."
-
-    def test_get_shortcut_not_found(self, itr):
-        DiceExpressionCache._data = {}
-        result = DiceExpressionCache.get_shortcut(itr, "nothing")
-        assert result is None, "Should return None for non-existent shortcut."
+        assert user_id in data, f"User ID {user_id} should not be in cache for invalid expression."
+        assert reason in data[user_id]["last_used_reason"], f"'{reason} should be in last_used_reason"
 
     def test_get_autocomplete_suggestions_empty(self, itr):
-        DiceExpressionCache._data = {}
-        suggestions = DiceExpressionCache.get_autocomplete_suggestions(itr, "")
+        DiceCache._data = {}
+        suggestions = DiceCache.get_autocomplete_suggestions(itr, "")
         assert suggestions == [], "Suggestions should be empty when no data is present."
-
-    def test_get_shortcut_autocomplete_suggestions_match(self, itr):
-        itr.namespace = MagicMock()
-        itr.namespace.action = "REMOVE"
-        user_id = str(itr.user.id)
-
-        DiceExpressionCache._data = {
-            user_id: {
-                "shortcuts": {
-                    "attack": {"expression": "1d20+3", "reason": None},
-                    "defend": {"expression": "1d20+2", "reason": None},
-                }
-            }
-        }
-
-        suggestions = DiceExpressionCache.get_shortcut_autocomplete_suggestions(
-            itr, "att"
-        )
-        assert len(suggestions) == 1, "Should return one suggestion matching 'att'."
-        assert suggestions[0].name == "attack", "Suggestion name should be 'attack'."

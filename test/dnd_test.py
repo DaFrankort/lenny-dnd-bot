@@ -1,8 +1,8 @@
 from unittest.mock import MagicMock
 import discord
 import pytest_asyncio
-from config import Config
-from dnd import Data
+from logic.config import Config
+from logic.dnd.data import Data
 
 
 class TestDndData:
@@ -30,9 +30,7 @@ class TestDndData:
                 try:
                     data.search(query, allowed_sources=sources)
                 except Exception:
-                    assert (
-                        False
-                    ), f"{data.entries[0].object_type} DNDDataList failed search()"
+                    assert False, f"{data.entries[0].object_type} DNDDataList failed search()"
 
     def test_search_from_query(self):
         sources = Config.allowed_sources(server=self.server)

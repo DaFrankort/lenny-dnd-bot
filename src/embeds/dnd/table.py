@@ -6,38 +6,41 @@ from rich.console import Console
 from discord import ui
 from components.items import SimpleSeparator, TitleTextDisplay
 from components.paginated_view import PaginatedLayoutView
-from dnd import DNDTable
-from embeds import UserActionEmbed
 from logger import log_button_press
+from logic.app_commands import send_error_message
+from logic.color import UserColor
+from logic.dnd.table import DNDTable
+from logic.roll import RollResult
 from methods import build_table_from_rows
-from voice_chat import VC, SoundType
+from logic.voice_chat import VC, SoundType
 
 
-class DNDTableRollButton(ui.Button):
-    def __init__(self, table: DNDTable):
-        super().__init__(
-            style=discord.ButtonStyle.primary, label="Roll", custom_id="roll_btn"
+class DNDTableEntryView(discord.ui.LayoutView):
+    def __init__(
+        self,
+        itr: discord.Interaction,
+        table: DNDTable,
+        headers: str,
+        row: any,
+        result: RollResult,
+    ):
+        super().__init__(timeout=None)
+
+        color = UserColor.get(itr)
+        container = ui.Container(accent_color=color)
+
+        title_display = TitleTextDisplay(
+            name=f"{table.name} - Rolled {result.roll.total}!",
+            url=table.url,
         )
-        self.table = table
-
-    async def callback(self, itr: discord.Interaction):
-        log_button_press(
-            itr=itr, button=self, location=f"Table Roll - {self.table.name}"
-        )
-        row, expression = self.table.roll()
-        if row is None or expression is None:
-            # Disable button to prevent further attempts, since it will keep failing.
-            self.disabled = True
-            self.style = discord.ButtonStyle.gray
-            await itr.response.send_message(
-                "❌ Couldn't roll table, something went wrong. ❌"
-            )
-            await itr.message.edit(view=self)
-            return
+        reroll_button = DNDTableRollButton(table)
+        reroll_button.label = "Re-roll"
+        title_section = ui.Section(title_display, accessory=reroll_button)
 
         console_table = Table(style=None, box=rich.box.ROUNDED)
+
         # Omit the first header and first row value
-        for header in self.table.table["value"]["headers"][1:]:
+        for header in headers[1:]:
             console_table.add_column(header, justify="left", style=None)
         console_table.add_row(*row[1:])
 
@@ -47,10 +50,39 @@ class DNDTableRollButton(ui.Button):
         description = f"```{buffer.getvalue()}```"
         buffer.close()
 
-        embed = UserActionEmbed(itr=itr, title=expression.title, description="")
-        embed.description = description
-        embed.title = f"{self.table.name} [{expression.roll.value}]"
-        await itr.response.send_message(embed=embed)
+        text_display = ui.TextDisplay(description)
+
+        container.add_item(title_section)
+        container.add_item(text_display)
+
+        self.add_item(container)
+
+
+class DNDTableRollButton(ui.Button):
+    def __init__(self, table: DNDTable):
+        super().__init__(style=discord.ButtonStyle.primary, label="Roll", custom_id="roll_btn")
+        self.table = table
+
+    async def callback(self, itr: discord.Interaction):
+        log_button_press(itr=itr, button=self, location=f"Table Roll - {self.table.name}")
+        result = self.table.roll()
+        if result is None:
+            # Disable button to prevent further attempts, since it will keep failing.
+            self.disabled = True
+            self.style = discord.ButtonStyle.gray
+            await send_error_message(itr, "Couldn't roll table, something went wrong")
+            await itr.message.edit(view=self)
+            return
+
+        row, result = result
+        view = DNDTableEntryView(
+            itr,
+            self.table,
+            self.table.table["value"]["headers"],
+            row,
+            result,
+        )
+        await itr.response.send_message(view=view)
         await VC.play(itr, sound_type=SoundType.ROLL)
 
 
@@ -90,13 +122,9 @@ class DNDTableContainerView(PaginatedLayoutView):
         self.clear_items()
         container = ui.Container(accent_color=discord.Color.dark_green())
 
-        title_display = TitleTextDisplay(
-            name=self.table.name, source=self.table.source, url=self.table.url
-        )
+        title_display = TitleTextDisplay(name=self.table.name, source=self.table.source, url=self.table.url)
         if self.table.is_rollable:
-            title_section = ui.Section(
-                title_display, accessory=DNDTableRollButton(self.table)
-            )
+            title_section = ui.Section(title_display, accessory=DNDTableRollButton(self.table))
             container.add_item(title_section)
         else:
             container.add_item(title_display)

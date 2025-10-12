@@ -1,6 +1,6 @@
 import discord
 from discord import ui
-from charts import get_radar_chart
+from logic.charts import get_radar_chart
 from components.items import SimpleSeparator, TitleTextDisplay
 from logic.charactergen import CharacterGenResult
 from logic.dnd.abstract import DNDObject

@@ -1,10 +1,11 @@
-from stats import Stats
+from embeds.stats import StatsEmbed
+from logic.stats import Stats
 from utils.mock_discord_interaction import MockInteraction
 
 
 class TestStats:
     def test_init(self):
-        stats = Stats(MockInteraction())
+        stats = Stats()
 
         for stat in stats.stats:
             rolls, result = stat
@@ -18,17 +19,20 @@ class TestStats:
             ), "Result should be between 4 and 24 (sum of 3 rolls)"
 
     def test_get_embed_title(self):
-        stats = Stats(MockInteraction())
-        display_name = stats.interaction.user.display_name
-        embed_title = stats.get_embed_title()
+        itr = MockInteraction()
+        stats = Stats()
+        embed = StatsEmbed(itr, stats)
+        embed_title = embed.get_title()
 
         assert (
-            display_name in embed_title
+            itr.user.display_name in embed_title
         ), "Embed title should contain the user's display name"
 
     def test_get_embed_description(self):
-        stats = Stats(MockInteraction())
-        description = stats.get_embed_description()
+        itr = MockInteraction()
+        stats = Stats()
+        embed = StatsEmbed(itr, stats)
+        description = embed.get_description()
 
         for rolls, result in stats.stats:
             for index, roll in enumerate(rolls):

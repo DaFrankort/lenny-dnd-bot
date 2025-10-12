@@ -2,7 +2,7 @@ import discord
 from discord import Interaction, ui
 from components.items import SimpleSeparator
 from embed import SimpleEmbed, SuccessEmbed, UserActionEmbed
-from initiative import Initiative, InitiativeTracker
+from logic.initiative import Initiative, InitiativeTracker
 from logic.roll import DiceRollMode
 from modals import SimpleModal
 from logic.voice_chat import VC, SoundType

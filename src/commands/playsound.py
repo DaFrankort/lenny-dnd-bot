@@ -1,7 +1,7 @@
 import discord
 
 from logic.app_commands import SimpleCommand
-from embed import SuccessEmbed
+from embed import SimpleEmbed, SuccessEmbed
 from logic.voice_chat import VC
 
 
@@ -12,11 +12,9 @@ class PlaySoundCommand(SimpleCommand):
 
     async def callback(self, itr: discord.Interaction, sound: discord.Attachment):
         self.log(itr)
-        success, description = await VC.play_attachment(itr, sound)
-        embed = SuccessEmbed(
-            title_success="Playing sound!",
-            title_fail=f"Failed to play {sound.filename}...",
-            description=description,
-            success=success,
+        await VC.play_attachment(itr, sound)
+        embed = SimpleEmbed(
+            title="Playing sound!",
+            description=f"▶️ Playing ``{sound.filename}`` in {itr.user.voice.channel.mention}!",
         )
         await itr.response.send_message(embed=embed, ephemeral=True)

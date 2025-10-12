@@ -1,9 +1,10 @@
 import discord
 
-from charts import get_radar_chart
+from embeds.stats import StatsEmbed
+from logic.charts import get_radar_chart
 from logic.app_commands import SimpleCommand, SimpleCommandGroup
 from embed import UserActionEmbed
-from stats import Stats
+from logic.stats import Stats
 from logic.color import UserColor
 
 
@@ -24,16 +25,12 @@ class StatsRollCommand(SimpleCommand):
 
     async def callback(self, itr: discord.Interaction):
         self.log(itr)
-        stats = Stats(itr)
-        embed = UserActionEmbed(
-            itr=itr,
-            title=stats.get_embed_title(),
-            description=stats.get_embed_description(),
-        )
-        color = UserColor.get(itr)
-        chart_image = stats.get_radar_chart(color)
-        embed.set_image(url=f"attachment://{chart_image.filename}")
-        await itr.response.send_message(embed=embed, file=chart_image)
+        stats = Stats()
+        embed = StatsEmbed(itr, stats)
+        chart = embed.chart
+
+        embed.set_image(url=f"attachment://{chart.filename}")
+        await itr.response.send_message(embed=embed, file=chart)
 
 
 class StatsVisualiseCommand(SimpleCommand):
@@ -58,7 +55,7 @@ class StatsVisualiseCommand(SimpleCommand):
             description="",
         )
         color = UserColor.get(itr)
-        chart_image = get_radar_chart(
+        chart = get_radar_chart(
             results=[
                 (str, "STR"),
                 (dex, "DEX"),
@@ -69,5 +66,5 @@ class StatsVisualiseCommand(SimpleCommand):
             ],
             color=color,
         )
-        embed.set_image(url=f"attachment://{chart_image.filename}")
-        await itr.response.send_message(embed=embed, file=chart_image)
+        embed.set_image(url=f"attachment://{chart.filename}")
+        await itr.response.send_message(embed=embed, file=chart)

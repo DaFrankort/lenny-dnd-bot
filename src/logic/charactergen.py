@@ -7,7 +7,7 @@ from logic.dnd.data import Data
 from logic.dnd.name import Gender
 from logic.dnd.species import Species
 from logic.dnd.table import DNDTable
-from stats import Stats
+from logic.stats import Stats
 
 
 class CharacterGenResult(object):
@@ -76,9 +76,7 @@ def _get_optimal_background(char_class: Class) -> Background:
     return background
 
 
-def _get_optimal_stats(
-    itr: discord.Interaction, char_class: Class
-) -> list[tuple[int, str]]:
+def _get_optimal_stats(char_class: Class) -> list[tuple[int, str]]:
     """
     To optimally assign rolled stats, we use the 'Assign Ability Scores; Standard Array by Class' table.
     Both the optimal stats and rolled stats are sorted from highest to lowest, so we can match the best rolled values to the most important abilities.
@@ -98,7 +96,7 @@ def _get_optimal_stats(
     if optimal_stats is None:
         raise f"CharacterGen - Class '{char_class.name}' does not exist in Standard Array table!"
 
-    stats = Stats(itr)
+    stats = Stats()
     rolled_stats = [val for _, val in stats.stats]
     rolled_stats.sort(reverse=True)
 
@@ -163,7 +161,7 @@ def _get_backstory(table_name: str, object: DNDObject) -> str:
     return prefix + reason
 
 
-def generate_dnd_character(itr: discord.Interaction) -> CharacterGenResult:
+def generate_dnd_character() -> CharacterGenResult:
     result = CharacterGenResult()
 
     species: Species = _get_random_xphb_object(Data.species.entries)
@@ -175,7 +173,7 @@ def generate_dnd_character(itr: discord.Interaction) -> CharacterGenResult:
     background_backstory = _get_backstory("Background; I became...", background)
     backstory = class_backstory + "\n" + background_backstory
 
-    stats = _get_optimal_stats(itr, char_class)
+    stats = _get_optimal_stats(char_class)
     boosted_stats = _apply_background_boosts(
         stats=stats, background=background, char_class=char_class
     )

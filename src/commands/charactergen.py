@@ -11,6 +11,6 @@ class CharacterGenCommand(SimpleCommand):
 
     async def callback(self, itr: discord.Interaction):
         self.log(itr)
-        result = generate_dnd_character(itr)
+        result = generate_dnd_character()
         view = CharacterGenContainerView(result)
         await itr.response.send_message(view=view, file=view.chart)

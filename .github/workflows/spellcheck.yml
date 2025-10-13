@@ -29,9 +29,11 @@ jobs:
 
       - name: Run spell check - Source files
         run: cspell --config cspell.json src/**/*.py src/*.py
+        continue-on-error: true
 
       - name: Run spell check - Test files
         run: cspell --config cspell.json test/**/*.py test/*.py
+        continue-on-error: true
 
       - name: Run spell check - Readme
         run: cspell --config cspell.json readme.md

@@ -97,16 +97,20 @@ Look up various D&D data from [5e.tools](https://5e.tools/).
 - `/search item <item-name>` - Look up information about a D&D item (e.g. Dagger).
 - `/search condition <condition-name>` - Look up information about a D&D condition (e.g. Blinded).
 - `/search creature <creature-name>` – Look up information about a D&D creature (e.g. Orc).
+- `/search class <class-name>` – Look up information about a D&D Class (e.g. Wizard).
 - `/search rule <rule-name>` – Look up information about a D&D rule (e.g. Saving Throw).
 - `/search action <action-name>` – Look up information about a D&D action (e.g. Dash).
+- `/search feat <feat-name>` – Look up information about a D&D feat (e.g. Savage Attacker).
 - `/search language <language-name>` - Look up a D&D language (e.g. Common).
 - `/search background <background-name>` - Look up a D&D Background (e.g. Soldier).
 - `/search table <table-name>` - Look up a D&D Table (e.g. Wild Magic Surge).
+- `/search species <species-name>` - Look up a D&D Species (e.g. Human).
 - `/search all <query>` - Look for many related results regarding D&D data. Example: `/search fire` would return any data with 'fire' in the name.
 
 ### Character Tools
 
-- `/stats` – Automatically roll stats for a new character's skills, using the 4d6 drop lowest method.
+- `/stats roll` – Automatically roll stats for a new character's skills, using the 4d6 drop lowest method. Also generates a radar-graph to visualise the stats.
+- `/stats visualise <str> <dex> <con> <int> <wis> <cha>` – Visualises character stats in a radar-graph.
 - `/namegen [race] [gender]` - Generate a random name, race and/or gender can be specified but will default to random.
 - `/charactergen` - Generates a character with name, class, species, background and stats. Ensures that the build that is generated is somewhat optimal for your class; automatically selecting fitting backgrounds and assigning stats optimally.
 
@@ -120,8 +124,10 @@ Optionally adjust the frame's color with `hue-shift` (default: gold), control im
 
 ### Discord utilities
 
-- `plansession <in_weeks> [poll_duration]` - Quickly generates a poll where players can vote for days they're available within a given week.
-- `playsound` - Allows users to play a sound effect from a file through the bot, allowing for more atmospheric role-play!
+- `/plansession <in_weeks> [poll_duration]` - Quickly generates a poll where players can vote for days they're available within a given week.
+- `/playsound` - Allows users to play a sound effect from a file through the bot, allowing for more atmospheric role-play!
+- `/timestamp relative [seconds] [minutes] [hours] [days] [weeks]` - Generates a timestamp relative from when you used this command.
+- `/timestamp date <time> <timezone> [date]` - Generates all possible timestamps for a specific date & time. Date defaults to the current day.
 
 #### User Colors
 Commands that resemble user-actions are highlighted with colors that are unique per user. This makes it easy to discern different user's actions.

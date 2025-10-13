@@ -109,8 +109,8 @@ Look up various D&D data from [5e.tools](https://5e.tools/).
 
 ### Character Tools
 
-- `/stats roll` – Automatically roll stats for a new character's skills, using the 4d6 drop lowest method. Also generates a radar-graph to visualise the stats.
-- `/stats visualise <str> <dex> <con> <int> <wis> <cha>` – Visualises character stats in a radar-graph.
+- `/stats roll` – Automatically roll stats for a new character's skills, using the 4d6 drop lowest method. Also generates a radar-graph to visualize the stats.
+- `/stats visualize <str> <dex> <con> <int> <wis> <cha>` – Visualizes character stats in a radar-graph.
 - `/namegen [race] [gender]` - Generate a random name, race and/or gender can be specified but will default to random.
 - `/charactergen` - Generates a character with name, class, species, background and stats. Ensures that the build that is generated is somewhat optimal for your class; automatically selecting fitting backgrounds and assigning stats optimally.
 

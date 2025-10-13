@@ -5,15 +5,13 @@ on:
     branches: [main]
     paths:
       - "readme.md"
-      - "src/**/*.py"
-      - "test/**/*.py"
+      - "**/*.py"
       - "cspell.json"
       - ".github/**"
   pull_request:
     paths:
       - "readme.md"
-      - "src/**/*.py"
-      - "test/**/*.py"
+      - "**/*.py"
       - "cspell.json"
       - ".github/**"
   workflow_dispatch:

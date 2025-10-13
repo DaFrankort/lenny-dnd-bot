@@ -9,6 +9,8 @@ on:
     paths:
       - "*.md"
       - "*.py"
+      - "cspell.json"
+      - "./.github/workflows/spellcheck.yml"
   pull_request:
     paths-ignore:
       - "./submodules/**"
@@ -16,6 +18,8 @@ on:
     paths:
       - "*.md"
       - "*.py"
+      - "cspell.json"
+      - "./.github/workflows/spellcheck.yml"
   workflow_dispatch:
 
 jobs:
@@ -30,4 +34,4 @@ jobs:
         run: npm install -g cspell
 
       - name: Run spell check
-        run: cspell --config cspell.json readme.md assets/locales/en.json
+        run: cspell --config cspell.json "./src/**/*.py" "*.md"

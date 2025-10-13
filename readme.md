@@ -87,46 +87,56 @@ Roll D&D dice using dice-expressions (e.g. `2d6` / `1d20+2`).
 - `/advantage <dice-expression> [reason]` – Rolls twice, highlights the highest result.
 - `/disadvantage <dice-expression> [reason]` – Rolls twice, highlights the lowest result.
 - `/d20` - Rolls a basic 1d20 without any modifiers.
+- `/distribution <expression> [advantage] [min-to-beat]` - Creates a graph showing likeliness of your dice expression's roll results.
 
 ### D&D Data lookup
 
 Look up various D&D data from [5e.tools](https://5e.tools/).
 
-- `/spell <spell-name>` – Look up information about a D&D spell (e.g. Fireball).
-- `/item <item-name>` - Look up information about a D&D item (e.g. Dagger).
-- `/condition <condition-name>` - Look up information about a D&D condition (e.g. Blinded).
-- `/creature <creature-name>` – Look up information about a D&D creature (e.g. Orc).
-- `/rule <rule-name>` – Look up information about a D&D rule (e.g. Saving Throw).
-- `/action <action-name>` – Look up information about a D&D action (e.g. Dash).
-- `/language <language-name>` - Look up a D&D language (e.g. Common).
-- `/background <background-name>` - Look up a D&D Background (e.g. Soldier).
-- `/table <table-name>` - Look up a D&D Table (e.g. Wild Magic Surge).
-- `/search <query>` - Look for many related results regarding D&D data. Example: `/search fire` would return any data with 'fire' in the name.
+- `/search spell <spell-name>` – Look up information about a D&D spell (e.g. Fireball).
+- `/search item <item-name>` - Look up information about a D&D item (e.g. Dagger).
+- `/search condition <condition-name>` - Look up information about a D&D condition (e.g. Blinded).
+- `/search creature <creature-name>` – Look up information about a D&D creature (e.g. Orc).
+- `/search class <class-name>` – Look up information about a D&D Class (e.g. Wizard).
+- `/search rule <rule-name>` – Look up information about a D&D rule (e.g. Saving Throw).
+- `/search action <action-name>` – Look up information about a D&D action (e.g. Dash).
+- `/search feat <feat-name>` – Look up information about a D&D feat (e.g. Savage Attacker).
+- `/search language <language-name>` - Look up a D&D language (e.g. Common).
+- `/search background <background-name>` - Look up a D&D Background (e.g. Soldier).
+- `/search table <table-name>` - Look up a D&D Table (e.g. Wild Magic Surge).
+- `/search species <species-name>` - Look up a D&D Species (e.g. Human).
+- `/search all <query>` - Look for many related results regarding D&D data. Example: `/search fire` would return any data with 'fire' in the name.
 
 ### Character Tools
 
-- `/stats` – Automatically roll stats for a new character's skills, using the 4d6 drop lowest method.
+- `/stats roll` – Automatically roll stats for a new character's skills, using the 4d6 drop lowest method. Also generates a radar-graph to visualize the stats.
+- `/stats visualize <str> <dex> <con> <int> <wis> <cha>` – Visualizes character stats in a radar-graph.
 - `/namegen [race] [gender]` - Generate a random name, race and/or gender can be specified but will default to random.
+- `/charactergen` - Generates a character with name, class, species, background and stats. Ensures that the build that is generated is somewhat optimal for your class; automatically selecting fitting backgrounds and assigning stats optimally.
 
 ### Token-Image Generation
 
 Create 5e.tools-style token images quickly, [like this example](https://5e.tools/img/bestiary/tokens/MM/Goblin.webp).
-Optionally adjust the frame's color with `hue-shift` (default: gold), and control image alignment using `h_alignment` and `v_alignment` (default: center).
+Optionally adjust the frame's color with `hue-shift` (default: gold), control image alignment using `h_alignment` and `v_alignment` (default: center), and `variants` for generating up to 10 numbered variants of your tokens.
 
-- `/tokengen <image-attachment> [hue-shift] [h_alignment] [v_alignment]` - Generate a token from an image attachment.
-- `/tokengenurl <image-url> [hue-shift] [h_alignment] [v_alignment]` - Generate a token from an image URL.
+- `/tokengen file <image-attachment> [hue-shift] [h_alignment] [v_alignment] [variants]` - Generate a token from an image attachment.
+- `/tokengen url <image-url> [hue-shift] [h_alignment] [v_alignment] [variants]` - Generate a token from an image URL.
 
 ### Discord utilities
 
-- `plansession <in_weeks> [poll_duration]` - Quickly generates a poll where players can vote for days they're available within a given week.
-- `playsound` - Allows users to play a sound effect from a file through the bot, allowing for more atmospheric role-play!
+- `/plansession <in_weeks> [poll_duration]` - Quickly generates a poll where players can vote for days they're available within a given week.
+- `/playsound` - Allows users to play a sound effect from a file through the bot, allowing for more atmospheric role-play!
+- `/timestamp relative [seconds] [minutes] [hours] [days] [weeks]` - Generates a timestamp relative from when you used this command.
+- `/timestamp date <time> <timezone> [date]` - Generates all possible timestamps for a specific date & time. Date defaults to the current day.
 
 #### User Colors
 Commands that resemble user-actions are highlighted with colors that are unique per user. This makes it easy to discern different user's actions.
 By default the user's color is automatically generated based on their display name. Users can adjust their colors using following commands:
 
-- `/color [hex-value]` - Provide a hex value for a color to be used in embeds related to you.
-- `/color` - Using the command without a hex-value defaults the user's color back to an auto-generated one.
+- `/color set hex <hex_color>` - Set your color using a hexadecimal color value.
+- `/color set rgb <r> <g> <b>` - Set your color using a RGB value.
+- `/color clear` - Clears your set color and enforces use of an auto-generated color.
+- `/color show` - Shows the color you've set to everyone.
 
 ### Track Initiative
 

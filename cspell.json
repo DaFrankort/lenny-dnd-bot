@@ -13,6 +13,7 @@
     "plansession",
     "playsound",
     "tokengen",
-    "tokengenurl"
+    "tokengenurl",
+    "charactergen"
   ]
 }

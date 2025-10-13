@@ -6,12 +6,14 @@ on:
     paths:
       - "readme.md"
       - "src/**/*.py"
+      - "test/**/*.py"
       - "cspell.json"
       - ".github/**"
   pull_request:
     paths:
       - "readme.md"
       - "src/**/*.py"
+      - "test/**/*.py"
       - "cspell.json"
       - ".github/**"
   workflow_dispatch:
@@ -27,5 +29,11 @@ jobs:
       - name: Install cspell
         run: npm install -g cspell
 
-      - name: Run spell check
-        run: cspell --config cspell.json src/**/*.py readme.md
+      - name: Run spell check - Source files
+        run: cspell --config cspell.json src/**/*.py
+
+      - name: Run spell check - Test files
+        run: cspell --config cspell.json test/**/*.py
+
+      - name: Run spell check - Readme
+        run: cspell --config cspell.json readme.md

@@ -32,6 +32,8 @@
     "yaxis",
     "axisbelow",
     "Stringifier",
+    "stringifiers",
+    "squarify",
     "unop",
     "binop",
     "keptset",

@@ -95,7 +95,7 @@ class VC:
 
         retries = 0
         while client.is_playing():
-            # We queue sounds for 3 seconds, to prevent abrubt sound cuts
+            # We queue sounds for 3 seconds, to prevent abrupt sound cuts
             if retries >= 30:
                 client.stop()
                 break

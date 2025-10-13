@@ -143,7 +143,7 @@ class TestBotCommands:
             ("color clear", {}),  # Run clear last, to remove useless data from files.
             ("stats roll", {}),
             (
-                "stats visualise",
+                "stats visualize",
                 {"str": 10, "dex": 10, "con": 10, "int": 10, "wis": 10, "cha": 10},
             ),
             (

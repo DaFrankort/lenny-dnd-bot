@@ -60,7 +60,7 @@ class ColorSetRGBCommand(SimpleCommand):
 class ColorShowCommand(SimpleCommand):
     name = "show"
     desc = "Show off your current color!"
-    help = "Shows the color that you are currently using publically."
+    help = "Shows the color that you are currently using publicly."
 
     async def callback(self, itr: discord.Interaction):
         self.log(itr)

@@ -13,7 +13,7 @@ class TestInitiative:
 
         assert (
             initiative.modifier == mod
-        ), f"Initative modifier `{initiative.modifier}` is not the same as the input modifier `{mod}`"
+        ), f"Initiative modifier `{initiative.modifier}` is not the same as the input modifier `{mod}`"
         assert initiative.is_npc is False, "Initiative without target should not be labeled as NPC."
         assert itr.user.display_name in initiative.name, "Initiative without target should have the user's name."
 
@@ -31,7 +31,7 @@ class TestInitiative:
 
         assert (
             initiative.modifier == mod
-        ), f"Initative modifier `{initiative.modifier}` is not the same as the input modifier `{mod}`"
+        ), f"Initiative modifier `{initiative.modifier}` is not the same as the input modifier `{mod}`"
         assert initiative.is_npc is True, "Initiative with target should be labeled as NPC."
         assert itr.user.display_name not in initiative.name, "Initiative with target should not have the user's name."
         assert target in initiative.name, "Initiative with target should have target's name in the name."
@@ -112,7 +112,7 @@ class TestInitiativeTracker:
             result[0].name == npc_initiative.name
         ), f"Expected initiative name '{npc_initiative.name}', got '{result[0].name}'"
         assert result[0].is_npc is True, "Expected initiative to be NPC (is_npc=True)"
-        assert success is True, f"Succesful initiative add should return True, returned {success}"
+        assert success is True, f"Successful initiative add should return True, returned {success}"
 
     def test_add_pc_initiative_replaces_existing(self, tracker, itr, pc_initiative):
         success = tracker.add(itr, pc_initiative)
@@ -125,7 +125,7 @@ class TestInitiativeTracker:
         assert len(result) == 1, f"Expected 1 initiative after replacement, got {len(result)}"
         assert result[0].modifier == 5, f"Expected modifier 5, got {result[0].modifier}"
         assert result[0].d20[0] == 20, f"Expected d20 value 20, got {result[0].d20[0]}"
-        assert success is True, f"Succesful initiative add should return True, returned {success}"
+        assert success is True, f"Successful initiative add should return True, returned {success}"
 
     def test_clear_initiatives(self, tracker, itr, npc_initiative):
         tracker.add(itr, npc_initiative)

@@ -10,12 +10,12 @@ from logic.color import UserColor
 
 class StatsCommandGroup(SimpleCommandGroup):
     name = "stats"
-    desc = "Roll or visualise stats for a D&D character!"
+    desc = "Roll or visualize stats for a D&D character!"
 
     def __init__(self):
         super().__init__()
         self.add_command(StatsRollCommand())
-        self.add_command(StatsVisualiseCommand())
+        self.add_command(StatsVisualizeCommand())
 
 
 class StatsRollCommand(SimpleCommand):
@@ -33,10 +33,10 @@ class StatsRollCommand(SimpleCommand):
         await itr.response.send_message(embed=embed, file=chart)
 
 
-class StatsVisualiseCommand(SimpleCommand):
-    name = "visualise"
-    desc = "Visualise your stats onto a radar graph!"
-    help = "Visualises your character's stats inside of a radar graph."
+class StatsVisualizeCommand(SimpleCommand):
+    name = "visualize"
+    desc = "Visualize your stats onto a radar graph!"
+    help = "Visualizes your character's stats inside of a radar graph."
 
     async def callback(
         self,
@@ -51,7 +51,7 @@ class StatsVisualiseCommand(SimpleCommand):
         self.log(itr)
         embed = UserActionEmbed(
             itr=itr,
-            title=f"{itr.user.display_name}'s stats visualised!",
+            title=f"{itr.user.display_name}'s stats visualized!",
             description="",
         )
         color = UserColor.get(itr)

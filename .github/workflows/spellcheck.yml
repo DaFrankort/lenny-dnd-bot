@@ -5,11 +5,15 @@ on:
     branches: [main]
     paths:
       - "readme.md"
-      - "assets/locales/en.json" # cspell config is set to english only
+      - "**/*.py"
+      - "cspell.json"
+      - ".github/**"
   pull_request:
     paths:
       - "readme.md"
-      - "assets/locales/en.json" # cspell config is set to english only
+      - "**/*.py"
+      - "cspell.json"
+      - ".github/**"
   workflow_dispatch:
 
 jobs:
@@ -24,4 +28,4 @@ jobs:
         run: npm install -g cspell
 
       - name: Run spell check
-        run: cspell --config cspell.json readme.md assets/locales/en.json
+        run: cspell --config cspell.json src/**/*.py src/*.py test/**/*.py test/*.py readme.md

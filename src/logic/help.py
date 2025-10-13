@@ -147,7 +147,7 @@ class HelpTabList(object):
                     "- ``hue-shift`` - Allows you to shift the color of the token's border, this is a number between -360 and 360. By default a shift of 0 is used, which results in a golden border.",
                     "- ``h_alignment`` - Adjusts the horizontal alignment of the image, this can be `left`, `center`, or `right`.",
                     "- ``v_alignment`` - Adjusts the vertical alignment of the image, this can be `top`, `center`, or `bottom`.",
-                    "- ``variants`` - Creates up to 10 variants of the token image, to easily discern similar tokens from eachother.",
+                    "- ``variants`` - Creates up to 10 variants of the token image, to easily discern similar tokens from each other.",
                 ],
             )
         ],

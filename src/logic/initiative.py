@@ -238,7 +238,7 @@ class InitiativeTracker:
         advantage: Advantage,
         shared: bool,
     ) -> tuple[str, str, bool]:
-        """Adds many initiatives to a server. Returns a title and description for the embed and a boolean to signify if everything was added succesfully."""
+        """Adds many initiatives to a server. Returns a title and description for the embed and a boolean to signify if everything was added successfully."""
         guild_id = itr.guild_id
         initiative_count = amount + len(self.server_initiatives.get(guild_id, []))
         if initiative_count > self.INITIATIVE_LIMIT:

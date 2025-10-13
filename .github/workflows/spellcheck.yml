@@ -5,15 +5,15 @@ on:
     branches: [main]
     paths:
       - "readme.md"
-      - "*.py"
+      - "src/**/*.py"
       - "cspell.json"
-      - "./.github/**"
+      - ".github/**"
   pull_request:
     paths:
       - "readme.md"
-      - "*.py"
+      - "src/**/*.py"
       - "cspell.json"
-      - "./.github/**"
+      - ".github/**"
   workflow_dispatch:
 
 jobs:
@@ -28,4 +28,4 @@ jobs:
         run: npm install -g cspell
 
       - name: Run spell check
-        run: cspell --config cspell.json "src/**/*.py" "readme.md"
+        run: cspell --config cspell.json src/**/*.py readme.md

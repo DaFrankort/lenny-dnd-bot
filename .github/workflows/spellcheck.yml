@@ -30,10 +30,10 @@ jobs:
         run: npm install -g cspell
 
       - name: Run spell check - Source files
-        run: cspell --config cspell.json src/**/*.py
+        run: cspell --config cspell.json src/**/*.py src/*.py
 
       - name: Run spell check - Test files
-        run: cspell --config cspell.json test/**/*.py
+        run: cspell --config cspell.json test/**/*.py test/*.py
 
       - name: Run spell check - Readme
         run: cspell --config cspell.json readme.md

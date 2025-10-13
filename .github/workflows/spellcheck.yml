@@ -3,13 +3,19 @@ name: SPELLCHECK
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - "./submodules/**"
+      - "./temp/**"
     paths:
-      - "readme.md"
-      - "assets/locales/en.json" # cspell config is set to english only
+      - "*.md"
+      - "*.py"
   pull_request:
+    paths-ignore:
+      - "./submodules/**"
+      - "./temp/**"
     paths:
-      - "readme.md"
-      - "assets/locales/en.json" # cspell config is set to english only
+      - "*.md"
+      - "*.py"
   workflow_dispatch:
 
 jobs:

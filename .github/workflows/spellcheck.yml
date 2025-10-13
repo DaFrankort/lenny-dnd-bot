@@ -3,23 +3,17 @@ name: SPELLCHECK
 on:
   push:
     branches: [main]
-    paths-ignore:
-      - "./submodules/**"
-      - "./temp/**"
     paths:
-      - "*.md"
+      - "readme.md"
       - "*.py"
       - "cspell.json"
-      - "./.github/workflows/spellcheck.yml"
+      - "./.github/**"
   pull_request:
-    paths-ignore:
-      - "./submodules/**"
-      - "./temp/**"
     paths:
-      - "*.md"
+      - "readme.md"
       - "*.py"
       - "cspell.json"
-      - "./.github/workflows/spellcheck.yml"
+      - "./.github/**"
   workflow_dispatch:
 
 jobs:
@@ -34,4 +28,4 @@ jobs:
         run: npm install -g cspell
 
       - name: Run spell check
-        run: cspell --config cspell.json "./src/**/*.py" "*.md"
+        run: cspell --config cspell.json "src/**/*.py" "readme.md"

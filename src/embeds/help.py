@@ -59,6 +59,21 @@ class HelpEmbed(discord.Embed):
 
         raise NotImplementedError(f"app_command type '{type(cmd)}' not implemented in _get_command_desc_line!")
 
+    def _iterate_commands(
+        self, cmd_or_grp: discord.app_commands.Command | discord.app_commands.Group, command_name: str = ""
+    ) -> list[str]:
+        commands = []
+        command_name = f"{command_name} {cmd_or_grp.name}".strip()
+
+        if isinstance(cmd_or_grp, discord.app_commands.Command):
+            commands.append(command_name)
+        elif isinstance(cmd_or_grp, discord.app_commands.Group):
+            for sub_cmd in cmd_or_grp.commands:
+                commands.extend(self._iterate_commands(sub_cmd, command_name))
+        else:
+            raise NotImplementedError(f"app_command type '{type(cmd_or_grp)}' not implemented in _get_tab_commands_list!")
+        return commands
+
     def load_tab(self, tab: HelpTab):
         self.clear_fields()
 
@@ -91,8 +106,14 @@ class HelpEmbed(discord.Embed):
             tabs = [tab for tab in HelpTabs.tabs if tab.tab != "overview"]
             tabs_commands = []
             for tab in tabs:
-                tab_commands = [f"``- {command}``" for command in tab.commands]
-                tabs_commands.append((tab.name, tab_commands))
+                tab_commands = []
+                for cmd in tab.commands:
+                    cmd_or_grp = self.tree.get_command(cmd)
+                    if cmd_or_grp is not None:
+                        tab_commands.extend(self._iterate_commands(cmd_or_grp))
+
+                cmds = [f"- ``/{command}``" for command in tab_commands]
+                tabs_commands.append((tab.name, cmds))
 
             tabs_commands.sort(key=lambda t: (-len(t[1]), t[0]))
 

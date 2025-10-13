@@ -34,6 +34,7 @@
     "Stringifier",
     "stringifiers",
     "squarify",
+    "listify",
     "unop",
     "binop",
     "keptset",
@@ -46,6 +47,15 @@
     "merienda",
     "Fmpeg",
     "dynaudnorm",
-    "atempo"
+    "atempo",
+    "dotenv",
+    "autouse",
+    "qwertyuiopasdfghjkl",
+    "zxcvbnm",
+    "Fireb",
+    "Gobl",
+    "ABCDF",
+    "dnddatalist",
+    "NOTAHEXVALUE"
   ]
 }

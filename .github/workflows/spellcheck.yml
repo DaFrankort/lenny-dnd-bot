@@ -27,5 +27,5 @@ jobs:
       - name: Install cspell
         run: npm install -g cspell
 
-      - name: Run spell check - Source files
+      - name: Run spell check
         run: cspell --config cspell.json src/**/*.py src/*.py test/**/*.py test/*.py readme.md

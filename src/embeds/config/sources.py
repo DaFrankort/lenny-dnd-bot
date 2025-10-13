@@ -44,8 +44,6 @@ class ConfigSourcesView(PaginatedLayoutView):
     server: discord.Guild
 
     def __init__(self, server: discord.Guild, allow_configuration: bool):
-        if server is None:
-            raise LookupError("Sources can only be enabled and disabled in a server.")
         super().__init__()
         self.server = server
         self.allow_configuration = allow_configuration

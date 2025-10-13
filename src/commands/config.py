@@ -1,7 +1,9 @@
 import discord
 
+from embed import ErrorEmbed
 from embeds.config.sources import ConfigSourcesView
 from logic.app_commands import SimpleCommand, SimpleCommandGroup
+from logic.config import user_has_config_permissions, user_is_admin
 
 
 class ConfigManageSourcesCommand(SimpleCommand):
@@ -11,8 +13,16 @@ class ConfigManageSourcesCommand(SimpleCommand):
 
     async def callback(self, itr: discord.Interaction):
         self.log(itr)
-        view = ConfigSourcesView(server=itr.guild, allow_configuration=True)
-        await itr.response.send_message(view=view, ephemeral=True)
+
+        if itr.guild is None:
+            embed = ErrorEmbed("Sources can only be managed in a server!")
+            await itr.response.send_message(embed=embed, ephemeral=True)
+        elif user_is_admin(itr.user) or user_has_config_permissions(itr.guild, itr.user):
+            view = ConfigSourcesView(server=itr.guild, allow_configuration=True)
+            await itr.response.send_message(view=view, ephemeral=True)
+        else:
+            embed = ErrorEmbed("You don't have permission to manage sources!")
+            await itr.response.send_message(embed=embed, ephemeral=True)
 
 
 class ConfigViewSourcesCommand(SimpleCommand):
@@ -22,8 +32,12 @@ class ConfigViewSourcesCommand(SimpleCommand):
 
     async def callback(self, itr: discord.Interaction):
         self.log(itr)
-        view = ConfigSourcesView(server=itr.guild, allow_configuration=False)
-        await itr.response.send_message(view=view, ephemeral=True)
+        if itr.guild is None:
+            embed = ErrorEmbed("Sources can only be managed in a server!")
+            await itr.response.send_message(embed=embed, ephemeral=True)
+        else:
+            view = ConfigSourcesView(server=itr.guild, allow_configuration=False)
+            await itr.response.send_message(view=view, ephemeral=True)
 
 
 class ConfigManageCommandGroup(SimpleCommandGroup):

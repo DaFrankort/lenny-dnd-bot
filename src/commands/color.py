@@ -42,7 +42,7 @@ class ColorSetHexCommand(SimpleCommand):
 class ColorSetRGBCommand(SimpleCommand):
     name = "rgb"
     desc = "Set a preferred color using rgb values."
-    help = "Set a custom color for yourself by providing a rgb values."
+    help = "Set a custom color for yourself by providing a RGB value."
 
     async def callback(
         self,

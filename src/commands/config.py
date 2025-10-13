@@ -33,7 +33,7 @@ class ConfigViewSourcesCommand(SimpleCommand):
     async def callback(self, itr: discord.Interaction):
         self.log(itr)
         if itr.guild is None:
-            embed = ErrorEmbed("Sources can only be managed in a server!")
+            embed = ErrorEmbed("Sources can only be viewed in a server!")
             await itr.response.send_message(embed=embed, ephemeral=True)
         else:
             view = ConfigSourcesView(server=itr.guild, allow_configuration=False)

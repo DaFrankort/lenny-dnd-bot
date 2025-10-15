@@ -62,7 +62,7 @@ class NoResultsFoundEmbed(SimpleEmbed):
 class ErrorEmbed(SimpleEmbed):
     def __init__(self, error: str):
         super().__init__(
-            f"Error!",
+            "Error!",
             f"{error}",
             color=discord.Color.red(),
         )

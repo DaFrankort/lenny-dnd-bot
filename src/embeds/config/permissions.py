@@ -65,7 +65,7 @@ class ConfigPermissionsView(PaginatedLayoutView):
 
         roles = self.viewed_permissions
         for role in roles:
-            text = "Admin (cannot be changed)" if role == "admin" else f"{role.name}"
+            text = "Admin (cannot be changed)" if role == "admin" else role.name
             button = ConfigManagePermissionsButton(self, role, self.server)
             container.add_item(discord.ui.Section(text, accessory=button))
 

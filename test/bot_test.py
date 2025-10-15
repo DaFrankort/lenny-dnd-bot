@@ -8,6 +8,7 @@ from bot import Bot
 from logic.dnd.data import Data
 from logic.dnd.name import Gender
 from logic.roll import Advantage
+from src.logic.charactergen import class_choices, species_choices
 from utils.mocking import mock_image, mock_sound
 from utils.test_utils import enum_values, listify
 from commands.tokengen import AlignH, AlignV
@@ -219,7 +220,14 @@ class TestBotCommands:
                     "min_to_beat": [None, "5"],
                 },
             ),
-            ("charactergen", {}),
+            (
+                "charactergen",
+                {
+                    "gender": [None].extend(enum_values(Gender)),
+                    "species": [None].extend([c.value for c in species_choices()]),
+                    "char_class": [None].extend([c.value for c in class_choices()]),
+                },
+            ),
             # ("", {"": "", "": ""}),
         ],
     )

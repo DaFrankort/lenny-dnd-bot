@@ -150,12 +150,20 @@ def _get_backstory(table_name: str, object: DNDObject) -> str:
     return prefix + reason
 
 
-def generate_dnd_character() -> CharacterGenResult:
+def generate_dnd_character(gender_str: str | None, species_str: str | None, char_class_str: str | None) -> CharacterGenResult:
     result = CharacterGenResult()
+    gender = Gender.OTHER if gender_str is None else Gender(gender_str)
 
-    species: Species = _get_random_xphb_object(Data.species.entries)
-    name, _, gender = Data.names.get_random(species.name, Gender.OTHER)
-    char_class: Class = _get_random_xphb_object(Data.classes.entries)
+    if species_str is None:
+        species: Species = _get_random_xphb_object(Data.species.entries)
+    else:
+        species: Species = Data.species.get(query=species_str, allowed_sources=set(["XPHB"]))[0]
+    name, _, gender = Data.names.get_random(species.name, gender)
+
+    if char_class_str is None:
+        char_class: Class = _get_random_xphb_object(Data.classes.entries)
+    else:
+        char_class: Class = Data.classes.get(query=char_class_str, allowed_sources=set(["XPHB"]))[0]
     background = _get_optimal_background(char_class)
 
     class_backstory = _get_backstory("Class Training; I became...", char_class)

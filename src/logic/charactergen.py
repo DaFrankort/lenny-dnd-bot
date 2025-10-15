@@ -1,4 +1,6 @@
 import random
+
+import discord
 from logic.dnd.abstract import DNDObject
 from logic.dnd.background import Background
 from logic.dnd.class_ import Class
@@ -7,6 +9,17 @@ from logic.dnd.name import Gender
 from logic.dnd.species import Species
 from logic.dnd.table import DNDTable
 from logic.stats import Stats
+
+
+def species_choices() -> list[discord.app_commands.Choice]:
+    species = [e.name for e in Data.species.entries if (e.source == "XPHB" and "(" not in e.name)]
+    print(species)
+    return [discord.app_commands.Choice(name=spec, value=spec) for spec in species[:25]]
+
+
+def class_choices() -> list[discord.app_commands.Choice]:
+    classes = [e.name for e in Data.classes.entries if e.source == "XPHB"]
+    return [discord.app_commands.Choice(name=char_cls, value=char_cls) for char_cls in classes[:25]]
 
 
 class CharacterGenResult(object):

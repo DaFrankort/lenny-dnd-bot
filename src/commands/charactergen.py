@@ -1,20 +1,8 @@
 import discord
 from embeds.charactergen import CharacterGenContainerView
 from logic.app_commands import SimpleCommand
-from logic.charactergen import generate_dnd_character
-from logic.dnd.data import Data
+from logic.charactergen import class_choices, generate_dnd_character, species_choices
 from logic.dnd.name import Gender
-
-
-def species_choices():
-    species = [e.name for e in Data.species.entries if (e.source == "XPHB" and "(" not in e.name)]
-    print(species)
-    return [discord.app_commands.Choice(name=spec, value=spec) for spec in species[:25]]
-
-
-def class_choices():
-    classes = [e.name for e in Data.classes.entries if e.source == "XPHB"]
-    return [discord.app_commands.Choice(name=char_cls, value=char_cls) for char_cls in classes[:25]]
 
 
 class CharacterGenCommand(SimpleCommand):

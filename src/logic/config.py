@@ -82,13 +82,20 @@ class Config(object):
 
     # region permissions
 
-    def get_config_roles(self) -> set[int]:
+    def set_allowed_config_roles(self, ids: set[int]):
+        config = toml.load(self.path)
+        config["permissions"] = config.get("permissions", {})
+        config["permissions"]["roles"] = list(set(ids))
+        with open(self.path, "w") as f:
+            toml.dump(config, f)
+
+    def get_allowed_config_roles(self) -> set[int]:
         if self.path is None:
             return set()
 
         config = toml.load(self.path)
-        lookup = config.get("config", {})
-        roles = lookup.get("config_roles", None)
+        lookup = config.get("permissions", {})
+        roles = lookup.get("roles", None)
 
         # If config sources is none, it means they aren't configured yet.
         # In this case, fall back on the server's default roles.
@@ -116,6 +123,16 @@ class Config(object):
 
         return set(config_roles)
 
+    def allow_permission(self, role: discord.Role):
+        allowed_roles = self.get_allowed_config_roles()
+        allowed_roles.add(role.id)
+        self.set_allowed_config_roles(allowed_roles)
+
+    def disallow_permission(self, role: discord.Role):
+        allowed_roles = self.get_allowed_config_roles()
+        allowed_roles.remove(role.id)
+        self.set_allowed_config_roles(allowed_roles)
+
     # endregion permissions
 
 
@@ -130,8 +147,12 @@ def user_has_config_permissions(server: discord.Guild | None, user: discord.User
     config = Config(server)
 
     user_role_ids = set([role.id for role in user.roles])
-    allowed_role_ids = config.get_config_roles()
+    allowed_role_ids = config.get_allowed_config_roles()
     intersection = allowed_role_ids.intersection(user_role_ids)
 
     # Allow if user has at least one allowed role
     return len(intersection) > 0
+
+
+def user_is_admin_or_has_config_permissions(server: discord.Guild | None, user: discord.User | discord.Member) -> bool:
+    return user_is_admin(user) or user_has_config_permissions(server, user)

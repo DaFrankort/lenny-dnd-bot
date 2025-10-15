@@ -54,9 +54,9 @@ class ConfigSourcesView(PaginatedLayoutView):
         container = discord.ui.Container(accent_color=discord.Color.dark_green())
 
         if self.allow_configuration:
-            title = "# Manage Sources"
+            title = "# Manage sources"
         else:
-            title = "# View Sources"
+            title = "# View sources\nYou are not allowed to edit sources."
         container.add_item(discord.ui.TextDisplay(title))
         container.add_item(SimpleSeparator())
 

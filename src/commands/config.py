@@ -51,5 +51,5 @@ class ConfigCommand(SimpleCommandGroup):
 
     def __init__(self):
         super().__init__()
-        self.add_command(ConfigSourcesCommand())
         self.add_command(ConfigPermissionsCommand())
+        self.add_command(ConfigSourcesCommand())

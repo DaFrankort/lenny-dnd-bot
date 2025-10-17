@@ -12,6 +12,7 @@ from commands.initiative import InitiativeCommand
 from commands.namegen import NameGenCommand
 from commands.plansession import PlanSessionCommand
 from commands.playsound import PlaySoundCommand
+from commands.profile import ProfileCommandGroup
 from commands.roll import (
     AdvantageRollCommand,
     D20Command,
@@ -26,6 +27,7 @@ from context_menus.delete import DeleteContextMenu
 from context_menus.timestamp import RequestTimestampContextMenu
 from context_menus.reroll import RerollContextMenu
 from logic.initiative import InitiativeTracker
+from logic.profile import UserProfilesCache
 from logic.voice_chat import VC, Sounds
 
 
@@ -76,6 +78,7 @@ class Bot(discord.Client):
         self.tree.add_command(ConfigCommand())
         self.tree.add_command(SearchCommandGroup())
         self.tree.add_command(TimestampCommandGroup())
+        self.tree.add_command(ProfileCommandGroup())
 
         # Context menus
         self.tree.add_command(DeleteContextMenu())
@@ -97,6 +100,7 @@ class Bot(discord.Client):
         self._register_commands()
         await self._attempt_sync_guild()
         await self.tree.sync()
+        UserProfilesCache.load()
         Sounds.init_folders()
         VC.clean_temp_sounds()  # Files are often unused, clearing on launch cleans up storage.
         if self.voice_enabled:

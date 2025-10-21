@@ -1,4 +1,4 @@
-from logic.dnd.abstract import DNDObject, DNDObjectList, Description
+from logic.dnd.abstract import DNDObject, DNDObjectList, DNDObjectTypes, Description
 
 
 class Item(DNDObject):
@@ -9,8 +9,7 @@ class Item(DNDObject):
     description: list[Description]
 
     def __init__(self, json: any):
-        self.object_type = "item"
-        self.emoji = "🗡️"
+        self.object_type = DNDObjectTypes.ITEM.value
 
         self.name = json["name"]
         self.source = json["source"]
@@ -50,7 +49,7 @@ class ItemList(DNDObjectList):
     path = "./submodules/lenny-dnd-data/generated/items.json"
 
     def __init__(self):
-        super().__init__()
+        super().__init__(DNDObjectTypes.ITEM.value)
         data = self.read_dnd_data_contents(self.path)
         for item in data:
             self.entries.append(Item(item))

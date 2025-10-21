@@ -1,4 +1,4 @@
-from logic.dnd.abstract import DNDObject, DNDObjectList, Description
+from logic.dnd.abstract import DNDObject, DNDObjectList, DNDObjectTypes, Description
 from logic.roll import RollResult, roll
 
 
@@ -8,8 +8,7 @@ class DNDTable(DNDObject):
     footnotes: list[str] | None
 
     def __init__(self, json: any):
-        self.object_type = "table"
-        self.emoji = "📊"
+        self.object_type = DNDObjectTypes.TABLE.value
 
         self.name = json["name"]
         self.source = json["source"]
@@ -41,6 +40,6 @@ class DNDTableList(DNDObjectList):
     path = "./submodules/lenny-dnd-data/generated/tables.json"
 
     def __init__(self):
-        super().__init__()
+        super().__init__(DNDObjectTypes.TABLE.value, exclude_homebrew=True)
         for table in self.read_dnd_data_contents(self.path):
             self.entries.append(DNDTable(table))

@@ -1,4 +1,4 @@
-from logic.dnd.abstract import DNDObject, DNDObjectList, Description
+from logic.dnd.abstract import DNDObject, DNDObjectList, DNDObjectTypes, Description
 
 
 class Spell(DNDObject):
@@ -14,8 +14,7 @@ class Spell(DNDObject):
     classes: list
 
     def __init__(self, json: any):
-        self.object_type = "spell"
-        self.emoji = "🔥"
+        self.object_type = DNDObjectTypes.SPELL.value
 
         self.name = json["name"]
         self.source = json["source"]
@@ -55,7 +54,7 @@ class SpellList(DNDObjectList):
     path = "./submodules/lenny-dnd-data/generated/spells.json"
 
     def __init__(self):
-        super().__init__()
+        super().__init__(DNDObjectTypes.SPELL.value)
         data = self.read_dnd_data_contents(self.path)
         for spell in data:
             self.entries.append(Spell(spell))

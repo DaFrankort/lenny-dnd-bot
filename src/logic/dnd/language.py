@@ -1,4 +1,4 @@
-from logic.dnd.abstract import DNDObject, DNDObjectList, Description
+from logic.dnd.abstract import DNDObject, DNDObjectList, DNDObjectTypes, Description
 
 
 class Language(DNDObject):
@@ -7,8 +7,7 @@ class Language(DNDObject):
     description: list[Description]
 
     def __init__(self, json: any):
-        self.object_type = "language"
-        self.emoji = "🗣️"
+        self.object_type = DNDObjectTypes.LANGUAGE.value
 
         self.name = json["name"]
         self.source = json["source"]
@@ -24,6 +23,6 @@ class LanguageList(DNDObjectList):
     path = "./submodules/lenny-dnd-data/generated/languages.json"
 
     def __init__(self):
-        super().__init__()
+        super().__init__(DNDObjectTypes.LANGUAGE.value)
         for language in self.read_dnd_data_contents(self.path):
             self.entries.append(Language(language))

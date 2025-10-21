@@ -1,4 +1,4 @@
-from logic.dnd.abstract import DNDObject, DNDObjectList, Description
+from logic.dnd.abstract import DNDObject, DNDObjectList, DNDObjectTypes, Description
 
 
 class Creature(DNDObject):
@@ -8,8 +8,7 @@ class Creature(DNDObject):
     description: list[Description]
 
     def __init__(self, json: any):
-        self.object_type = "creature"
-        self.emoji = "🐉"
+        self.object_type = DNDObjectTypes.CREATURE.value
 
         self.name = json["name"]
         self.source = json["source"]
@@ -27,6 +26,6 @@ class CreatureList(DNDObjectList):
     path = "./submodules/lenny-dnd-data/generated/creatures.json"
 
     def __init__(self):
-        super().__init__()
+        super().__init__(DNDObjectTypes.CREATURE.value)
         for creature in self.read_dnd_data_contents(self.path):
             self.entries.append(Creature(creature))

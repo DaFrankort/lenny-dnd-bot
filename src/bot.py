@@ -27,6 +27,7 @@ from context_menus.timestamp import RequestTimestampContextMenu
 from context_menus.reroll import RerollContextMenu
 from logic.initiative import InitiativeTracker
 from logic.voice_chat import VC, Sounds
+from commands.homebrew import HomebrewCommand
 
 
 class Bot(discord.Client):
@@ -76,6 +77,7 @@ class Bot(discord.Client):
         self.tree.add_command(ConfigCommand())
         self.tree.add_command(SearchCommandGroup())
         self.tree.add_command(TimestampCommandGroup())
+        self.tree.add_command(HomebrewCommand())
 
         # Context menus
         self.tree.add_command(DeleteContextMenu())

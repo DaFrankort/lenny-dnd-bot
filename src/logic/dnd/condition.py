@@ -1,4 +1,4 @@
-from logic.dnd.abstract import DNDObject, DNDObjectList, Description
+from logic.dnd.abstract import DNDObject, DNDObjectList, DNDObjectTypes, Description
 
 
 class Condition(DNDObject):
@@ -6,8 +6,7 @@ class Condition(DNDObject):
     image: str | None
 
     def __init__(self, json: any):
-        self.object_type = "condition"
-        self.emoji = "💀"
+        self.object_type = DNDObjectTypes.CONDITION.value
 
         self.name = json["name"]
         self.source = json["source"]
@@ -23,7 +22,7 @@ class ConditionList(DNDObjectList):
     ]
 
     def __init__(self):
-        super().__init__()
+        super().__init__(DNDObjectTypes.CONDITION.value)
         for path in self.paths:
             data = self.read_dnd_data_contents(path)
             for condition in data:

@@ -1,4 +1,4 @@
-from logic.dnd.abstract import DNDObject, DNDObjectList, Description
+from logic.dnd.abstract import DNDObject, DNDObjectList, DNDObjectTypes, Description
 
 
 class Feat(DNDObject):
@@ -7,8 +7,7 @@ class Feat(DNDObject):
     description: list[Description]
 
     def __init__(self, json: any):
-        self.object_type = "feat"
-        self.emoji = "🎖️"
+        self.object_type = DNDObjectTypes.FEAT.value
 
         self.name = json["name"]
         self.source = json["source"]
@@ -27,7 +26,7 @@ class FeatList(DNDObjectList):
     ]
 
     def __init__(self):
-        super().__init__()
+        super().__init__(DNDObjectTypes.FEAT.value)
         for path in self.paths:
             for feat in self.read_dnd_data_contents(path):
                 self.entries.append(Feat(feat))

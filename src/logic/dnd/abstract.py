@@ -6,6 +6,8 @@ from typing import Literal, TypedDict, Union
 import discord
 from rapidfuzz import fuzz
 
+from logic.app_commands import ChoicedEnum
+
 
 class DescriptionRowRange(TypedDict):
     type: Literal["range"]
@@ -28,24 +30,102 @@ class Description(TypedDict):
     value: Union[str, DescriptionTable]
 
 
+class DNDObjectTypes(ChoicedEnum):
+    ACTION = "action"
+    BACKGROUND = "background"
+    CLASS = "class"
+    CONDITION = "condition"
+    CREATURE = "creature"
+    FEAT = "feat"
+    ITEM = "item"
+    LANGUAGE = "language"
+    RULE = "rule"
+    SPECIES = "species"
+    SPELL = "spell"
+    TABLE = "table"
+
+
+DNDObjectEmojis = {
+    DNDObjectTypes.ACTION.value: "🏃",
+    DNDObjectTypes.BACKGROUND.value: "📕",
+    DNDObjectTypes.CLASS.value: "🧙‍♂️",
+    DNDObjectTypes.CONDITION.value: "🤒",
+    DNDObjectTypes.CREATURE.value: "🐉",
+    DNDObjectTypes.FEAT.value: "🎖️",
+    DNDObjectTypes.ITEM.value: "🗡️",
+    DNDObjectTypes.LANGUAGE.value: "💬",
+    DNDObjectTypes.RULE.value: "📜",
+    DNDObjectTypes.SPECIES.value: "🧝",
+    DNDObjectTypes.SPELL.value: "🔥",
+    DNDObjectTypes.TABLE.value: "📊",
+}
+
+
 class DNDObject(abc.ABC):
     object_type: str
     name: str
     source: str
     url: str | None
-    emoji: str = "❓"
     select_description: str | None = None  # Description in dropdown menus
 
     @property
     def title(self) -> str:
         return f"{self.name} ({self.source})"
 
+    @property
+    def emoji(self) -> str:
+        return DNDObjectEmojis.get(self.object_type, "❓")
+
+
+class DNDHomebrewObject(DNDObject):
+    object_type: str
+    name: str
+    source: str = "Homebrew"
+    url: None = None
+    select_description: str | None = None  # Description in dropdown menus
+
+    description: str
+    _author_id: int
+
+    def __init__(self, object_type: str, name: str, select_description: str | None, description: str, author_id: int):
+        super().__init__()
+        self.object_type = object_type
+        self.name = name
+        self.select_description = select_description
+        self.description = description
+        self._author_id = author_id
+
+    def get_author(self, itr: discord.Interaction) -> discord.Member | None:
+        if not itr.guild:
+            return None
+        return itr.guild.get_member(self._author_id)
+
+    def to_json(self) -> dict:
+        return {
+            "object_type": self.type,
+            "name": self.name,
+            "select_description": self.select_description,
+            "description": self.description,
+            "author_id": self._author_id,
+        }
+
 
 class DNDObjectList(abc.ABC):
+    type: str
     entries: list[DNDObject]
+    homebrew_entries: dict[int, list[DNDHomebrewObject]]
+    homebrew_base_path: str = ".temp/homebrew/"
 
-    def __init__(self):
+    @property
+    def homebrew_filename(self) -> str:
+        return f"{self.type}.json"
+
+    def __init__(self, type: str, exclude_homebrew: bool = False):
+        self.type = type
         self.entries = []
+        self.homebrew_entries = {}
+        if not exclude_homebrew:
+            self._load_homebrew_entries()
 
     @staticmethod
     def read_dnd_data_contents(path: str) -> list[dict]:
@@ -58,17 +138,79 @@ class DNDObjectList(abc.ABC):
         with open(path, "r", encoding="utf-8") as file:
             return json.load(file)
 
+    def _load_homebrew_entries(self):
+        if not os.path.exists(self.homebrew_base_path):
+            os.makedirs(self.homebrew_base_path)
+            logging.info(f"Created homebrew directory at '{self.homebrew_base_path}'")
+            return
+
+        for server_id in os.listdir(self.homebrew_base_path):
+            folder = os.path.join(self.homebrew_base_path, server_id)
+            if not os.path.isdir(folder):
+                continue
+            path = os.path.join(folder, self.homebrew_filename)
+            if not os.path.exists(path) or not os.path.isfile(path):
+                continue
+            try:
+                with open(path, "r", encoding="utf-8") as file:
+                    data = json.load(file)
+                    self.homebrew_entries[int(server_id)] = []
+                    for entry_json in data:
+                        entry = DNDHomebrewObject(
+                            object_type=self.type,
+                            name=entry_json["name"],
+                            select_description=entry_json["select_description"],
+                            description=entry_json["description"],
+                            author_id=int(entry_json["author_id"]),
+                        )
+                        self.homebrew_entries[int(server_id)].append(entry)
+            except Exception as e:
+                logging.warning(f"Failed to load homebrew file '{path}': {e}")
+
+    def add_homebrew_entry(
+        self, itr: discord.Interaction, name: str, select_description: str | None, description: str
+    ) -> DNDHomebrewObject:
+        if itr.guild_id is None:
+            raise ValueError("You can only add Homebrew data in a server.")
+        entry = DNDHomebrewObject(
+            object_type=self.type,
+            name=name,
+            select_description=select_description,
+            description=description,
+            author_id=itr.user.id,
+        )
+
+        path = os.path.join(self.homebrew_base_path, str(itr.guild_id))
+        if not os.path.exists(path):
+            os.makedirs(path)
+        file_path = os.path.join(path, self.homebrew_filename)
+
+        data = []
+        if os.path.exists(file_path) and os.path.isfile(file_path):
+            with open(file_path, "r", encoding="utf-8") as file:
+                data = json.load(file)
+        data.append(entry.to_json())
+
+        self.homebrew_entries[int(itr.guild_id)].append(entry)
+        with open(file_path, "w", encoding="utf-8") as file:
+            json.dump(data, file, indent=4)
+
     def get(
         self,
         query: str,
         allowed_sources: set[str],
+        itr: discord.Interaction | None = None,
         fuzzy_threshold: float = 75,
     ) -> list[DNDObject]:
         query = query.strip().lower()
         exact: list[DNDObject] = []
         fuzzy: list[DNDObject] = []
 
-        for entry in self.entries:
+        entries = self.entries
+        if itr is not None and itr.guild_id and itr.guild_id in self.homebrew_entries:
+            entries.extend(self.homebrew_entries[int(itr.guild_id)])
+
+        for entry in entries:
             if entry.source not in allowed_sources:
                 continue
 
@@ -89,6 +231,7 @@ class DNDObjectList(abc.ABC):
         self,
         query: str,
         allowed_sources: set[str],
+        itr: discord.Interaction | None = None,
         fuzzy_threshold: float = 75,
         limit: int = 25,
     ) -> list[discord.app_commands.Choice[str]]:
@@ -97,9 +240,13 @@ class DNDObjectList(abc.ABC):
         if query == "":
             return []
 
+        entries = self.entries
+        if itr is not None and itr.guild_id and itr.guild_id in self.homebrew_entries:
+            entries.extend(self.homebrew_entries[int(itr.guild_id)])
+
         choices = []
         seen_names = set()  # Required to avoid duplicate suggestions
-        for e in self.entries:
+        for e in entries:
             if e.source not in allowed_sources:
                 continue
             if e.name in seen_names:
@@ -125,12 +272,17 @@ class DNDObjectList(abc.ABC):
         self,
         query: str,
         allowed_sources: set[str],
+        itr: discord.Interaction | None = None,
         fuzzy_threshold: float = 75,
     ) -> list[DNDObject]:
         query = query.strip().lower()
         found: list[DNDObject] = []
 
-        for entry in self.entries:
+        entries = self.entries
+        if itr is not None and itr.guild_id and itr.guild_id in self.homebrew_entries:
+            entries.extend(self.homebrew_entries[int(itr.guild_id)])
+
+        for entry in entries:
             if entry.source not in allowed_sources:
                 continue
 

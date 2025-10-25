@@ -141,7 +141,7 @@ class DNDObjectList(abc.ABC):
             return
 
         for filename in os.listdir(self.homebrew_base_path):
-            if not filename.endswith('.json'):
+            if not filename.endswith(".json"):
                 continue
             server_id = int(filename[:-5])  # Remove .json extension
             path = os.path.join(self.homebrew_base_path, filename)
@@ -168,7 +168,7 @@ class DNDObjectList(abc.ABC):
         if itr.guild_id is None:
             raise ValueError("You can only add Homebrew data in a server.")
         guild_id = int(itr.guild_id)
-        
+
         entry = DNDHomebrewObject(
             object_type=self.object_type,
             name=name,
@@ -182,11 +182,11 @@ class DNDObjectList(abc.ABC):
         if os.path.exists(file_path):
             with open(file_path, "r", encoding="utf-8") as file:
                 data = json.load(file)
-        
+
         if self.object_type not in data:
             data[self.object_type] = []
         data[self.object_type].append(entry.to_json())
-        
+
         os.makedirs(self.homebrew_base_path, exist_ok=True)
         with open(file_path, "w", encoding="utf-8") as file:
             json.dump(data, file, indent=4)
@@ -207,11 +207,7 @@ class DNDObjectList(abc.ABC):
         exact: list[DNDObject] = []
         fuzzy: list[DNDObject] = []
 
-        entries = self.entries
-        if itr is not None and itr.guild_id and itr.guild_id in self.homebrew_entries:
-            entries.extend(self.homebrew_entries[int(itr.guild_id)])
-
-        for entry in entries:
+        for entry in self.get_entries(itr):
             if entry.source not in allowed_sources:
                 continue
 
@@ -241,13 +237,9 @@ class DNDObjectList(abc.ABC):
         if query == "":
             return []
 
-        entries = self.entries
-        if itr is not None and itr.guild_id and itr.guild_id in self.homebrew_entries:
-            entries.extend(self.homebrew_entries[int(itr.guild_id)])
-
         choices = []
         seen_names = set()  # Required to avoid duplicate suggestions
-        for e in entries:
+        for e in self.get_entries(itr):
             if e.source not in allowed_sources:
                 continue
             if e.name in seen_names:
@@ -279,11 +271,7 @@ class DNDObjectList(abc.ABC):
         query = query.strip().lower()
         found: list[DNDObject] = []
 
-        entries = self.entries
-        if itr is not None and itr.guild_id and itr.guild_id in self.homebrew_entries:
-            entries.extend(self.homebrew_entries[int(itr.guild_id)])
-
-        for entry in entries:
+        for entry in self.get_entries(itr):
             if entry.source not in allowed_sources:
                 continue
 
@@ -293,3 +281,10 @@ class DNDObjectList(abc.ABC):
 
         found = sorted(found, key=lambda e: (e.name, e.source))
         return found
+
+    def get_entries(self, itr: discord.Interaction | None = None) -> list[DNDObject]:
+        """Returns all entries with homebrew entries included if itr is provided."""
+        entries = self.entries
+        if itr is not None and itr.guild_id and itr.guild_id in self.homebrew_entries:
+            entries.extend(self.homebrew_entries[int(itr.guild_id)])
+        return entries

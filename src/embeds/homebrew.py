@@ -1,13 +1,14 @@
 import discord
 from discord import ui
-from logic.dnd.abstract import DNDHomebrewObject
-from src.modals import SimpleModal
+from logic.dnd.abstract import DNDHomebrewObject, DNDObjectList
+from logic.dnd.data import Data
+from modals import SimpleModal
 
 
 class HomebrewEmbed(discord.Embed):
     def __init__(self, itr: discord.Interaction, entry: DNDHomebrewObject):
         subtitle = f"*{entry.select_description}*\n\n"
-        if len(entry.description) < 4000 - len(subtitle):
+        if len(entry.description) < 4000 - len(subtitle) and entry.select_description:
             description = subtitle + entry.description
         else:
             description = entry.description
@@ -16,13 +17,13 @@ class HomebrewEmbed(discord.Embed):
 
         author = entry.get_author(itr)
         if author:
-            self.set_author(name=f"Created by {author.display_name}", icon_url=author.display_avatar.url)
+            self.set_footer(text=f"Created by {author.display_name}", icon_url=author.display_avatar.url)
         else:
-            self.set_author(name="Created by Unknown User", icon_url=itr.client.user.avatar.url)
+            self.set_footer(text="Created by Unknown User", icon_url=itr.client.user.avatar.url)
 
 
 class HomebrewEntryAddModal(SimpleModal):
-    entry_type: str
+    dnd_type: str
     name = ui.TextInput(label="Name", placeholder="Peanut")
     subtitle = ui.TextInput(
         label="Subtitle (Optional)",
@@ -32,13 +33,14 @@ class HomebrewEntryAddModal(SimpleModal):
     )
     description = ui.TextInput(
         label="Description",
-        placeholder="A peanut is a legume that is often mistaken for a nut. It is known for its rich flavor and versatility in culinary uses.",
+        placeholder="A peanut is a legume that is often mistaken for a nut.",
         max_length=4000,
+        style=discord.TextStyle.paragraph,
     )
 
-    def __init__(self, entry_type: str):
-        self.entry_type = entry_type
-        super().__init__(title=f"Add New {entry_type}", custom_id=f"add_homebrew_{entry_type.lower()}")
+    def __init__(self, dnd_type: str):
+        self.dnd_type = dnd_type
+        super().__init__(itr=None, title=f"Add new {dnd_type.title()}")
 
     async def on_submit(self, itr: discord.Interaction):
         self.log_inputs(itr)
@@ -51,9 +53,12 @@ class HomebrewEntryAddModal(SimpleModal):
             await itr.response.send_message("Name and Description are required fields.", ephemeral=True)
             return
 
-        # TODO ADD SAVE LOGIC HERE
-        entry = DNDHomebrewObject(
-            object_type=self.entry_type, name=name, select_description=subtitle, description=description, author_id=itr.user.id
-        )
+        target_list: DNDObjectList = None
+        for list in Data:
+            if list.object_type == self.dnd_type:
+                target_list = list
+                break
+
+        entry: DNDHomebrewObject = target_list.add_homebrew_entry(itr, name, subtitle, description)
         embed = HomebrewEmbed(itr, entry)
-        await itr.response.send_message(content=f"New {self.entry_type} '{entry.name}' added!", embed=embed, ephemeral=True)
+        await itr.response.send_message(content=f"Added {self.dnd_type}: ``{entry.name}``!", embed=embed, ephemeral=True)

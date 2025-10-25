@@ -1,6 +1,8 @@
 import discord
+from embeds.homebrew import HomebrewEntryAddModal
 from logic.app_commands import SimpleCommand
-from logic.dnd.abstract import DNDObjectTypes
+from logic.dnd.abstract import DNDHomebrewObject, DNDObjectList, DNDObjectTypes
+from logic.dnd.data import Data
 
 
 class HomebrewCommand(SimpleCommand):
@@ -10,4 +12,5 @@ class HomebrewCommand(SimpleCommand):
 
     @discord.app_commands.choices(dnd_type=DNDObjectTypes.choices())
     async def callback(self, itr: discord.Interaction, dnd_type: str):
-        await itr.response.send_message(f"UNDER CONSTRUCTION", ephemeral=True)
+        self.log(itr)
+        await itr.response.send_modal(HomebrewEntryAddModal(dnd_type))

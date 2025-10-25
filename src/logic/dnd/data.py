@@ -1,4 +1,7 @@
-from logic.dnd.abstract import DNDObject
+from typing import Iterable
+
+import discord
+from logic.dnd.abstract import DNDObject, DNDObjectList
 from logic.dnd.action import Action, ActionList
 from logic.dnd.background import Background, BackgroundList
 from logic.dnd.condition import Condition, ConditionList
@@ -50,7 +53,7 @@ class DNDData(object):
         # TABLES
         self.names = NameTable()
 
-    def __iter__(self):
+    def __iter__(self) -> Iterable[DNDObjectList]:
         yield self.spells
         yield self.items
         yield self.conditions
@@ -68,12 +71,13 @@ class DNDData(object):
         self,
         query: str,
         allowed_sources: set[str],
+        itr: discord.Interaction | None = None,
         threshold=75.0,
     ) -> "DNDSearchResults":
         query = query.strip().lower()
         results = DNDSearchResults()
         for entries in self:
-            for entry in entries.entries:
+            for entry in entries.get_entries(itr):
                 name = entry.name.strip().lower()
                 source = entry.source
 

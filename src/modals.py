@@ -4,7 +4,7 @@ from discord.ui import TextInput, Modal
 
 
 class SimpleModal(Modal):
-    def __init__(self, itr: Interaction, title: str):
+    def __init__(self, itr: Interaction | None, title: str):
         super().__init__(title=title)
         self.itr = itr
 

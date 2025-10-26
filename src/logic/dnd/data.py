@@ -1,7 +1,7 @@
 from typing import Iterable
 
 import discord
-from logic.dnd.abstract import DNDObject, DNDObjectList
+from logic.dnd.abstract import DNDHomebrewObject, DNDObject, DNDObjectList, DNDObjectTypes
 from logic.dnd.action import Action, ActionList
 from logic.dnd.background import Background, BackgroundList
 from logic.dnd.condition import Condition, ConditionList
@@ -89,19 +89,19 @@ class DNDData(object):
 
 
 class DNDSearchResults(object):
-    spells: list[Spell]
-    items: list[Item]
-    conditions: list[Condition]
-    creatures: list[Creature]
-    classes: list[Class]
-    rules: list[Rule]
-    actions: list[Action]
-    feats: list[Feat]
-    languages: list[Language]
-    backgrounds: list[Background]
-    tables: list[DNDTable]
-    species: list[Species]
-    _type_map: dict[type, list[DNDObject]]
+    spells: list[Spell | DNDHomebrewObject]
+    items: list[Item | DNDHomebrewObject]
+    conditions: list[Condition | DNDHomebrewObject]
+    creatures: list[Creature | DNDHomebrewObject]
+    classes: list[Class | DNDHomebrewObject]
+    rules: list[Rule | DNDHomebrewObject]
+    actions: list[Action | DNDHomebrewObject]
+    feats: list[Feat | DNDHomebrewObject]
+    languages: list[Language | DNDHomebrewObject]
+    backgrounds: list[Background | DNDHomebrewObject]
+    tables: list[DNDTable | DNDHomebrewObject]
+    species: list[Species | DNDHomebrewObject]
+    _type_map: dict[str, list[DNDObject | DNDHomebrewObject]]
 
     def __init__(self):
         self.spells = []
@@ -118,25 +118,23 @@ class DNDSearchResults(object):
         self.species = []
 
         self._type_map = {
-            Spell: self.spells,
-            Item: self.items,
-            Condition: self.conditions,
-            Creature: self.creatures,
-            Class: self.classes,
-            Rule: self.rules,
-            Action: self.actions,
-            Feat: self.feats,
-            Language: self.languages,
-            Background: self.backgrounds,
-            DNDTable: self.tables,
-            Species: self.species,
+            DNDObjectTypes.SPELL.value: self.spells,
+            DNDObjectTypes.ITEM.value: self.items,
+            DNDObjectTypes.CONDITION.value: self.conditions,
+            DNDObjectTypes.CREATURE.value: self.creatures,
+            DNDObjectTypes.CLASS.value: self.classes,
+            DNDObjectTypes.RULE.value: self.rules,
+            DNDObjectTypes.ACTION.value: self.actions,
+            DNDObjectTypes.FEAT.value: self.feats,
+            DNDObjectTypes.LANGUAGE.value: self.languages,
+            DNDObjectTypes.BACKGROUND.value: self.backgrounds,
+            DNDObjectTypes.TABLE.value: self.tables,
+            DNDObjectTypes.SPECIES.value: self.species,
         }
 
     def add(self, entry):
-        for entry_type, result_list in self._type_map.items():
-            if isinstance(entry, entry_type):
-                result_list.append(entry)
-                break
+        if entry.object_type in self._type_map:
+            self._type_map[entry.object_type].append(entry)
 
     def get_all(self) -> list[DNDObject]:
         all_entries = []

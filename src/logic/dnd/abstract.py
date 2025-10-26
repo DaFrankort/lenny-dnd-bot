@@ -5,9 +5,10 @@ import os
 from typing import Literal, TypedDict, Union
 import discord
 from rapidfuzz import fuzz
-
 from logic.app_commands import ChoicedEnum
-from logic.dnd.source import HOMEBREW_SOURCE
+
+
+HOMEBREW_SOURCE = "HBRW"
 
 
 class DescriptionRowRange(TypedDict):
@@ -170,9 +171,13 @@ class DNDObjectList(abc.ABC):
             raise ValueError("You can only add Homebrew data in a server.")
         guild_id = int(itr.guild_id)
 
+        for entry in self.homebrew_entries.get(guild_id, []):
+            if entry.name.lower() == name.lower():
+                raise ValueError(f"A homebrew {self.object_type} with the name '{name}' already exists.")
+
         entry = DNDHomebrewObject(
             object_type=self.object_type,
-            name=name,
+            name=name.title(),
             select_description=select_description,
             description=description,
             author_id=itr.user.id,

@@ -16,7 +16,7 @@ from embeds.dnd.species import SpeciesEmbed
 from embeds.dnd.spell import SpellEmbed
 from embeds.dnd.table import DNDTableContainerView
 from embeds.homebrew import HomebrewEmbed
-from logic.dnd.abstract import DNDHomebrewObject, DNDObject
+from logic.dnd.abstract import HOMEBREW_SOURCE, DNDHomebrewObject, DNDObject
 from logic.dnd.action import Action
 from logic.dnd.background import Background
 from logic.dnd.class_ import Class
@@ -27,7 +27,6 @@ from logic.dnd.feat import Feat
 from logic.dnd.item import Item
 from logic.dnd.language import Language
 from logic.dnd.rule import Rule
-from logic.dnd.source import HOMEBREW_SOURCE
 from logic.dnd.species import Species
 from logic.dnd.spell import Spell
 from logic.dnd.table import DNDTable

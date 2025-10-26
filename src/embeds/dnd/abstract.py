@@ -1,6 +1,6 @@
 import logging
 import discord
-from logic.dnd.abstract import DNDHomebrewObject, DNDObject, Description
+from logic.dnd.abstract import DNDObject, Description
 from methods import build_table
 
 HORIZONTAL_LINE = "~~-------------------------------------------------------------------------------------~~"

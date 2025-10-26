@@ -137,3 +137,50 @@ class SearchLayoutView(PaginatedLayoutView):
         container.add_item(self.navigation_footer())
 
         self.add_item(container)
+
+
+class MultiDNDSelect(discord.ui.Select):
+    name: str
+    query: str
+    entries: list[DNDObject]
+
+    def __init__(self, query: str, entries: list[DNDObject]):
+        self.name = entries[0].__class__.__name__.upper() if entries else "UNKNOWN"
+        self.query = query
+        self.entries = entries
+
+        options = []
+        for entry in entries:
+            options.append(self.select_option(entry))
+
+        super().__init__(
+            placeholder=f"Results for '{query}'",
+            options=options,
+            min_values=1,
+            max_values=1,
+        )
+
+        logging.debug(f"{self.name}: found {len(entries)} entries for '{query}'")
+
+    def select_option(self, entry: DNDObject) -> discord.SelectOption:
+        index = self.entries.index(entry)
+        return discord.SelectOption(
+            label=f"{entry.name} ({entry.source})",
+            description=entry.select_description,
+            value=str(index),
+        )
+
+    async def callback(self, interaction: discord.Interaction):
+        index = int(self.values[0])
+        entry = self.entries[index]
+
+        logging.debug(f"{self.name}: user {interaction.user.display_name} selected option {index}: '{entry.name}`")
+        await send_dnd_embed(interaction, entry)
+
+
+class MultiDNDSelectView(discord.ui.View):
+    """A class representing a Discord view for multiple DNDObject selection."""
+
+    def __init__(self, query: str, entries: list[DNDObject]):
+        super().__init__()
+        self.add_item(MultiDNDSelect(query, entries))

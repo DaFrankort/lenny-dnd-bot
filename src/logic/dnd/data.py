@@ -87,6 +87,55 @@ class DNDData(object):
                     results.add(entry)
         return results
 
+    def get_all_homebrew_entries(self, itr: discord.Interaction, force_search_all: bool = False) -> list[DNDHomebrewObject]:
+        """
+        Retrieve all homebrew entries for the guild associated with the interaction.
+        By default only entries created by the user are returned, unless they have manage messages permission.
+        If force_search_all is True, all entries are returned regardless of user permissions.
+        """
+        if itr.guild_id is None:
+            return []
+
+        all_entries: list[DNDHomebrewObject] = []
+        for entries in self:
+            if itr.user.guild_permissions.manage_messages or force_search_all:  # Admins can see all homebrew
+                all_entries.extend(entries.homebrew_entries.get(int(itr.guild_id), []))
+            else:
+                for e in entries.homebrew_entries.get(int(itr.guild_id), []):
+                    if e._author_id == itr.user.id:
+                        all_entries.append(e)
+        return all_entries
+
+    def get_homebrew_autocomplete_suggestions(
+        self,
+        query: str,
+        itr: discord.Interaction,
+        fuzzy_threshold: float = 75,
+        limit: int = 25,
+    ) -> list[discord.app_commands.Choice[str]]:
+        query = query.strip().lower().replace(" ", "")
+
+        if query == "":
+            entries = self.get_all_homebrew_entries(itr)[:limit]
+            return [discord.app_commands.Choice(name=e.name, value=e.name) for e in entries]
+
+        choices = []
+        for e in self.get_all_homebrew_entries(itr):
+            name_clean = e.name.strip().lower().replace(" ", "")
+            score = fuzz.partial_ratio(query, name_clean)
+            if score > fuzzy_threshold:
+                starts_with_query = name_clean.startswith(query)
+                choices.append(
+                    (
+                        starts_with_query,
+                        score,
+                        discord.app_commands.Choice(name=e.name, value=e.name),
+                    )
+                )
+
+        choices.sort(key=lambda x: (-x[0], -x[1], x[2].name))  # Sort by query match => fuzzy score => alphabetically
+        return [choice for _, _, choice in choices[:limit]]
+
 
 class DNDSearchResults(object):
     spells: list[Spell | DNDHomebrewObject]

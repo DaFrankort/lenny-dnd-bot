@@ -3,7 +3,7 @@ import discord
 import pathlib
 import toml
 
-from logic.dnd.source import SourceList
+from logic.dnd.source import HOMEBREW_SOURCE, SourceList
 
 
 SOURCES_PHB2014 = ["PHB", "DMG", "MM"]
@@ -42,7 +42,7 @@ class Config(object):
     def get_allowed_sources(self) -> set[str]:
         sources = SourceList()
         sources = set([source.id for source in sources.entries])
-        sources.add("HBRW")  # Homebrew source is always allowed
+        sources.add(HOMEBREW_SOURCE)  # Homebrew source is always allowed
         disallowed = self.get_disallowed_sources()
         return sources - disallowed
 

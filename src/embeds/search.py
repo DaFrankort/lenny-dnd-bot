@@ -27,13 +27,14 @@ from logic.dnd.feat import Feat
 from logic.dnd.item import Item
 from logic.dnd.language import Language
 from logic.dnd.rule import Rule
+from logic.dnd.source import HOMEBREW_SOURCE
 from logic.dnd.species import Species
 from logic.dnd.spell import Spell
 from logic.dnd.table import DNDTable
 
 
 def get_dnd_embed(itr: discord.Interaction, dnd_object: DNDObject | DNDHomebrewObject):
-    if isinstance(dnd_object, DNDHomebrewObject) or dnd_object.source.lower() == "hbrw":
+    if isinstance(dnd_object, DNDHomebrewObject) or dnd_object.source == HOMEBREW_SOURCE:
         return HomebrewEmbed(itr, dnd_object)
 
     match dnd_object:

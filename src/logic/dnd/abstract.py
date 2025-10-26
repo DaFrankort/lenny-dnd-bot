@@ -7,6 +7,7 @@ import discord
 from rapidfuzz import fuzz
 
 from logic.app_commands import ChoicedEnum
+from logic.dnd.source import HOMEBREW_SOURCE
 
 
 class DescriptionRowRange(TypedDict):
@@ -80,7 +81,7 @@ class DNDObject(abc.ABC):
 class DNDHomebrewObject(DNDObject):
     object_type: str
     name: str
-    source: str = "HBRW"
+    source: str = HOMEBREW_SOURCE
     url: None = None
     select_description: str | None = None  # Description in dropdown menus
 

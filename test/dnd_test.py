@@ -5,7 +5,6 @@ import pytest_asyncio
 from embeds.search import MultiDNDSelectView
 from logic.config import Config
 from logic.dnd.data import Data
-from utils.mocking import MockInteraction
 
 
 class TestDndData:
@@ -50,6 +49,6 @@ class TestDndData:
         entries = Data.items.get(name, sources)
         assert len(entries) >= 2, "Test requires at least 2 items, please update test data."
         try:
-            view = MultiDNDSelectView(name, entries)
+            MultiDNDSelectView(name, entries)
         except Exception as e:
             pytest.fail(f"MultiDNDSelectView failed to initialize: {e}")

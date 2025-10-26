@@ -20,7 +20,7 @@ def get_error_embed(error: discord.app_commands.AppCommandError) -> discord.Embe
         logging.error(f"Unknown error format: {error}")
         return SimpleEmbed(
             title="Something went wrong!",
-            description="An unknown error occurred.",
+            description=error,
             color=discord.Color.red(),
         )
 

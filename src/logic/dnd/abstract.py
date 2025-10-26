@@ -80,7 +80,7 @@ class DNDObject(abc.ABC):
 class DNDHomebrewObject(DNDObject):
     object_type: str
     name: str
-    source: str = "Homebrew"
+    source: str = "HBRW"
     url: None = None
     select_description: str | None = None  # Description in dropdown menus
 
@@ -202,7 +202,7 @@ class DNDObjectList(abc.ABC):
         allowed_sources: set[str],
         itr: discord.Interaction | None = None,
         fuzzy_threshold: float = 75,
-    ) -> list[DNDObject]:
+    ) -> list[DNDObject | DNDHomebrewObject]:
         query = query.strip().lower()
         exact: list[DNDObject] = []
         fuzzy: list[DNDObject] = []
@@ -267,7 +267,7 @@ class DNDObjectList(abc.ABC):
         allowed_sources: set[str],
         itr: discord.Interaction | None = None,
         fuzzy_threshold: float = 75,
-    ) -> list[DNDObject]:
+    ) -> list[DNDObject | DNDHomebrewObject]:
         query = query.strip().lower()
         found: list[DNDObject] = []
 
@@ -282,9 +282,9 @@ class DNDObjectList(abc.ABC):
         found = sorted(found, key=lambda e: (e.name, e.source))
         return found
 
-    def get_entries(self, itr: discord.Interaction | None = None) -> list[DNDObject]:
+    def get_entries(self, itr: discord.Interaction | None = None) -> list[DNDObject | DNDHomebrewObject]:
         """Returns all entries with homebrew entries included if itr is provided."""
-        entries = self.entries
-        if itr is not None and itr.guild_id and itr.guild_id in self.homebrew_entries:
+        entries = list(self.entries)
+        if itr and itr.guild and itr.guild.id in self.homebrew_entries:
             entries.extend(self.homebrew_entries[int(itr.guild_id)])
         return entries

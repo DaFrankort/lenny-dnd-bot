@@ -42,6 +42,7 @@ class Config(object):
     def get_allowed_sources(self) -> set[str]:
         sources = SourceList()
         sources = set([source.id for source in sources.entries])
+        sources.add("HBRW")  # Homebrew source is always allowed
         disallowed = self.get_disallowed_sources()
         return sources - disallowed
 

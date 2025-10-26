@@ -15,7 +15,8 @@ from embeds.dnd.rule import RuleEmbed
 from embeds.dnd.species import SpeciesEmbed
 from embeds.dnd.spell import SpellEmbed
 from embeds.dnd.table import DNDTableContainerView
-from logic.dnd.abstract import DNDObject
+from embeds.homebrew import HomebrewEmbed
+from logic.dnd.abstract import DNDHomebrewObject, DNDObject
 from logic.dnd.action import Action
 from logic.dnd.background import Background
 from logic.dnd.class_ import Class
@@ -31,7 +32,10 @@ from logic.dnd.spell import Spell
 from logic.dnd.table import DNDTable
 
 
-def get_dnd_embed(itr: discord.Interaction, dnd_object: DNDObject):
+def get_dnd_embed(itr: discord.Interaction, dnd_object: DNDObject | DNDHomebrewObject):
+    if isinstance(dnd_object, DNDHomebrewObject) or dnd_object.source.lower() == "hbrw":
+        return HomebrewEmbed(itr, dnd_object)
+
     match dnd_object:
         case Spell():
             return SpellEmbed(itr, dnd_object)
@@ -61,7 +65,7 @@ def get_dnd_embed(itr: discord.Interaction, dnd_object: DNDObject):
     return None
 
 
-async def send_dnd_embed(itr: discord.Interaction, dnd_object: DNDObject):
+async def send_dnd_embed(itr: discord.Interaction, dnd_object: DNDObject | DNDHomebrewObject):
     await itr.response.defer(thinking=False)
     embed = get_dnd_embed(itr, dnd_object)
     if embed is None:

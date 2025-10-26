@@ -1,6 +1,6 @@
 import logging
 import discord
-from logic.dnd.abstract import DNDObject, Description
+from logic.dnd.abstract import DNDHomebrewObject, DNDObject, Description
 from methods import build_table
 
 HORIZONTAL_LINE = "~~-------------------------------------------------------------------------------------~~"
@@ -115,9 +115,9 @@ class DNDObjectEmbed(discord.Embed):
 class MultiDNDSelect(discord.ui.Select):
     name: str
     query: str
-    entries: list[DNDObject]
+    entries: list[DNDObject | DNDHomebrewObject]
 
-    def __init__(self, query: str, entries: list[DNDObject]):
+    def __init__(self, query: str, entries: list[DNDObject | DNDHomebrewObject]):
         self.name = entries[0].__class__.__name__.upper() if entries else "UNKNOWN"
         self.query = query
         self.entries = entries
@@ -135,7 +135,7 @@ class MultiDNDSelect(discord.ui.Select):
 
         logging.debug(f"{self.name}: found {len(entries)} entries for '{query}'")
 
-    def select_option(self, entry: DNDObject) -> discord.SelectOption:
+    def select_option(self, entry: DNDObject | DNDHomebrewObject) -> discord.SelectOption:
         index = self.entries.index(entry)
         return discord.SelectOption(
             label=f"{entry.name} ({entry.source})",
@@ -160,6 +160,6 @@ class MultiDNDSelect(discord.ui.Select):
 class MultiDNDSelectView(discord.ui.View):
     """A class representing a Discord view for multiple DNDObject selection."""
 
-    def __init__(self, query: str, entries: list[DNDObject]):
+    def __init__(self, query: str, entries: list[DNDObject | DNDHomebrewObject]):
         super().__init__()
         self.add_item(MultiDNDSelect(query, entries))

@@ -6,6 +6,9 @@ from modals import SimpleModal
 
 
 class HomebrewEmbed(discord.Embed):
+    file: discord.File = None
+    view: discord.ui.View = None
+
     def __init__(self, itr: discord.Interaction, entry: DNDHomebrewObject):
         subtitle = f"*{entry.select_description}*\n\n"
         if len(entry.description) < 4000 - len(subtitle) and entry.select_description:

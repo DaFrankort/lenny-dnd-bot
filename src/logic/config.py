@@ -3,7 +3,8 @@ import discord
 import pathlib
 import toml
 
-from logic.dnd.source import HOMEBREW_SOURCE, SourceList
+from logic.dnd.abstract import HOMEBREW_SOURCE
+from logic.dnd.source import SourceList
 
 
 SOURCES_PHB2014 = ["PHB", "DMG", "MM"]

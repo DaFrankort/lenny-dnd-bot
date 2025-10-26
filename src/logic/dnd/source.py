@@ -1,9 +1,6 @@
 from logic.dnd.abstract import DNDObjectList
 
 
-HOMEBREW_SOURCE = "HBRW"
-
-
 class Source(object):
     """Note: this object does not inherit from DNDObject as it is meta data about DNDObjects"""
 

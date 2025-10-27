@@ -61,6 +61,41 @@ class HomebrewEntryAddModal(SimpleModal):
         await itr.response.send_message(content=f"Added {self.dnd_type}: ``{name}``!", embed=embed, ephemeral=True)
 
 
+class HomebrewEditModal(SimpleModal):
+    entry: DNDHomebrewObject
+    name = ui.TextInput(label="Name")
+    subtitle = ui.TextInput(label="Subtitle", required=False, max_length=80)
+    description = ui.TextInput(label="Description", max_length=4000, style=discord.TextStyle.paragraph)
+
+    def __init__(self, entry: DNDHomebrewObject):
+        self.entry = entry
+        self.name.default = entry.name
+        self.name.placeholder = entry.name
+        self.subtitle.default = entry.select_description or ""
+        self.subtitle.placeholder = entry.select_description or "Subtitle"
+        self.description.default = entry.description
+        self.description.placeholder = entry.description[:97] + "..." if len(entry.description) > 97 else entry.description
+        super().__init__(itr=None, title=f"Edit {entry.object_type}: {entry.name}")
+
+    async def on_submit(self, itr: discord.Interaction):
+        self.log_inputs(itr)
+
+        name = self.get_str(self.name)
+        subtitle = self.get_str(self.subtitle)
+        description = self.get_str(self.description)
+
+        if not name or not description:
+            await itr.response.send_message("Name and Description are required fields.", ephemeral=True)
+            return
+
+        # TODO DELETE ORIGINAL
+        entry = HomebrewData.get(itr).add(itr, self.dnd_type, name=name, select_description=subtitle, description=description)
+        embed = HomebrewEmbed(itr, entry)
+        await itr.response.send_message(
+            content=f"Edited {self.entry.object_type}: ``{self.entry.name}`` => ``{name}``!", embed=embed, ephemeral=True
+        )
+
+
 class HomebrewListView(PaginatedLayoutView):
     filter: str
     entries: list[DNDHomebrewObject]

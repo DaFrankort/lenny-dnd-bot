@@ -148,6 +148,15 @@ class HomebrewGuildData:
                     return entry
         raise ValueError(f"No homebrew entry with the name '{entry_name}' found!")
 
+    def get_all(self, filter: str | None = None) -> list[DNDHomebrewObject]:
+        entries = []
+        for key in self.entries.keys():
+            if filter and filter != key:
+                continue
+            for entry in self.entries.get(key, []):
+                entries.append(entry)
+        return entries
+
     def get_autocomplete_suggestions(
         self, query: str, fuzzy_threshold: float = 75, limit: int = 25
     ) -> list[discord.app_commands.Choice[str]]:

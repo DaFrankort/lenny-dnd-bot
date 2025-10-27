@@ -49,7 +49,12 @@ class HomebrewListCommand(SimpleCommand):
     desc = "View and edit all content in your tome of homebrew."
     help = "Shows all homebrew content in your server and allows you to edit entries, if you have the correct permissions or are the author."
 
+    @discord.app_commands.choices(filter=DNDObjectTypes.choices())
     @discord.app_commands.check(check_is_guild)
-    async def callback(self, itr: discord.Interaction):
+    async def callback(self, itr: discord.Interaction, filter: str = None):
         self.log(itr)
-        await itr.response.send_message("UNDER CONSTRUCTION :(")
+        entries = HomebrewData.get(itr).get_all(filter)
+        message = []
+        for entry in entries:
+            message.append(f"- {entry.name}")
+        await itr.response.send_message("\n".join(message))

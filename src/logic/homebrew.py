@@ -95,15 +95,17 @@ class HomebrewGuildData:
         self.server_id = server_id
         self.entries: dict[str, list[DNDHomebrewObject]] = {}
 
-        for type in DNDObjectTypes:
-            self.entries[type.value] = []
-        if data:
-            for key, items in data.items():
-                objs: list[DNDHomebrewObject] = []
-                for item in items:
-                    objs.append(DNDHomebrewObject.from_dict(item))
-                self.entries[key] = objs
-        self.save()
+        if not data:
+            for type in DNDObjectTypes:
+                self.entries[type.value] = []
+            self.save()
+            return
+
+        for key, items in data.items():
+            objs: list[DNDHomebrewObject] = []
+            for item in items:
+                objs.append(DNDHomebrewObject.from_dict(item))
+            self.entries[key] = objs
 
     @property
     def _file_path(self) -> str:
@@ -164,7 +166,10 @@ class DNDHomebrewData:
     def get(self, itr: discord.Interaction) -> HomebrewGuildData:
         if not itr.guild_id:
             raise ValueError("Can only get homebrew content in a server!")
-        return self._data.get(itr.guild_id, HomebrewGuildData(None, itr.guild_id))
+        if itr.guild_id not in self._data:
+            print("Not in data :(")
+            self._data[itr.guild_id] = HomebrewGuildData(None, itr.guild_id)
+        return self._data[itr.guild_id]
 
 
 HomebrewData = DNDHomebrewData()

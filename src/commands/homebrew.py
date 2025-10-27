@@ -1,5 +1,5 @@
 import discord
-from embeds.homebrew import HomebrewEmbed, HomebrewEntryAddModal
+from embeds.homebrew import HomebrewEmbed, HomebrewEntryAddModal, HomebrewListView
 from logic.app_commands import SimpleCommand, SimpleCommandGroup, check_is_guild
 from logic.homebrew import DNDObjectTypes, HomebrewData
 
@@ -53,8 +53,5 @@ class HomebrewListCommand(SimpleCommand):
     @discord.app_commands.check(check_is_guild)
     async def callback(self, itr: discord.Interaction, filter: str = None):
         self.log(itr)
-        entries = HomebrewData.get(itr).get_all(filter)
-        message = []
-        for entry in entries:
-            message.append(f"- {entry.name}")
-        await itr.response.send_message("\n".join(message))
+        view = HomebrewListView(itr, filter)
+        await itr.response.send_message(view=view, ephemeral=True)

@@ -1,11 +1,13 @@
 import discord
-
+from discord import ui
+from components.items import SimpleSeparator, TitleTextDisplay
+from components.paginated_view import PaginatedLayoutView
 from logic.homebrew import DNDHomebrewObject, HomebrewData
 from modals import SimpleModal
 
 
 class HomebrewEmbed(discord.Embed):
-    view: discord.ui.View = None
+    view: ui.View = None
 
     def __init__(self, itr: discord.Interaction, entry: DNDHomebrewObject):
         subtitle = f"*{entry.select_description}*\n\n"
@@ -25,14 +27,14 @@ class HomebrewEmbed(discord.Embed):
 
 class HomebrewEntryAddModal(SimpleModal):
     dnd_type: str
-    name = discord.ui.TextInput(label="Name", placeholder="Peanut")
-    subtitle = discord.ui.TextInput(
+    name = ui.TextInput(label="Name", placeholder="Peanut")
+    subtitle = ui.TextInput(
         label="Subtitle",
         placeholder="A small legume",
         required=False,
         max_length=80,
     )
-    description = discord.ui.TextInput(
+    description = ui.TextInput(
         label="Description",
         placeholder="A peanut is a legume that is often mistaken for a nut.",
         max_length=4000,
@@ -57,3 +59,55 @@ class HomebrewEntryAddModal(SimpleModal):
         entry = HomebrewData.get(itr).add(itr, self.dnd_type, name=name, select_description=subtitle, description=description)
         embed = HomebrewEmbed(itr, entry)
         await itr.response.send_message(content=f"Added {self.dnd_type}: ``{name}``!", embed=embed, ephemeral=True)
+
+
+class HomebrewListView(PaginatedLayoutView):
+    filter: str
+    entries: list[DNDHomebrewObject]
+
+    def __init__(self, itr: discord.Interaction, filter: str | None):
+        self.filter = None
+        label = "All Entries"
+        if filter is not None:
+            self.filter = filter
+            label = filter.title()
+
+        self.entries = HomebrewData.get(itr).get_all(self.filter)
+        if len(self.entries) < 1:
+            if self.filter is None:
+                raise RuntimeError("This server does not have any homebrew-content yet.")
+            raise RuntimeError(f"This server does not have any homebrew {label}-content yet.")
+
+        super().__init__()
+
+        title = f"{len(self.entries)} Homebrew Entries ({label})"
+        self.title_item = TitleTextDisplay(name=title, url=None)
+        self.build()
+
+    @property
+    def entry_count(self) -> int:
+        return len(self.entries)
+
+    def get_current_options(self):
+        start = self.page * self.per_page
+        end = (self.page + 1) * self.per_page
+        return self.entries[start:end]
+
+    def build(self):
+        self.clear_items()
+        container = ui.Container(accent_color=discord.Color.blue())
+
+        # HEADER
+        container.add_item(self.title_item)
+        container.add_item(SimpleSeparator())
+
+        # CONTENT
+        options = self.get_current_options()
+        for option in options:
+            container.add_item(ui.TextDisplay(option.name))
+
+        # FOOTER
+        container.add_item(SimpleSeparator())
+        container.add_item(self.navigation_footer())
+
+        self.add_item(container)

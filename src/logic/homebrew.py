@@ -148,10 +148,11 @@ class HomebrewGuildData:
                     return entry
         raise ValueError(f"No homebrew entry with the name '{entry_name}' found!")
 
-    def get_all(self, filter: str | None = None) -> list[DNDHomebrewObject]:
+    def get_all(self, type_filter: str | None) -> list[DNDHomebrewObject]:
         entries = []
+        type_filter = type_filter.strip().lower() if type_filter else None
         for key in self.entries.keys():
-            if filter and filter != key:
+            if type_filter and type_filter != key.lower():
                 continue
             for entry in self.entries.get(key, []):
                 entries.append(entry)
@@ -210,7 +211,6 @@ class DNDHomebrewData:
         if not itr.guild_id:
             raise ValueError("Can only get homebrew content in a server!")
         if itr.guild_id not in self._data:
-            print("Not in data :(")
             self._data[itr.guild_id] = HomebrewGuildData(None, itr.guild_id)
         return self._data[itr.guild_id]
 

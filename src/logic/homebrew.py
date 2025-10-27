@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import discord
+from rapidfuzz import fuzz
 from logic.app_commands import ChoicedEnum
 from logic.dnd.abstract import DNDObject
 
@@ -139,6 +140,39 @@ class HomebrewGuildData:
         self.entries[object_type].append(new_entry)
         self.save()
         return new_entry
+
+    def get(self, entry_name: str) -> DNDHomebrewObject:
+        for key in self.entries.keys():
+            for entry in self.entries.get(key, []):
+                if entry.name.lower() == entry_name.lower():
+                    return entry
+        raise ValueError(f"No homebrew entry with the name '{entry_name}' found!")
+
+    def get_autocomplete_suggestions(
+        self, query: str, fuzzy_threshold: float = 75, limit: int = 25
+    ) -> list[discord.app_commands.Choice[str]]:
+        query = query.strip().lower().replace(" ", "")
+
+        if query == "":
+            return []
+
+        choices = []
+        for key in self.entries.keys():
+            for e in self.entries.get(key, []):
+                name_clean = e.name.strip().lower().replace(" ", "")
+                score = fuzz.partial_ratio(query, name_clean)
+                if score > fuzzy_threshold:
+                    starts_with_query = name_clean.startswith(query)
+                    choices.append(
+                        (
+                            starts_with_query,
+                            score,
+                            discord.app_commands.Choice(name=e.name, value=e.name),
+                        )
+                    )
+
+        choices.sort(key=lambda x: (-x[0], -x[1], x[2].name))  # Sort by query match => fuzzy score => alphabetically
+        return [choice for _, _, choice in choices[:limit]]
 
 
 class DNDHomebrewData:

@@ -1,7 +1,7 @@
 import discord
-from embeds.homebrew import HomebrewEntryAddModal
+from embeds.homebrew import HomebrewEmbed, HomebrewEntryAddModal
 from logic.app_commands import SimpleCommand, SimpleCommandGroup, check_is_guild
-from logic.homebrew import DNDObjectTypes
+from logic.homebrew import DNDObjectTypes, HomebrewData
 
 
 class HomebrewCommandGroup(SimpleCommandGroup):
@@ -32,10 +32,16 @@ class HomebrewSearchCommand(SimpleCommand):
     desc = "Search for secrets in your tome of homebrew."
     help = "Search for existing homebrew content from your server."
 
+    async def entry_autocomplete(self, itr: discord.Interaction, current: str):
+        return HomebrewData.get(itr).get_autocomplete_suggestions(current)
+
+    @discord.app_commands.autocomplete(entry=entry_autocomplete)
     @discord.app_commands.check(check_is_guild)
-    async def callback(self, itr: discord.Interaction):
+    async def callback(self, itr: discord.Interaction, entry: str):
         self.log(itr)
-        await itr.response.send_message("UNDER CONSTRUCTION :(")
+        entry = HomebrewData.get(itr).get(entry)
+        embed = HomebrewEmbed(itr, entry)
+        await itr.response.send_message(embed=embed)
 
 
 class HomebrewListCommand(SimpleCommand):

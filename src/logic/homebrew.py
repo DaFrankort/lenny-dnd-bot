@@ -51,10 +51,13 @@ class DNDHomebrewObject(DNDObject):
     description: str
 
     def __init__(self, object_type: str, name: str, select_description: str | None, description: str, author_id: int):
+        if select_description:
+            select_description = select_description.strip()
+
         super().__init__()
         self.object_type = object_type
         self.name = name.title()
-        self.select_description = select_description.strip() or None
+        self.select_description = select_description or None
         self.description = description
         self._author_id = author_id
 
@@ -117,6 +120,12 @@ class HomebrewGuildData:
     ) -> DNDHomebrewObject:
         if not itr.guild:
             raise ValueError("Can only add homebrew content to a server!")
+
+        for key in self.entries.keys():
+            for entry in self.entries.get(key, []):
+                if entry.name.lower() == name.lower():
+                    raise ValueError(f"A homebrew entry with the name '{name}' already exists!")
+
         author_id = itr.user.id
         new_entry = DNDHomebrewObject(
             object_type=object_type,

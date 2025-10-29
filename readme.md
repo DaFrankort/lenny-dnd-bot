@@ -8,6 +8,7 @@ Powered by [5e.tools](https://5e.tools/) for up-to-date 5e data.
 
 - **Dice Roll Commands**: Easily roll dice with flexible expressions, such as `2d6`, `1d20+6`, or `1d8+4+2d6`.
 - **D&D Data Lookup**: Look up D&D data and get detailed information about them directly in Discord, powered by [5e.tools](https://5e.tools/).
+- **D&D Homebrew data**: Allows servers to add and manage their own homebrew data for spells, items, creatures, and more.
 - **Customizable Color Embeds**: Customize the colors of your dice roll embeds for better visual appeal and easy identification, auto-generated if not specified.
 - **Character Stat Rolling**: Automatically roll and generate D&D character stats.
 - **Voice Chat Sound Effects**: The bot can join voice channels to play sound effects for your rolls, including special sounds for natural 1s and 20s, as well as effects for attacks, damage, and fire.
@@ -106,6 +107,17 @@ Look up various D&D data from [5e.tools](https://5e.tools/).
 - `/search table <table-name>` - Look up a D&D Table (e.g. Wild Magic Surge).
 - `/search species <species-name>` - Look up a D&D Species (e.g. Human).
 - `/search all <query>` - Look for many related results regarding D&D data. Example: `/search fire` would return any data with 'fire' in the name.
+
+### D&D Homebrew Data
+
+Manage your server's homebrew D&D data for spells, items, creatures, and more.
+For entry deletion or editing you will need to either have the Manage Messages permissions for the server or be the original creator of the entry.
+
+- `/homebrew add <dnd-type>` - Add a new homebrew entry of the specified D&D type (e.g. spell, item, creature).
+- `/homebrew edit <entry>` - Edit an existing homebrew entry.
+- `/homebrew delete <entry>` - Delete an existing homebrew entry.
+- `/homebrew list [filter]` - List all homebrew entries in the server, can be filtered by D&D type.
+- `/homebrew search <entry>` - Show details of a specific homebrew entry by its ID.
 
 ### Character Tools
 

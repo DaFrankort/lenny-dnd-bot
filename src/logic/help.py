@@ -98,6 +98,22 @@ class HelpTabList(object):
         info=[],
     )
 
+    Homebrew = HelpTab(
+        tab="homebrew",
+        name="D&D Homebrew",
+        commands=["homebrew"],
+        text="You can create custom information to use in your D&D sessions.",
+        info=[
+            (
+                "Permissions",
+                [
+                    "A user can edit or remove homebrew entries if they are the author of that entry.",
+                    "If a user has the ``Manage Messages`` permission they can edit or remove any homebrew entry.",
+                ],
+            )
+        ],
+    )
+
     Initiative = HelpTab(
         tab="initiative",
         name="Initiative",
@@ -174,6 +190,7 @@ class HelpTabList(object):
             self.Utility,
             self.Character,
             self.DND,
+            self.Homebrew,
             self.Initiative,
             self.TokenGen,
             self.Config,

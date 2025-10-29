@@ -10,4 +10,5 @@ numpy==2.3.4
 d20==1.1.2
 matplotlib==3.10.7
 toml==0.10.2
+pyright==1.1.407
 d20distribution @ git+https://github.com/pipieter/d20distribution@main

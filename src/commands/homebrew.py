@@ -43,7 +43,7 @@ class HomebrewSearchCommand(SimpleCommand):
         self.log(itr)
         entry = HomebrewData.get(itr).get(entry)
         embed = HomebrewEmbed(itr, entry)
-        await itr.response.send_message(embed=embed, view=embed.view)
+        await itr.response.send_message(embed=embed)
 
 
 class HomebrewListCommand(SimpleCommand):

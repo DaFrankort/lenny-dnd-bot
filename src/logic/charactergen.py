@@ -1,4 +1,6 @@
 import random
+
+import discord
 from logic.dnd.abstract import DNDObject
 from logic.dnd.background import Background
 from logic.dnd.class_ import Class
@@ -7,6 +9,16 @@ from logic.dnd.name import Gender
 from logic.dnd.species import Species
 from logic.dnd.table import DNDTable
 from logic.stats import Stats
+
+
+def species_choices(xphb_only: bool = True) -> list[discord.app_commands.Choice]:
+    species = [e.name for e in Data.species.entries if (e.source == "XPHB" or not xphb_only) and "(" not in e.name]
+    return [discord.app_commands.Choice(name=spec, value=spec) for spec in species[:25]]
+
+
+def class_choices(xphb_only: bool = True) -> list[discord.app_commands.Choice]:
+    classes = [e.name for e in Data.classes.entries if (e.source == "XPHB" or not xphb_only)]
+    return [discord.app_commands.Choice(name=char_cls, value=char_cls) for char_cls in classes[:25]]
 
 
 class CharacterGenResult(object):
@@ -150,12 +162,20 @@ def _get_backstory(table_name: str, object: DNDObject) -> str:
     return prefix + reason
 
 
-def generate_dnd_character() -> CharacterGenResult:
+def generate_dnd_character(gender_str: str | None, species_str: str | None, char_class_str: str | None) -> CharacterGenResult:
     result = CharacterGenResult()
+    gender = Gender.OTHER if gender_str is None else Gender(gender_str)
 
-    species: Species = _get_random_xphb_object(Data.species.entries)
-    name, _, gender = Data.names.get_random(species.name, Gender.OTHER)
-    char_class: Class = _get_random_xphb_object(Data.classes.entries)
+    if species_str is None:
+        species: Species = _get_random_xphb_object(Data.species.entries)
+    else:
+        species: Species = Data.species.get(query=species_str, allowed_sources=set(["XPHB"]))[0]
+    name, _, gender = Data.names.get_random(species.name, gender)
+
+    if char_class_str is None:
+        char_class: Class = _get_random_xphb_object(Data.classes.entries)
+    else:
+        char_class: Class = Data.classes.get(query=char_class_str, allowed_sources=set(["XPHB"]))[0]
     background = _get_optimal_background(char_class)
 
     class_backstory = _get_backstory("Class Training; I became...", char_class)

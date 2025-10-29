@@ -224,10 +224,10 @@ def roll(expression: str, advantage: Advantage = Advantage.Normal) -> RollResult
             result.rolls.append(_roll_single(expression))
 
     except d20.errors.RollSyntaxError:
-        result.error = f"Expression '{expression}' has an invalid syntax!"
+        raise ValueError(f"Expression '{expression}' has an invalid syntax!")
     except d20.errors.TooManyRolls:
-        result.error = f"Expression '{expression}' has too many dice rolls!"
+        raise ValueError(f"Expression '{expression}' has too many dice rolls!")
     except Exception as exception:
-        result.error = str(exception)
+        raise str(exception)
 
     return result

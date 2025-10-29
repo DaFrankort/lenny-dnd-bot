@@ -8,6 +8,7 @@ from bot import Bot
 from logic.dnd.data import Data
 from logic.dnd.name import Gender
 from logic.roll import Advantage
+from logic.charactergen import class_choices, species_choices
 from utils.mocking import mock_image, mock_sound
 from utils.test_utils import enum_values, listify
 from commands.tokengen import AlignH, AlignV
@@ -78,7 +79,7 @@ class TestBotCommands:
             (
                 "roll",
                 {
-                    "diceroll": ["1d20+6", "4d8kh3", "DiceExpression"],
+                    "diceroll": ["1d20+6", "4d8kh3", "1d8ro1"],
                     "reason": [None, "Attack"],
                 },
             ),
@@ -86,14 +87,14 @@ class TestBotCommands:
             (
                 "advantage",
                 {
-                    "diceroll": ["1d20+6", "4d8kh3", "DiceExpression"],
+                    "diceroll": ["1d20+6", "4d8kh3", "1d8ro1"],
                     "reason": [None, "Damage"],
                 },
             ),
             (
                 "disadvantage",
                 {
-                    "diceroll": ["1d20+6", "4d8kh3", "DiceExpression"],
+                    "diceroll": ["1d20+6", "4d8kh3", "1d8ro1"],
                     "reason": [None, "Fire"],
                 },
             ),
@@ -143,7 +144,7 @@ class TestBotCommands:
             ("color clear", {}),  # Run clear last, to remove useless data from files.
             ("stats roll", {}),
             (
-                "stats visualise",
+                "stats visualize",
                 {"str": 10, "dex": 10, "con": 10, "int": 10, "wis": 10, "cha": 10},
             ),
             (
@@ -219,7 +220,14 @@ class TestBotCommands:
                     "min_to_beat": [None, "5"],
                 },
             ),
-            ("charactergen", {}),
+            (
+                "charactergen",
+                {
+                    "gender": [None].extend(enum_values(Gender)),
+                    "species": [None].extend([c.value for c in species_choices()]),
+                    "char_class": [None].extend([c.value for c in class_choices()]),
+                },
+            ),
             # ("", {"": "", "": ""}),
         ],
     )
@@ -246,6 +254,27 @@ class TestBotCommands:
     @pytest.mark.parametrize(
         "cmd_name, arguments",
         [
+            (
+                "roll",
+                {
+                    "diceroll": ["DiceExpression"],
+                    "reason": None,
+                },
+            ),
+            (
+                "advantage",
+                {
+                    "diceroll": "DiceExpression",
+                    "reason": None,
+                },
+            ),
+            (
+                "disadvantage",
+                {
+                    "diceroll": "DiceExpression",
+                    "reason": None,
+                },
+            ),
             (
                 "timestamp date",
                 [

@@ -1,12 +1,8 @@
 import discord
 
+from embed import SuccessEmbed
 from embeds.color import ColorSetEmbed, ColorShowEmbed
-from logic.app_commands import (
-    SimpleCommand,
-    SimpleCommandGroup,
-    send_error_message,
-    send_warning_message,
-)
+from logic.app_commands import SimpleCommand, SimpleCommandGroup
 from logic.color import UserColor, save_hex_color, save_rgb_color
 
 
@@ -46,7 +42,7 @@ class ColorSetHexCommand(SimpleCommand):
 class ColorSetRGBCommand(SimpleCommand):
     name = "rgb"
     desc = "Set a preferred color using rgb values."
-    help = "Set a custom color for yourself by providing a rgb values."
+    help = "Set a custom color for yourself by providing a RGB value."
 
     async def callback(
         self,
@@ -64,7 +60,7 @@ class ColorSetRGBCommand(SimpleCommand):
 class ColorShowCommand(SimpleCommand):
     name = "show"
     desc = "Show off your current color!"
-    help = "Shows the color that you are currently using publically."
+    help = "Shows the color that you are currently using publicly."
 
     async def callback(self, itr: discord.Interaction):
         self.log(itr)
@@ -81,7 +77,10 @@ class ColorClearCommand(SimpleCommand):
     async def callback(self, itr: discord.Interaction):
         self.log(itr)
         removed = UserColor.remove(itr)
-        if removed:
-            await send_error_message(itr, "Cleared user-defined color.")
-        else:
-            await send_warning_message(itr, "You have not yet set a color.")
+        embed = SuccessEmbed(
+            title_success="Cleared user-defined color.",
+            title_fail="You have not yet set a color.",
+            description="",
+            success=removed,
+        )
+        await itr.response.send_message(embed=embed, ephemeral=True)

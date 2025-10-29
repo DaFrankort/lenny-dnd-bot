@@ -2,7 +2,7 @@ import discord
 
 from dice import DiceCache
 from embeds.roll import RollEmbed
-from logic.app_commands import SimpleCommand, send_error_message
+from logic.app_commands import SimpleCommand
 from logic.roll import Advantage, roll
 from logic.voice_chat import VC
 
@@ -28,10 +28,6 @@ class _AbstractRollCommand(SimpleCommand):
     ):
         self.log(itr)
         result = roll(diceroll, self.advantage)
-        if result.error is not None:
-            await send_error_message(itr, result.error)
-            return
-
         DiceCache.store_expression(itr, result.expression)
         DiceCache.store_reason(itr, reason)
         embed = RollEmbed(itr, result, reason)

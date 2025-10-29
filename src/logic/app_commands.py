@@ -1,23 +1,8 @@
-from abc import abstractmethod
-from enum import Enum
 import logging
 import discord
-
+from abc import abstractmethod
+from enum import Enum
 from embed import SimpleEmbed
-
-
-def format_warning_message(message: str, emoji: str = "⚠️"):
-    return f"{emoji} {message} {emoji}"
-
-
-async def send_error_message(itr: discord.Interaction, message: str, emoji: str = "❌"):
-    message = f"{emoji} {message} {emoji}"
-    await itr.response.send_message(message, ephemeral=True)
-
-
-async def send_warning_message(itr: discord.Interaction, message: str, emoji: str = "⚠️"):
-    message = format_warning_message(message, emoji)
-    await itr.response.send_message(message, ephemeral=True)
 
 
 def get_error_embed(error: discord.app_commands.AppCommandError) -> discord.Embed:

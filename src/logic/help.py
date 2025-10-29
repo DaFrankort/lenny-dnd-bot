@@ -85,7 +85,7 @@ class HelpTabList(object):
     Character = HelpTab(
         tab="character",
         name="Character Utilities",
-        commands=["stats", "namegen"],
+        commands=["stats", "namegen", "charactergen"],
         text="You can easily generate stats and names for your character using the following commands:",
         info=[],
     )
@@ -136,7 +136,7 @@ class HelpTabList(object):
     TokenGen = HelpTab(
         tab="tokengen",
         name="Token Generation",
-        commands=["tokengen", "tokengenurl"],
+        commands=["tokengen"],
         text="You can generate token images for your characters or creatures in the 5e.tools style using the following commands:",
         info=[
             (
@@ -147,6 +147,7 @@ class HelpTabList(object):
                     "- ``hue-shift`` - Allows you to shift the color of the token's border, this is a number between -360 and 360. By default a shift of 0 is used, which results in a golden border.",
                     "- ``h_alignment`` - Adjusts the horizontal alignment of the image, this can be `left`, `center`, or `right`.",
                     "- ``v_alignment`` - Adjusts the vertical alignment of the image, this can be `top`, `center`, or `bottom`.",
+                    "- ``variants`` - Creates up to 10 variants of the token image, to easily discern similar tokens from each other.",
                 ],
             )
         ],
@@ -180,6 +181,7 @@ class HelpTabList(object):
             self.Character,
             self.DND,
             self.Initiative,
+            self.TokenGen,
             self.Config,
         ]
 

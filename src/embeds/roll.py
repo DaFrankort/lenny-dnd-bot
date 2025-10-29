@@ -1,6 +1,5 @@
 import discord
 from embed import UserActionEmbed
-from logic.app_commands import format_warning_message
 from logic.roll import Advantage, RollResult
 
 
@@ -29,7 +28,7 @@ class RollEmbed(UserActionEmbed):
         description = []
 
         if not result.roll.contains_dice:
-            description.append(format_warning_message("Expression contains no dice."))
+            description.append("⚠️ Expression contains no dice. ⚠️")
 
         for roll in result.rolls:
             description.append(f"- `{roll.expression} -> {roll.total}`")

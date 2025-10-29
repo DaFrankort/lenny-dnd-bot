@@ -77,6 +77,12 @@ class DNDHomebrewObject(DNDObject):
             "source": self.source,
         }
 
+    def can_manage(self, itr: discord.Interaction) -> bool:
+        """Returns true/false depending on whether or not the user can manage this entry"""
+        if itr.user.id == self._author_id:
+            return True
+        return itr.user.guild_permissions.manage_messages
+
     @classmethod
     def from_dict(cls, d: dict):
         return cls(
@@ -186,8 +192,9 @@ class HomebrewGuildData:
         return entries
 
     def get_autocomplete_suggestions(
-        self, query: str, fuzzy_threshold: float = 75, limit: int = 25
+        self, query: str, itr: discord.Interaction = None, fuzzy_threshold: float = 75, limit: int = 25
     ) -> list[discord.app_commands.Choice[str]]:
+        """If itr is supplied, will only show suggestions for which the user has edit permissions."""
         query = query.strip().lower().replace(" ", "")
 
         if query == "":
@@ -196,6 +203,9 @@ class HomebrewGuildData:
         choices = []
         for key in self.entries.keys():
             for e in self.entries.get(key, []):
+                if itr and not e.can_manage(itr):
+                    continue
+
                 name_clean = e.name.strip().lower().replace(" ", "")
                 score = fuzz.partial_ratio(query, name_clean)
                 if score > fuzzy_threshold:

@@ -65,7 +65,7 @@ class HomebrewEditCommand(SimpleCommand):
     help = "Edit a homebrew entry you created. Can edit all entries if you have permissions to manage messages."
 
     async def entry_autocomplete(self, itr: discord.Interaction, current: str):
-        return HomebrewData.get(itr).get_autocomplete_suggestions(current)
+        return HomebrewData.get(itr).get_autocomplete_suggestions(current, itr=itr)
 
     @discord.app_commands.autocomplete(entry=entry_autocomplete)
     @discord.app_commands.check(check_is_guild)
@@ -81,7 +81,7 @@ class HomebrewRemoveCommand(SimpleCommand):
     help = "Remove a homebrew entry you created. Can remove all entries if you have permissions to manage messages."
 
     async def entry_autocomplete(self, itr: discord.Interaction, current: str):
-        return HomebrewData.get(itr).get_autocomplete_suggestions(current)
+        return HomebrewData.get(itr).get_autocomplete_suggestions(current, itr=itr)
 
     @discord.app_commands.autocomplete(entry=entry_autocomplete)
     @discord.app_commands.check(check_is_guild)

@@ -1,8 +1,6 @@
 import pytest
-
-from logic.homebrew import DNDHomebrewData
-from utils.mocking import MockInteraction
 import os
+from utils.mocking import MockInteraction
 from logic.homebrew import DNDHomebrewData, DNDObjectTypes, HOMEBREW_PATH
 
 

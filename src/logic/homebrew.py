@@ -141,6 +141,33 @@ class HomebrewGuildData:
         self.save()
         return new_entry
 
+    def delete(self, name: str) -> DNDHomebrewObject:
+        entry_to_delete = None
+        for key in self.entries.keys():
+            for entry in self.entries.get(key, []):
+                if entry.name.lower() == name.lower():
+                    entry_to_delete = entry
+                    break
+            if entry_to_delete:
+                self.entries[key].remove(entry)
+                self.save()
+                break
+
+        if entry_to_delete is None:
+            raise ValueError(f"Could not delete homebrew entry '{name}', entry does not exist.")
+        return entry_to_delete
+
+    def edit(self, entry: DNDHomebrewObject, name: str, select_description: str, description: str) -> DNDHomebrewObject:
+        for e in self.entries.get(entry.object_type, []):
+            if e.name.lower() == entry.name.lower():
+                e.name = name
+                e.select_description = select_description
+                e.description = description
+                entry = e
+                self.save()
+                break
+        return entry
+
     def get(self, entry_name: str) -> DNDHomebrewObject:
         for key in self.entries.keys():
             for entry in self.entries.get(key, []):

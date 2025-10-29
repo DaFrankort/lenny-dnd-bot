@@ -7,7 +7,6 @@ from logic.app_commands import ChoicedEnum
 from logic.dnd.abstract import DNDObject
 
 
-HOMEBREW_SOURCE: str = "HBRW"
 HOMEBREW_PATH: str = "./temp/homebrew/"
 
 
@@ -44,7 +43,7 @@ DNDObjectEmojis = {
 
 class DNDHomebrewObject(DNDObject):
     object_type: str
-    source: str = HOMEBREW_SOURCE
+    source: str
     _author_id: int
 
     name: str
@@ -61,6 +60,7 @@ class DNDHomebrewObject(DNDObject):
 
         super().__init__()
         self.object_type = object_type
+        self.source = object_type.title()
         self.name = name.title()
         self.select_description = select_description or None
         self.description = description

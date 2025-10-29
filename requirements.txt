@@ -1,6 +1,6 @@
 aiohttp==3.13.1
 discord.py==2.6.4
-python-dotenv==1.1.1
+python-dotenv==1.2.1
 RapidFuzz==3.14.1
 rich==14.2.0
 pytest==8.4.2

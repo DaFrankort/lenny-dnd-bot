@@ -228,6 +228,7 @@ class TestBotCommands:
                     "char_class": [None].extend([c.value for c in class_choices()]),
                 },
             ),
+            # Homebrew commands work through modals, and are thus not testable.
             # ("", {"": "", "": ""}),
         ],
     )

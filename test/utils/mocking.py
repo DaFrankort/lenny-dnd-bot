@@ -22,6 +22,8 @@ class MockInteraction(discord.Interaction):
     def __init__(self, user: MockUser = MockUser(), guild_id: int = 999):
         self.user = user
         self.guild_id = guild_id
+        self._state = MagicMock()
+        self._servers = MagicMock()
 
 
 def _mock_attachment(url: str, content_type: str) -> discord.Attachment:

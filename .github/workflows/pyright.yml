@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  [pyright]:
+  pyright:
     runs-on: ubuntu-latest
     name: pyright
     steps:

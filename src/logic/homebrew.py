@@ -51,6 +51,10 @@ class DNDHomebrewObject(DNDObject):
     select_description: str | None = None  # Description in dropdown menus
     description: str
 
+    @property
+    def emoji(self) -> str:
+        return DNDObjectEmojis.get(self.object_type, "❓")
+
     def __init__(self, object_type: str, name: str, select_description: str | None, description: str, author_id: int):
         if select_description:
             select_description = select_description.strip()

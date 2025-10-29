@@ -105,7 +105,7 @@ class HomebrewListButton(ui.Button):
 
     async def callback(self, itr: discord.Interaction):
         embed = HomebrewEmbed(itr, self.entry)
-        await itr.response.send_message(embed=embed, view=embed.view)
+        await itr.response.send_message(embed=embed)
 
 
 class HomebrewListView(PaginatedLayoutView):

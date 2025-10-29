@@ -1,5 +1,5 @@
 import discord
-from embeds.homebrew import HomebrewEmbed, HomebrewEntryAddModal, HomebrewListView
+from embeds.homebrew import HomebrewEditModal, HomebrewEmbed, HomebrewEntryAddModal, HomebrewListView
 from logic.app_commands import SimpleCommand, SimpleCommandGroup, check_is_guild
 from logic.homebrew import DNDObjectTypes, HomebrewData
 
@@ -13,6 +13,8 @@ class HomebrewCommandGroup(SimpleCommandGroup):
         self.add_command(HomebrewAddCommand())
         self.add_command(HomebrewSearchCommand())
         self.add_command(HomebrewListCommand())
+        self.add_command(HomebrewEditCommand())
+        self.add_command(HomebrewRemoveCommand())
 
 
 class HomebrewAddCommand(SimpleCommand):
@@ -46,8 +48,8 @@ class HomebrewSearchCommand(SimpleCommand):
 
 class HomebrewListCommand(SimpleCommand):
     name = "list"
-    desc = "View and edit all content in your tome of homebrew."
-    help = "Shows all homebrew content in your server and allows you to edit entries, if you have the correct permissions or are the author."
+    desc = "View all entries in your server's tome of homebrew!"
+    help = "Shows all homebrew content in your server and filter by entry type."
 
     @discord.app_commands.choices(filter=DNDObjectTypes.choices())
     @discord.app_commands.check(check_is_guild)
@@ -55,3 +57,37 @@ class HomebrewListCommand(SimpleCommand):
         self.log(itr)
         view = HomebrewListView(itr, filter)
         await itr.response.send_message(view=view, ephemeral=True)
+
+
+class HomebrewEditCommand(SimpleCommand):
+    name = "edit"
+    desc = "Edit entries in your tome of homebrew!"
+    help = "Edit a homebrew entry you created. Can edit all entries if you have permissions to manage messages."
+
+    async def entry_autocomplete(self, itr: discord.Interaction, current: str):
+        return HomebrewData.get(itr).get_autocomplete_suggestions(current)
+
+    @discord.app_commands.autocomplete(entry=entry_autocomplete)
+    @discord.app_commands.check(check_is_guild)
+    async def callback(self, itr: discord.Interaction, entry: str):
+        self.log(itr)
+        entry_item = HomebrewData.get(itr).get(entry)
+        await itr.response.send_modal(HomebrewEditModal(entry_item))
+
+
+class HomebrewRemoveCommand(SimpleCommand):
+    name = "remove"
+    desc = "Remove entries in your tome of homebrew!"
+    help = "Remove a homebrew entry you created. Can remove all entries if you have permissions to manage messages."
+
+    async def entry_autocomplete(self, itr: discord.Interaction, current: str):
+        return HomebrewData.get(itr).get_autocomplete_suggestions(current)
+
+    @discord.app_commands.autocomplete(entry=entry_autocomplete)
+    @discord.app_commands.check(check_is_guild)
+    async def callback(self, itr: discord.Interaction, entry: str):
+        self.log(itr)
+        entry = HomebrewData.get(itr).delete(entry)
+        embed = HomebrewEmbed(itr, entry)
+        embed.color = discord.Color.red()
+        await itr.response.send_message(f"{itr.user.display_name} Removed homebrew {entry.object_type}:", embed=embed)

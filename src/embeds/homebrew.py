@@ -2,14 +2,11 @@ import discord
 from discord import ui
 from components.items import SimpleSeparator, TitleTextDisplay
 from components.paginated_view import PaginatedLayoutView
-from embed import UserActionEmbed
 from logic.homebrew import DNDHomebrewObject, HomebrewData
 from modals import SimpleModal
 
 
 class HomebrewEmbed(discord.Embed):
-    view: "HomebrewEditView" = discord.utils.MISSING
-
     def __init__(self, itr: discord.Interaction, entry: DNDHomebrewObject):
         subtitle = f"*{entry.select_description}*\n\n"
         if len(entry.description) < 4000 - len(subtitle) and entry.select_description:
@@ -24,57 +21,6 @@ class HomebrewEmbed(discord.Embed):
             self.set_footer(text=f"Created by {author.display_name}", icon_url=author.display_avatar.url)
         else:
             self.set_footer(text="Created by Unknown User", icon_url=itr.client.user.avatar.url)
-
-        if author.id == itr.user.id or itr.user.guild_permissions.manage_messages:
-            self.view = HomebrewEditView(itr, entry)
-
-
-class HomebrewEditViewRow(ui.ActionRow):
-    entry: DNDHomebrewObject
-
-    def __init__(self, entry: DNDHomebrewObject):
-        super().__init__()
-        self.entry = entry
-
-    @ui.button(label="Edit", style=discord.ButtonStyle.primary, custom_id="roll_btn", row=0)
-    async def edit_entry(self, itr: discord.Interaction, button: ui.Button):
-        try:
-            if itr.message:
-                await itr.message.edit(view=None)
-        except Exception:
-            pass
-
-        await itr.response.send_modal(HomebrewEditModal(self.entry))
-
-    @ui.button(label="Remove", style=discord.ButtonStyle.success, custom_id="set_btn", row=0)
-    async def remove_entry(self, itr: discord.Interaction, button: ui.Button):
-        HomebrewData.get(itr).delete(self.entry.name)
-        try:
-            if itr.message:
-                await itr.message.edit(view=None)
-        except Exception:
-            pass
-
-        await itr.response.send_message(
-            UserActionEmbed(itr, f"Removed homebrew {self.entry.object_type}: ``{self.entry.name}``")
-        )
-
-
-class HomebrewEditView(discord.ui.LayoutView):
-    def __init__(self, itr: discord.Interaction, entry: DNDHomebrewObject):
-        super().__init__()
-        container = ui.Container(accent_color=discord.Color.dark_blue(), spoiler=True)
-        if entry._author_id == itr.user.id:
-            container.add_item(ui.TextDisplay(f"You can edit or remove this {entry.object_type} because you created it!"))
-        elif itr.user.guild_permissions.manage_messages:
-            container.add_item(
-                ui.TextDisplay(
-                    f"You can edit or remove this {entry.object_type} because you have permission to manage messages!"
-                )
-            )
-
-        container.add_item(HomebrewEditViewRow(entry))
-        self.add_item(container)
 
 
 class HomebrewEntryAddModal(SimpleModal):

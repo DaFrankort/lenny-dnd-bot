@@ -1,3 +1,4 @@
+import os
 from typing import Iterable
 import discord
 import pathlib
@@ -26,12 +27,22 @@ class Config(object):
     def __init__(self, server: discord.Guild | None):
         self.path = None
         self.server = server
-
         if self.server is not None:
             self.path = f"config/{self.server.id}.config"
+
+        self.create_file()
+
+    def create_file(self):
+        """Creates the associated config file. Does not change anything if it already exists."""
+        if self.path is not None:
             path = pathlib.Path(self.path)
             path.parent.mkdir(exist_ok=True, parents=True)
             open(path, "a").close()  # Ensure file exists
+
+    def reset(self):
+        if os.path.exists(self.path):
+            os.remove(self.path)
+            self.create_file()
 
     # region sources
 

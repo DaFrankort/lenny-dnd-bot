@@ -45,10 +45,10 @@ class TestHomebrew:
 
     def test_get_homebrew_entry(self, itr, test_data):
         guild_data = test_data.get(itr)
-        guild_data.add(itr, DNDObjectTypes.SPELL.value, "Icebolt", "A cold spell", "Deals 4d6 cold damage")
+        guild_data.add(itr, DNDObjectTypes.SPELL.value, "Ice bolt", "A cold spell", "Deals 4d6 cold damage")
 
-        entry = guild_data.get("Icebolt")
-        assert entry.name == "Icebolt"
+        entry = guild_data.get("Ice bolt")
+        assert entry.name == "Ice bolt"
         assert entry.description == "Deals 4d6 cold damage"
 
     def test_delete_homebrew_entry(self, itr, test_data):

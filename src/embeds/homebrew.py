@@ -86,7 +86,7 @@ class HomebrewEditModal(SimpleModal):
             await itr.response.send_message("Name and Description are required fields.", ephemeral=True)
             return
 
-        updated_entry = HomebrewData.get(itr).edit(self.entry, name, subtitle, description)
+        updated_entry = HomebrewData.get(itr).edit(itr, self.entry, name, subtitle, description)
         embed = HomebrewEmbed(itr, updated_entry)
         await itr.response.send_message(
             content=f"Edited {self.entry.object_type}: ``{self.entry.name}`` => ``{name}``!", embed=embed, ephemeral=True

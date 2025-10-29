@@ -72,7 +72,8 @@ class HomebrewEditCommand(SimpleCommand):
     async def callback(self, itr: discord.Interaction, entry: str):
         self.log(itr)
         entry_item = HomebrewData.get(itr).get(entry)
-        await itr.response.send_modal(HomebrewEditModal(entry_item))
+        embed = HomebrewEditModal(entry_item)
+        await itr.response.send_modal(embed)
 
 
 class HomebrewRemoveCommand(SimpleCommand):
@@ -87,7 +88,7 @@ class HomebrewRemoveCommand(SimpleCommand):
     @discord.app_commands.check(check_is_guild)
     async def callback(self, itr: discord.Interaction, entry: str):
         self.log(itr)
-        entry = HomebrewData.get(itr).delete(entry)
+        entry = HomebrewData.get(itr).delete(itr, entry)
         embed = HomebrewEmbed(itr, entry)
         embed.color = discord.Color.red()
         await itr.response.send_message(f"{itr.user.display_name} Removed homebrew {entry.object_type}:", embed=embed)

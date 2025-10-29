@@ -147,15 +147,17 @@ class HomebrewGuildData:
         self.save()
         return new_entry
 
-    def delete(self, name: str) -> DNDHomebrewObject:
+    def delete(self, itr: discord.Interaction, name: str) -> DNDHomebrewObject:
         entry_to_delete = None
         for key in self.entries.keys():
-            for entry in self.entries.get(key, []):
-                if entry.name.lower() == name.lower():
-                    entry_to_delete = entry
+            for e in self.entries.get(key, []):
+                if e.name.lower() == name.lower():
+                    if not e.can_manage(itr):
+                        raise ValueError("You do not have the correct permissions to remove this entry.")
+                    entry_to_delete = e
                     break
             if entry_to_delete:
-                self.entries[key].remove(entry)
+                self.entries[key].remove(entry_to_delete)
                 self.save()
                 break
 
@@ -163,9 +165,13 @@ class HomebrewGuildData:
             raise ValueError(f"Could not delete homebrew entry '{name}', entry does not exist.")
         return entry_to_delete
 
-    def edit(self, entry: DNDHomebrewObject, name: str, select_description: str, description: str) -> DNDHomebrewObject:
+    def edit(
+        self, itr: discord.Interaction, entry: DNDHomebrewObject, name: str, select_description: str, description: str
+    ) -> DNDHomebrewObject:
         for e in self.entries.get(entry.object_type, []):
             if e.name.lower() == entry.name.lower():
+                if not e.can_manage(itr):
+                    raise ValueError("You do not have the correct permissions to edit this entry.")
                 e.name = name
                 e.select_description = select_description
                 e.description = description

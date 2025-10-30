@@ -118,7 +118,7 @@ Look up various D&D data from [5e.tools](https://5e.tools/).
 ### D&D Homebrew Data
 
 Manage your server's homebrew D&D data for spells, items, creatures, and more.
-For entry deletion or editing you will need to either have the Manage Messages permissions for the server or be the original creator of the entry.
+For entry deletion or editing you will need to either be the original creator of the entry, have config permissions or have the Manage Messages permission for the server.
 
 - `/homebrew add <dnd-type>` - Add a new homebrew entry of the specified D&D type (e.g. spell, item, creature).
 - `/homebrew edit <entry>` - Edit an existing homebrew entry.

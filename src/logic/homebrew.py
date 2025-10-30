@@ -3,7 +3,7 @@ import logging
 import os
 import discord
 from rapidfuzz import fuzz
-from logic.app_commands import ChoicedEnum
+from command import ChoicedEnum
 from logic.config import user_is_admin_or_has_config_permissions
 
 

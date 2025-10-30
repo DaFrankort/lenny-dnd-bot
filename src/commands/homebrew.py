@@ -1,6 +1,6 @@
 import discord
 from embeds.homebrew import HomebrewEditModal, HomebrewEmbed, HomebrewEntryAddModal, HomebrewListView
-from logic.app_commands import SimpleCommand, SimpleCommandGroup, check_is_guild
+from command import SimpleCommand, SimpleCommandGroup, check_is_guild
 from logic.homebrew import DNDObjectType, HomebrewData
 
 

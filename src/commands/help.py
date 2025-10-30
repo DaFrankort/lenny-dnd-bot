@@ -1,7 +1,7 @@
 import discord
 
 from embeds.help import HelpEmbed
-from logic.app_commands import SimpleCommand
+from command import SimpleCommand
 
 
 class HelpCommand(SimpleCommand):

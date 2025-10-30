@@ -1,9 +1,11 @@
 import logging
+from typing import TypeVar
 from discord import Interaction
 from discord.ui import TextInput, Modal
 
 from logic.app_commands import get_error_embed
 
+T = TypeVar("T")
 
 class SimpleModal(Modal):
     def __init__(self, itr: Interaction, title: str):
@@ -37,7 +39,7 @@ class SimpleModal(Modal):
         except ValueError:
             return None
 
-    def get_choice(self, text_input: TextInput, default: any, choices: dict[str, any]) -> any:
+    def get_choice(self, text_input: TextInput, default: T, choices: dict[str, T]) -> T:
         """Used to simulate selection-menu functionality, allowing a user to select a certain option."""
         choice = default
         user_input = str(text_input).lower()

@@ -12,7 +12,7 @@ def check_is_guild(itr: discord.Interaction) -> bool:
     return True
 
 
-def get_error_embed(error: discord.app_commands.AppCommandError) -> discord.Embed:
+def get_error_embed(error: discord.app_commands.AppCommandError | Exception) -> discord.Embed:
     if isinstance(error, discord.app_commands.CheckFailure):
         return SimpleEmbed(
             title="You don't meet the requirements to do that!",

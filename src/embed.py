@@ -57,3 +57,12 @@ class NoResultsFoundEmbed(SimpleEmbed):
             f"No results found for '{query}'.",
             color=discord.Color.red(),
         )
+
+
+class ErrorEmbed(SimpleEmbed):
+    def __init__(self, error: str):
+        super().__init__(
+            "Error!",
+            f"{error}",
+            color=discord.Color.red(),
+        )

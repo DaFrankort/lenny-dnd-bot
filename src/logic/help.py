@@ -161,7 +161,13 @@ class HelpTabList(object):
         info=[
             (
                 "Server Configuration",
-                ["The bot can only be configured in servers and will always use the default settings in private messages."],
+                [
+                    "The bot can only be configured in servers and will always use the default settings in private messages.",
+                    "",
+                    'Bot configuration happens through discord roles. A server admin can determine which roles are allowed to edit the bot\'s configuration using `/config permissions`. By default, all roles with the terms "game master" (or any variants thereof) will be allowed to configure the bot.',
+                    "",
+                    "Once the server admin is done allowing or disallowing specific roles, users with the allowed roles can then change the bot's behavior.",
+                ],
             )
         ],
     )

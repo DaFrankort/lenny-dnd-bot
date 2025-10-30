@@ -212,7 +212,6 @@ class InitiativeTracker:
         initiatives.sort(key=lambda x: x.get_total(), reverse=True)
         for i, initiative in enumerate(initiatives):
             initiative.name += f" {i+1}"
-            total = initiative.get_total()
             self.add(itr, initiative)
 
         return initiatives

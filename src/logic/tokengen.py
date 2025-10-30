@@ -6,8 +6,7 @@ import aiohttp
 import discord
 import numpy as np
 from PIL import Image, ImageDraw
-from logic.app_commands import ChoicedEnum
-from methods import FontType, get_font
+from methods import ChoicedEnum, FontType, get_font
 
 TOKEN_FRAME = Image.open("./assets/images/token_border.png").convert("RGBA")
 TOKEN_BG = Image.open("./assets/images/token_bg.jpg").convert("RGBA")

@@ -1,6 +1,6 @@
 import discord
 from embeds.timestamp import RelativeTimestampEmbed, TimestampDatesContainerView
-from logic.app_commands import SimpleCommand, SimpleCommandGroup
+from command import SimpleCommand, SimpleCommandGroup
 from logic.timestamp import (
     get_date_timestamp,
     get_relative_timestamp_from_now,

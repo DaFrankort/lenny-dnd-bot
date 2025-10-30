@@ -2,7 +2,7 @@ import dataclasses
 from enum import Enum
 import d20
 
-from logic.app_commands import ChoicedEnum
+from methods import ChoicedEnum
 
 
 class Advantage(ChoicedEnum):

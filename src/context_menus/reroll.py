@@ -2,7 +2,7 @@ import discord
 
 from dice import DiceCache
 from embeds.roll import RollEmbed
-from logic.app_commands import SimpleContextMenu
+from command import SimpleContextMenu
 from logic.roll import Advantage, roll
 from logic.voice_chat import VC
 

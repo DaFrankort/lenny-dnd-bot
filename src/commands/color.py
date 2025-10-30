@@ -2,7 +2,7 @@ import discord
 
 from embed import SuccessEmbed
 from embeds.color import ColorSetEmbed, ColorShowEmbed
-from logic.app_commands import SimpleCommand, SimpleCommandGroup
+from command import SimpleCommand, SimpleCommandGroup
 from logic.color import UserColor, save_hex_color, save_rgb_color
 
 

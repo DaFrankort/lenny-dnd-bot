@@ -1,5 +1,5 @@
 from bot import Bot
-from logic.app_commands import SimpleCommand
+from command import SimpleCommand
 
 
 class TestHelp:

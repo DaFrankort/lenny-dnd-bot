@@ -6,7 +6,7 @@ class Language(DNDObject):
     script: str | None
     description: list[Description]
 
-    def __init__(self, json: any):
+    def __init__(self, json: dict):
         self.object_type = "dict"
         self.emoji = "🗣️"
 

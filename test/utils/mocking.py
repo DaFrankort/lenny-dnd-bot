@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock
 
 import discord
 
@@ -12,10 +12,7 @@ class MockRole(discord.Role):
 
 
 class MockGuild(discord.Guild):
-    next_user_id: int
-
     def __init__(self, id: int):
-        self.next_user_id = 100
         self.id = id
         self._roles = {}
         self._members = {}
@@ -46,8 +43,7 @@ class MockGuild(discord.Guild):
             self.create_member(f"game master {gamemaster}", [gamemaster_role], False)
 
     def create_member(self, name: str, roles: list[discord.Role], admin: bool) -> discord.Member:
-        self.next_user_id += 1
-        member = MockMember(MockUser(self.next_user_id, name), self, admin)
+        member = MockMember(MockUser(name), self, admin)
         self._add_member(member)
         for role in roles:
             member._roles.add(role.id)
@@ -57,13 +53,13 @@ class MockGuild(discord.Guild):
 class MockUser(discord.User):
     """Mock user class to simulate Discord users."""
 
-    def __init__(self, user_id: int = 123, display_name: str = "Foo"):
-        self.id = user_id
-        self.name = display_name
-        self.global_name = display_name
-        self._avatar = None
-        self.discriminator = str(user_id)
-        self._state = None  # type: ignore
+    def __init__(self, name: str):
+        self.id = abs(hash(name))
+        self.name = name
+        self.global_name = name
+        self.discriminator = str(self.id)
+        self._avatar = MagicMock()
+        self._state = MagicMock()
 
 
 class MockMember(discord.Member):
@@ -78,24 +74,33 @@ class MockMember(discord.Member):
 class MockInteraction(discord.Interaction):
     """Mock interaction class to simulate Discord interactions."""
 
-    def __init__(self, user: MockUser = MockUser(), guild_id: int = 999):
+    def __init__(self, user: MockUser = MockUser("user"), guild_id: int = 999):
         self.user = user
         self.guild_id = guild_id
+        self.channel = MagicMock(spec=discord.TextChannel)
+        self.response = MagicMock()
+        self.response.send_message = AsyncMock()
+        self.response.defer = AsyncMock()
+        self.followup = AsyncMock()
+        self._state = MagicMock()
+        self._original_response = MagicMock()
 
 
-def _mock_attachment(url: str, content_type: str) -> discord.Attachment:
-    attachment = MagicMock(spec=discord.Attachment)
-    attachment.url = url
-    attachment.content_type = MagicMock()
-    attachment.content_type = content_type
-    return attachment
+class MockAttachment(discord.Attachment):
+    def __init__(self, url: str, content_type: str):
+        self.id = abs(hash(url))
+        self.url = url
+        self.filename = "file.data"
+        self.content_type = content_type
 
 
-def mock_image() -> discord.Attachment:
-    img_url = r"https://img.lovepik.com/element/40116/9419.png_1200.png"
-    return _mock_attachment(img_url, "image")
+class MockImage(MockAttachment):
+    def __init__(self):
+        url = r"https://img.lovepik.com/element/40116/9419.png_1200.png"
+        super().__init__(url, "image")
 
 
-def mock_sound() -> discord.Attachment:
-    sound_url = r"https://diviextended.com/wp-content/uploads/2021/10/sound-of-waves-marine-drive-mumbai.mp3"
-    return _mock_attachment(sound_url, "audio")
+class MockSound(MockAttachment):
+    def __init__(self):
+        url = r"https://diviextended.com/wp-content/uploads/2021/10/sound-of-waves-marine-drive-mumbai.mp3"
+        super().__init__(url, "audio")

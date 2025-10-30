@@ -8,7 +8,7 @@ from logic.dnd.name import Gender
 from logic.roll import Advantage
 from logic.charactergen import class_choices, species_choices
 from utils.mocking import MockImage, MockInteraction, MockSound
-from utils.test_utils import enum_values, listify
+from utils.test_utils import listify
 from commands.tokengen import AlignH, AlignV
 
 
@@ -113,7 +113,7 @@ class TestBotCommands:
                 "namegen",
                 {
                     "species": [None, "foobar"].extend([spec.title() for spec in Data.names.get_species()]),
-                    "gender": enum_values(Gender),
+                    "gender": Gender.values(),
                 },
             ),
             (
@@ -136,14 +136,8 @@ class TestBotCommands:
                 [
                     {"image": MockImage()},
                     {"image": MockImage(), "frame_hue": [-180, 0, 180]},
-                    {
-                        "image": MockImage(),
-                        "h_alignment": enum_values(AlignH),
-                    },
-                    {
-                        "image": MockImage(),
-                        "v_alignment": enum_values(AlignV),
-                    },
+                    {"image": MockImage(), "h_alignment": AlignH.values()},
+                    {"image": MockImage(), "v_alignment": AlignV.values()},
                     {"image": MockImage(), "variants": [0, 3, 10]},
                 ],
             ),
@@ -152,14 +146,8 @@ class TestBotCommands:
                 [
                     {"url": MockImage().url},
                     {"url": MockImage().url, "frame_hue": [-180, 0, 180]},
-                    {
-                        "url": MockImage().url,
-                        "h_alignment": enum_values(AlignH),
-                    },
-                    {
-                        "url": MockImage().url,
-                        "v_alignment": enum_values(AlignV),
-                    },
+                    {"url": MockImage().url, "h_alignment": AlignH.values()},
+                    {"url": MockImage().url, "v_alignment": AlignV.values()},
                     {"url": MockImage().url, "variants": [0, 3, 10]},
                 ],
             ),
@@ -196,18 +184,11 @@ class TestBotCommands:
                     },
                 ],
             ),
-            (
-                "distribution",
-                {
-                    "expression": ["1d20", "1d8ro1"],
-                    "advantage": enum_values(Advantage),
-                    "min_to_beat": [None, "5"],
-                },
-            ),
+            ("distribution", {"expression": ["1d20", "1d8ro1"], "advantage": Advantage.values(), "min_to_beat": [None, "5"]}),
             (
                 "charactergen",
                 {
-                    "gender": [None].extend(enum_values(Gender)),
+                    "gender": [None].extend(Gender.values()),
                     "species": [None].extend([c.value for c in species_choices()]),
                     "char_class": [None].extend([c.value for c in class_choices()]),
                 },

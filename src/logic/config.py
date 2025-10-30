@@ -1,3 +1,4 @@
+import os
 from typing import Iterable
 import discord
 import pathlib
@@ -7,6 +8,12 @@ from logic.dnd.source import SourceList
 
 
 SOURCES_PHB2014 = ["PHB", "DMG", "MM"]
+
+# Words that need to be a substring of the game master role
+GAMEMASTER_ROLE_CONTAINING_WORDS = ["game master", "gamemaster", "dungeon master"]
+
+# Words that need to exactly match the game master role
+GAMEMASTER_ROLE_EXACT_WORDS = ["gm", "dm"]
 
 
 def is_source_phb2014(source: str) -> bool:
@@ -20,12 +27,24 @@ class Config(object):
     def __init__(self, server: discord.Guild | None):
         self.path = None
         self.server = server
-
         if self.server is not None:
             self.path = f"config/{self.server.id}.config"
+
+        self.create_file()
+
+    def create_file(self):
+        """Creates the associated config file. Does not change anything if it already exists."""
+        if self.path is not None:
             path = pathlib.Path(self.path)
             path.parent.mkdir(exist_ok=True, parents=True)
             open(path, "a").close()  # Ensure file exists
+
+    def reset(self):
+        if os.path.exists(self.path):
+            os.remove(self.path)
+            self.create_file()
+
+    # region sources
 
     def get_disallowed_sources(self) -> set[str]:
         if self.path is None:
@@ -69,3 +88,82 @@ class Config(object):
     @staticmethod
     def allowed_sources(server: discord.Guild) -> set[str]:
         return Config(server=server).get_allowed_sources()
+
+    # endregion sources
+
+    # region permissions
+
+    def set_allowed_config_roles(self, ids: set[int]):
+        config = toml.load(self.path)
+        config["permissions"] = config.get("permissions", {})
+        config["permissions"]["roles"] = list(set(ids))
+        with open(self.path, "w") as f:
+            toml.dump(config, f)
+
+    def get_allowed_config_roles(self) -> set[int]:
+        if self.path is None:
+            return set()
+
+        config = toml.load(self.path)
+        lookup = config.get("permissions", {})
+        roles = lookup.get("roles", None)
+
+        # If config sources is none, it means they aren't configured yet.
+        # In this case, fall back on the server's default roles.
+        if roles is None:
+            return self.get_default_config_roles()
+
+        return set(roles)
+
+    def get_default_config_roles(self) -> set[int]:
+        if self.server is None:
+            return set()
+
+        config_roles = []
+
+        # The default allowed roles are those matching the terms game master, dungeon master, dm...
+        for role in self.server.roles:
+            role_name = role.name.strip().lower()
+            # Check if it exactly matches a game master role
+            if role_name in GAMEMASTER_ROLE_EXACT_WORDS:
+                config_roles.append(role.id)
+            # Check if it is within a partial game master role
+            for allowed_name in GAMEMASTER_ROLE_CONTAINING_WORDS:
+                if allowed_name in role_name:
+                    config_roles.append(role.id)
+
+        return set(config_roles)
+
+    def allow_permission(self, role: discord.Role):
+        allowed_roles = self.get_allowed_config_roles()
+        allowed_roles.add(role.id)
+        self.set_allowed_config_roles(allowed_roles)
+
+    def disallow_permission(self, role: discord.Role):
+        allowed_roles = self.get_allowed_config_roles()
+        allowed_roles.remove(role.id)
+        self.set_allowed_config_roles(allowed_roles)
+
+    # endregion permissions
+
+
+def user_is_admin(user: discord.User | discord.Member) -> bool:
+    return user.guild_permissions.administrator
+
+
+def user_has_config_permissions(server: discord.Guild | None, user: discord.User | discord.Member) -> bool:
+    if server is None:
+        return False
+
+    config = Config(server)
+
+    user_role_ids = set([role.id for role in user.roles])
+    allowed_role_ids = config.get_allowed_config_roles()
+    intersection = allowed_role_ids.intersection(user_role_ids)
+
+    # Allow if user has at least one allowed role
+    return len(intersection) > 0
+
+
+def user_is_admin_or_has_config_permissions(server: discord.Guild | None, user: discord.User | discord.Member) -> bool:
+    return user_is_admin(user) or user_has_config_permissions(server, user)

@@ -10,7 +10,7 @@ class Species(DNDObject):
     description: list[Description]
     info: list[Description]
 
-    def __init__(self, json: any):
+    def __init__(self, json: dict):
         self.object_type = "species"
         self.emoji = "🧝"
 
@@ -27,7 +27,7 @@ class Species(DNDObject):
         self.info = json["info"]
 
 
-class SpeciesList(DNDObjectList):
+class SpeciesList(DNDObjectList[Species]):
     path = "./submodules/lenny-dnd-data/generated/species.json"
 
     def __init__(self):

@@ -12,10 +12,7 @@ class MockRole(discord.Role):
 
 
 class MockGuild(discord.Guild):
-    next_user_id: int
-
     def __init__(self, id: int):
-        self.next_user_id = 100
         self.id = id
         self._roles = {}
         self._members = {}
@@ -46,8 +43,7 @@ class MockGuild(discord.Guild):
             self.create_member(f"game master {gamemaster}", [gamemaster_role], False)
 
     def create_member(self, name: str, roles: list[discord.Role], admin: bool) -> discord.Member:
-        self.next_user_id += 1
-        member = MockMember(MockUser(self.next_user_id, name), self, admin)
+        member = MockMember(MockUser(name), self, admin)
         self._add_member(member)
         for role in roles:
             member._roles.add(role.id)
@@ -57,13 +53,13 @@ class MockGuild(discord.Guild):
 class MockUser(discord.User):
     """Mock user class to simulate Discord users."""
 
-    def __init__(self, user_id: int = 123, display_name: str = "Foo"):
-        self.id = user_id
-        self.name = display_name
-        self.global_name = display_name
-        self._avatar = None
-        self.discriminator = str(user_id)
-        self._state = None  # type: ignore
+    def __init__(self, name: str):
+        self.id = abs(hash(name))
+        self.name = name
+        self.global_name = name
+        self.discriminator = str(self.id)
+        self._avatar = MagicMock()
+        self._state = MagicMock()
 
 
 class MockMember(discord.Member):
@@ -78,7 +74,7 @@ class MockMember(discord.Member):
 class MockInteraction(discord.Interaction):
     """Mock interaction class to simulate Discord interactions."""
 
-    def __init__(self, user: MockUser = MockUser(), guild_id: int = 999):
+    def __init__(self, user: MockUser = MockUser("user"), guild_id: int = 999):
         self.user = user
         self.guild_id = guild_id
 

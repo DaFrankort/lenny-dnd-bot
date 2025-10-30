@@ -8,7 +8,7 @@ class Item(DNDObject):
     properties: list[str]
     description: list[Description]
 
-    def __init__(self, json: any):
+    def __init__(self, json: dict):
         self.object_type = "item"
         self.emoji = "🗡️"
 
@@ -46,7 +46,7 @@ class Item(DNDObject):
         return ", ".join(self.properties).capitalize()
 
 
-class ItemList(DNDObjectList):
+class ItemList(DNDObjectList[Item]):
     path = "./submodules/lenny-dnd-data/generated/items.json"
 
     def __init__(self):

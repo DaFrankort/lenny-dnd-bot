@@ -5,7 +5,7 @@ class Background(DNDObject):
     abilities: list[str] | None
     description: list[Description]
 
-    def __init__(self, json: any):
+    def __init__(self, json: dict):
         self.object_type = "background"
         self.emoji = "📕"
 
@@ -16,7 +16,7 @@ class Background(DNDObject):
         self.description = json["description"]
 
 
-class BackgroundList(DNDObjectList):
+class BackgroundList(DNDObjectList[Background]):
     path = "./submodules/lenny-dnd-data/generated/backgrounds.json"
 
     def __init__(self):

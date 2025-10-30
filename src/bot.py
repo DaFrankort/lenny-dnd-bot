@@ -48,8 +48,12 @@ class Bot(discord.Client):
         )
 
         self.tree = app_commands.CommandTree(self)
-        self.token = os.getenv("DISCORD_BOT_TOKEN")
 
+        token = os.getenv("DISCORD_BOT_TOKEN")
+        if not token:
+            raise RuntimeError("Could not get bot token, is the .env file correctly configured?")
+
+        self.token = token
         guild_id = os.getenv("GUILD_ID")
         self.guild_id = int(guild_id) if guild_id is not None else None
         self.voice_enabled = voice
@@ -93,6 +97,9 @@ class Bot(discord.Client):
 
     async def on_ready(self):
         """Runs automatically when the bot is online"""
+        if self.user is None:
+            raise RuntimeError("The bot is not associated with a user client account!")
+
         logging.info("Initializing")
         logging.info(f"Logged in as {self.user} (ID: {self.user.id})")
 

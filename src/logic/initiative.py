@@ -30,62 +30,20 @@ class Initiative:
     modifier: int
     advantage: Advantage
     is_npc: bool
-    owner: discord.User
+    owner: discord.User | discord.Member
 
-    title: str
-    description: str
-
-    def __init__(
-        self,
-        itr: Interaction,
-        modifier: int,
-        name: str | None,
-        advantage: Advantage,
-    ):
+    def __init__(self, itr: Interaction, modifier: int, name: str | None, advantage: Advantage, roll: int | None = None):
         self.is_npc = name is not None
         self.name = name or itr.user.display_name
         self.name = self.name.title().strip()
         self.advantage = advantage
-        self.d20 = (random.randint(1, 20), random.randint(1, 20))
-        self.modifier = modifier
         self.owner = itr.user
+        self.modifier = modifier
 
-        self._set_title(True)
-        self._set_description()
-
-    def _set_title(self, rolled: bool) -> str:
-        action_text = "rolled" if rolled else "set"
-        title_parts = [f"{self.owner.display_name} {action_text} Initiative"]
-
-        if self.is_npc:
-            title_parts.append(f"for {self.name}")
-
-        if self.advantage == Advantage.Advantage:
-            title_parts.append("with Advantage")
-
-        elif self.advantage == Advantage.Disadvantage:
-            title_parts.append("with Disadvantage")
-
-        self.title = " ".join(title_parts).strip() + "!"
-
-    def _set_description(self):
-        mod = self.modifier
-
-        def get_roll_line(d20: int):
-            if mod == 0:
-                return ""
-
-            total = d20 + mod
-            mod_str = f"+ {mod}" if mod > 0 else f"- {-mod}"
-            return f"- ``[{d20}] {mod_str}`` -> {total}\n"
-
-        description = ""
-        description += get_roll_line(self.d20[0])
-        if self.advantage != Advantage.Normal:
-            description += get_roll_line(self.d20[1])
-        description += f"\n**Initiative: {self.get_total()}**"
-
-        self.description = description
+        if roll is None:
+            self.d20 = (random.randint(1, 20), random.randint(1, 20))
+        else:
+            self.d20 = (roll, roll)
 
     def get_total(self):
         roll = self.d20[0]
@@ -97,13 +55,6 @@ class Initiative:
             roll = min(self.d20)
 
         return roll + self.modifier
-
-    def set_value(self, value: int):
-        d20 = max(1, min(20, value))
-        self.d20 = (d20, d20)
-        self.modifier = value - d20
-        self._set_title(False)
-        self._set_description()
 
 
 class InitiativeTracker:
@@ -119,28 +70,34 @@ class InitiativeTracker:
         """Used to make name-comparisons less strict. (Case insensitive, no spaces)"""
         return name.strip().lower()
 
-    async def set_message(self, itr: Interaction, message: Message):
-        guild_id = int(itr.guild_id)
-        prev_message = self.server_messages.get(guild_id, None)
+    async def set_message(self, itr: Interaction, message: Message) -> None:
+        if not itr.guild_id:
+            return
+
+        prev_message = self.server_messages.get(itr.guild_id, None)
         if prev_message is None:
-            self.server_messages[guild_id] = message
+            self.server_messages[itr.guild_id] = message
             return
 
         is_new_message = prev_message != message
         if is_new_message:
             await clean_up_old_message(prev_message)
-            self.server_messages[guild_id] = message
+            self.server_messages[itr.guild_id] = message
 
     def get(self, itr: Interaction) -> list[Initiative]:
-        guild_id = int(itr.guild_id)
-        return self.server_initiatives.get(guild_id, [])
+        if not itr.guild_id:
+            return []
+        return self.server_initiatives.get(itr.guild_id, [])
 
-    def add(self, itr: Interaction, initiative: Initiative) -> bool:
-        """Adds an initiative to the tracker. Returns True if added successfully, otherwise False."""
+    def add(self, itr: Interaction, initiative: Initiative) -> Initiative:
+        """Adds an initiative to the tracker."""
+        if not itr.guild_id:
+            raise RuntimeError("Initiatives can only be tracked in a server!")
+
         guild_id = int(itr.guild_id)
         if guild_id not in self.server_initiatives:
             self.server_initiatives[guild_id] = [initiative]
-            return True
+            return initiative
 
         existing = [s_initiative for s_initiative in self.server_initiatives[guild_id] if s_initiative.name == initiative.name]
         self.server_initiatives[guild_id] = [  # Enforce unique names
@@ -151,7 +108,7 @@ class InitiativeTracker:
         is_new_entry = not existing
         exceeds_limit = len(self.server_initiatives[guild_id]) >= self.INITIATIVE_LIMIT
         if is_new_entry and exceeds_limit:
-            return False
+            raise RuntimeError("Maximum number of initiatives exceeded!")
 
         insert_index = -1
         for i, s_initiative in enumerate(self.server_initiatives[guild_id]):
@@ -163,9 +120,13 @@ class InitiativeTracker:
             self.server_initiatives[guild_id].append(initiative)
         else:
             self.server_initiatives[guild_id].insert(insert_index, initiative)
-        return True
 
-    def clear(self, itr: Interaction):
+        return initiative
+
+    def clear(self, itr: Interaction) -> None:
+        if not itr.guild_id:
+            return
+
         guild_id = int(itr.guild_id)
         if guild_id in self.server_initiatives:
             del self.server_initiatives[guild_id]
@@ -193,15 +154,16 @@ class InitiativeTracker:
         choices.sort(key=lambda x: (-x[0], -x[1], x[2].name))  # Sort by query match => fuzzy score => alphabetically
         return [choice for _, _, choice in choices[:limit]]
 
-    def remove(self, itr: Interaction, name: str | None) -> tuple[bool, str]:
-        """Remove an initiative from the list. Returns a message and a success flag."""
+    def remove(self, itr: Interaction, name: str | None) -> Initiative:
+        """Remove an initiative from the list."""
+        if not itr.guild or not itr.guild_id:
+            raise RuntimeError("Initiatives can only be tracked in a server!")
+
         guild_id = int(itr.guild_id)
         if guild_id not in self.server_initiatives:
-            return False, f"No initiatives to remove in {itr.guild.name.title()}."
+            raise RuntimeError(f"No initiatives to remove in {itr.guild.name.title()}.")
 
-        if name is None:
-            name = itr.user.display_name
-
+        name = name or itr.user.display_name
         sanitized_name = self._sanitize_name(name)
 
         removal_index = -1
@@ -211,23 +173,15 @@ class InitiativeTracker:
                 break
 
         if removal_index == -1:
-            return (
-                False,
-                f"No initiatives found matching ``{name}``.\n Make sure targets are exact name-matches.",
-            )
+            raise RuntimeError(f"No initiatives found matching ``{name}``.\n Make sure targets are exact name-matches.")
 
-        if removal_index != -1:
-            del self.server_initiatives[guild_id][removal_index]
+        initiative = self.server_initiatives[guild_id][removal_index]
+        del self.server_initiatives[guild_id][removal_index]
 
         if len(self.server_initiatives[guild_id]) == 0:
             del self.server_initiatives[guild_id]
 
-        if sanitized_name == self._sanitize_name(itr.user.display_name):
-            return True, f"{itr.user.display_name} removed their own Initiative."
-        return (
-            True,
-            f"{itr.user.display_name} removed Initiative for ``{name.title()}``.",
-        )
+        return initiative
 
     def add_bulk(
         self,
@@ -237,16 +191,16 @@ class InitiativeTracker:
         amount: int,
         advantage: Advantage,
         shared: bool,
-    ) -> tuple[str, str, bool]:
-        """Adds many initiatives to a server. Returns a title and description for the embed and a boolean to signify if everything was added successfully."""
+    ) -> list[Initiative]:
+        """Adds many initiatives to a server."""
+        if not itr.guild_id:
+            raise RuntimeError("Initiatives can only be tracked in a server!")
+
         guild_id = itr.guild_id
-        initiative_count = amount + len(self.server_initiatives.get(guild_id, []))
+        server_initiatives = self.server_initiatives.get(guild_id, None) or []
+        initiative_count = amount + len(server_initiatives)
         if initiative_count > self.INITIATIVE_LIMIT:
-            return (
-                "Bulk-add failed!",
-                f"You attempted to add too many initiatives, max limit is {self.INITIATIVE_LIMIT}!",
-                False,
-            )
+            raise RuntimeError(f"You attempted to add too many initiatives, the max limit is {self.INITIATIVE_LIMIT}!")
 
         initiatives = []
         for i in range(amount):
@@ -256,16 +210,9 @@ class InitiativeTracker:
             initiatives.append(initiative)
 
         initiatives.sort(key=lambda x: x.get_total(), reverse=True)
-        description = ""
         for i, initiative in enumerate(initiatives):
             initiative.name += f" {i+1}"
             total = initiative.get_total()
-            description += f"- ``{total:>2}`` - {initiative.name}\n"
             self.add(itr, initiative)
 
-        title = f"{itr.user.display_name} rolled Initiative for {amount} {name.strip().title()}(s)"
-        title += " with Advantage" if advantage == Advantage.Advantage else ""
-        title += " with Disadvantage" if advantage == Advantage.Disadvantage else ""
-        title += "!"
-
-        return title, description, True
+        return initiatives

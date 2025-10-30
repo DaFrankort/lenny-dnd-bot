@@ -1,15 +1,13 @@
 from itertools import product
 import discord
 import pytest
-import pytest_asyncio
-from unittest.mock import AsyncMock, MagicMock
 
 from bot import Bot
 from logic.dnd.data import Data
 from logic.dnd.name import Gender
 from logic.roll import Advantage
 from logic.charactergen import class_choices, species_choices
-from utils.mocking import mock_image, mock_sound
+from utils.mocking import MockImage, MockInteraction, MockSound
 from utils.test_utils import enum_values, listify
 from commands.tokengen import AlignH, AlignV
 
@@ -48,20 +46,6 @@ class TestBotCommands:
     @pytest.fixture()
     def commands(self, bot):
         return {cmd.name: cmd for cmd in bot.tree.get_commands()}
-
-    @pytest_asyncio.fixture(autouse=True)
-    def setup(self):
-        self.mock_interaction = MagicMock(spec=discord.Interaction)
-        self.mock_interaction.user = MagicMock(spec=discord.User)
-        self.mock_interaction.user.id = 123456789  # Static user-id for commands that write user-data to files.
-        self.mock_interaction.user.display_name = "TestUser"
-        self.mock_interaction.guild = MagicMock(spec=discord.Guild)
-        self.mock_interaction.guild.id = 1234
-        self.mock_interaction.channel = MagicMock(spec=discord.TextChannel)
-        self.mock_interaction.response = MagicMock()
-        self.mock_interaction.response.send_message = AsyncMock()
-        self.mock_interaction.response.defer = AsyncMock()
-        self.mock_interaction.followup = AsyncMock()
 
     def expand_arg_variants(self, arg: dict[str, any]) -> list[dict[str, any]]:
         """
@@ -150,33 +134,33 @@ class TestBotCommands:
             (
                 "tokengen file",
                 [
-                    {"image": mock_image()},
-                    {"image": mock_image(), "frame_hue": [-180, 0, 180]},
+                    {"image": MockImage()},
+                    {"image": MockImage(), "frame_hue": [-180, 0, 180]},
                     {
-                        "image": mock_image(),
+                        "image": MockImage(),
                         "h_alignment": enum_values(AlignH),
                     },
                     {
-                        "image": mock_image(),
+                        "image": MockImage(),
                         "v_alignment": enum_values(AlignV),
                     },
-                    {"image": mock_image(), "variants": [0, 3, 10]},
+                    {"image": MockImage(), "variants": [0, 3, 10]},
                 ],
             ),
             (
                 "tokengen url",
                 [
-                    {"url": mock_image().url},
-                    {"url": mock_image().url, "frame_hue": [-180, 0, 180]},
+                    {"url": MockImage().url},
+                    {"url": MockImage().url, "frame_hue": [-180, 0, 180]},
                     {
-                        "url": mock_image().url,
+                        "url": MockImage().url,
                         "h_alignment": enum_values(AlignH),
                     },
                     {
-                        "url": mock_image().url,
+                        "url": MockImage().url,
                         "v_alignment": enum_values(AlignV),
                     },
-                    {"url": mock_image().url, "variants": [0, 3, 10]},
+                    {"url": MockImage().url, "variants": [0, 3, 10]},
                 ],
             ),
             ("initiative", {}),
@@ -238,6 +222,7 @@ class TestBotCommands:
         cmd_name: str,
         arguments: dict | list[dict],
     ):
+        itr = MockInteraction()
         cmd = get_cmd(commands, cmd_name)
         assert cmd is not None, f"{cmd_name} command not found"
 
@@ -247,7 +232,7 @@ class TestBotCommands:
             arg_variants = self.expand_arg_variants(arg_set)
             for args in arg_variants:
                 try:
-                    await cmd.callback(itr=self.mock_interaction, **args)
+                    await cmd.callback(itr=itr, **args)
                 except Exception as e:
                     pytest.fail(f"Error while running command /{cmd_name} with args {args}: {e}")
 
@@ -289,12 +274,12 @@ class TestBotCommands:
             ),
             (
                 "playsound",
-                {"sound": [mock_sound(), mock_image()]},
+                {"sound": [MockSound(), MockImage()]},
             ),
             (
                 "tokengen file",
                 [
-                    {"image": mock_sound()},
+                    {"image": MockSound()},
                 ],
             ),
             (
@@ -312,6 +297,7 @@ class TestBotCommands:
         cmd_name: str,
         arguments: dict | list[dict],
     ):
+        itr = MockInteraction()
         # This is the same test as test_slash_commands, except
         # we expect errors to be thrown
         cmd = get_cmd(commands, cmd_name)
@@ -323,7 +309,7 @@ class TestBotCommands:
             arg_variants = self.expand_arg_variants(arg_set)
             for args in arg_variants:
                 with pytest.raises(Exception):
-                    await cmd.callback(itr=self.mock_interaction, **args)
+                    await cmd.callback(itr=itr, **args)
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
@@ -354,6 +340,7 @@ class TestBotCommands:
         param_name: str,
         queries: str | list[str],
     ):
+        itr = MockInteraction()
         cmd = get_cmd(commands, cmd_name)
         assert cmd is not None, f"Command {cmd_name} not found"
 
@@ -368,6 +355,6 @@ class TestBotCommands:
 
         for current in queries:
             try:
-                await autocomplete_fn(cmd, self.mock_interaction, current)
+                await autocomplete_fn(cmd, itr, current)
             except Exception as e:
                 pytest.fail(f"Error while autocompleting '{param_name}' for /{cmd_name} with query '{current}': {e}")

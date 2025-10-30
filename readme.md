@@ -78,7 +78,14 @@ The bot should now be online, don't forget to invite it to your servers!
 
 ## Usage
 
-Once the bot is added to your server, you can use the following commands:
+Once the bot is added to your server, the commands below are available. When setting up the bot, the config commands should be used first to set the game master roles.
+
+### Config
+
+Configure the current state of the server.
+
+- `/config permissions` - Set the roles which are allowed to configure the bot further. Only the server admin is allowed to use this command.
+- `/config sources` - Enable or disable which sources will be used during the `/search` commands. Only users with the permission roles can change the sources.
 
 ### Dice Rolls
 

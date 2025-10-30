@@ -25,15 +25,11 @@ def get_error_embed(error: discord.app_commands.AppCommandError) -> discord.Embe
     }
     parts = str(error).split(": ")
     if len(parts) < 2:
-        logging.error(f"Unknown error format: {error}")
-        return SimpleEmbed(
-            title="Something went wrong!",
-            description=error,
-            color=discord.Color.red(),
-        )
-
-    error_title = titles.get(parts[1], "Something went wrong!")
-    error_msg = ": ".join(parts[2:]) if len(parts) > 2 else ""
+        error_title = "Something went wrong!"
+        error_msg = str(error)
+    else:
+        error_title = titles.get(parts[1], "Something went wrong!")
+        error_msg = ": ".join(parts[2:]) if len(parts) > 2 else ""
     embed = SimpleEmbed(title=error_title, description=error_msg, color=discord.Color.red())
 
     return embed

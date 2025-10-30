@@ -21,16 +21,18 @@ def is_source_phb2014(source: str) -> bool:
 
 
 class Config(object):
-    path: str | None
-    server: discord.Guild | None
+    server: discord.Guild
 
     def __init__(self, server: discord.Guild | None):
-        self.path = None
-        self.server = server
-        if self.server is not None:
-            self.path = f"config/{self.server.id}.config"
+        if server is None:
+            raise RuntimeError("You can only configure settings in a server!")
 
+        self.server = server
         self.create_file()
+
+    @property
+    def path(self) -> str:
+        return f"config/{self.server.id}.config"
 
     def create_file(self):
         """Creates the associated config file. Does not change anything if it already exists."""
@@ -148,11 +150,16 @@ class Config(object):
 
 
 def user_is_admin(user: discord.User | discord.Member) -> bool:
+    if not isinstance(user, discord.Member):
+        return False
     return user.guild_permissions.administrator
 
 
 def user_has_config_permissions(server: discord.Guild | None, user: discord.User | discord.Member) -> bool:
     if server is None:
+        return False
+
+    if not isinstance(user, discord.Member):
         return False
 
     config = Config(server)

@@ -2,7 +2,7 @@ from logic.dnd.abstract import DNDObject, DNDObjectList, Description
 
 
 class Background(DNDObject):
-    abilities: list[str] | None
+    abilities: list[str]
     description: list[Description]
 
     def __init__(self, json: dict):
@@ -12,7 +12,7 @@ class Background(DNDObject):
         self.name = json["name"]
         self.source = json["source"]
         self.url = json["url"]
-        self.abilities = json["abilities"]
+        self.abilities = json["abilities"] or []
         self.description = json["description"]
 
 

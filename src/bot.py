@@ -8,6 +8,7 @@ from commands.color import ColorCommandGroup
 from commands.config import ConfigCommand
 from commands.distribution import DistributionCommand
 from commands.help import HelpCommand
+from commands.homebrew import HomebrewCommandGroup
 from commands.initiative import InitiativeCommand
 from commands.namegen import NameGenCommand
 from commands.plansession import PlanSessionCommand
@@ -76,6 +77,7 @@ class Bot(discord.Client):
         self.tree.add_command(ConfigCommand())
         self.tree.add_command(SearchCommandGroup())
         self.tree.add_command(TimestampCommandGroup())
+        self.tree.add_command(HomebrewCommandGroup())
 
         # Context menus
         self.tree.add_command(DeleteContextMenu())

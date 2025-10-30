@@ -1,5 +1,5 @@
-from asyncio import Condition
 from embeds.dnd.abstract import DNDObjectEmbed
+from logic.dnd.condition import Condition
 
 
 class ConditionEmbed(DNDObjectEmbed):

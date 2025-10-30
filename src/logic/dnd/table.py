@@ -1,5 +1,5 @@
 from typing import Any
-from logic.dnd.abstract import DNDObject, DNDObjectList, Description
+from logic.dnd.abstract import DNDObject, DNDObjectList
 from logic.roll import RollResult, roll
 
 

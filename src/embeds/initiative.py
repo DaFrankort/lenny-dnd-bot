@@ -1,7 +1,7 @@
 import discord
 from discord import Interaction, ui
 from components.items import SimpleSeparator
-from embed import SimpleEmbed, SuccessEmbed, UserActionEmbed
+from embed import SimpleEmbed, UserActionEmbed
 from logic.initiative import Initiative, InitiativeTracker
 from logic.roll import Advantage
 from modals import SimpleModal
@@ -48,29 +48,37 @@ class InitiativeRollModal(_InitiativeModal):
             {"a": Advantage.Advantage, "d": Advantage.Disadvantage},
         )
         initiative = Initiative(itr, modifier, name, advantage)
-        success = self.tracker.add(itr, initiative)
+        self.tracker.add(itr, initiative)
 
-        if not success:
-            await itr.response.send_message(
-                embed=SuccessEmbed(
-                    title_success="",
-                    title_fail="Failed to add initiative!",
-                    description=f"Can't add more initiatives to the tracker, max limit of {self.tracker.INITIATIVE_LIMIT} reached.",
-                    success=False,
-                ),
-                ephemeral=True,
-            )
-            return
+        title = f"{itr.user.name} rolled Initiative for {initiative.name}"
+        if advantage == Advantage.Advantage:
+            title += "with Advantage!"
+        elif advantage == Advantage.Disadvantage:
+            title += "with Disadvantage!"
+        else:
+            title += "!"
+
+        description = []
+        roll_count = 1 if advantage == Advantage.Normal else 2
+        for i in range(roll_count):
+            d20 = initiative.d20[i]
+            mod = initiative.modifier
+            total = d20 + mod
+            mod_str = f"+ {mod}" if mod > 0 else f"- {-mod}"
+            description.append(f"- ``[{d20}] {mod_str}`` -> {total}\n")
+        description.append(f"\n**Initiative**: {initiative.get_total()}")
+        description = "\n".join(description)
 
         view = InitiativeContainerView(itr, self.tracker)
         sound_type = SoundType.CREATURE if name else SoundType.PLAYER
         await itr.response.defer()
         await VC.play(itr, sound_type)
-        await itr.followup.edit_message(message_id=itr.message.id, view=view)
-        await itr.followup.send(
-            embed=UserActionEmbed(itr=itr, title=initiative.title, description=initiative.description),
-            ephemeral=True,
-        )
+        if itr.message:
+            await itr.followup.edit_message(message_id=itr.message.id, view=view)
+            await itr.followup.send(
+                embed=UserActionEmbed(itr=itr, title=title, description=description),
+                ephemeral=True,
+            )
 
 
 class InitiativeSetModal(_InitiativeModal):
@@ -94,15 +102,17 @@ class InitiativeSetModal(_InitiativeModal):
             await itr.response.send_message("Value must be a positive number without decimals.", ephemeral=True)
             return
 
-        initiative = Initiative(itr, value, name, Advantage.Normal)
-        initiative.set_value(value)
+        initiative = Initiative(itr, 0, name, Advantage.Normal, roll=value)
         self.tracker.add(itr, initiative)
+
+        title = f"{itr.user.name} set Initiative for {initiative.name}!"
+        description = f"**Initiative**: {initiative.get_total()}"
 
         view = InitiativeContainerView(itr, self.tracker)
         await VC.play(itr, SoundType.WRITE)
         await itr.response.edit_message(view=view)
         await itr.followup.send(
-            embed=UserActionEmbed(itr=itr, title=initiative.title, description=initiative.description),
+            embed=UserActionEmbed(itr=itr, title=title, description=description),
             ephemeral=True,
         )
 
@@ -122,20 +132,13 @@ class InitiativeDeleteModal(_InitiativeModal):
         self.log_inputs(itr)
 
         name = self.get_str(self.name)
-        success, text = self.tracker.remove(itr, name)
+        initiative = self.tracker.remove(itr, name)
         view = InitiativeContainerView(itr, self.tracker)
 
-        if success:
-            await VC.play(itr, SoundType.DELETE)
-
+        await VC.play(itr, SoundType.DELETE)
         await itr.response.edit_message(view=view)
         await itr.followup.send(
-            embed=SuccessEmbed(
-                title_success="Removed initiative",
-                title_fail="Failed to remove initiative",
-                description=text,
-                success=success,
-            ),
+            embed=SimpleEmbed(title="Removed initiative", description=f"Initiative removed for {initiative.name}!"),
             ephemeral=True,
         )
 
@@ -191,20 +194,13 @@ class InitiativeBulkModal(_InitiativeModal):
             {"a": Advantage.Advantage, "d": Advantage.Disadvantage},
         )
         shared = self.get_choice(self.shared, False, {"t": True})
+        initiatives = self.tracker.add_bulk(itr, modifier, name, amount, advantage, shared)
 
-        title, description, success = self.tracker.add_bulk(itr, modifier, name, amount, advantage, shared)
-
-        if not success:
-            await itr.response.send_message(
-                embed=SuccessEmbed(
-                    title_success="",
-                    title_fail=title,
-                    description=description,
-                    success=False,
-                ),
-                ephemeral=True,
-            )
-            return
+        title = f"{itr.user.display_name} rolled Initiative for {amount} {name.strip().title()}(s)!"
+        descriptions = []
+        for initiative in initiatives:
+            descriptions.append(f"``{initiative.get_total():>2}`` - {initiative.name}")
+        description = "\n".join(descriptions)
 
         view = InitiativeContainerView(itr, self.tracker)
         await VC.play(itr, SoundType.CREATURE)
@@ -295,7 +291,7 @@ class InitiativeUnlockButton(ui.Button):
         super().__init__(style=discord.ButtonStyle.primary, label="Unlock", custom_id="unlock_btn")
         self.tracker = tracker
 
-    async def callback(self, itr: Interaction):
+    async def callback(self, itr: Interaction):  # pyright: ignore[reportIncompatibleMethodOverride]
         log_button_press(itr, self, "InitiativeContainerView")
         await VC.play(itr, SoundType.LOCK)
         await itr.response.edit_message(view=InitiativeContainerView(itr, self.tracker, False))

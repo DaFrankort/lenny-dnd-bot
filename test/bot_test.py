@@ -1,4 +1,5 @@
 from itertools import product
+from typing import Any
 import discord
 import pytest
 
@@ -10,30 +11,34 @@ from logic.charactergen import class_choices, species_choices
 from utils.mocking import MockImage, MockInteraction, MockSound
 from utils.test_utils import listify
 from commands.tokengen import AlignH, AlignV
+from discord.app_commands import Command, Group
 
 
-def get_cmd_from_group(group: discord.app_commands.Group, parts: list[str]) -> discord.app_commands.Command:
+def get_cmd_from_group(group: discord.app_commands.Group, parts: list[str]) -> Command | None:
     """Recursively looks for a command within command-groups."""
+    if len(parts) == 0:
+        return None
+
     cmd = group.get_command(parts[0])
     if isinstance(cmd, discord.app_commands.Group):
         return get_cmd_from_group(cmd, parts[1:])
     return cmd
 
 
-def get_cmd(
-    commands: dict[
-        str,
-        discord.app_commands.Command | discord.app_commands.ContextMenu | discord.app_commands.Group,
-    ],
-    name: str,
-):
-    if " " in name:
-        # Only groups can have spaces in the name
-        parts = [p.strip() for p in name.split(" ")]
-        root = commands.get(parts[0])
-        return get_cmd_from_group(root, parts[1:])
+def get_cmd(commands: dict[str, Command | Group], name: str) -> Command | None:
+    name = name.strip()
+    if not name:
+        return None
+
+    names = [n.strip() for n in name.split(" ")]
+    name = names[0]
+    rest = names[1:]
+
+    command = commands.get(name, None)
+    if isinstance(command, Group):
+        return get_cmd_from_group(command, rest)
     else:
-        return commands.get(name)
+        return command
 
 
 class TestBotCommands:
@@ -44,10 +49,10 @@ class TestBotCommands:
         return bot
 
     @pytest.fixture()
-    def commands(self, bot):
+    def commands(self, bot) -> dict[str, Command | Group]:
         return {cmd.name: cmd for cmd in bot.tree.get_commands()}
 
-    def expand_arg_variants(self, arg: dict[str, any]) -> list[dict[str, any]]:
+    def expand_arg_variants(self, arg: dict[str, Any]) -> list[dict[str, Any]]:
         """
         Iterates over the arguments and produces combinations when an argument is a list.
         """
@@ -199,7 +204,7 @@ class TestBotCommands:
     )
     async def test_slash_commands(
         self,
-        commands: list[discord.app_commands.Command],
+        commands: dict[str, Command | Group],
         cmd_name: str,
         arguments: dict | list[dict],
     ):
@@ -213,7 +218,7 @@ class TestBotCommands:
             arg_variants = self.expand_arg_variants(arg_set)
             for args in arg_variants:
                 try:
-                    await cmd.callback(itr=itr, **args)
+                    await cmd.callback(itr=itr, **args)  # pyright: ignore[reportCallIssue]
                 except Exception as e:
                     pytest.fail(f"Error while running command /{cmd_name} with args {args}: {e}")
 
@@ -274,7 +279,7 @@ class TestBotCommands:
     )
     async def test_slash_commands_expecting_failure(
         self,
-        commands: list[discord.app_commands.Command],
+        commands: dict[str, Command | Group],
         cmd_name: str,
         arguments: dict | list[dict],
     ):
@@ -290,7 +295,7 @@ class TestBotCommands:
             arg_variants = self.expand_arg_variants(arg_set)
             for args in arg_variants:
                 with pytest.raises(Exception):
-                    await cmd.callback(itr=itr, **args)
+                    await cmd.callback(itr=itr, **args)  # pyright: ignore[reportCallIssue]
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
@@ -316,7 +321,7 @@ class TestBotCommands:
     )
     async def test_autocomplete_suggestions(
         self,
-        commands: list[discord.app_commands.Command],
+        commands: dict[str, Command | Group],
         cmd_name: str,
         param_name: str,
         queries: str | list[str],

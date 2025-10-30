@@ -1,12 +1,12 @@
-import discord
 from bot import Bot
+from logic.app_commands import SimpleCommand
 
 
 class TestHelp:
     def test_all_commands_have_help(self):
         bot = Bot()
 
-        commands = [cmd for cmd in bot.tree.get_commands() if isinstance(cmd, discord.app_commands.Command)]
+        commands = [cmd for cmd in bot.tree.get_commands() if isinstance(cmd, SimpleCommand)]
 
         for cmd in commands:
             # Assert that every command has a name, desc, help, and command

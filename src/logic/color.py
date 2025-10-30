@@ -81,7 +81,7 @@ def save_rgb_color(itr: discord.Interaction, r: int, g: int, b: int) -> UserColo
 class UserColor:
     """Class to handle user colors, which are used in embeds."""
 
-    FILE_PATH = "./temp/user_colors.json"
+    FILE_PATH: str = "./temp/user_colors.json"
 
     @staticmethod
     def validate(hex_color: str) -> bool:

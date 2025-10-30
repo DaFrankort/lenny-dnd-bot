@@ -112,7 +112,7 @@ def _crop_image(
     # Resize with inset to avoid sticking out of the frame
     inner_width = width_x - 2 * inset
     inner_height = width_y - 2 * inset
-    image = image.resize((inner_width, inner_height), Image.LANCZOS)
+    image = image.resize((inner_width, inner_height), Image.Resampling.LANCZOS)
 
     # Add white background, for cleaner png-tokens
     white_bg = Image.new("RGBA", image.size, (255, 255, 255, 255))
@@ -219,7 +219,7 @@ def add_number_to_tokenimage(token_image: Image.Image, number: int, amount: int)
     font_size = int(min(label_size) * 0.6) if number < 10 else int(min(label_size) * 0.5)
 
     label = TOKEN_NUMBER_LABEL.copy()
-    variant_hue = (number - 1) * (360 / amount)
+    variant_hue = int((number - 1) * (360 / amount))
     overlay = _shift_hue(TOKEN_NUMBER_OVERLAY.copy(), variant_hue)
     label.alpha_composite(overlay)
     label = label.rotate(
@@ -239,7 +239,7 @@ def add_number_to_tokenimage(token_image: Image.Image, number: int, amount: int)
     x = (label_size[0] - text_width) // 2
     y = (label_size[1] - text_height * 2) // 2
 
-    if number == 7 and "merienda" in font.font.family.lower():
+    if number == 7 and font.font.family and "merienda" in font.font.family.lower():
         y += (
             text_height // 6
         )  # Merienda's '7' is shifted upwards, thus requires compensation, dividing by 6 gave nicest results.
@@ -270,10 +270,12 @@ def add_number_to_tokenimage(token_image: Image.Image, number: int, amount: int)
 async def generate_token_from_file(
     image: discord.Attachment,
     frame_hue: int,
-    h_alignment: str,
-    v_alignment: str,
+    h_alignment: AlignH,
+    v_alignment: AlignV,
     variants: int,
 ) -> list[discord.File]:
+    if not image.content_type:
+        raise ValueError("Unknown attachment type!")
     if not image.content_type.startswith("image"):
         raise ValueError("Attachment must be an image.")
 
@@ -291,7 +293,7 @@ async def generate_token_from_file(
 
 
 async def generate_token_from_url(
-    url: str, frame_hue: int, h_alignment: str, v_alignment: str, variants: int
+    url: str, frame_hue: int, h_alignment: AlignH, v_alignment: AlignV, variants: int
 ) -> list[discord.File]:
     if not url.startswith("http"):
         raise ValueError(f"Not a valid URL: '{url}'")

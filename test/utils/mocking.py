@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock
 
 import discord
 
@@ -77,21 +77,30 @@ class MockInteraction(discord.Interaction):
     def __init__(self, user: MockUser = MockUser("user"), guild_id: int = 999):
         self.user = user
         self.guild_id = guild_id
+        self.channel = MagicMock(spec=discord.TextChannel)
+        self.response = MagicMock()
+        self.response.send_message = AsyncMock()
+        self.response.defer = AsyncMock()
+        self.followup = AsyncMock()
+        self._state = MagicMock()
+        self._original_response = MagicMock()
 
 
-def _mock_attachment(url: str, content_type: str) -> discord.Attachment:
-    attachment = MagicMock(spec=discord.Attachment)
-    attachment.url = url
-    attachment.content_type = MagicMock()
-    attachment.content_type = content_type
-    return attachment
+class MockAttachment(discord.Attachment):
+    def __init__(self, url: str, content_type: str):
+        self.id = abs(hash(url))
+        self.url = url
+        self.filename = "file.data"
+        self.content_type = content_type
 
 
-def mock_image() -> discord.Attachment:
-    img_url = r"https://img.lovepik.com/element/40116/9419.png_1200.png"
-    return _mock_attachment(img_url, "image")
+class MockImage(MockAttachment):
+    def __init__(self):
+        url = r"https://img.lovepik.com/element/40116/9419.png_1200.png"
+        super().__init__(url, "image")
 
 
-def mock_sound() -> discord.Attachment:
-    sound_url = r"https://diviextended.com/wp-content/uploads/2021/10/sound-of-waves-marine-drive-mumbai.mp3"
-    return _mock_attachment(sound_url, "audio")
+class MockSound(MockAttachment):
+    def __init__(self):
+        url = r"https://diviextended.com/wp-content/uploads/2021/10/sound-of-waves-marine-drive-mumbai.mp3"
+        super().__init__(url, "audio")

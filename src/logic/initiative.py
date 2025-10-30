@@ -161,7 +161,7 @@ class InitiativeTracker:
 
         guild_id = int(itr.guild_id)
         if guild_id not in self.server_initiatives:
-            raise RuntimeError(f"No initiatives to remove in {itr.guild.name.title()}.")
+            raise RuntimeError(f"No initiatives to remove in this server.")
 
         name = name or itr.user.display_name
         sanitized_name = self._sanitize_name(name)

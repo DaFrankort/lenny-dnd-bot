@@ -2,7 +2,7 @@ import dataclasses
 from enum import Enum
 import d20
 
-from command import ChoicedEnum
+from methods import ChoicedEnum
 
 
 class Advantage(ChoicedEnum):

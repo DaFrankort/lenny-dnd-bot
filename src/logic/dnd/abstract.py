@@ -2,7 +2,7 @@ import abc
 import json
 import logging
 import os
-from typing import Literal, TypedDict, Union
+from typing import Generic, Literal, TypeVar, TypedDict, Union
 import discord
 from rapidfuzz import fuzz
 
@@ -11,10 +11,6 @@ class DescriptionRowRange(TypedDict):
     type: Literal["range"]
     min: int
     max: int
-
-    @property
-    def notation(self) -> str:
-        return f"{self['min']} - {self['max']}"
 
 
 class DescriptionTable(TypedDict):
@@ -41,8 +37,11 @@ class DNDObject(abc.ABC):
         return f"{self.name} ({self.source})"
 
 
-class DNDObjectList(abc.ABC):
-    entries: list[DNDObject]
+TDND = TypeVar("TDND", bound=DNDObject)
+
+
+class DNDObjectList(abc.ABC, Generic[TDND]):
+    entries: list[TDND]
 
     def __init__(self):
         self.entries = []
@@ -63,10 +62,10 @@ class DNDObjectList(abc.ABC):
         query: str,
         allowed_sources: set[str],
         fuzzy_threshold: float = 75,
-    ) -> list[DNDObject]:
+    ) -> list[TDND]:
         query = query.strip().lower()
-        exact: list[DNDObject] = []
-        fuzzy: list[DNDObject] = []
+        exact = []
+        fuzzy = []
 
         for entry in self.entries:
             if entry.source not in allowed_sources:

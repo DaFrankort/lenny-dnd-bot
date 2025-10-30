@@ -1,7 +1,7 @@
 import discord
 from embeds.homebrew import HomebrewEditModal, HomebrewEmbed, HomebrewEntryAddModal, HomebrewListView
 from logic.app_commands import SimpleCommand, SimpleCommandGroup, check_is_guild
-from logic.homebrew import DNDObjectTypes, HomebrewData
+from logic.homebrew import DNDObjectType, HomebrewData
 
 
 class HomebrewCommandGroup(SimpleCommandGroup):
@@ -22,7 +22,7 @@ class HomebrewAddCommand(SimpleCommand):
     desc = "Add custom content to your tome of homebrew."
     help = "Add new homebrew content to your server."
 
-    @discord.app_commands.choices(dnd_type=DNDObjectTypes.choices())
+    @discord.app_commands.choices(dnd_type=DNDObjectType.choices())
     @discord.app_commands.check(check_is_guild)
     async def callback(self, itr: discord.Interaction, dnd_type: str):
         self.log(itr)
@@ -51,7 +51,7 @@ class HomebrewListCommand(SimpleCommand):
     desc = "View all entries in your server's tome of homebrew!"
     help = "Shows all homebrew content in your server and filter by entry type."
 
-    @discord.app_commands.choices(filter=DNDObjectTypes.choices())
+    @discord.app_commands.choices(filter=DNDObjectType.choices())
     @discord.app_commands.check(check_is_guild)
     async def callback(self, itr: discord.Interaction, filter: str = None):
         self.log(itr)

@@ -4,13 +4,12 @@ import os
 import discord
 from rapidfuzz import fuzz
 from logic.app_commands import ChoicedEnum
-from logic.dnd.abstract import DNDObject
 
 
 HOMEBREW_PATH: str = "./temp/homebrew/"
 
 
-class DNDObjectTypes(ChoicedEnum):
+class DNDObjectType(ChoicedEnum):
     ACTION = "action"
     BACKGROUND = "background"
     CLASS = "class"
@@ -24,26 +23,27 @@ class DNDObjectTypes(ChoicedEnum):
     SPELL = "spell"
     TABLE = "table"
 
+    @property
+    def emoji(self) -> str:
+        emojis = {
+            self.ACTION: "🏃",
+            self.BACKGROUND: "📕",
+            self.CLASS: "🧙‍♂️",
+            self.CONDITION: "🤒",
+            self.CREATURE: "🐉",
+            self.FEAT: "🎖️",
+            self.ITEM: "🗡️",
+            self.LANGUAGE: "💬",
+            self.RULE: "📜",
+            self.SPECIES: "🧝",
+            self.SPELL: "🔥",
+            self.TABLE: "📊",
+        }
+        return emojis.get(self, "❓")
 
-DNDObjectEmojis = {
-    DNDObjectTypes.ACTION.value: "🏃",
-    DNDObjectTypes.BACKGROUND.value: "📕",
-    DNDObjectTypes.CLASS.value: "🧙‍♂️",
-    DNDObjectTypes.CONDITION.value: "🤒",
-    DNDObjectTypes.CREATURE.value: "🐉",
-    DNDObjectTypes.FEAT.value: "🎖️",
-    DNDObjectTypes.ITEM.value: "🗡️",
-    DNDObjectTypes.LANGUAGE.value: "💬",
-    DNDObjectTypes.RULE.value: "📜",
-    DNDObjectTypes.SPECIES.value: "🧝",
-    DNDObjectTypes.SPELL.value: "🔥",
-    DNDObjectTypes.TABLE.value: "📊",
-}
 
-
-class DNDHomebrewObject(DNDObject):
-    object_type: str
-    source: str
+class DNDHomebrewObject:
+    object_type: DNDObjectType
     _author_id: int
 
     name: str
@@ -51,17 +51,20 @@ class DNDHomebrewObject(DNDObject):
     description: str
 
     @property
+    def title(self) -> str:
+        return f"{self.name} ({self.object_type.value.title()})"
+
+    @property
     def emoji(self) -> str:
-        return DNDObjectEmojis.get(self.object_type, "❓")
+        return self.object_type.emoji
 
     def __init__(self, object_type: str, name: str, select_description: str | None, description: str, author_id: int):
         if select_description:
             select_description = select_description.strip()
 
         super().__init__()
-        self.object_type = object_type
-        self.source = object_type.title()
-        self.name = name.title()
+        self.object_type = DNDObjectType(object_type)
+        self.name = name
         self.select_description = select_description or None
         self.description = description
         self._author_id = author_id
@@ -73,19 +76,18 @@ class DNDHomebrewObject(DNDObject):
 
     def to_dict(self) -> dict:
         return {
-            "object_type": self.object_type,
+            "object_type": self.object_type.value,
             "name": self.name,
             "select_description": self.select_description,
             "description": self.description,
             "author_id": self._author_id,
-            "source": self.source,
         }
 
-    def can_manage(self, itr: discord.Interaction) -> bool:
+    def can_manage(self, member: discord.Member) -> bool:
         """Returns true/false depending on whether or not the user can manage this entry"""
-        if itr.user.id == self._author_id:
+        if member.id == self._author_id:
             return True
-        return itr.user.guild_permissions.manage_messages
+        return member.guild_permissions.manage_messages
 
     @classmethod
     def from_dict(cls, d: dict):
@@ -107,9 +109,9 @@ class HomebrewGuildData:
         self.entries: dict[str, list[DNDHomebrewObject]] = {}
 
         if not data:
-            for type in DNDObjectTypes:
+            for type in DNDObjectType:
                 self.entries[type.value] = []
-            self.save()
+            self._save()
             return
 
         for key, items in data.items():
@@ -122,22 +124,27 @@ class HomebrewGuildData:
     def _file_path(self) -> str:
         return os.path.join(HOMEBREW_PATH, f"{self.server_id}.json")
 
-    def save(self):
+    def _save(self):
         os.makedirs(os.path.dirname(self._file_path), exist_ok=True)
         entries = {k: [obj.to_dict() for obj in v] for k, v in self.entries.items()}
         with open(self._file_path, "w", encoding="utf-8") as file:
             json.dump(entries, file, indent=2)
+
+    def _find(self, entry_name: str) -> DNDHomebrewObject | None:
+        for _, items in self.entries.items():
+            for item in items:
+                if entry_name.lower() != item.name.lower():
+                    continue
+                return item
+        return None
 
     def add(
         self, itr: discord.Interaction, object_type: str, name: str, select_description: str | None, description: str
     ) -> DNDHomebrewObject:
         if not itr.guild:
             raise ValueError("Can only add homebrew content to a server!")
-
-        for key in self.entries.keys():
-            for entry in self.entries.get(key, []):
-                if entry.name.lower() == name.lower():
-                    raise ValueError(f"A homebrew entry with the name '{name}' already exists!")
+        if self._find(name):
+            raise ValueError(f"A homebrew entry with the name '{name}' already exists!")
 
         author_id = itr.user.id
         new_entry = DNDHomebrewObject(
@@ -148,57 +155,53 @@ class HomebrewGuildData:
             author_id=author_id,
         )
         self.entries[object_type].append(new_entry)
-        self.save()
+        self._save()
         return new_entry
 
     def delete(self, itr: discord.Interaction, name: str) -> DNDHomebrewObject:
-        entry_to_delete = None
-        for key in self.entries.keys():
-            for e in self.entries.get(key, []):
-                if e.name.lower() == name.lower():
-                    if not e.can_manage(itr):
-                        raise ValueError("You do not have the correct permissions to remove this entry.")
-                    entry_to_delete = e
-                    break
-            if entry_to_delete:
-                self.entries[key].remove(entry_to_delete)
-                self.save()
-                break
-
+        entry_to_delete = self._find(name)
         if entry_to_delete is None:
             raise ValueError(f"Could not delete homebrew entry '{name}', entry does not exist.")
+        if not entry_to_delete.can_manage(itr.user):
+            raise ValueError("You do not have permission to remove this homebrew entry.")
+
+        key = entry_to_delete.object_type.value
+        self.entries[key].remove(entry_to_delete)
+        self._save()
         return entry_to_delete
 
     def edit(
-        self, itr: discord.Interaction, entry: DNDHomebrewObject, name: str, select_description: str, description: str
+        self, itr: discord.Interaction, entry: DNDHomebrewObject, name: str, select_description: str | None, description: str
     ) -> DNDHomebrewObject:
-        for e in self.entries.get(entry.object_type, []):
-            if e.name.lower() == entry.name.lower():
-                if not e.can_manage(itr):
-                    raise ValueError("You do not have the correct permissions to edit this entry.")
-                e.name = name
-                e.select_description = select_description
-                e.description = description
-                entry = e
-                self.save()
-                break
-        return entry
+        if not entry.can_manage(itr.user):
+            raise ValueError("You do not have permission to edit this homebrew entry.")
+
+        key: str = entry.object_type.value
+        edited_entry = DNDHomebrewObject(
+            object_type=entry.object_type.value,
+            name=name,
+            select_description=select_description,
+            description=description,
+            author_id=entry._author_id,
+        )
+        self.entries[key].remove(entry)
+        self.entries[key].append(edited_entry)
+        self._save()
+        return edited_entry
 
     def get(self, entry_name: str) -> DNDHomebrewObject:
-        for key in self.entries.keys():
-            for entry in self.entries.get(key, []):
-                if entry.name.lower() == entry_name.lower():
-                    return entry
-        raise ValueError(f"No homebrew entry with the name '{entry_name}' found!")
+        entry = self._find(entry_name)
+        if entry is None:
+            raise ValueError(f"No homebrew entry with the name '{entry_name}' found!")
+        return entry
 
     def get_all(self, type_filter: str | None) -> list[DNDHomebrewObject]:
         entries = []
         type_filter = type_filter.strip().lower() if type_filter else None
-        for key in self.entries.keys():
+        for key, items in self.entries.items():
             if type_filter and type_filter != key.lower():
                 continue
-            for entry in self.entries.get(key, []):
-                entries.append(entry)
+            entries.extend(items)
         return entries
 
     def get_autocomplete_suggestions(
@@ -213,7 +216,7 @@ class HomebrewGuildData:
         choices = []
         for key in self.entries.keys():
             for e in self.entries.get(key, []):
-                if itr and not e.can_manage(itr):
+                if itr and not e.can_manage(itr.user):
                     continue
 
                 name_clean = e.name.strip().lower().replace(" ", "")

@@ -57,12 +57,7 @@ class DNDObjectList(abc.ABC, Generic[TDND]):
         with open(path, "r", encoding="utf-8") as file:
             return json.load(file)
 
-    def get(
-        self,
-        query: str,
-        allowed_sources: set[str],
-        fuzzy_threshold: float = 75,
-    ) -> list[TDND]:
+    def get(self, query: str, allowed_sources: set[str], fuzzy_threshold: float = 75) -> list[TDND]:
         query = query.strip().lower()
         exact = []
         fuzzy = []
@@ -85,11 +80,7 @@ class DNDObjectList(abc.ABC, Generic[TDND]):
         return fuzzy
 
     def get_autocomplete_suggestions(
-        self,
-        query: str,
-        allowed_sources: set[str],
-        fuzzy_threshold: float = 75,
-        limit: int = 25,
+        self, query: str, allowed_sources: set[str], fuzzy_threshold: float = 75, limit: int = 25
     ) -> list[discord.app_commands.Choice[str]]:
         query = query.strip().lower().replace(" ", "")
 
@@ -120,12 +111,7 @@ class DNDObjectList(abc.ABC, Generic[TDND]):
         choices.sort(key=lambda x: (-x[0], -x[1], x[2].name))  # Sort by query match => fuzzy score => alphabetically
         return [choice for _, _, choice in choices[:limit]]
 
-    def search(
-        self,
-        query: str,
-        allowed_sources: set[str],
-        fuzzy_threshold: float = 75,
-    ) -> list[DNDObject]:
+    def search(self, query: str, allowed_sources: set[str], fuzzy_threshold: float = 75) -> list[DNDObject]:
         query = query.strip().lower()
         found: list[DNDObject] = []
 

@@ -4,6 +4,7 @@ import os
 import discord
 from rapidfuzz import fuzz
 from logic.app_commands import ChoicedEnum
+from logic.config import user_is_admin_or_has_config_permissions
 
 
 HOMEBREW_PATH: str = "./temp/homebrew/"
@@ -83,11 +84,13 @@ class DNDHomebrewObject:
             "author_id": self._author_id,
         }
 
-    def can_manage(self, member: discord.Member) -> bool:
+    def can_manage(self, itr: discord.Interaction) -> bool:
         """Returns true/false depending on whether or not the user can manage this entry"""
-        if member.id == self._author_id:
+        if itr.user.id == self._author_id:
             return True
-        return member.guild_permissions.manage_messages
+        if user_is_admin_or_has_config_permissions(itr.guild, itr.user):
+            return True
+        return itr.user.guild_permissions.manage_messages
 
     @classmethod
     def from_dict(cls, d: dict):
@@ -162,7 +165,7 @@ class HomebrewGuildData:
         entry_to_delete = self._find(name)
         if entry_to_delete is None:
             raise ValueError(f"Could not delete homebrew entry '{name}', entry does not exist.")
-        if not entry_to_delete.can_manage(itr.user):
+        if not entry_to_delete.can_manage(itr):
             raise ValueError("You do not have permission to remove this homebrew entry.")
 
         key = entry_to_delete.object_type.value
@@ -173,7 +176,7 @@ class HomebrewGuildData:
     def edit(
         self, itr: discord.Interaction, entry: DNDHomebrewObject, name: str, select_description: str | None, description: str
     ) -> DNDHomebrewObject:
-        if not entry.can_manage(itr.user):
+        if not entry.can_manage(itr):
             raise ValueError("You do not have permission to edit this homebrew entry.")
 
         key: str = entry.object_type.value
@@ -216,7 +219,7 @@ class HomebrewGuildData:
         choices = []
         for key in self.entries.keys():
             for e in self.entries.get(key, []):
-                if itr and not e.can_manage(itr.user):
+                if itr and not e.can_manage(itr):
                     continue
 
                 name_clean = e.name.strip().lower().replace(" ", "")

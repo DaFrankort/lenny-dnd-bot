@@ -4,7 +4,7 @@ from logic.dnd.abstract import DNDObject, DNDObjectList, Description
 class Action(DNDObject):
     description: list[Description]
 
-    def __init__(self, json: any):
+    def __init__(self, json: dict):
         self.object_type = "action"
         self.emoji = "🏃"
 
@@ -16,7 +16,7 @@ class Action(DNDObject):
         self.description = json["description"]
 
 
-class ActionList(DNDObjectList):
+class ActionList(DNDObjectList[Action]):
     path = "./submodules/lenny-dnd-data/generated/actions.json"
 
     def __init__(self):

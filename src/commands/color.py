@@ -35,7 +35,7 @@ class ColorSetHexCommand(SimpleCommand):
     async def callback(self, itr: discord.Interaction, hex_color: str):
         self.log(itr)
         result = save_hex_color(itr, hex_color)
-        embed = ColorSetEmbed(itr, result)
+        embed = ColorSetEmbed(itr, result, hex=True)
         await itr.response.send_message(embed=embed, file=embed.file, ephemeral=True)
 
 
@@ -53,7 +53,7 @@ class ColorSetRGBCommand(SimpleCommand):
     ):
         self.log(itr)
         result = save_rgb_color(itr, r, g, b)
-        embed = ColorSetEmbed(itr, result)
+        embed = ColorSetEmbed(itr, result, hex=False)
         await itr.response.send_message(embed=embed, file=embed.file, ephemeral=True)
 
 

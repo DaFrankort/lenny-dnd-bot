@@ -1,7 +1,9 @@
 import discord
+
 from embeds.homebrew import HomebrewEditModal, HomebrewEmbed, HomebrewEntryAddModal, HomebrewListView
 from command import SimpleCommand, SimpleCommandGroup, check_is_guild
 from logic.homebrew import DNDObjectType, HomebrewData
+from discord.app_commands import describe, choices, autocomplete
 
 
 class HomebrewCommandGroup(SimpleCommandGroup):
@@ -22,7 +24,8 @@ class HomebrewAddCommand(SimpleCommand):
     desc = "Add custom content to your tome of homebrew."
     help = "Add new homebrew content to your server."
 
-    @discord.app_commands.choices(dnd_type=DNDObjectType.choices())
+    @choices(dnd_type=DNDObjectType.choices())
+    @describe(dnd_type="The type of entry you are adding.")
     @discord.app_commands.check(check_is_guild)
     async def callback(self, itr: discord.Interaction, dnd_type: str):
         self.log(itr)
@@ -37,7 +40,8 @@ class HomebrewSearchCommand(SimpleCommand):
     async def entry_autocomplete(self, itr: discord.Interaction, current: str):
         return HomebrewData.get(itr).get_autocomplete_suggestions(current)
 
-    @discord.app_commands.autocomplete(entry=entry_autocomplete)
+    @autocomplete(entry=entry_autocomplete)
+    @describe(entry="The name of the entry you want to find.")
     @discord.app_commands.check(check_is_guild)
     async def callback(self, itr: discord.Interaction, entry: str):
         self.log(itr)
@@ -51,7 +55,8 @@ class HomebrewListCommand(SimpleCommand):
     desc = "View all entries in your server's tome of homebrew!"
     help = "Shows all homebrew content in your server and filter by entry type."
 
-    @discord.app_commands.choices(filter=DNDObjectType.choices())
+    @choices(filter=DNDObjectType.choices())
+    @describe(filter="Show only homebrew entries of a certain type. Shows all by default.")
     @discord.app_commands.check(check_is_guild)
     async def callback(self, itr: discord.Interaction, filter: str = None):
         self.log(itr)
@@ -67,7 +72,8 @@ class HomebrewEditCommand(SimpleCommand):
     async def entry_autocomplete(self, itr: discord.Interaction, current: str):
         return HomebrewData.get(itr).get_autocomplete_suggestions(current, itr=itr)
 
-    @discord.app_commands.autocomplete(entry=entry_autocomplete)
+    @autocomplete(entry=entry_autocomplete)
+    @describe(entry="The name of the entry you want to edit.")
     @discord.app_commands.check(check_is_guild)
     async def callback(self, itr: discord.Interaction, entry: str):
         self.log(itr)
@@ -84,7 +90,8 @@ class HomebrewRemoveCommand(SimpleCommand):
     async def entry_autocomplete(self, itr: discord.Interaction, current: str):
         return HomebrewData.get(itr).get_autocomplete_suggestions(current, itr=itr)
 
-    @discord.app_commands.autocomplete(entry=entry_autocomplete)
+    @autocomplete(entry=entry_autocomplete)
+    @describe(entry="The name of the entry you want to remove.")
     @discord.app_commands.check(check_is_guild)
     async def callback(self, itr: discord.Interaction, entry: str):
         self.log(itr)

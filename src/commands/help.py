@@ -2,6 +2,7 @@ import discord
 
 from embeds.help import HelpEmbed
 from command import SimpleCommand
+from discord.app_commands import describe, choices
 
 
 class HelpCommand(SimpleCommand):
@@ -15,7 +16,8 @@ class HelpCommand(SimpleCommand):
         self.tree = tree
         super().__init__()
 
-    @discord.app_commands.choices(tab=HelpEmbed.get_tab_choices())
+    @choices(tab=HelpEmbed.get_tab_choices())
+    @describe(tab="Specify a page for more information on it's commands. Shows a general overview by default.")
     async def callback(self, itr: discord.Interaction, tab: str = None):
         self.log(itr)
         embed = HelpEmbed(self.tree, tab=tab)

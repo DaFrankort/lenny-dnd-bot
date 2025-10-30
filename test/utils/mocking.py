@@ -83,6 +83,7 @@ class MockInteraction(discord.Interaction):
         self.response.defer = AsyncMock()
         self.followup = AsyncMock()
         self._state = MagicMock()
+        self._servers = MagicMock()
         self._original_response = MagicMock()
 
 

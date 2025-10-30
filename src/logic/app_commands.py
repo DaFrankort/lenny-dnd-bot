@@ -5,16 +5,24 @@ from enum import Enum
 from embed import SimpleEmbed
 
 
+def check_is_guild(itr: discord.Interaction) -> bool:
+    if itr.guild is None:
+        raise discord.app_commands.CheckFailure("This command can only be used in a server.")
+    return True
+
+
 def get_error_embed(error: discord.app_commands.AppCommandError) -> discord.Embed:
+    if isinstance(error, discord.app_commands.CheckFailure):
+        return SimpleEmbed(
+            title="You don't meet the requirements to do that!",
+            description=str(error),
+            color=discord.Color.red(),
+        )
+
     titles = {
-        "CommandOnCooldown": "You're going too fast!",
-        "MissingPermissions": "You don't have permission to do that!",
-        "BotMissingPermissions": "I don't have permission to do that!",
-        "CheckFailure": "You don't meet the requirements to do that!",
         "ValueError": "Invalid input!",
         "RuntimeError": "Can't do that right now!",
     }
-
     parts = str(error).split(": ")
     if len(parts) < 2:
         error_title = "Something went wrong!"

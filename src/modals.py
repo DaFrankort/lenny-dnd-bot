@@ -2,6 +2,8 @@ import logging
 from discord import Interaction
 from discord.ui import TextInput, Modal
 
+from logic.app_commands import get_error_embed
+
 
 class SimpleModal(Modal):
     def __init__(self, itr: Interaction, title: str):
@@ -17,8 +19,8 @@ class SimpleModal(Modal):
 
     async def on_error(self, itr: Interaction, error: Exception):
         self.log_inputs(itr)
-        await itr.response.send_message("Something went wrong! Please try again later.", ephemeral=True)
-        raise error
+        embed = get_error_embed(error)
+        await itr.response.send_message(embed=embed, ephemeral=True)
 
     def get_str(self, text_input: TextInput) -> str | None:
         """Safely parse string from TextInput. Returns None if input is empty or only spaces."""

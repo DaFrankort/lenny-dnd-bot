@@ -59,17 +59,14 @@ class HelpEmbed(discord.Embed):
 
         raise NotImplementedError(f"app_command type '{type(cmd)}' not implemented in _get_command_desc_line!")
 
-    def _iterate_commands(
-        self, cmd_or_grp: discord.app_commands.Command | discord.app_commands.Group, command_name: str = ""
-    ) -> list[str]:
+    def _iterate_commands(self, cmd_or_grp: discord.app_commands.Command | discord.app_commands.Group) -> list[str]:
         commands = []
-        command_name = f"{command_name} {cmd_or_grp.name}".strip()
 
         if isinstance(cmd_or_grp, discord.app_commands.Command):
-            commands.append(command_name)
+            commands.append(cmd_or_grp.qualified_name)
         elif isinstance(cmd_or_grp, discord.app_commands.Group):
             for sub_cmd in cmd_or_grp.commands:
-                commands.extend(self._iterate_commands(sub_cmd, command_name))
+                commands.extend(self._iterate_commands(sub_cmd))
         else:
             raise NotImplementedError(f"app_command type '{type(cmd_or_grp)}' not implemented in _get_tab_commands_list!")
         return commands

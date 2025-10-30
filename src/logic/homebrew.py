@@ -91,7 +91,7 @@ class DNDHomebrewObject:
         if user_is_admin_or_has_config_permissions(itr.guild, itr.user):
             return True
         if not isinstance(itr.user, discord.Member):
-            return False # You can only manage permissions in a server
+            return False  # You can only manage permissions in a server
         return itr.user.guild_permissions.manage_messages
 
     @classmethod

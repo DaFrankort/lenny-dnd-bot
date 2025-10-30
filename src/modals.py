@@ -7,6 +7,7 @@ from command import get_error_embed
 
 T = TypeVar("T")
 
+
 class SimpleModal(Modal):
     def __init__(self, itr: Interaction, title: str):
         super().__init__(title=title)

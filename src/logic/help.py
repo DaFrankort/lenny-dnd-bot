@@ -109,6 +109,7 @@ class HelpTabList(object):
                 [
                     "A user can edit or remove homebrew entries if they are the author of that entry.",
                     "If a user has the ``Manage Messages`` permission they can edit or remove any homebrew entry.",
+                    "If a user is an admin or they have permission granted in ``/config permissions`` they may also manage homebrew content.",
                 ],
             )
         ],

@@ -4,12 +4,6 @@ from abc import abstractmethod
 from embed import SimpleEmbed
 
 
-def check_is_guild(itr: discord.Interaction) -> bool:
-    if itr.guild is None:
-        raise discord.app_commands.CheckFailure("This command can only be used in a server.")
-    return True
-
-
 def get_error_embed(error: discord.app_commands.AppCommandError) -> discord.Embed:
     if isinstance(error, discord.app_commands.CheckFailure):
         return SimpleEmbed(

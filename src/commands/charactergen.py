@@ -1,6 +1,6 @@
 import discord
 from embeds.charactergen import CharacterGenContainerView
-from logic.app_commands import SimpleCommand
+from command import SimpleCommand
 from logic.charactergen import class_choices, generate_dnd_character, species_choices
 from logic.dnd.name import Gender
 

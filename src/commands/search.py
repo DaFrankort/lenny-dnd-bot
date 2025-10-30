@@ -1,7 +1,7 @@
 import logging
 import discord
 from embeds.search import MultiDNDSelectView, SearchLayoutView, send_dnd_embed
-from logic.app_commands import SimpleCommand, SimpleCommandGroup
+from command import SimpleCommand, SimpleCommandGroup
 from logic.config import Config
 from embed import NoResultsFoundEmbed
 from logic.dnd.abstract import DNDObject

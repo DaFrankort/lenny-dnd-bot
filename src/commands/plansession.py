@@ -1,6 +1,6 @@
 import discord
 from embeds.plansession import SessionPlanPoll
-from logic.app_commands import SimpleCommand
+from command import SimpleCommand
 
 
 class PlanSessionCommand(SimpleCommand):

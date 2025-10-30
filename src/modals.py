@@ -2,7 +2,7 @@ import logging
 from discord import Interaction
 from discord.ui import TextInput, Modal
 
-from logic.app_commands import get_error_embed
+from command import get_error_embed
 
 
 class SimpleModal(Modal):

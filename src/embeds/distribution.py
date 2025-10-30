@@ -12,12 +12,6 @@ class DistributionEmbed(discord.Embed):
         self.chart = result.chart or MISSING
         color = UserColor.get(itr)
 
-        if result.error is not None:
-            title = f"Error in '{result.expression}'!"
-            desc = f"⚠️ {result.error}"
-            super().__init__(color=color, title=title, description=desc)
-            return
-
         if result.advantage == Advantage.Advantage.value:
             title_suffix = " with advantage"
         elif result.advantage == Advantage.Disadvantage.value:

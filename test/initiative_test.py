@@ -15,7 +15,9 @@ class TestInitiative:
             initiative.modifier == mod
         ), f"Initiative modifier `{initiative.modifier}` is not the same as the input modifier `{mod}`"
         assert initiative.is_npc is False, "Initiative without target should not be labeled as NPC."
-        assert itr.user.display_name in initiative.name, "Initiative without target should have the user's name."
+        assert (
+            itr.user.display_name.title().strip() in initiative.name
+        ), "Initiative without target should have the user's name."
 
     @pytest.mark.parametrize(
         "mod, target",
@@ -138,7 +140,7 @@ class TestInitiativeTracker:
 
     def test_multiple_guilds(self, tracker):
         itr1 = MockInteraction(guild_id=1)
-        itr2 = MockInteraction(MockUser(456, "Bar"), guild_id=2)
+        itr2 = MockInteraction(MockUser("Bar"), guild_id=2)
 
         initiative1 = Initiative(itr1, modifier=1, name="Goblin", advantage=Advantage.Normal)
         initiative2 = Initiative(itr2, modifier=3, name="Orc", advantage=Advantage.Normal)

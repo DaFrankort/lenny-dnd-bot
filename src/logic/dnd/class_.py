@@ -10,7 +10,7 @@ class Class(DNDObject):
     level_features: dict[str, list[Description]]
     subclass_level_features: dict[str, dict[str, list[Description]]]
 
-    def __init__(self, json: any):
+    def __init__(self, json: dict):
         self.object_type = "class"
         self.emoji = "🧙‍♂️"
 
@@ -30,7 +30,7 @@ class Class(DNDObject):
         return str(self)
 
 
-class ClassList(DNDObjectList):
+class ClassList(DNDObjectList[Class]):
     path = "./submodules/lenny-dnd-data/generated/classes.json"
 
     def __init__(self):

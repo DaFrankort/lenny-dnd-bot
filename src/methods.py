@@ -1,7 +1,8 @@
 from enum import Enum
 import io
 import logging
-from typing import Iterable
+from typing import Any, Iterable
+import discord
 import rich
 from rich.table import Table
 from rich.console import Console
@@ -68,3 +69,13 @@ def get_font(font: FontType, size: float):
     except OSError:
         logging.warning(f"Font '{font.value}' could not be loaded!")
         return ImageFont.load_default(size=size)
+
+
+class ChoicedEnum(Enum):
+    @classmethod
+    def choices(cls) -> list[discord.app_commands.Choice]:
+        return [discord.app_commands.Choice(name=e.name.title(), value=e.value) for e in cls]
+
+    @classmethod
+    def values(cls) -> list[Any]:
+        return [e.value for e in cls]

@@ -1,6 +1,6 @@
 import random
 
-from command import ChoicedEnum
+from methods import ChoicedEnum
 from logic.dnd.abstract import DNDObjectList
 
 

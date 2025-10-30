@@ -72,8 +72,8 @@ class HomebrewEditCommand(SimpleCommand):
     async def callback(self, itr: discord.Interaction, entry: str):
         self.log(itr)
         entry_item = HomebrewData.get(itr).get(entry)
-        embed = HomebrewEditModal(entry_item)
-        await itr.response.send_modal(embed)
+        modal = HomebrewEditModal(entry_item)
+        await itr.response.send_modal(modal)
 
 
 class HomebrewRemoveCommand(SimpleCommand):
@@ -91,4 +91,4 @@ class HomebrewRemoveCommand(SimpleCommand):
         entry = HomebrewData.get(itr).delete(itr, entry)
         embed = HomebrewEmbed(itr, entry)
         embed.color = discord.Color.red()
-        await itr.response.send_message(f"{itr.user.display_name} Removed homebrew {entry.object_type}:", embed=embed)
+        await itr.response.send_message(f"{itr.user.display_name} Removed homebrew {entry.object_type.value}:", embed=embed)

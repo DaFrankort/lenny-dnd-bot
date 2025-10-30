@@ -53,3 +53,4 @@ class ConfigCommand(SimpleCommandGroup):
         super().__init__()
         self.add_command(ConfigPermissionsCommand())
         self.add_command(ConfigSourcesCommand())
+        self.guild_only = True

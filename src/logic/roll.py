@@ -1,5 +1,6 @@
 import dataclasses
 from enum import Enum
+from typing import Any
 import d20
 
 from methods import ChoicedEnum
@@ -20,10 +21,10 @@ class DiceSpecial(Enum):
 class DiceStringifier(d20.Stringifier):
     def _stringify(self, node):
         if not node.kept:
-            return None
+            return ""
         return super()._stringify(node)
 
-    def _extract_values(self, values: any):
+    def _extract_values(self, values: Any):
         results = []
         for result in [self._stringify(value) for value in values]:
             if result is not None:
@@ -60,7 +61,9 @@ class DiceStringifier(d20.Stringifier):
         return ",".join(values)
 
 
-def _is_only_dice_modifiers_and_additions(node: d20.Number) -> bool:
+def _is_only_dice_modifiers_and_additions(node: d20.Number | None) -> bool:
+    if node is None:
+        return False
     if isinstance(node, d20.Literal):
         return True
     if isinstance(node, d20.Dice):
@@ -83,7 +86,9 @@ def _is_only_dice_modifiers_and_additions(node: d20.Number) -> bool:
     raise NotImplementedError(f"Unsupported type '{type(node)}'")
 
 
-def _extract_dice(node: d20.Number) -> list[d20.Dice | d20.Die]:
+def _extract_dice(node: d20.Number | None) -> list[d20.Dice | d20.Die]:
+    if node is None:
+        return []
     if isinstance(node, d20.Die) or isinstance(node, d20.Dice):
         return node.keptset
     if isinstance(node, d20.Literal):
@@ -163,17 +168,11 @@ class SingleRollResult(object):
         return self.special == DiceSpecial.Dirty20
 
 
+@dataclasses.dataclass
 class RollResult(object):
     expression: str
     advantage: Advantage
     rolls: list[SingleRollResult]
-    error: str | None
-
-    def __init__(self):
-        self.expression = ""
-        self.advantage = Advantage.Normal
-        self.error = None
-        self.rolls = []
 
     @property
     def roll(self) -> SingleRollResult:
@@ -189,7 +188,9 @@ class RollResult(object):
         for r in self.rolls:
             if r.total == total:
                 return r
-        return None
+
+        # Fallback: return the last result
+        return self.rolls[-1]
 
 
 def _roll_single(expression: str) -> SingleRollResult:
@@ -209,25 +210,22 @@ def _roll_single(expression: str) -> SingleRollResult:
 
 
 def roll(expression: str, advantage: Advantage = Advantage.Normal) -> RollResult:
-    result = RollResult()
-
     try:
         # Clean expression
         expression = str(d20.parse(expression, allow_comments=False))
 
-        result.expression = expression
-        result.advantage = advantage
+        rolls = []
         if advantage in [Advantage.Advantage, Advantage.Disadvantage]:
-            result.rolls.append(_roll_single(expression))
-            result.rolls.append(_roll_single(expression))
+            rolls.append(_roll_single(expression))
+            rolls.append(_roll_single(expression))
         else:
-            result.rolls.append(_roll_single(expression))
+            rolls.append(_roll_single(expression))
+
+        return RollResult(expression, advantage, rolls)
 
     except d20.errors.RollSyntaxError:
         raise ValueError(f"Expression '{expression}' has an invalid syntax!")
     except d20.errors.TooManyRolls:
         raise ValueError(f"Expression '{expression}' has too many dice rolls!")
     except Exception as exception:
-        raise str(exception)
-
-    return result
+        raise exception

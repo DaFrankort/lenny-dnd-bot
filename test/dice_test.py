@@ -15,8 +15,8 @@ class TestDiceExpression:
         ],
     )
     def test_is_dice_expression_valid(self, expression):
-        dice = roll(expression)
-        assert dice.error is None, f"Dice expression '{expression}' should be valid."
+        # This should not raise an exception
+        roll(expression)
 
     @pytest.mark.parametrize(
         "expression",

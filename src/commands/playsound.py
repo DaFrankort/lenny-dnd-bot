@@ -11,6 +11,10 @@ class PlaySoundCommand(SimpleCommand):
     desc = "Play a sound effect from a file in voice chat!"
     help = "Allows users to play sound effects from files in voice chat without requiring any soundboard setup."
 
+    def __init__(self):
+        super().__init__()
+        self.guild_only = True
+
     @describe(sound="The sound file you want to play in voice-chat.")
     async def callback(self, itr: discord.Interaction, sound: discord.Attachment):
         self.log(itr)

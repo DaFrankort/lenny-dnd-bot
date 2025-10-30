@@ -4,12 +4,6 @@ from abc import abstractmethod
 from embed import SimpleEmbed
 
 
-def check_is_guild(itr: discord.Interaction) -> bool:
-    if itr.guild is None:
-        raise discord.app_commands.CheckFailure("This command can only be used in a server.")
-    return True
-
-
 def get_error_embed(error: discord.app_commands.AppCommandError) -> discord.Embed:
     if isinstance(error, discord.app_commands.CheckFailure):
         return SimpleEmbed(
@@ -64,16 +58,6 @@ class SimpleCommand(discord.app_commands.Command):
         self.on_error = self.error_handler
 
     @property
-    def command_name(self) -> str:
-        def get_command_string(name: str, cmd: discord.app_commands.Command | discord.app_commands.Group) -> str:
-            if cmd.parent:
-                name = f"{cmd.parent.name} {name}"
-                return get_command_string(name, cmd.parent)
-            return name
-
-        return get_command_string(self.name, self)
-
-    @property
     def command(self) -> str:
         args = []
         for param in self.parameters:
@@ -82,7 +66,7 @@ class SimpleCommand(discord.app_commands.Command):
             args.append(arg)
         args_str = " ".join(args)
 
-        return f"/{self.command_name} {args_str}".strip()
+        return f"/{self.qualified_name} {args_str}".strip()
 
     def log(self, itr: discord.Interaction):
         """Log user's command-usage in the terminal"""
@@ -93,7 +77,7 @@ class SimpleCommand(discord.app_commands.Command):
             criteria = []
         criteria_text = " ".join(criteria)
 
-        logging.info(f"{itr.user.name} => /{self.command_name} {criteria_text}")
+        logging.info(f"{itr.user.name} => /{self.qualified_name} {criteria_text}")
 
     @abstractmethod
     async def callback(self, itr: discord.Interaction):

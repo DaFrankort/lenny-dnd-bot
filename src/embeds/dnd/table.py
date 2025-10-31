@@ -1,6 +1,8 @@
 import io
+from typing import Any
 import discord
 import rich
+import rich.box
 from rich.table import Table
 from rich.console import Console
 from discord import ui
@@ -21,7 +23,7 @@ class DNDTableEntryView(discord.ui.LayoutView):
         itr: discord.Interaction,
         table: DNDTable,
         headers: str,
-        row: any,
+        row: Any,
         result: RollResult,
     ):
         super().__init__(timeout=None)
@@ -37,7 +39,7 @@ class DNDTableEntryView(discord.ui.LayoutView):
         reroll_button.label = "Re-roll"
         title_section = ui.Section(title_display, accessory=reroll_button)
 
-        console_table = Table(style=None, box=rich.box.ROUNDED)
+        console_table = Table(box=rich.box.ROUNDED)
 
         # Omit the first header and first row value
         for header in headers[1:]:
@@ -63,8 +65,8 @@ class DNDTableRollButton(ui.Button):
         super().__init__(style=discord.ButtonStyle.primary, label="Roll", custom_id="roll_btn")
         self.table = table
 
-    async def callback(self, itr: discord.Interaction):
-        log_button_press(itr=itr, button=self, location=f"Table Roll - {self.table.name}")
+    async def callback(self, interaction: discord.Interaction):
+        log_button_press(itr=interaction, button=self, location=f"Table Roll - {self.table.name}")
         result = self.table.roll()
         if result is None:
             # Disable button to prevent further attempts, since it will keep failing.
@@ -73,24 +75,25 @@ class DNDTableRollButton(ui.Button):
             embed = SimpleEmbed(
                 title="Something went wrong!", description="Couldn't roll table, try again later!", color=discord.Color.red()
             )
-            await itr.response.send_message(embed=embed, ephemeral=True)
-            await itr.message.edit(view=self)
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            if interaction.message is not None:
+                await interaction.message.edit(view=self.view)
             return
 
         row, result = result
         view = DNDTableEntryView(
-            itr,
+            interaction,
             self.table,
             self.table.table["value"]["headers"],
             row,
             result,
         )
-        await itr.response.send_message(view=view)
-        await VC.play(itr, sound_type=SoundType.ROLL)
+        await interaction.response.send_message(view=view)
+        await VC.play(interaction, sound_type=SoundType.ROLL)
 
 
 class DNDTableContainerView(PaginatedLayoutView):
-    file: discord.File = None
+    file: discord.File | None = None
     table: DNDTable
     tables: list[str]
 

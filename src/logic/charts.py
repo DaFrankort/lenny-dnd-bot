@@ -61,7 +61,7 @@ class RadarChart:
         ax.set_ylim(0, y_limit)
         ax.set_xticks(angles[:-1])
         ax.set_xticklabels(labels)
-        ax.set_yticklabels([]) # Remove labels on the chart
+        ax.set_yticklabels([])  # Remove labels on the chart
         ax.grid(color="white", alpha=0.3, linewidth=1)
         ax.tick_params(colors="white")
         ax.spines["polar"].set_color("white")

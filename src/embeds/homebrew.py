@@ -20,7 +20,10 @@ class HomebrewEmbed(discord.Embed):
         if author:
             self.set_footer(text=f"Created by {author.display_name}", icon_url=author.display_avatar.url)
         else:
-            self.set_footer(text="Created by Unknown User", icon_url=itr.client.user.avatar.url)
+            icon_url = None
+            if itr.client.user is not None and itr.client.user.avatar is not None:
+                icon_url = itr.client.user.avatar.url
+            self.set_footer(text="Created by Unknown User", icon_url=icon_url)
 
 
 class HomebrewEntryAddModal(SimpleModal):
@@ -39,9 +42,9 @@ class HomebrewEntryAddModal(SimpleModal):
         style=discord.TextStyle.paragraph,
     )
 
-    def __init__(self, dnd_type: str):
+    def __init__(self, itr: discord.Interaction, dnd_type: str):
         self.dnd_type = dnd_type
-        super().__init__(itr=None, title=f"Add new {dnd_type.title()}")
+        super().__init__(itr=itr, title=f"Add new {dnd_type.title()}")
 
     async def on_submit(self, itr: discord.Interaction):
         self.log_inputs(itr)
@@ -65,7 +68,7 @@ class HomebrewEditModal(SimpleModal):
     subtitle = ui.TextInput(label="Subtitle", required=False, max_length=80)
     description = ui.TextInput(label="Description", max_length=4000, style=discord.TextStyle.paragraph)
 
-    def __init__(self, entry: DNDHomebrewObject):
+    def __init__(self, itr: discord.Interaction, entry: DNDHomebrewObject):
         self.entry = entry
         self.name.default = entry.name
         self.name.placeholder = entry.name
@@ -73,7 +76,7 @@ class HomebrewEditModal(SimpleModal):
         self.subtitle.placeholder = entry.select_description or "Subtitle"
         self.description.default = entry.description
         self.description.placeholder = entry.description[:97] + "..." if len(entry.description) > 97 else entry.description
-        super().__init__(itr=None, title=f"Edit {entry.object_type.value}: {entry.name}")
+        super().__init__(itr=itr, title=f"Edit {entry.object_type.value}: {entry.name}")
 
     async def on_submit(self, itr: discord.Interaction):
         self.log_inputs(itr)
@@ -103,13 +106,13 @@ class HomebrewListButton(ui.Button):
             label = label[:77] + "..."
         super().__init__(label=label, emoji=entry.emoji, style=discord.ButtonStyle.gray)
 
-    async def callback(self, itr: discord.Interaction):
-        embed = HomebrewEmbed(itr, self.entry)
-        await itr.response.send_message(embed=embed)
+    async def callback(self, interaction: discord.Interaction):
+        embed = HomebrewEmbed(interaction, self.entry)
+        await interaction.response.send_message(embed=embed)
 
 
 class HomebrewListView(PaginatedLayoutView):
-    filter: str
+    filter: str | None
     entries: list[DNDHomebrewObject]
 
     def __init__(self, itr: discord.Interaction, filter: str | None):

@@ -3,6 +3,7 @@ import discord
 from command import SimpleCommand
 from embed import SimpleEmbed
 from logic.voice_chat import VC
+from discord.app_commands import describe
 
 
 class PlaySoundCommand(SimpleCommand):
@@ -14,6 +15,7 @@ class PlaySoundCommand(SimpleCommand):
         super().__init__()
         self.guild_only = True
 
+    @describe(sound="The sound file you want to play in voice-chat.")
     async def callback(self, itr: discord.Interaction, sound: discord.Attachment):
         self.log(itr)
         await VC.play_attachment(itr, sound)

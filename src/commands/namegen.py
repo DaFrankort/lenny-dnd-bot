@@ -5,6 +5,7 @@ from command import SimpleCommand
 from logic.dnd.data import Data
 from logic.dnd.name import Gender
 from logic.namegen import generate_name
+from discord.app_commands import describe, choices, autocomplete
 
 
 class NameGenCommand(SimpleCommand):
@@ -17,12 +18,12 @@ class NameGenCommand(SimpleCommand):
         filtered_species = [spec.title() for spec in species if current.lower() in spec.lower()]
         return [discord.app_commands.Choice(name=spec, value=spec) for spec in filtered_species[:25]]
 
-    @discord.app_commands.describe(
+    @choices(gender=Gender.choices())
+    @autocomplete(species=species_autocomplete)
+    @describe(
         species="Request a name from a specific species, selects random species by default.",
         gender="Request name from a specific gender, selects random gender by default.",
     )
-    @discord.app_commands.choices(gender=Gender.choices())
-    @discord.app_commands.autocomplete(species=species_autocomplete)
     async def callback(
         self,
         itr: discord.Interaction,

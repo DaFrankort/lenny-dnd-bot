@@ -5,6 +5,7 @@ from embeds.roll import RollEmbed
 from command import SimpleCommand
 from logic.roll import Advantage, roll
 from logic.voice_chat import VC
+from discord.app_commands import describe, autocomplete
 
 
 class _AbstractRollCommand(SimpleCommand):
@@ -16,9 +17,13 @@ class _AbstractRollCommand(SimpleCommand):
     async def reason_autocomplete(self, itr: discord.Interaction, current: str):
         return DiceCache.get_autocomplete_reason_suggestions(itr, current)
 
-    @discord.app_commands.autocomplete(
+    @autocomplete(
         diceroll=diceroll_autocomplete,
         reason=reason_autocomplete,
+    )
+    @describe(
+        diceroll="The dice-expression of the roll you want to make (Example: 1d20+3, 1d8ro1, ...)",
+        reason="An optional reason for rolling, for additional clarity. (Example: Attack, Damage, ...)",
     )
     async def callback(
         self,

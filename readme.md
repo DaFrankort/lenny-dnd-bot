@@ -1,4 +1,4 @@
-# DnD Discord Bot
+# DnD Discord Bot - Lenny
 
 A Discord bot for Dungeons & Dragons players which aims to provide commands using modern Discord features.
 
@@ -14,6 +14,7 @@ Powered by [5e.tools](https://5e.tools/) for up-to-date 5e data.
 - **Voice Chat Sound Effects**: The bot can join voice channels to play sound effects for your rolls, including special sounds for natural 1s and 20s, as well as effects for attacks, damage, and fire.
 - **Token-Image Generation** - Generate a 5etools-style token from an image or image-url for your characters or custom creatures.
 - **Initiative Tracking** - Track initiatives for combat easily, with easy-to-use buttons for players and dungeon masters.
+- **Discord Utilities** - Various utility commands to help with planning sessions, generating timestamps, and playing sound effects.
 
 ## Installation
 

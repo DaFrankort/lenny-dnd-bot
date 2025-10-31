@@ -6,6 +6,7 @@ from command import SimpleCommand, SimpleCommandGroup
 from embed import UserActionEmbed
 from logic.stats import Stats
 from logic.color import UserColor
+from discord.app_commands import describe
 
 
 class StatsCommandGroup(SimpleCommandGroup):
@@ -38,6 +39,14 @@ class StatsVisualizeCommand(SimpleCommand):
     desc = "Visualize your stats onto a radar graph!"
     help = "Visualizes your character's stats inside of a radar graph."
 
+    @describe(
+        str="A value from 0-48 representing your Strength score.",
+        dex="A value from 0-48 representing your Dexterity score.",
+        con="A value from 0-48 representing your Constitution score.",
+        int="A value from 0-48 representing your Intelligence score.",
+        wis="A value from 0-48 representing your Wisdom score.",
+        cha="A value from 0-48 representing your Charisma score.",
+    )
     async def callback(
         self,
         itr: discord.Interaction,

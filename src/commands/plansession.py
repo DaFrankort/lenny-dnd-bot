@@ -1,6 +1,7 @@
 import discord
 from embeds.plansession import SessionPlanPoll
 from command import SimpleCommand
+from discord.app_commands import describe
 
 
 class PlanSessionCommand(SimpleCommand):
@@ -12,7 +13,7 @@ class PlanSessionCommand(SimpleCommand):
         super().__init__()
         self.guild_only = True
 
-    @discord.app_commands.describe(
+    @describe(
         in_weeks="How many weeks from now? (0 = this week, 1 = next week, ...)",
         poll_duration="How long until the poll closes? (Defaults to 24h)",
     )

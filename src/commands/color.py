@@ -4,6 +4,7 @@ from embed import SuccessEmbed
 from embeds.color import ColorSetEmbed, ColorShowEmbed
 from command import SimpleCommand, SimpleCommandGroup
 from logic.color import UserColor, save_hex_color, save_rgb_color
+from discord.app_commands import describe
 
 
 class ColorCommandGroup(SimpleCommandGroup):
@@ -32,6 +33,7 @@ class ColorSetHexCommand(SimpleCommand):
     desc = "Set a preferred color using a hex-value."
     help = "Set a custom color for yourself by providing a hex value."
 
+    @describe(hex_color="A hexadecimal value representing a color (Example: #ff00ff or aa44cc).")
     async def callback(self, itr: discord.Interaction, hex_color: str):
         self.log(itr)
         result = save_hex_color(itr, hex_color)
@@ -44,6 +46,11 @@ class ColorSetRGBCommand(SimpleCommand):
     desc = "Set a preferred color using rgb values."
     help = "Set a custom color for yourself by providing a RGB value."
 
+    @describe(
+        r="A value from 0-255 representing the amount of red.",
+        g="A value from 0-255 representing the amount of green.",
+        b="A value from 0-255 representing the amount of blue.",
+    )
     async def callback(
         self,
         itr: discord.Interaction,

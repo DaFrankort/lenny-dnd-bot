@@ -51,7 +51,8 @@ class Bot(discord.Client):
 
         token = os.getenv("DISCORD_BOT_TOKEN")
         if not token:
-            raise RuntimeError("Could not get bot token, is the .env file correctly configured?")
+            logging.warning("Could not get bot token, is the .env file correctly configured?")
+            token = ""
 
         self.token = token
         guild_id = os.getenv("GUILD_ID")

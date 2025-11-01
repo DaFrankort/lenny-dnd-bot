@@ -11,19 +11,7 @@ class RequestTimestampContextMenu(SimpleContextMenu):
     def __init__(self):
         super().__init__()
 
-    async def callback(  # pyright: ignore[reportIncompatibleMethodOverride]
-        self,
-        itr: discord.Interaction,
-        message: discord.Message,
-    ):
-        if message.author.bot:
-            user = itr.client.user
-            name = user.name if user is not None else "The bot"
-            error_message = f"{name} can't retrieve timestamps from their own messages."
-            embed = SimpleEmbed(title="Something went wrong!", description=error_message, color=discord.Color.red())
-            await itr.response.send_message(embed=embed, ephemeral=True)
-            return
-
+    async def callback(self, itr: discord.Interaction, message: discord.Message):
         result = get_relative_timestamp_from_message(message)
         if result is None:
             embed = SimpleEmbed(

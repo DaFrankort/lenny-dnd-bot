@@ -12,12 +12,6 @@ class RequestTimestampContextMenu(SimpleContextMenu):
         super().__init__()
 
     async def callback(self, itr: discord.Interaction, message: discord.Message):
-        if message.author.bot:
-            error_message = f"{itr.client.user.name} can't retrieve timestamps from their own messages."
-            embed = SimpleEmbed(title="Something went wrong!", description=error_message, color=discord.Color.red())
-            await itr.response.send_message(embed=embed, ephemeral=True)
-            return
-
         result = get_relative_timestamp_from_message(message)
         if result is None:
             embed = SimpleEmbed(

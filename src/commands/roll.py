@@ -8,14 +8,16 @@ from logic.voice_chat import VC
 from discord.app_commands import describe, autocomplete
 
 
+async def diceroll_autocomplete(itr: discord.Interaction, current: str):
+    return DiceCache.get_autocomplete_suggestions(itr, current)
+
+
+async def reason_autocomplete(itr: discord.Interaction, current: str):
+    return DiceCache.get_autocomplete_reason_suggestions(itr, current)
+
+
 class _AbstractRollCommand(SimpleCommand):
     advantage: Advantage
-
-    async def diceroll_autocomplete(self, itr: discord.Interaction, current: str):
-        return DiceCache.get_autocomplete_suggestions(itr, current)
-
-    async def reason_autocomplete(self, itr: discord.Interaction, current: str):
-        return DiceCache.get_autocomplete_reason_suggestions(itr, current)
 
     @autocomplete(
         diceroll=diceroll_autocomplete,
@@ -25,11 +27,11 @@ class _AbstractRollCommand(SimpleCommand):
         diceroll="The dice-expression of the roll you want to make (Example: 1d20+3, 1d8ro1, ...)",
         reason="An optional reason for rolling, for additional clarity. (Example: Attack, Damage, ...)",
     )
-    async def callback(
+    async def callback(  # pyright: ignore
         self,
         itr: discord.Interaction,
         diceroll: str,
-        reason: str = None,
+        reason: str | None = None,
     ):
         self.log(itr)
         result = roll(diceroll, self.advantage)

@@ -13,7 +13,7 @@ from utils.test_utils import listify
 from commands.tokengen import AlignH, AlignV
 from discord.app_commands import Command, Group
 
-from pytest_asyncio import *  # Required to mark the library as essential for testing in our workflows # type: ignore
+import pytest_asyncio  # Required to mark the library as essential for testing in our workflows # type: ignore #noqa: F401
 
 
 def get_cmd_from_group(group: discord.app_commands.Group, parts: list[str]) -> Command | None:

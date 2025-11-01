@@ -55,12 +55,12 @@ class TimestampDateCommand(SimpleCommand):
         timezone="Timezone offset from UTC (between -14 and +14).",
         date="Optional date in DD/MM/YYYY or DD/MM format (defaults to today).",
     )
-    async def callback(
+    async def callback(  # pyright: ignore
         self,
         itr: discord.Interaction,
         time: str,
         timezone: Range[int, -14, 14],
-        date: str = None,
+        date: str | None = None,
     ):
         self.log(itr)
         result = get_date_timestamp(time, timezone, date)

@@ -74,7 +74,7 @@ def _parse_date_from_string(date: str) -> datetime.date:
     return base_date
 
 
-def get_date_timestamp(time: str, timezone: int, date: str) -> int:
+def get_date_timestamp(time: str, timezone: int, date: str | None) -> int:
     base_date = discord.utils.utcnow().date()
     if date:
         date = date.replace(".", "/").strip()

@@ -13,13 +13,17 @@ class RerollContextMenu(SimpleContextMenu):
     def __init__(self):
         super().__init__()
 
-    async def callback(self, itr: discord.Interaction, message: discord.Message):
+    async def callback(self, itr: discord.Interaction, message: discord.Message):  # pyright: ignore
         self.log(itr)
+
+        if itr.client.user is None:
+            error = "The bot is not associated with a user account!"
+            await itr.response.send_message(f"❌ {error} ❌", ephemeral=True)
+            return
+
         if message.author.id != itr.client.user.id:
-            await itr.response.send_message(
-                f"❌ Only works on dice-roll messages sent by {itr.client.user.name} ❌",
-                ephemeral=True,
-            )
+            error = f"Only works on dice-roll messages sent by {itr.client.user.name}"
+            await itr.response.send_message(f"❌ {error} ❌", ephemeral=True)
             return
 
         if not message.embeds or len(message.embeds) == 0:
@@ -45,8 +49,9 @@ class RerollContextMenu(SimpleContextMenu):
         dice_notation = dice_notation.strip()
 
         reason = None
-        if "Result" not in embed.fields[0].value:
-            lines = embed.fields[0].value.strip().splitlines()
+        field = embed.fields[0].value or ""
+        if "Result" not in field:
+            lines = field.strip().splitlines()
             for line in lines:
                 if line.startswith("🎲") and ":" in line:
                     label = line[1:].split(":", 1)[0].strip()  # Remove 🎲 and split before colon

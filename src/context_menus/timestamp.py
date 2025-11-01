@@ -11,7 +11,7 @@ class RequestTimestampContextMenu(SimpleContextMenu):
     def __init__(self):
         super().__init__()
 
-    async def callback(self, itr: discord.Interaction, message: discord.Message):  # pyright: ignore
+    async def callback(self, interaction: discord.Interaction, message: discord.Message):
         result = get_relative_timestamp_from_message(message)
         if result is None:
             embed = SimpleEmbed(
@@ -19,7 +19,7 @@ class RequestTimestampContextMenu(SimpleContextMenu):
                 description="Couldn't find any mention of times in that message.",
                 color=discord.Color.red(),
             )
-            await itr.response.send_message(embed=embed, ephemeral=True)
+            await interaction.response.send_message(embed=embed, ephemeral=True)
             return
         embed = RelativeTimestampEmbed(timestamp=result)
-        await itr.response.send_message(embed=embed, ephemeral=True)
+        await interaction.response.send_message(embed=embed, ephemeral=True)

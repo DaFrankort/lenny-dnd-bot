@@ -13,27 +13,27 @@ class RerollContextMenu(SimpleContextMenu):
     def __init__(self):
         super().__init__()
 
-    async def callback(self, itr: discord.Interaction, message: discord.Message):  # pyright: ignore
-        self.log(itr)
+    async def callback(self, interaction: discord.Interaction, message: discord.Message):
+        self.log(interaction)
 
-        if itr.client.user is None:
+        if interaction.client.user is None:
             error = "The bot is not associated with a user account!"
-            await itr.response.send_message(f"❌ {error} ❌", ephemeral=True)
+            await interaction.response.send_message(f"❌ {error} ❌", ephemeral=True)
             return
 
-        if message.author.id != itr.client.user.id:
-            error = f"Only works on dice-roll messages sent by {itr.client.user.name}"
-            await itr.response.send_message(f"❌ {error} ❌", ephemeral=True)
+        if message.author.id != interaction.client.user.id:
+            error = f"Only works on dice-roll messages sent by {interaction.client.user.name}"
+            await interaction.response.send_message(f"❌ {error} ❌", ephemeral=True)
             return
 
         if not message.embeds or len(message.embeds) == 0:
-            await itr.response.send_message("❌ Reroll doesn't work on this message type!", ephemeral=True)
+            await interaction.response.send_message("❌ Reroll doesn't work on this message type!", ephemeral=True)
             return
 
         embed = message.embeds[0]
         title = embed.author.name or ""
         if not ("Rolling" in title or "Re-rolling" in title):
-            await itr.response.send_message("❌ Message does not contain a dice-roll!", ephemeral=True)
+            await interaction.response.send_message("❌ Message does not contain a dice-roll!", ephemeral=True)
             return
 
         dice_notation = title.replace("Rolling ", "").replace("Re-rolling", "").replace("!", "")
@@ -59,8 +59,8 @@ class RerollContextMenu(SimpleContextMenu):
                     break
 
         result = roll(dice_notation, advantage)
-        embed = RollEmbed(itr, result, reason, reroll=True)
-        DiceCache.store_expression(itr, dice_notation)
+        embed = RollEmbed(interaction, result, reason, reroll=True)
+        DiceCache.store_expression(interaction, dice_notation)
 
-        await itr.response.send_message(embed=embed)
-        await VC.play_dice_roll(itr, result, reason)
+        await interaction.response.send_message(embed=embed)
+        await VC.play_dice_roll(interaction, result, reason)

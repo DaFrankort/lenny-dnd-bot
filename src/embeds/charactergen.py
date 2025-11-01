@@ -17,7 +17,7 @@ class _CharacterGenInfoButton(ui.Button):
 
 
 class CharacterGenContainerView(ui.LayoutView):
-    chart: discord.File = None
+    chart: discord.File
 
     def _build_ability_table(
         self,

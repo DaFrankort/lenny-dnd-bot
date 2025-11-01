@@ -1,4 +1,3 @@
-from typing import Sequence
 import discord
 from command import SimpleCommand, SimpleCommandGroup
 from logic.help import HelpSelectOption, HelpTab, HelpTabs

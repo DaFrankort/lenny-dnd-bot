@@ -37,14 +37,14 @@ class ConfigManagePermissionsButton(discord.ui.Button):
         # Note: this is disallowing the pressing of the button, only the admin role can't be changed
         self.disabled = self.role == "admin"
 
-    async def callback(self, itr: discord.Interaction):
+    async def callback(self, interaction: discord.Interaction):
         if self.role == "admin":
             pass  # Disallow removing admin permission
         elif self.allowed:
             self.config.disallow_permission(self.role)
         else:
             self.config.allow_permission(self.role)
-        await self.permissions_view.rebuild(itr)
+        await self.permissions_view.rebuild(interaction)
 
 
 class ConfigPermissionsView(PaginatedLayoutView):

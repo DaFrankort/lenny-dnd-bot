@@ -13,8 +13,8 @@ class DNDObjectEmbed(discord.Embed):
     """
 
     _object: DNDObject
-    view: discord.ui.View = None
-    file: discord.File = None
+    view: discord.ui.View | None = None
+    file: discord.File | None = None
 
     def __init__(self, object: DNDObject):
         self._object = object
@@ -34,12 +34,14 @@ class DNDObjectEmbed(discord.Embed):
             (len(self.title) if self.title else 0)
             + (len(self.description) if self.description else 0)
             + (len(self.footer.text) if self.footer and self.footer.text else 0)
-            + (len(self.author.name) if self.author else 0)
+            + (len(self.author.name) if self.author.name else 0)
         )
 
         if self.fields:
             for field in self.fields:
-                char_count += len(field.name) + len(field.value)
+                field_name_len = len(field.name) if field.name else 0
+                field_value_len = len(field.value) if field.value else 0
+                char_count += field_name_len + field_value_len
 
         return char_count
 

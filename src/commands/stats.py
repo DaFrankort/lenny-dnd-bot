@@ -47,7 +47,7 @@ class StatsVisualizeCommand(SimpleCommand):
         wis="A value from 0-48 representing your Wisdom score.",
         cha="A value from 0-48 representing your Charisma score.",
     )
-    async def callback(
+    async def callback(  # pyright:ignore
         self,
         itr: discord.Interaction,
         str: discord.app_commands.Range[int, 0, 48],

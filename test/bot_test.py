@@ -331,16 +331,14 @@ class TestBotCommands:
         assert cmd is not None, f"Command {cmd_name} not found"
 
         param = cmd._params.get(param_name)
-        assert param is not None, f"Parameter '{param_name}' not found in command '{cmd_name}'"
 
-        autocomplete_fn = param.autocomplete
-        assert autocomplete_fn is not None, f"No autocomplete function set for parameter '{param_name}' in {cmd_name}"
-        assert not isinstance(autocomplete_fn, bool), f"No autocomplete function set for parameter '{param_name}' in {cmd_name}"
+        assert param is not None, f"Parameter '{param_name}' not found in command '{cmd_name}'"
+        assert param.autocomplete is not None, f"No autocomplete function set for parameter '{param_name}' in {cmd_name}"
 
         queries = listify(queries)
 
         for current in queries:
             try:
-                await autocomplete_fn(cmd, itr, current)
+                await param.autocomplete(itr, current)
             except Exception as e:
                 pytest.fail(f"Error while autocompleting '{param_name}' for /{cmd_name} with query '{current}': {e}")

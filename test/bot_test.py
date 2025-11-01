@@ -13,6 +13,8 @@ from utils.test_utils import listify
 from commands.tokengen import AlignH, AlignV
 from discord.app_commands import Command, Group
 
+from pytest_asyncio import *  # Required to mark the library as essential for testing in our workflows # type: ignore
+
 
 def get_cmd_from_group(group: discord.app_commands.Group, parts: list[str]) -> Command | None:
     """Recursively looks for a command within command-groups."""

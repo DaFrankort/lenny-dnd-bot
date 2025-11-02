@@ -21,16 +21,18 @@ def is_source_phb2014(source: str) -> bool:
 
 
 class Config(object):
-    path: str | None
-    server: discord.Guild | None
+    server: discord.Guild
 
     def __init__(self, server: discord.Guild | None):
-        self.path = None
-        self.server = server
-        if self.server is not None:
-            self.path = f"config/{self.server.id}.config"
+        if server is None:
+            raise RuntimeError("You can only configure settings in a server!")
 
+        self.server = server
         self.create_file()
+
+    @property
+    def path(self) -> str:
+        return f"config/{self.server.id}.config"
 
     def create_file(self):
         """Creates the associated config file. Does not change anything if it already exists."""
@@ -45,6 +47,17 @@ class Config(object):
             self.create_file()
 
     # region sources
+    @classmethod
+    def get_default_disallowed_sources(cls) -> set[str]:
+        # 2014 sources are disabled by default
+        return set(SOURCES_PHB2014)
+
+    @classmethod
+    def get_default_allowed_sources(cls) -> set[str]:
+        sources = SourceList()
+        sources = set([source.id for source in sources.entries])
+        disallowed = cls.get_default_disallowed_sources()
+        return sources - disallowed
 
     def get_disallowed_sources(self) -> set[str]:
         if self.path is None:
@@ -54,8 +67,7 @@ class Config(object):
         lookup = config.get("lookup", {})
         disallowed = lookup.get("disallowed_sources", None)
         if disallowed is None:
-            # 2014 sources are disabled by default
-            disallowed = [*SOURCES_PHB2014]
+            return self.get_default_disallowed_sources()
         return set(disallowed)
 
     def get_allowed_sources(self) -> set[str]:
@@ -86,7 +98,9 @@ class Config(object):
         open(self.path, "w").close()
 
     @staticmethod
-    def allowed_sources(server: discord.Guild) -> set[str]:
+    def allowed_sources(server: discord.Guild | None) -> set[str]:
+        if server is None:
+            return Config.get_default_disallowed_sources()
         return Config(server=server).get_allowed_sources()
 
     # endregion sources
@@ -148,11 +162,16 @@ class Config(object):
 
 
 def user_is_admin(user: discord.User | discord.Member) -> bool:
+    if not isinstance(user, discord.Member):
+        return False
     return user.guild_permissions.administrator
 
 
 def user_has_config_permissions(server: discord.Guild | None, user: discord.User | discord.Member) -> bool:
     if server is None:
+        return False
+
+    if not isinstance(user, discord.Member):
         return False
 
     config = Config(server)

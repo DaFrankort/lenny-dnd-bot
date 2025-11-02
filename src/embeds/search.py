@@ -1,4 +1,5 @@
 import logging
+from typing import Sequence
 import discord
 from discord import ui
 from components.items import SimpleSeparator, TitleTextDisplay
@@ -88,8 +89,8 @@ class SearchSelectButton(ui.Button):
             label = label[:77] + "..."
         super().__init__(label=label, emoji=object.emoji, style=discord.ButtonStyle.gray)
 
-    async def callback(self, itr: discord.Interaction):
-        await send_dnd_embed(itr, self.object)
+    async def callback(self, interaction: discord.Interaction):
+        await send_dnd_embed(interaction, self.object)
 
 
 class SearchLayoutView(PaginatedLayoutView):
@@ -142,9 +143,9 @@ class SearchLayoutView(PaginatedLayoutView):
 class MultiDNDSelect(discord.ui.Select):
     name: str
     query: str
-    entries: list[DNDObject]
+    entries: Sequence[DNDObject]
 
-    def __init__(self, query: str, entries: list[DNDObject]):
+    def __init__(self, query: str, entries: Sequence[DNDObject]):
         self.name = entries[0].__class__.__name__.upper() if entries else "UNKNOWN"
         self.query = query
         self.entries = entries
@@ -181,6 +182,6 @@ class MultiDNDSelect(discord.ui.Select):
 class MultiDNDSelectView(discord.ui.View):
     """A class representing a Discord view for multiple DNDObject selection."""
 
-    def __init__(self, query: str, entries: list[DNDObject]):
+    def __init__(self, query: str, entries: Sequence[DNDObject]):
         super().__init__()
         self.add_item(MultiDNDSelect(query, entries))

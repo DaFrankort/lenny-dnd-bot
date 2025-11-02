@@ -7,7 +7,7 @@ class Creature(DNDObject):
     token_url: str | None
     description: list[Description]
 
-    def __init__(self, json: any):
+    def __init__(self, json: dict):
         self.object_type = "creature"
         self.emoji = "🐉"
 
@@ -23,7 +23,7 @@ class Creature(DNDObject):
         self.select_description = self.subtitle
 
 
-class CreatureList(DNDObjectList):
+class CreatureList(DNDObjectList[Creature]):
     path = "./submodules/lenny-dnd-data/generated/creatures.json"
 
     def __init__(self):

@@ -1,10 +1,8 @@
-from unittest.mock import MagicMock
-import discord
 import pytest
-import pytest_asyncio
 from embeds.search import MultiDNDSelectView
 from logic.config import Config
 from logic.dnd.data import Data
+from utils.mocking import MockGuild
 
 
 class TestDndData:
@@ -19,14 +17,9 @@ class TestDndData:
         "ABCDF",
     ]
 
-    @pytest_asyncio.fixture(autouse=True)
-    def setup(self):
-        self.server = MagicMock(spec=discord.Guild)
-        self.server.id = 1234
-        self.config = Config(server=self.server)
-
     def test_dnddatalist_search(self):
-        sources = Config.allowed_sources(server=self.server)
+        server = MockGuild(1234)
+        sources = Config.allowed_sources(server)
         for query in self.queries:
             for data in Data:
                 try:
@@ -35,7 +28,8 @@ class TestDndData:
                     assert False, f"{data.entries[0].object_type} DNDDataList failed search()"
 
     def test_search_from_query(self):
-        sources = Config.allowed_sources(server=self.server)
+        server = MockGuild(1234)
+        sources = Config.allowed_sources(server)
         for query in self.queries:
             try:
                 Data.search(query, allowed_sources=sources)
@@ -44,7 +38,8 @@ class TestDndData:
 
     @pytest.mark.asyncio
     async def test_multidndselect(self):
-        sources = Config.allowed_sources(server=self.server)
+        server = MockGuild(1234)
+        sources = Config.allowed_sources(server)
         name = "pot of awakening"
         entries = Data.items.get(name, sources)
         assert len(entries) >= 2, "Test requires at least 2 items, please update test data."

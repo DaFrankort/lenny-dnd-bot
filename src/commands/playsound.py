@@ -16,11 +16,13 @@ class PlaySoundCommand(SimpleCommand):
         self.guild_only = True
 
     @describe(sound="The sound file you want to play in voice-chat.")
-    async def callback(self, itr: discord.Interaction, sound: discord.Attachment):
+    async def callback(self, itr: discord.Interaction, sound: discord.Attachment):  # pyright: ignore
         self.log(itr)
         await VC.play_attachment(itr, sound)
+
+        mention: str = itr.user.voice.channel.mention  # type: ignore At this point, VC.play_attachment should have done all the proper checks
         embed = SimpleEmbed(
             title="Playing sound!",
-            description=f"▶️ Playing ``{sound.filename}`` in {itr.user.voice.channel.mention}!",
+            description=f"▶️ Playing ``{sound.filename}`` in {mention}!",
         )
         await itr.response.send_message(embed=embed, ephemeral=True)

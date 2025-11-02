@@ -13,7 +13,7 @@ class Spell(DNDObject):
     description: list[Description]
     classes: list
 
-    def __init__(self, json: any):
+    def __init__(self, json: dict):
         self.object_type = "spell"
         self.emoji = "🔥"
 
@@ -51,7 +51,7 @@ class Spell(DNDObject):
         return f"{self.level} {self.school}"
 
 
-class SpellList(DNDObjectList):
+class SpellList(DNDObjectList[Spell]):
     path = "./submodules/lenny-dnd-data/generated/spells.json"
 
     def __init__(self):

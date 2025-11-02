@@ -6,8 +6,8 @@ class Language(DNDObject):
     script: str | None
     description: list[Description]
 
-    def __init__(self, json: any):
-        self.object_type = "language"
+    def __init__(self, json: dict):
+        self.object_type = "dict"
         self.emoji = "🗣️"
 
         self.name = json["name"]
@@ -20,7 +20,7 @@ class Language(DNDObject):
         self.description = json["description"]
 
 
-class LanguageList(DNDObjectList):
+class LanguageList(DNDObjectList[Language]):
     path = "./submodules/lenny-dnd-data/generated/languages.json"
 
     def __init__(self):

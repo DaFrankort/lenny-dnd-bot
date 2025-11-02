@@ -1,5 +1,5 @@
-from asyncio import Condition
 from embeds.dnd.abstract import DNDObjectEmbed
+from logic.dnd.condition import Condition
 
 
 class ConditionEmbed(DNDObjectEmbed):
@@ -9,7 +9,11 @@ class ConditionEmbed(DNDObjectEmbed):
         if len(condition.description) == 0:
             return
 
-        self.description = condition.description[0]["value"]
+        description = condition.description[0]["value"]
+        if not isinstance(description, str):
+            raise ValueError(f"Condition description should be a string, but it is a {description.__class__.__name__}!")
+
+        self.description = description
         self.add_description_fields(condition.description[1:])
 
         if condition.image:

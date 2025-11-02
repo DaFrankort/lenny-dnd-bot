@@ -35,7 +35,7 @@ class TokenGenCommand(SimpleCommand):
         h_alignment=AlignH.choices(),
         v_alignment=AlignV.choices(),
     )
-    async def callback(
+    async def callback(  # pyright: ignore
         self,
         itr: discord.Interaction,
         image: discord.Attachment,
@@ -46,7 +46,10 @@ class TokenGenCommand(SimpleCommand):
     ):
         self.log(itr)
         await itr.response.defer()
-        files = await generate_token_from_file(image, frame_hue, h_alignment, v_alignment, variants)
+
+        h_align = AlignH(h_alignment)
+        v_align = AlignV(v_alignment)
+        files = await generate_token_from_file(image, frame_hue, h_align, v_align, variants)
         await itr.followup.send(files=files)
 
 
@@ -66,7 +69,7 @@ class TokenGenUrlCommand(SimpleCommand):
         h_alignment=AlignH.choices(),
         v_alignment=AlignV.choices(),
     )
-    async def callback(
+    async def callback(  # pyright: ignore
         self,
         itr: discord.Interaction,
         url: str,
@@ -77,5 +80,8 @@ class TokenGenUrlCommand(SimpleCommand):
     ):
         self.log(itr)
         await itr.response.defer()
-        files = await generate_token_from_url(url, frame_hue, h_alignment, v_alignment, variants)
+
+        h_align = AlignH(h_alignment)
+        v_align = AlignV(v_alignment)
+        files = await generate_token_from_url(url, frame_hue, h_align, v_align, variants)
         await itr.followup.send(files=files)

@@ -4,7 +4,7 @@ from abc import abstractmethod
 from embed import SimpleEmbed
 
 
-def get_error_embed(error: discord.app_commands.AppCommandError) -> discord.Embed:
+def get_error_embed(error: discord.app_commands.AppCommandError | Exception) -> discord.Embed:
     if isinstance(error, discord.app_commands.CheckFailure):
         return SimpleEmbed(
             title="You don't meet the requirements to do that!",
@@ -29,29 +29,29 @@ def get_error_embed(error: discord.app_commands.AppCommandError) -> discord.Embe
 
 
 class SimpleCommandGroup(discord.app_commands.Group):
-    name: str = None
-    desc: str = None
+    name: str = ""
+    desc: str = ""
 
     def __init__(self):
-        if self.name is None:
+        if not self.name:
             raise NotImplementedError(f"'name' not defined in {type(self)}")
-        if self.desc is None:
+        if not self.desc:
             raise NotImplementedError(f"'desc' not defined in {type(self)}")
 
         super().__init__(name=self.name, description=self.desc)
 
 
 class SimpleCommand(discord.app_commands.Command):
-    name: str = None
-    desc: str = None
-    help: str = None
+    name: str = ""
+    desc: str = ""
+    help: str = ""
 
     def __init__(self):
-        if self.name is None:
+        if not self.name:
             raise NotImplementedError(f"'name' not defined in {type(self)}")
-        if self.desc is None:
+        if not self.desc:
             raise NotImplementedError(f"'desc' not defined in {type(self)}")
-        if self.help is None:
+        if not self.help:
             raise NotImplementedError(f"'help' not defined in {type(self)}")
 
         super().__init__(name=self.name, description=self.desc, callback=self.callback)
@@ -80,7 +80,7 @@ class SimpleCommand(discord.app_commands.Command):
         logging.info(f"{itr.user.name} => /{self.qualified_name} {criteria_text}")
 
     @abstractmethod
-    async def callback(self, itr: discord.Interaction):
+    async def callback(self, itr: discord.Interaction):  # pyright: ignore
         raise NotImplementedError
 
     async def error_handler(
@@ -101,10 +101,10 @@ class SimpleCommand(discord.app_commands.Command):
 
 
 class SimpleContextMenu(discord.app_commands.ContextMenu):
-    name: str = None
+    name: str = ""
 
     def __init__(self):
-        if self.name is None:
+        if not self.name:
             raise NotImplementedError(f"'name' not defined in {type(self)}")
 
         super().__init__(
@@ -116,5 +116,5 @@ class SimpleContextMenu(discord.app_commands.ContextMenu):
         logging.info(f"{itr.user.name} => {self.name}")
 
     @abstractmethod
-    async def callback(self, itr: discord.Interaction):
+    async def callback(self, interaction: discord.Interaction, message: discord.Message):  # pyright: ignore
         raise NotImplementedError

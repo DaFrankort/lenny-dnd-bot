@@ -1,0 +1,27 @@
+name: PYRIGHT
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "**/*.py"
+      - "pyproject.toml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "**/*.py"
+      - "pyproject.toml"
+  workflow_dispatch:
+
+jobs:
+  pyright:
+    runs-on: ubuntu-latest
+    name: pyright
+    steps:
+      - name: Check out source repository
+        uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup
+
+      - name: pyright
+        uses: jakebailey/pyright-action@v2

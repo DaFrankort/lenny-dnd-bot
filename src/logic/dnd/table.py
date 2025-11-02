@@ -1,13 +1,14 @@
-from logic.dnd.abstract import DNDObject, DNDObjectList, Description
+from typing import Any
+from logic.dnd.abstract import DNDObject, DNDObjectList
 from logic.roll import RollResult, roll
 
 
 class DNDTable(DNDObject):
+    table: dict
     dice_notation: str | None
-    table: Description
     footnotes: list[str] | None
 
-    def __init__(self, json: any):
+    def __init__(self, json: dict):
         self.object_type = "table"
         self.emoji = "📊"
 
@@ -23,8 +24,8 @@ class DNDTable(DNDObject):
     def is_rollable(self) -> bool:
         return self.dice_notation is not None
 
-    def roll(self) -> None | tuple[any, RollResult]:
-        if not self.is_rollable:
+    def roll(self) -> None | tuple[Any, RollResult]:
+        if self.dice_notation is None:
             return None
 
         result = roll(self.dice_notation)
@@ -37,7 +38,7 @@ class DNDTable(DNDObject):
         return None
 
 
-class DNDTableList(DNDObjectList):
+class DNDTableList(DNDObjectList[DNDTable]):
     path = "./submodules/lenny-dnd-data/generated/tables.json"
 
     def __init__(self):

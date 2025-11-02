@@ -9,7 +9,7 @@ from discord.app_commands import Choice
 
 class DiceCache:
     PATH = Path("./temp/dice_cache.json")
-    _data = None  # cache in memory to avoid frequent file reads
+    _data = {}  # cache in memory to avoid frequent file reads
 
     @classmethod
     def _get_user_data_template(cls) -> object:

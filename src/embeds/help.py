@@ -1,5 +1,7 @@
 import discord
+from command import SimpleCommand, SimpleCommandGroup
 from logic.help import HelpSelectOption, HelpTab, HelpTabs
+from discord.app_commands import Command, Group, CommandTree, Choice
 
 
 class HelpSelect(discord.ui.Select):
@@ -15,25 +17,25 @@ class HelpSelect(discord.ui.Select):
             max_values=1,
         )
 
-    async def callback(self, itr: discord.Interaction):
+    async def callback(self, interaction: discord.Interaction):
         tab = self.values[0]
         tab = HelpTabs.find(tab)
         self.embed.load_tab(tab)
-        return await itr.response.edit_message(embed=self.embed)
+        return await interaction.response.edit_message(embed=self.embed)
 
 
 class HelpSelectView(discord.ui.View):
-    def __init__(self, embed: any, options: list[HelpSelectOption]):
+    def __init__(self, embed: "HelpEmbed", options: list[HelpSelectOption]):
         super().__init__(timeout=360)
         self.add_item(HelpSelect(embed, options))
 
 
 class HelpEmbed(discord.Embed):
-    tree: discord.app_commands.CommandTree
+    tree: CommandTree
     options: list[HelpSelectOption]
     view: HelpSelectView
 
-    def __init__(self, tree: discord.app_commands.CommandTree, tab: str | None = None):
+    def __init__(self, tree: CommandTree, tab: str | None = None):
         super().__init__(color=discord.Color.dark_green())
 
         self.tree = tree
@@ -43,15 +45,16 @@ class HelpEmbed(discord.Embed):
         found_tab = HelpTabs.find(tab)
         self.load_tab(found_tab)
 
-    def _get_command_desc_line(self, cmd: discord.app_commands.Command | discord.app_commands.Group):
-        if isinstance(cmd, discord.app_commands.Command):
+    def _get_command_desc_line(self, cmd: SimpleCommand | SimpleCommandGroup | Command | Group) -> str:
+        if isinstance(cmd, SimpleCommand):
             command_comm = cmd.command
             command_help = cmd.help
             return f"``{command_comm}``\n{command_help}\n"
 
-        if isinstance(cmd, discord.app_commands.Group):
+        if isinstance(cmd, SimpleCommandGroup):
             group_desc = []
-            for group_cmd in cmd.commands:
+            commands = cmd.commands
+            for group_cmd in commands:
                 desc = self._get_command_desc_line(group_cmd)
                 group_desc.append(desc)
 
@@ -59,12 +62,12 @@ class HelpEmbed(discord.Embed):
 
         raise NotImplementedError(f"app_command type '{type(cmd)}' not implemented in _get_command_desc_line!")
 
-    def _iterate_commands(self, cmd_or_grp: discord.app_commands.Command | discord.app_commands.Group) -> list[str]:
+    def _iterate_commands(self, cmd_or_grp: Command | Group) -> list[str]:
         commands = []
 
-        if isinstance(cmd_or_grp, discord.app_commands.Command):
+        if isinstance(cmd_or_grp, Command):
             commands.append(cmd_or_grp.qualified_name)
-        elif isinstance(cmd_or_grp, discord.app_commands.Group):
+        elif isinstance(cmd_or_grp, Group):
             for sub_cmd in cmd_or_grp.commands:
                 commands.extend(self._iterate_commands(sub_cmd))
         else:
@@ -85,9 +88,10 @@ class HelpEmbed(discord.Embed):
             commands_desc.append(tab.text + "\n")
 
         for com in commands:
-            command: discord.app_commands.Command = self.tree.get_command(com)
-            command_desc = self._get_command_desc_line(command)
-            commands_desc.append(command_desc)
+            command = self.tree.get_command(com)
+            if isinstance(command, (SimpleCommand, SimpleCommandGroup)):
+                command_desc = self._get_command_desc_line(command)
+                commands_desc.append(command_desc)
 
         self.add_field(name="", value="\n".join(commands_desc), inline=False)
 
@@ -118,10 +122,10 @@ class HelpEmbed(discord.Embed):
                 self.add_field(name=name, value="\n".join(commands), inline=True)
 
     @staticmethod
-    def get_tab_choices() -> list[discord.app_commands.Choice]:
-        choices: list[discord.app_commands.Choice] = []
+    def get_tab_choices() -> list[Choice]:
+        choices: list[Choice] = []
         for tab in HelpTabs.tabs:
             name = tab.name
-            choices.append(discord.app_commands.Choice(name=name, value=tab.tab))
+            choices.append(Choice(name=name, value=tab.tab))
         choices.sort(key=lambda c: c.name)
         return choices

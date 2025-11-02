@@ -1,3 +1,4 @@
+import dataclasses
 import io
 import os
 import discord
@@ -39,13 +40,10 @@ def get_palette_image(color: discord.Color | int) -> discord.File:
     return discord.File(fp=buffer, filename="color.png")
 
 
+@dataclasses.dataclass
 class UserColorSaveResult(object):
+    old_color: int
     color: int
-    description: str
-
-    def __init__(self):
-        self.color = None
-        self.description = None
 
 
 def save_hex_color(itr: discord.Interaction, hex_color: str) -> UserColorSaveResult:
@@ -53,42 +51,33 @@ def save_hex_color(itr: discord.Interaction, hex_color: str) -> UserColorSaveRes
         raise SyntaxError(
             "Invalid hex value: Must be 6 valid hexadecimal characters (0-9, A-F), optionally starting with a # symbol. (eg. ff00ff / #ff00ff)"
         )
-    result = UserColorSaveResult()
 
-    old_color = f"#{UserColor.get(itr):06X}"
-    description = f"``{old_color.upper()}`` => ``#{hex_color.upper()}``"
-    result.description = description
-
+    old_color = UserColor.get(itr)
     color = UserColor.parse(hex_color)
     UserColor.save(itr, color)
-    result.color = color
-    return result
+
+    return UserColorSaveResult(old_color, color)
 
 
 def save_rgb_color(itr: discord.Interaction, r: int, g: int, b: int) -> UserColorSaveResult:
-    result = UserColorSaveResult()
-
-    ro, go, bo = UserColor.to_rgb(UserColor.get(itr))
-    description = f"R ``{ro:03}`` => ``{r:03}``\nG ``{go:03}`` => ``{g:03}``\nB ``{bo:03}`` => ``{b:03}``"
-    result.description = description
-
+    old_color = UserColor.get(itr)
     color = discord.Color.from_rgb(r, g, b).value
     UserColor.save(itr, color)
-    result.color = color
-    return result
+
+    return UserColorSaveResult(old_color, color)
 
 
 class UserColor:
     """Class to handle user colors, which are used in embeds."""
 
-    FILE_PATH = "./temp/user_colors.json"
+    FILE_PATH: str = "./temp/user_colors.json"
 
     @staticmethod
     def validate(hex_color: str) -> bool:
         """Validates if the given hex color is in the correct format."""
         hex_color = hex_color.strip("#")
         pattern = re.compile(r"^[0-9a-fA-F]{6}$")
-        return pattern.match(hex_color)
+        return pattern.match(hex_color) is not None
 
     @staticmethod
     def save(interaction: discord.Interaction, color: int) -> None:
@@ -184,3 +173,7 @@ class UserColor:
     @staticmethod
     def to_rgb(color: int) -> tuple[int, int, int]:
         return discord.Color(color).to_rgb()
+
+    @staticmethod
+    def to_hex(color: int) -> str:
+        return f"#{color:06X}".upper()

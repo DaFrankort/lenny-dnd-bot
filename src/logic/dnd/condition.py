@@ -5,7 +5,7 @@ class Condition(DNDObject):
     description: list[Description]
     image: str | None
 
-    def __init__(self, json: any):
+    def __init__(self, json: dict):
         self.object_type = "condition"
         self.emoji = "💀"
 
@@ -16,7 +16,7 @@ class Condition(DNDObject):
         self.image = json["image"]
 
 
-class ConditionList(DNDObjectList):
+class ConditionList(DNDObjectList[Condition]):
     paths = [
         "./submodules/lenny-dnd-data/generated/conditions.json",
         "./submodules/lenny-dnd-data/generated/diseases.json",

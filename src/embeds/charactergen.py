@@ -17,7 +17,7 @@ class _CharacterGenInfoButton(ui.Button):
 
 
 class CharacterGenContainerView(ui.LayoutView):
-    chart: discord.File = None
+    chart: discord.File
 
     def _build_ability_table(
         self,
@@ -70,11 +70,10 @@ class CharacterGenContainerView(ui.LayoutView):
         total = sum([val for val, _ in result.stats])
         ability_desc = ability_table + f"\n**Total**: {total} + 3"
 
-        self.chart = get_radar_chart(
-            results=result.stats,
-            boosted_results=result.boosted_stats,
-            color=color.value,
-        )
+        values = [stat[0] for stat in result.stats]
+        labels = [stat[1] for stat in result.stats]
+        boosts = [stat[0] for stat in result.boosted_stats]
+        self.chart = get_radar_chart(values=values, labels=labels, boosts=boosts, color=color.value)
         ability_image = ui.Thumbnail(media=self.chart)
         ability_section = ui.Section(ability_desc, accessory=ability_image)
         container.add_item(ability_section)

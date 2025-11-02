@@ -97,7 +97,7 @@ class DNDSearchResults(object):
     backgrounds: list[Background]
     tables: list[DNDTable]
     species: list[Species]
-    _type_map: dict[type, list[DNDObject]]
+    _type_map: dict[type, list]
 
     def __init__(self):
         self.spells = []
@@ -132,7 +132,7 @@ class DNDSearchResults(object):
         for entry_type, result_list in self._type_map.items():
             if isinstance(entry, entry_type):
                 result_list.append(entry)
-                break
+                return
 
     def get_all(self) -> list[DNDObject]:
         all_entries = []

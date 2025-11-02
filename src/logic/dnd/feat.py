@@ -6,7 +6,7 @@ class Feat(DNDObject):
     ability_increase: str | None
     description: list[Description]
 
-    def __init__(self, json: any):
+    def __init__(self, json: dict):
         self.object_type = "feat"
         self.emoji = "🎖️"
 
@@ -20,7 +20,7 @@ class Feat(DNDObject):
         self.description = json["description"]
 
 
-class FeatList(DNDObjectList):
+class FeatList(DNDObjectList[Feat]):
     paths = [
         "./submodules/lenny-dnd-data/generated/feats.json",
         "./submodules/lenny-dnd-data/generated/classfeats.json",

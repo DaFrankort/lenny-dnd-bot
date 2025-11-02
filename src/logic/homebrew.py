@@ -90,6 +90,8 @@ class DNDHomebrewObject:
             return True
         if user_is_admin_or_has_config_permissions(itr.guild, itr.user):
             return True
+        if not isinstance(itr.user, discord.Member):
+            return False  # You can only manage permissions in a server
         return itr.user.guild_permissions.manage_messages
 
     @classmethod
@@ -208,9 +210,8 @@ class HomebrewGuildData:
         return entries
 
     def get_autocomplete_suggestions(
-        self, query: str, itr: discord.Interaction = None, fuzzy_threshold: float = 75, limit: int = 25
+        self, itr: discord.Interaction, query: str, fuzzy_threshold: float = 75, limit: int = 25
     ) -> list[discord.app_commands.Choice[str]]:
-        """If itr is supplied, will only show suggestions for which the user has edit permissions."""
         query = query.strip().lower().replace(" ", "")
 
         if query == "":
@@ -219,7 +220,7 @@ class HomebrewGuildData:
         choices = []
         for key in self.entries.keys():
             for e in self.entries.get(key, []):
-                if itr and not e.can_manage(itr):
+                if not e.can_manage(itr):
                     continue
 
                 name_clean = e.name.strip().lower().replace(" ", "")

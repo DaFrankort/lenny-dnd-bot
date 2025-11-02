@@ -1,3 +1,4 @@
+from typing import Callable
 import discord
 from embeds.dnd.abstract import HORIZONTAL_LINE, DNDObjectEmbed
 from logic.config import is_source_phb2014
@@ -10,8 +11,8 @@ class MultiClassSubclassSelect(discord.ui.Select):
     def __init__(
         self,
         character_class: Class,
-        get_level: callable,
-        subclass: str,
+        get_level: Callable,
+        subclass: str | None,
         parent_view: "ClassNavigationView",
     ):
         options = []
@@ -42,7 +43,7 @@ class MultiClassPageSelect(discord.ui.Select):
     def __init__(
         self,
         character_class: Class,
-        get_subclass: callable,
+        get_subclass: Callable,
         page: int,
         parent_view: "ClassNavigationView",
     ):

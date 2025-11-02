@@ -31,12 +31,12 @@ class ConfigManageSourcesButton(discord.ui.Button):
 
         self.disabled = not allow_configuration
 
-    async def callback(self, itr: discord.Interaction):
+    async def callback(self, interaction: discord.Interaction):
         if self.allowed:
             self.config.disallow_source(self.source.id)
         else:
             self.config.allow_source(self.source.id)
-        await self.sources_view.rebuild(itr)
+        await self.sources_view.rebuild(interaction)
 
 
 class ConfigSourcesView(PaginatedLayoutView):

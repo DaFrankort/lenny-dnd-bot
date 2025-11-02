@@ -1,16 +1,18 @@
 import json
 import logging
 import os
+from typing import Any, NamedTuple, Set
 import discord
 from rapidfuzz import fuzz
 from methods import ChoicedEnum
 from logic.config import user_is_admin_or_has_config_permissions
+from discord.app_commands import Choice
 
 
 HOMEBREW_PATH: str = "./temp/homebrew/"
 
 
-class DNDObjectType(ChoicedEnum):
+class HomebrewObjectType(str, ChoicedEnum):
     ACTION = "action"
     BACKGROUND = "background"
     CLASS = "class"
@@ -43,13 +45,12 @@ class DNDObjectType(ChoicedEnum):
         return emojis.get(self, "❓")
 
 
-class DNDHomebrewObject:
-    object_type: DNDObjectType
-    _author_id: int
-
+class HomebrewObject(NamedTuple):
     name: str
-    select_description: str | None = None  # Description in dropdown menus
+    author_id: int
+    object_type: HomebrewObjectType
     description: str
+    select_description: str | None = None  # Description in dropdown menus
 
     @property
     def title(self) -> str:
@@ -59,34 +60,14 @@ class DNDHomebrewObject:
     def emoji(self) -> str:
         return self.object_type.emoji
 
-    def __init__(self, object_type: str, name: str, select_description: str | None, description: str, author_id: int):
-        if select_description:
-            select_description = select_description.strip()
-
-        super().__init__()
-        self.object_type = DNDObjectType(object_type)
-        self.name = name
-        self.select_description = select_description or None
-        self.description = description
-        self._author_id = author_id
-
     def get_author(self, itr: discord.Interaction) -> discord.Member | None:
         if not itr.guild:
             return None
-        return itr.guild.get_member(self._author_id)
-
-    def to_dict(self) -> dict:
-        return {
-            "object_type": self.object_type.value,
-            "name": self.name,
-            "select_description": self.select_description,
-            "description": self.description,
-            "author_id": self._author_id,
-        }
+        return itr.guild.get_member(self.author_id)
 
     def can_manage(self, itr: discord.Interaction) -> bool:
         """Returns true/false depending on whether or not the user can manage this entry"""
-        if itr.user.id == self._author_id:
+        if itr.user.id == self.author_id:
             return True
         if user_is_admin_or_has_config_permissions(itr.guild, itr.user):
             return True
@@ -95,34 +76,34 @@ class DNDHomebrewObject:
         return itr.user.guild_permissions.manage_messages
 
     @classmethod
-    def from_dict(cls, d: dict):
+    def fromdict(cls, data: Any) -> "HomebrewObject":
         return cls(
-            object_type=d.get("object_type", ""),
-            name=d.get("name", ""),
-            select_description=d.get("select_description", ""),
-            description=d.get("description", ""),
-            author_id=int(d.get("author_id", 0)),
+            name=data["name"],
+            author_id=data["author_id"],
+            object_type=data["object_type"],
+            description=data["description"],
+            select_description=data["select_description"],
         )
 
 
 class HomebrewGuildData:
-    entries: dict[str, list[DNDHomebrewObject]]
+    entries: dict[HomebrewObjectType, list[HomebrewObject]]
     server_id: int
 
-    def __init__(self, data: dict | None, server_id: int):
+    def __init__(self, data: dict[HomebrewObjectType, list[Any]] | None, server_id: int):
         self.server_id = server_id
-        self.entries: dict[str, list[DNDHomebrewObject]] = {}
+        self.entries = dict()
 
         if not data:
-            for type in DNDObjectType:
-                self.entries[type.value] = []
+            for type in HomebrewObjectType:
+                self.entries[type] = []
             self._save()
             return
 
         for key, items in data.items():
-            objs: list[DNDHomebrewObject] = []
+            objs: list[HomebrewObject] = []
             for item in items:
-                objs.append(DNDHomebrewObject.from_dict(item))
+                objs.append(HomebrewObject.fromdict(item))
             self.entries[key] = objs
 
     @property
@@ -131,28 +112,32 @@ class HomebrewGuildData:
 
     def _save(self):
         os.makedirs(os.path.dirname(self._file_path), exist_ok=True)
-        entries = {k: [obj.to_dict() for obj in v] for k, v in self.entries.items()}
         with open(self._file_path, "w", encoding="utf-8") as file:
-            json.dump(entries, file, indent=2)
+            json.dump(self.entries, file, indent=2)
 
-    def _find(self, entry_name: str) -> DNDHomebrewObject | None:
+    def _find(self, name: str) -> HomebrewObject | None:
         for _, items in self.entries.items():
             for item in items:
-                if entry_name.lower() != item.name.lower():
+                if name.lower() != item.name.lower():
                     continue
                 return item
         return None
 
     def add(
-        self, itr: discord.Interaction, object_type: str, name: str, select_description: str | None, description: str
-    ) -> DNDHomebrewObject:
+        self,
+        itr: discord.Interaction,
+        object_type: HomebrewObjectType,
+        name: str,
+        select_description: str | None,
+        description: str,
+    ) -> HomebrewObject:
         if not itr.guild:
             raise ValueError("Can only add homebrew content to a server!")
         if self._find(name):
             raise ValueError(f"A homebrew entry with the name '{name}' already exists!")
 
         author_id = itr.user.id
-        new_entry = DNDHomebrewObject(
+        new_entry = HomebrewObject(
             object_type=object_type,
             name=name,
             select_description=select_description,
@@ -163,61 +148,64 @@ class HomebrewGuildData:
         self._save()
         return new_entry
 
-    def delete(self, itr: discord.Interaction, name: str) -> DNDHomebrewObject:
+    def delete(self, itr: discord.Interaction, name: str) -> HomebrewObject:
         entry_to_delete = self._find(name)
         if entry_to_delete is None:
             raise ValueError(f"Could not delete homebrew entry '{name}', entry does not exist.")
         if not entry_to_delete.can_manage(itr):
             raise ValueError("You do not have permission to remove this homebrew entry.")
 
-        key = entry_to_delete.object_type.value
+        key = entry_to_delete.object_type
         self.entries[key].remove(entry_to_delete)
         self._save()
         return entry_to_delete
 
     def edit(
-        self, itr: discord.Interaction, entry: DNDHomebrewObject, name: str, select_description: str | None, description: str
-    ) -> DNDHomebrewObject:
+        self, itr: discord.Interaction, entry: HomebrewObject, name: str, select_description: str | None, description: str
+    ) -> HomebrewObject:
         if not entry.can_manage(itr):
             raise ValueError("You do not have permission to edit this homebrew entry.")
 
-        key: str = entry.object_type.value
-        edited_entry = DNDHomebrewObject(
-            object_type=entry.object_type.value,
+        key = entry.object_type
+        edited_entry = HomebrewObject(
+            object_type=entry.object_type,
             name=name,
             select_description=select_description,
             description=description,
-            author_id=entry._author_id,
+            author_id=entry.author_id,
         )
         self.entries[key].remove(entry)
         self.entries[key].append(edited_entry)
         self._save()
         return edited_entry
 
-    def get(self, entry_name: str) -> DNDHomebrewObject:
+    def get(self, entry_name: str) -> HomebrewObject:
         entry = self._find(entry_name)
         if entry is None:
             raise ValueError(f"No homebrew entry with the name '{entry_name}' found!")
         return entry
 
-    def get_all(self, type_filter: str | None) -> list[DNDHomebrewObject]:
-        entries = []
-        type_filter = type_filter.strip().lower() if type_filter else None
+    def get_all(self, type_filter: HomebrewObjectType | None) -> list[HomebrewObject]:
+        entries: list[HomebrewObject] = []
         for key, items in self.entries.items():
-            if type_filter and type_filter != key.lower():
+            if type_filter and type_filter != key:
                 continue
             entries.extend(items)
         return entries
 
     def get_autocomplete_suggestions(
-        self, itr: discord.Interaction, query: str, fuzzy_threshold: float = 75, limit: int = 25
-    ) -> list[discord.app_commands.Choice[str]]:
+        self,
+        itr: discord.Interaction,
+        query: str,
+        fuzzy_threshold: float = 75,
+        limit: int = 25,
+    ) -> list[Choice[str]]:
         query = query.strip().lower().replace(" ", "")
 
         if query == "":
             return []
 
-        choices = []
+        choices: list[tuple[bool, float, Choice[str]]] = []
         for key in self.entries.keys():
             for e in self.entries.get(key, []):
                 if not e.can_manage(itr):
@@ -231,7 +219,7 @@ class HomebrewGuildData:
                         (
                             starts_with_query,
                             score,
-                            discord.app_commands.Choice(name=e.name, value=e.name),
+                            Choice(name=e.name, value=e.name),
                         )
                     )
 
@@ -239,7 +227,7 @@ class HomebrewGuildData:
         return [choice for _, _, choice in choices[:limit]]
 
 
-class DNDHomebrewData:
+class GlobalHomebrewData:
     _data: dict[int, HomebrewGuildData] = {}
 
     def __init__(self):
@@ -268,5 +256,9 @@ class DNDHomebrewData:
             self._data[itr.guild_id] = HomebrewGuildData(None, itr.guild_id)
         return self._data[itr.guild_id]
 
+    @property
+    def guilds(self) -> Set[int]:
+        return set(self._data.keys())
 
-HomebrewData = DNDHomebrewData()
+
+HomebrewData = GlobalHomebrewData()

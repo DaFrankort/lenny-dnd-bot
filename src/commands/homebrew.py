@@ -27,7 +27,11 @@ class HomebrewAddCommand(SimpleCommand):
 
     @choices(dnd_type=HomebrewObjectType.choices())
     @describe(dnd_type="The type of entry you are adding.")
-    async def callback(self, itr: discord.Interaction, dnd_type: HomebrewObjectType):  # pyright: ignore[reportIncompatibleMethodOverride]
+    async def callback(  # pyright: ignore[reportIncompatibleMethodOverride]
+        self,
+        itr: discord.Interaction,
+        dnd_type: HomebrewObjectType,
+    ):
         self.log(itr)
         modal = HomebrewEntryAddModal(itr, dnd_type)
         await itr.response.send_modal(modal)

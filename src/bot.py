@@ -61,7 +61,7 @@ class Bot(discord.Client):
 
         self.initiatives = InitiativeTracker()
 
-    def _register_commands(self):
+    def register_commands(self):
         logging.info("Registering slash-commands")
 
         # Commands
@@ -104,7 +104,7 @@ class Bot(discord.Client):
         logging.info("Initializing")
         logging.info(f"Logged in as {self.user} (ID: {self.user.id})")
 
-        self._register_commands()
+        self.register_commands()
         await self._attempt_sync_guild()
         await self.tree.sync()
         Sounds.init_folders()

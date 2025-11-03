@@ -59,7 +59,7 @@ class HomebrewEntryAddModal(SimpleModal):
 
         entry = HomebrewData.get(itr).add(itr, self.type, name=name, select_description=subtitle, description=description)
         embed = HomebrewEmbed(itr, entry)
-        await itr.response.send_message(content=f"Added {self.type}: ``{name}``!", embed=embed, ephemeral=True)
+        await itr.response.send_message(content=f"Added {self.type.value}: ``{name}``!", embed=embed, ephemeral=True)
 
 
 class HomebrewEditModal(SimpleModal):
@@ -76,7 +76,7 @@ class HomebrewEditModal(SimpleModal):
         self.subtitle.placeholder = entry.select_description or "Subtitle"
         self.description.default = entry.description
         self.description.placeholder = entry.description[:97] + "..." if len(entry.description) > 97 else entry.description
-        super().__init__(itr=itr, title=f"Edit {entry.object_type}: {entry.name}")
+        super().__init__(itr=itr, title=f"Edit {entry.object_type.value}: {entry.name}")
 
     async def on_submit(self, itr: discord.Interaction):
         self.log_inputs(itr)
@@ -92,7 +92,7 @@ class HomebrewEditModal(SimpleModal):
         updated_entry = HomebrewData.get(itr).edit(itr, self.entry, name, subtitle, description)
         embed = HomebrewEmbed(itr, updated_entry)
         await itr.response.send_message(
-            content=f"Edited {self.entry.object_type}: ``{self.entry.name}`` => ``{name}``!", embed=embed, ephemeral=True
+            content=f"Edited {self.entry.object_type.value}: ``{self.entry.name}`` => ``{name}``!", embed=embed, ephemeral=True
         )
 
 

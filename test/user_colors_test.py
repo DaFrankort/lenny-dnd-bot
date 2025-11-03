@@ -36,7 +36,8 @@ class TestUserColor:
         color = 7110183
 
         ORIGINAL_FILE_NAME = UserColor._filename
-        UserColor._filename = UserColor._filename.replace(".json", "_test.json")
+        UserColor._filename = UserColor._filename + "_test"
+        UserColor.load()
         if os.path.exists(UserColor.file_path):
             os.remove(UserColor.file_path)
         else:

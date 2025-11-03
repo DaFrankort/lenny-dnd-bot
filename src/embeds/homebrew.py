@@ -2,12 +2,12 @@ import discord
 from discord import ui
 from components.items import SimpleSeparator, TitleTextDisplay
 from components.paginated_view import PaginatedLayoutView
-from logic.homebrew import DNDHomebrewObject, HomebrewData
+from logic.homebrew import HomebrewObject, HomebrewData, HomebrewObjectType
 from modals import SimpleModal
 
 
 class HomebrewEmbed(discord.Embed):
-    def __init__(self, itr: discord.Interaction, entry: DNDHomebrewObject):
+    def __init__(self, itr: discord.Interaction, entry: HomebrewObject):
         subtitle = f"*{entry.select_description}*\n\n"
         if len(entry.description) < 4000 - len(subtitle) and entry.select_description:
             description = subtitle + entry.description
@@ -27,23 +27,23 @@ class HomebrewEmbed(discord.Embed):
 
 
 class HomebrewEntryAddModal(SimpleModal):
-    dnd_type: str
-    name = ui.TextInput(label="Name", placeholder="Peanut")
-    subtitle = ui.TextInput(
+    type: HomebrewObjectType
+    name = ui.TextInput["HomebrewListView"](label="Name", placeholder="Peanut")
+    subtitle = ui.TextInput["HomebrewListView"](
         label="Subtitle",
         placeholder="A small legume",
         required=False,
         max_length=80,
     )
-    description = ui.TextInput(
+    description = ui.TextInput["HomebrewListView"](
         label="Description",
         placeholder="A peanut is a legume that is often mistaken for a nut.",
         max_length=4000,
         style=discord.TextStyle.paragraph,
     )
 
-    def __init__(self, itr: discord.Interaction, dnd_type: str):
-        self.dnd_type = dnd_type
+    def __init__(self, itr: discord.Interaction, dnd_type: HomebrewObjectType):
+        self.type = dnd_type
         super().__init__(itr=itr, title=f"Add new {dnd_type.title()}")
 
     async def on_submit(self, itr: discord.Interaction):
@@ -57,18 +57,18 @@ class HomebrewEntryAddModal(SimpleModal):
             await itr.response.send_message("Name and Description are required fields.", ephemeral=True)
             return
 
-        entry = HomebrewData.get(itr).add(itr, self.dnd_type, name=name, select_description=subtitle, description=description)
+        entry = HomebrewData.get(itr).add(itr, self.type, name=name, select_description=subtitle, description=description)
         embed = HomebrewEmbed(itr, entry)
-        await itr.response.send_message(content=f"Added {self.dnd_type}: ``{name}``!", embed=embed, ephemeral=True)
+        await itr.response.send_message(content=f"Added {self.type}: ``{name}``!", embed=embed, ephemeral=True)
 
 
 class HomebrewEditModal(SimpleModal):
-    entry: DNDHomebrewObject
-    name = ui.TextInput(label="Name")
-    subtitle = ui.TextInput(label="Subtitle", required=False, max_length=80)
-    description = ui.TextInput(label="Description", max_length=4000, style=discord.TextStyle.paragraph)
+    entry: HomebrewObject
+    name = ui.TextInput["HomebrewListView"](label="Name")
+    subtitle = ui.TextInput["HomebrewListView"](label="Subtitle", required=False, max_length=80)
+    description = ui.TextInput["HomebrewListView"](label="Description", max_length=4000, style=discord.TextStyle.paragraph)
 
-    def __init__(self, itr: discord.Interaction, entry: DNDHomebrewObject):
+    def __init__(self, itr: discord.Interaction, entry: HomebrewObject):
         self.entry = entry
         self.name.default = entry.name
         self.name.placeholder = entry.name
@@ -96,10 +96,10 @@ class HomebrewEditModal(SimpleModal):
         )
 
 
-class HomebrewListButton(ui.Button):
-    entry: DNDHomebrewObject
+class HomebrewListButton(ui.Button["HomebrewListView"]):
+    entry: HomebrewObject
 
-    def __init__(self, entry: DNDHomebrewObject):
+    def __init__(self, entry: HomebrewObject):
         self.entry = entry
         label = entry.name
         if len(label) > 80:
@@ -112,14 +112,14 @@ class HomebrewListButton(ui.Button):
 
 
 class HomebrewListView(PaginatedLayoutView):
-    filter: str | None
-    entries: list[DNDHomebrewObject]
+    filter: HomebrewObjectType | None
+    entries: list[HomebrewObject]
 
     def __init__(self, itr: discord.Interaction, filter: str | None):
         self.filter = None
         label = "All Entries"
         if filter is not None:
-            self.filter = filter
+            self.filter = HomebrewObjectType(filter)
             label = filter.title()
 
         self.entries = HomebrewData.get(itr).get_all(self.filter)
@@ -145,7 +145,7 @@ class HomebrewListView(PaginatedLayoutView):
 
     def build(self):
         self.clear_items()
-        container = ui.Container(accent_color=discord.Color.blue())
+        container = ui.Container["HomebrewListView"](accent_color=discord.Color.blue())
 
         # HEADER
         container.add_item(self.title_item)

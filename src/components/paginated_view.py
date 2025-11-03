@@ -6,7 +6,7 @@ from modals import SimpleModal
 
 
 class PaginatedJumpModal(SimpleModal):
-    page: discord.ui.TextInput
+    page: discord.ui.TextInput["PaginatedLayoutView"]
     view: "PaginatedLayoutView"
 
     def __init__(self, itr: discord.Interaction, view: "PaginatedLayoutView"):
@@ -54,28 +54,28 @@ class PaginatedLayoutView(discord.ui.LayoutView):
     def max_pages(self) -> int:
         return int(math.ceil(self.entry_count / self.per_page))
 
-    def navigation_footer(self) -> discord.ui.ActionRow:
+    def navigation_footer(self) -> discord.ui.ActionRow["PaginatedLayoutView"]:
         disable_back = self.page <= 0
         disable_next = self.page >= self.max_pages - 1
         style = discord.ButtonStyle.primary
 
-        button_first_page = discord.ui.Button(label="↞", style=style)
+        button_first_page = discord.ui.Button["PaginatedLayoutView"](label="↞", style=style)
         button_first_page.callback = lambda interaction: self.go_to_first_page(interaction)
         button_first_page.disabled = disable_back
 
-        button_prev_page = discord.ui.Button(label="←", style=style)
+        button_prev_page = discord.ui.Button["PaginatedLayoutView"](label="←", style=style)
         button_prev_page.callback = lambda interaction: self.go_to_prev_page(interaction)
         button_prev_page.disabled = disable_back
 
         current_page = f"Page {self.page + 1} / {self.max_pages}"
-        button_current_page = discord.ui.Button(label=current_page, style=discord.ButtonStyle.gray)
+        button_current_page = discord.ui.Button["PaginatedLayoutView"](label=current_page, style=discord.ButtonStyle.gray)
         button_current_page.callback = lambda interaction: self.jump_to_page_sendmodal(interaction)
 
-        button_next_page = discord.ui.Button(label="→", style=style)
+        button_next_page = discord.ui.Button["PaginatedLayoutView"](label="→", style=style)
         button_next_page.callback = lambda interaction: self.go_to_next_page(interaction)
         button_next_page.disabled = disable_next
 
-        button_last_page = discord.ui.Button(label="↠", style=style)
+        button_last_page = discord.ui.Button["PaginatedLayoutView"](label="↠", style=style)
         button_last_page.callback = lambda interaction: self.go_to_last_page(interaction)
         button_last_page.disabled = disable_next
 

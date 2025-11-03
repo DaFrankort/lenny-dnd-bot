@@ -77,7 +77,7 @@ def get_font(font: FontType, size: float):
 
 class ChoicedEnum(Enum):
     @classmethod
-    def choices(cls) -> list[discord.app_commands.Choice]:
+    def choices(cls) -> list[discord.app_commands.Choice[str]]:
         return [discord.app_commands.Choice(name=e.name.title(), value=e.value) for e in cls]
 
     @classmethod

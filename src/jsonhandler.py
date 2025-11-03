@@ -25,7 +25,10 @@ class JsonHandler(ABC, Generic[T]):
 
     This class provides a structured way to load and save data to JSON files.
     Subclasses define how raw JSON data is converted to and from internal
-    Python objects via `load_from_json()` and `to_json_data()`.
+    Python objects via `serialize()` and `deserialize()`. Note that these functions
+    work on *direct values*, so they must also be able to (de)serialize lists.
+    Serialize has already been implemented, whereas deserialized has to be implemented
+    in the subclass.
     """
 
     _filename: str
@@ -52,22 +55,16 @@ class JsonHandler(ABC, Generic[T]):
         try:
             with open(self.file_path, "r", encoding="utf-8") as file:
                 data = json.load(file)
-                self.load_from_json(data)
+                self.data = {k: self.deserialize(v) for k, v in data.items()}
         except Exception as e:
             logging.warning(f"Failed to read file '{self.file_path}': {e}")
             self.data = {}
 
     def save(self):
         os.makedirs(self._path, exist_ok=True)
-        data = self.to_json_data()
+        data = {k: self.serialize(v) for k, v in self.data.items()}
         with open(self.file_path, "w", encoding="utf-8") as file:
             json.dump(data, file, indent=2)
-
-    def load_from_json(self, data: dict[str, Any]):
-        self.data = {k: self.deserialize(v) for k, v in data.items()}
-
-    def to_json_data(self) -> Any:
-        return {k: self.serialize(v) for k, v in self.data.items()}
 
     def serialize(self, obj: T) -> SerializedTypes:
         if isinstance(obj, (int, str, bool)):

@@ -99,6 +99,10 @@ class SimpleCommand(discord.app_commands.Command):
         message = await itr.original_response()
         await message.delete(delay=10)
 
+    @property
+    def params(self):
+        return self._params
+
 
 class SimpleContextMenu(discord.app_commands.ContextMenu):
     name: str = ""

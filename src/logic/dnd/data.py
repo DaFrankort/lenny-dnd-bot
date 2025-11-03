@@ -12,7 +12,7 @@ from logic.dnd.rule import Rule, RuleList
 from logic.dnd.species import Species, SpeciesList
 from logic.dnd.spell import Spell, SpellList
 from logic.dnd.table import DNDTable, DNDTableList
-
+from logic.dnd.vehicle import Vehicle, VehicleList
 from rapidfuzz import fuzz
 
 
@@ -29,6 +29,7 @@ class DNDData(object):
     backgrounds: BackgroundList
     tables: DNDTableList
     species: SpeciesList
+    vehicles: VehicleList
 
     names: NameTable
 
@@ -46,6 +47,7 @@ class DNDData(object):
         self.backgrounds = BackgroundList()
         self.tables = DNDTableList()
         self.species = SpeciesList()
+        self.vehicles = VehicleList()
 
         # TABLES
         self.names = NameTable()
@@ -63,6 +65,7 @@ class DNDData(object):
         yield self.backgrounds
         yield self.tables
         yield self.species
+        yield self.vehicles
 
     def search(
         self,
@@ -97,6 +100,7 @@ class DNDSearchResults(object):
     backgrounds: list[Background]
     tables: list[DNDTable]
     species: list[Species]
+    vehicles: list[Vehicle]
     _type_map: dict[type, list]
 
     def __init__(self):
@@ -112,6 +116,7 @@ class DNDSearchResults(object):
         self.backgrounds = []
         self.tables = []
         self.species = []
+        self.vehicles = []
 
         self._type_map = {
             Spell: self.spells,
@@ -126,6 +131,7 @@ class DNDSearchResults(object):
             Background: self.backgrounds,
             DNDTable: self.tables,
             Species: self.species,
+            Vehicle: self.vehicles,
         }
 
     def add(self, entry):

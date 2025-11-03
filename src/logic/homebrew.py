@@ -55,7 +55,7 @@ class HomebrewObject(object):
 
     @property
     def title(self) -> str:
-        return f"{self.name} ({self.object_type.value.title()})"
+        return f"{self.name} ({self.object_type.title()})"
 
     @property
     def emoji(self) -> str:
@@ -78,7 +78,13 @@ class HomebrewObject(object):
 
     @classmethod
     def fromdict(cls, data: Any) -> "HomebrewObject":
-        return cls(**data)
+        return cls(
+            name=data["name"],
+            author_id=data["author_id"],
+            object_type=HomebrewObjectType(data["object_type"]),
+            description=data["description"],
+            select_description=data["select_description"],
+        )
 
 
 class HomebrewGuildData:

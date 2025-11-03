@@ -51,6 +51,7 @@
     "tokengen",
     "tokengenurl",
     "tokenimage",
+    "typeshed",
     "unop",
     "xaxis",
     "xlim",

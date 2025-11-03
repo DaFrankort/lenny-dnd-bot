@@ -82,4 +82,5 @@ class JsonHandler(ABC, Generic[T]):
         raise ValueError(f"Unsupported JSON handler serialization type '{type(obj)}'")
 
     @abstractmethod
-    def deserialize(self, obj: Any) -> T: ...
+    def deserialize(self, obj: Any) -> T:
+        raise NotImplementedError()

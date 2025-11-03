@@ -24,6 +24,7 @@
     "Fireb",
     "Fmpeg",
     "fromarray",
+    "fromdict",
     "gamemaster",
     "Gobl",
     "HBRW",
@@ -62,6 +63,7 @@
     "ylim",
     "yticklabels",
     "yticks",
-    "zxcvbnm"
+    "zxcvbnm",
+    "jsonhandler"
   ]
 }

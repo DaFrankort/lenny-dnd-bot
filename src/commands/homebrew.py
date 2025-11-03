@@ -2,7 +2,7 @@ import discord
 
 from embeds.homebrew import HomebrewEditModal, HomebrewEmbed, HomebrewEntryAddModal, HomebrewListView
 from command import SimpleCommand, SimpleCommandGroup
-from logic.homebrew import DNDObjectType, HomebrewData
+from logic.homebrew import HomebrewObjectType, HomebrewData
 from discord.app_commands import describe, choices, autocomplete
 
 
@@ -25,11 +25,15 @@ class HomebrewAddCommand(SimpleCommand):
     desc = "Add custom content to your tome of homebrew."
     help = "Add new homebrew content to your server."
 
-    @choices(dnd_type=DNDObjectType.choices())
-    @describe(dnd_type="The type of entry you are adding.")
-    async def callback(self, itr: discord.Interaction, dnd_type: str):  # pyright: ignore[reportIncompatibleMethodOverride]
+    @choices(type=HomebrewObjectType.choices())
+    @describe(type="The type of entry you are adding.")
+    async def callback(  # pyright: ignore[reportIncompatibleMethodOverride]
+        self,
+        itr: discord.Interaction,
+        type: HomebrewObjectType,
+    ):
         self.log(itr)
-        modal = HomebrewEntryAddModal(itr, dnd_type)
+        modal = HomebrewEntryAddModal(itr, type)
         await itr.response.send_modal(modal)
 
 
@@ -56,7 +60,7 @@ class HomebrewListCommand(SimpleCommand):
     desc = "View all entries in your server's tome of homebrew!"
     help = "Shows all homebrew content in your server and filter by entry type."
 
-    @choices(filter=DNDObjectType.choices())
+    @choices(filter=HomebrewObjectType.choices())
     @describe(filter="Show only homebrew entries of a certain type. Shows all by default.")
     async def callback(self, itr: discord.Interaction, filter: str | None = None):
         self.log(itr)

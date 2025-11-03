@@ -2,6 +2,7 @@ import logging
 from typing import TypeVar
 from discord import Interaction
 from discord.ui import TextInput, Modal
+from discord.ui.view import BaseView
 
 from command import get_error_embed
 
@@ -25,12 +26,12 @@ class SimpleModal(Modal):
         embed = get_error_embed(error)
         await itr.response.send_message(embed=embed, ephemeral=True)
 
-    def get_str(self, text_input: TextInput) -> str | None:
+    def get_str(self, text_input: TextInput[BaseView]) -> str | None:
         """Safely parse string from TextInput. Returns None if input is empty or only spaces."""
         text = str(text_input).strip()
         return text if text else None
 
-    def get_int(self, text_input: TextInput) -> int | None:
+    def get_int(self, text_input: TextInput[BaseView]) -> int | None:
         """Safely parse integer from TextInput. Returns None on failure, defaults to 0 if input is ''"""
         text = str(text_input).strip()
         if text == "":
@@ -40,7 +41,7 @@ class SimpleModal(Modal):
         except ValueError:
             return None
 
-    def get_choice(self, text_input: TextInput, default: T, choices: dict[str, T]) -> T:
+    def get_choice(self, text_input: TextInput[BaseView], default: T, choices: dict[str, T]) -> T:
         """Used to simulate selection-menu functionality, allowing a user to select a certain option."""
         choice = default
         user_input = str(text_input).lower()

@@ -24,6 +24,7 @@
     "Fireb",
     "Fmpeg",
     "fromarray",
+    "fromdict",
     "gamemaster",
     "Gobl",
     "HBRW",
@@ -51,6 +52,7 @@
     "tokengen",
     "tokengenurl",
     "tokenimage",
+    "typeshed",
     "unop",
     "xaxis",
     "xlim",
@@ -61,6 +63,7 @@
     "ylim",
     "yticklabels",
     "yticks",
-    "zxcvbnm"
+    "zxcvbnm",
+    "jsonhandler"
   ]
 }

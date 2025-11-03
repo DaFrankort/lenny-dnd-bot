@@ -1,4 +1,3 @@
-import discord
 import pytest
 import os
 from discord import Interaction

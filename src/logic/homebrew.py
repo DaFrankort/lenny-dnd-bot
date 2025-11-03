@@ -5,6 +5,7 @@ import os
 from typing import Any, Set
 import discord
 from rapidfuzz import fuzz
+from jsonhandler import JsonHandler
 from methods import ChoicedEnum
 from logic.config import user_is_admin_or_has_config_permissions
 from discord.app_commands import Choice
@@ -87,38 +88,18 @@ class HomebrewObject(object):
         )
 
 
-class HomebrewGuildData:
-    entries: dict[HomebrewObjectType, list[HomebrewObject]]
+class HomebrewGuildData(JsonHandler[list[HomebrewObject]]):
     server_id: int
 
-    def __init__(self, data: dict[HomebrewObjectType, list[Any]] | None, server_id: int):
+    def __init__(self, server_id: int):
         self.server_id = server_id
-        self.entries = dict()
+        super().__init__(filename=str(server_id), sub_dir="homebrew")
 
-        if not data:
-            for type in HomebrewObjectType:
-                self.entries[type] = []
-            self._save()
-            return
-
-        for key, items in data.items():
-            objs: list[HomebrewObject] = []
-            for item in items:
-                objs.append(HomebrewObject.fromdict(item))
-            self.entries[key] = objs
-
-    @property
-    def _file_path(self) -> str:
-        return os.path.join(HOMEBREW_PATH, f"{self.server_id}.json")
-
-    def _save(self):
-        os.makedirs(os.path.dirname(self._file_path), exist_ok=True)
-        entries = {k: [dataclasses.asdict(o) for o in v] for k, v in self.entries.items()}
-        with open(self._file_path, "w", encoding="utf-8") as file:
-            json.dump(entries, file, indent=2)
+    def deserialize(self, obj: Any) -> list[HomebrewObject]:
+        return [HomebrewObject.fromdict(o) for o in obj]
 
     def _find(self, name: str) -> HomebrewObject | None:
-        for _, items in self.entries.items():
+        for _, items in self.data.items():
             for item in items:
                 if name.lower() != item.name.lower():
                     continue
@@ -146,10 +127,10 @@ class HomebrewGuildData:
             description=description,
             author_id=author_id,
         )
-        if object_type not in self.entries:
-            self.entries[object_type] = []
-        self.entries[object_type].append(new_entry)
-        self._save()
+        if object_type not in self.data:
+            self.data[object_type] = []
+        self.data[object_type].append(new_entry)
+        self.save()
         return new_entry
 
     def delete(self, itr: discord.Interaction, name: str) -> HomebrewObject:
@@ -160,8 +141,8 @@ class HomebrewGuildData:
             raise ValueError("You do not have permission to remove this homebrew entry.")
 
         key = entry_to_delete.object_type
-        self.entries[key].remove(entry_to_delete)
-        self._save()
+        self.data[key].remove(entry_to_delete)
+        self.save()
         return entry_to_delete
 
     def edit(
@@ -178,9 +159,9 @@ class HomebrewGuildData:
             description=description,
             author_id=entry.author_id,
         )
-        self.entries[key].remove(entry)
-        self.entries[key].append(edited_entry)
-        self._save()
+        self.data[key].remove(entry)
+        self.data[key].append(edited_entry)
+        self.save()
         return edited_entry
 
     def get(self, entry_name: str) -> HomebrewObject:
@@ -191,7 +172,7 @@ class HomebrewGuildData:
 
     def get_all(self, type_filter: HomebrewObjectType | None) -> list[HomebrewObject]:
         entries: list[HomebrewObject] = []
-        for key, items in self.entries.items():
+        for key, items in self.data.items():
             if type_filter and type_filter != key:
                 continue
             entries.extend(items)
@@ -210,8 +191,8 @@ class HomebrewGuildData:
             return []
 
         choices: list[tuple[bool, float, Choice[str]]] = []
-        for key in self.entries.keys():
-            for e in self.entries.get(key, []):
+        for key in self.data.keys():
+            for e in self.data.get(key, []):
                 if not e.can_manage(itr):
                     continue
 
@@ -244,20 +225,13 @@ class GlobalHomebrewData:
             if not filename.endswith(".json"):
                 continue
             server_id = int(filename[:-5])
-            path = os.path.join(HOMEBREW_PATH, filename)
-            try:
-                with open(path, "r", encoding="utf-8") as file:
-                    data = json.load(file)
-                    self._data[server_id] = HomebrewGuildData(data, server_id)
-            except Exception as e:
-                logging.warning(f"Failed to load homebrew file '{path}': {e}")
-                self._data[server_id] = HomebrewGuildData(None, server_id)
+            self._data[server_id] = HomebrewGuildData(server_id)
 
     def get(self, itr: discord.Interaction) -> HomebrewGuildData:
         if not itr.guild_id:
             raise ValueError("Can only get homebrew content in a server!")
         if itr.guild_id not in self._data:
-            self._data[itr.guild_id] = HomebrewGuildData(None, itr.guild_id)
+            self._data[itr.guild_id] = HomebrewGuildData(itr.guild_id)
         return self._data[itr.guild_id]
 
     @property

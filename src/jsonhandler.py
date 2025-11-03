@@ -1,25 +1,24 @@
-from abc import ABC, abstractmethod
 import dataclasses
 import json
 import logging
 import os
-from typing import Any, Generic, List, Sequence, TypeVar, Union, TYPE_CHECKING
+from typing import Any, Generic, Sequence, TypeVar, Union, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from _typeshed import DataclassInstance
 else:
     DataclassInstance = Any
 
-SupportedBaseTypes = Union[int, str, bool, None, DataclassInstance]
-SerializedBaseTypes = Union[int, str, bool, None, dict[str, Any]]
+SupportedBaseTypes = Union[int, float, str, bool, DataclassInstance]
+SerializedBaseTypes = Union[int, float, str, bool, dict[str, Any]]
 
 SupportedTypes = Union[Sequence[SupportedBaseTypes], SupportedBaseTypes]
-SerializedTypes = Union[SerializedBaseTypes, List["SerializedBaseTypes"]]
+SerializedTypes = Union[Sequence["SerializedBaseTypes"], SerializedBaseTypes]
 
 T = TypeVar("T", bound=SupportedTypes)
 
 
-class JsonHandler(ABC, Generic[T]):
+class JsonHandler(Generic[T]):
     """
     Abstract base class for managing JSON-based file storage.
 
@@ -39,7 +38,7 @@ class JsonHandler(ABC, Generic[T]):
         base_dir = "./temp"
         self._filename = filename
         self._path = os.path.join(base_dir, sub_dir) if sub_dir else base_dir
-        self.data = {}
+        self.data = dict()
         self.load()
 
     @property
@@ -54,9 +53,9 @@ class JsonHandler(ABC, Generic[T]):
 
         try:
             with open(self.file_path, "r", encoding="utf-8") as file:
-                data = json.load(file)
+                data: dict[str, Any] = json.load(file)
                 self.data = {k: self.deserialize(v) for k, v in data.items()}
-        except Exception as e:
+        except FileNotFoundError as e:
             logging.warning(f"Failed to read file '{self.file_path}': {e}")
             self.data = {}
 
@@ -73,11 +72,15 @@ class JsonHandler(ABC, Generic[T]):
             return dataclasses.asdict(obj)
         if isinstance(obj, list):
             return [self.serialize(o) for o in obj]  # type: ignore
-        if obj is None:
-            return None
 
         raise ValueError(f"Unsupported JSON handler serialization type '{type(obj)}'")
 
-    @abstractmethod
     def deserialize(self, obj: Any) -> T:
-        raise NotImplementedError()
+        if isinstance(obj, (int, str, bool, float)):
+            return obj  # type: ignore
+        if isinstance(obj, list):
+            return [self.deserialize(o) for o in obj]  # type: ignore
+
+        raise NotImplementedError(
+            f"Json handler deserialization is not implemented for {type(obj)} in {self.__class__.__name__}"
+        )

@@ -5,7 +5,7 @@ import os
 from typing import Any
 
 
-class JsonFileHandler(ABC):
+class JsonHandler(ABC):
     """
     Abstract base class for managing JSON-based file storage.
 

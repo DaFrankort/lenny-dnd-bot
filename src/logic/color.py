@@ -3,7 +3,7 @@ import io
 from typing import Any
 import discord
 import re
-from jsonhandler import JsonFileHandler
+from jsonhandler import JsonHandler
 from methods import FontType, get_font, when
 from PIL import Image, ImageDraw
 
@@ -67,7 +67,7 @@ def save_rgb_color(itr: discord.Interaction, r: int, g: int, b: int) -> UserColo
     return UserColorSaveResult(old_color, color)
 
 
-class UserColorFileHandler(JsonFileHandler):
+class UserColorFileHandler(JsonHandler):
     """Class to handle user colors, which are used in embeds."""
 
     data: dict[str, int]

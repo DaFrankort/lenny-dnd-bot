@@ -3,7 +3,8 @@ import io
 from typing import Any
 import discord
 import re
-from methods import FontType, JsonFileHandler, get_font, when
+from jsonhandler import JsonFileHandler
+from methods import FontType, get_font, when
 from PIL import Image, ImageDraw
 
 

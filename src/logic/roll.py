@@ -24,10 +24,10 @@ class DiceStringifier(d20.Stringifier):
             return ""
         return super()._stringify(node)
 
-    def _extract_values(self, values: Any):
-        results = []
+    def _extract_values(self, values: Any) -> list[str]:
+        results: list[str] = []
         for result in [self._stringify(value) for value in values]:
-            if result is not None:
+            if result:
                 results.append(result)
         return results
 

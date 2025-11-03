@@ -14,13 +14,13 @@ TOKEN_NUMBER_LABEL = Image.open("./assets/images/token_number_label.png").conver
 TOKEN_NUMBER_OVERLAY = Image.open("./assets/images/token_number_overlay.png").convert("RGBA")
 
 
-class AlignH(ChoicedEnum):
+class AlignH(str, ChoicedEnum):
     LEFT = "left"
     CENTER = "center"
     RIGHT = "right"
 
 
-class AlignV(ChoicedEnum):
+class AlignV(str, ChoicedEnum):
     TOP = "top"
     CENTER = "center"
     BOTTOM = "bottom"
@@ -64,20 +64,20 @@ def _squarify_image(image: Image.Image, h_align: AlignH, v_align: AlignV) -> Ima
 
     size = min(image.size)
 
-    if h_align == AlignH.LEFT.value:
+    if h_align == AlignH.LEFT:
         left = 0
         right = size
-    elif h_align == AlignH.RIGHT.value:
+    elif h_align == AlignH.RIGHT:
         left = image.width - size
         right = image.width
     else:
         left = (image.width - size) // 2
         right = left + size
 
-    if v_align == AlignV.TOP.value:
+    if v_align == AlignV.TOP:
         top = 0
         bottom = size
-    elif v_align == AlignV.BOTTOM.value:
+    elif v_align == AlignV.BOTTOM:
         top = image.height - size
         bottom = image.height
     else:

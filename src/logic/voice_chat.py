@@ -11,7 +11,7 @@ from discord import Interaction
 from logic.roll import RollResult
 
 
-class SoundType(Enum):
+class SoundType(str, Enum):
     ROLL = "dice/roll"
     NAT_20 = "dice/nat_20"
     NAT_1 = "dice/nat_1"
@@ -231,7 +231,7 @@ class Sounds:
     @staticmethod
     def get(sound_type: SoundType) -> discord.FFmpegPCMAudio | None:
         """Get a random sound file for the given sound type."""
-        folder = Sounds.BASE_PATH / sound_type.value
+        folder = Sounds.BASE_PATH / sound_type
         if not folder.exists() or not folder.is_dir():
             folder.mkdir(parents=True, exist_ok=True)
 
@@ -251,5 +251,5 @@ class Sounds:
     @classmethod
     def init_folders(cls):
         for sound_type in SoundType:
-            folder = cls.BASE_PATH / sound_type.value
+            folder = cls.BASE_PATH / sound_type
             folder.mkdir(parents=True, exist_ok=True)

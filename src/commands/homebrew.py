@@ -94,4 +94,4 @@ class HomebrewRemoveCommand(SimpleCommand):
         entry = HomebrewData.get(itr).delete(itr, name)
         embed = HomebrewEmbed(itr, entry)
         embed.color = discord.Color.red()
-        await itr.response.send_message(f"{itr.user.mention} removed a homebrew {entry.object_type.value}:", embed=embed)
+        await itr.response.send_message(f"{itr.user.mention} removed a homebrew {entry.object_type}:", embed=embed)

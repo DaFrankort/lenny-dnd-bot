@@ -6,13 +6,13 @@ import d20
 from methods import ChoicedEnum
 
 
-class Advantage(ChoicedEnum):
+class Advantage(str, ChoicedEnum):
     Normal = "normal"
     Advantage = "advantage"
     Disadvantage = "disadvantage"
 
 
-class DiceSpecial(Enum):
+class DiceSpecial(str, Enum):
     Natural20 = "nat20"
     Natural1 = "nat1"
     Dirty20 = "dirty20"

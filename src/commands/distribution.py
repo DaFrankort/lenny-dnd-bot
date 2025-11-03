@@ -23,12 +23,12 @@ class DistributionCommand(SimpleCommand):
         self,
         itr: Interaction,
         expression: str,
-        advantage: str = Advantage.Normal.value,
+        advantage: str = Advantage.Normal,
         min_to_beat: int | None = None,
     ):
         self.log(itr)
         await itr.response.defer()
         color = UserColor.get(itr)
-        result = distribution(expression, advantage, color, min_to_beat)
+        result = distribution(expression, Advantage(advantage), color, min_to_beat)
         embed = DistributionEmbed(itr, result)
         await itr.followup.send(embed=embed, file=embed.chart)

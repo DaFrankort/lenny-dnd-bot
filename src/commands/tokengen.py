@@ -40,8 +40,8 @@ class TokenGenCommand(SimpleCommand):
         itr: discord.Interaction,
         image: discord.Attachment,
         frame_hue: Range[int, -360, 360] = 0,
-        h_alignment: str = AlignH.CENTER.value,
-        v_alignment: str = AlignV.CENTER.value,
+        h_alignment: str = AlignH.CENTER,
+        v_alignment: str = AlignV.CENTER,
         variants: Range[int, 0, 10] = 0,
     ):
         self.log(itr)
@@ -74,8 +74,8 @@ class TokenGenUrlCommand(SimpleCommand):
         itr: discord.Interaction,
         url: str,
         frame_hue: Range[int, -360, 360] = 0,
-        h_alignment: str = AlignH.CENTER.value,
-        v_alignment: str = AlignV.CENTER.value,
+        h_alignment: str = AlignH.CENTER,
+        v_alignment: str = AlignV.CENTER,
         variants: Range[int, 0, 10] = 0,
     ):
         self.log(itr)

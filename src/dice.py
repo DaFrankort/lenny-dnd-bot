@@ -14,8 +14,6 @@ class DiceCacheInfo:
 
 
 class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
-    data: dict[str, DiceCacheInfo]
-
     def __init__(self):
         super().__init__("dice_cache")
 

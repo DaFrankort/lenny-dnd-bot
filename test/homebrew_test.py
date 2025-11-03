@@ -75,13 +75,13 @@ class TestHomebrew:
 
     def test_get_all_entries(self, itr: Interaction, data: GlobalHomebrewData):
         guild_data = data.get(itr)
-        guild_data.entries = {HomebrewObjectType.SPELL: [], HomebrewObjectType.ITEM: []}  # Reset entries
+        guild_data.data = {HomebrewObjectType.SPELL: [], HomebrewObjectType.ITEM: []}  # Reset entries
         guild_data.add(itr, HomebrewObjectType.SPELL, "Spell1", "d1", "desc1")
         guild_data.add(itr, HomebrewObjectType.ITEM, "Item1", "d2", "desc2")
 
         all_entries = guild_data.get_all(None)
-        expected_count = len(guild_data.entries.get(HomebrewObjectType.SPELL, [])) + len(
-            guild_data.entries.get(HomebrewObjectType.ITEM, [])
+        expected_count = len(guild_data.data.get(HomebrewObjectType.SPELL, [])) + len(
+            guild_data.data.get(HomebrewObjectType.ITEM, [])
         )
         assert len(all_entries) == expected_count
 

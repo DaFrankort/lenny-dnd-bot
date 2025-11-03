@@ -62,16 +62,16 @@ def build_table_from_rows(
     return build_table({"headers": headers, "rows": rows}, width, show_lines)
 
 
-class FontType(Enum):
+class FontType(str, Enum):
     MONOSPACE = "./assets/fonts/GoogleSansCode-Light.ttf"
     FANTASY = "./assets/fonts/Merienda-Light.ttf"
 
 
 def get_font(font: FontType, size: float):
     try:
-        return ImageFont.truetype(font=font.value, size=size)
+        return ImageFont.truetype(font=font, size=size)
     except OSError:
-        logging.warning(f"Font '{font.value}' could not be loaded!")
+        logging.warning(f"Font '{font}' could not be loaded!")
         return ImageFont.load_default(size=size)
 
 

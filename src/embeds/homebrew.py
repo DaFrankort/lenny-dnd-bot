@@ -59,7 +59,7 @@ class HomebrewEntryAddModal(SimpleModal):
 
         entry = HomebrewData.get(itr).add(itr, self.type, name=name, select_description=subtitle, description=description)
         embed = HomebrewEmbed(itr, entry)
-        await itr.response.send_message(content=f"Added {self.type}: ``{name}``!", embed=embed, ephemeral=True)
+        await itr.response.send_message(content=f"Added {self.type.value}: ``{name}``!", embed=embed, ephemeral=True)
 
 
 class HomebrewEditModal(SimpleModal):

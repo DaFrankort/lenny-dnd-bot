@@ -62,4 +62,6 @@ class TestJsonHandler:
         handler.data["skills"] = ["Athletics"]
         handler.load()
 
+        assert "items" in handler.data, "Saved data should still exist."
+        assert "spells" in handler.data, "Saved data should still exist."
         assert "skills" not in handler.data, "Loading without saving should not maintain contents."

@@ -231,7 +231,7 @@ class Sounds:
     @staticmethod
     def get(sound_type: SoundType) -> discord.FFmpegPCMAudio | None:
         """Get a random sound file for the given sound type."""
-        folder = Sounds.BASE_PATH / sound_type
+        folder = Sounds.BASE_PATH / sound_type.value
         if not folder.exists() or not folder.is_dir():
             folder.mkdir(parents=True, exist_ok=True)
 
@@ -251,5 +251,5 @@ class Sounds:
     @classmethod
     def init_folders(cls):
         for sound_type in SoundType:
-            folder = cls.BASE_PATH / sound_type
+            folder = cls.BASE_PATH / sound_type.value
             folder.mkdir(parents=True, exist_ok=True)

@@ -15,31 +15,25 @@ class JsonHandler(ABC):
     """
 
     _filename: str
-    _basepath: str = "./temp"
-    _subpath: str = ""
-    data: Any
+    _path: str
+    data: dict[str, Any]
 
-    def __init__(self, filename: str, subpath: str = ""):
+    def __init__(self, filename: str, sub_dir: str = ""):
+        base_dir = "./temp"
         self._filename = filename
-        self._subpath = subpath
+        self._path = os.path.join(base_dir, sub_dir) if sub_dir else base_dir
         self.data = {}
         self.load()
 
     @property
-    def path(self) -> str:
-        if self._subpath:
-            return os.path.join(self._basepath, self._subpath)
-        return self._basepath
-
-    @property
     def file_path(self) -> str:
         filename = f"{self._filename}.json"
-        return os.path.join(self.path, filename)
+        return os.path.join(self._path, filename)
 
     def load(self):
-        if not os.path.exists(self.path):
-            os.makedirs(self.path)
-            logging.info(f"Created new filepath at: {self.path}")
+        if not os.path.exists(self._path):
+            os.makedirs(self._path)
+            logging.info(f"Created new filepath at: {self._path}")
 
         try:
             with open(self.file_path, "r", encoding="utf-8") as file:
@@ -50,7 +44,7 @@ class JsonHandler(ABC):
             self.data = {}
 
     def save(self):
-        os.makedirs(self.path, exist_ok=True)
+        os.makedirs(self._path, exist_ok=True)
         data = self.to_json_data()
         with open(self.file_path, "w", encoding="utf-8") as file:
             json.dump(data, file, indent=2)

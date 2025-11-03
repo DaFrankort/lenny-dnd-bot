@@ -108,9 +108,8 @@ class TestDiceExpression:
 class TestDiceExpressionCache:
     @pytest.fixture(autouse=True)
     def setup(self, tmp_path):
-        self.test_path = tmp_path / "dice_cache.json"
-        DiceCache.PATH = self.test_path
-        DiceCache._data = {}  # Reset cache before each test
+        DiceCache._filename = "dice_cache_test"
+        DiceCache.data = {}  # Reset cache before each test
 
     @pytest.fixture
     def itr(self):
@@ -139,10 +138,10 @@ class TestDiceExpressionCache:
     def test_store_expression_adds_to_cache(self, itr, expression: str):
         DiceCache.store_expression(itr, expression)
         user_id = str(itr.user.id)
-        data = DiceCache._data
+        data = DiceCache.data
 
         assert user_id in data, f"User ID {user_id} should be in cache data."
-        assert expression in data[user_id]["last_used"], f"'{expression}' should be in last_used for user."
+        assert expression in data[user_id].last_used, f"'{expression}' should be in last_used for user."
 
     @pytest.mark.parametrize(
         "reason",
@@ -151,12 +150,12 @@ class TestDiceExpressionCache:
     def test_store_reason(self, itr, reason: str):
         DiceCache.store_reason(itr, reason)
         user_id = str(itr.user.id)
-        data = DiceCache._data
+        data = DiceCache.data
 
         assert user_id in data, f"User ID {user_id} should not be in cache for invalid expression."
-        assert reason in data[user_id]["last_used_reason"], f"'{reason} should be in last_used_reason"
+        assert reason in data[user_id].last_used_reason, f"'{reason} should be in last_used_reason"
 
     def test_get_autocomplete_suggestions_empty(self, itr):
-        DiceCache._data = {}
+        DiceCache.data = {}
         suggestions = DiceCache.get_autocomplete_suggestions(itr, "")
         assert suggestions == [], "Suggestions should be empty when no data is present."

@@ -1,81 +1,75 @@
-import json
-import os
-
-from pathlib import Path
-from discord import Interaction
 import discord
+
+from dataclasses import asdict, dataclass
+from discord import Interaction
 from discord.app_commands import Choice
+from jsonhandler import JsonHandler
 
 
-class DiceCache:
-    PATH = Path("./temp/dice_cache.json")
-    _data = {}  # cache in memory to avoid frequent file reads
+@dataclass
+class DiceCacheInfo:
+    last_used: list[str]
+    last_used_reason: list[str]
 
-    @classmethod
-    def _get_user_data_template(cls) -> object:
-        return {"last_used": [], "last_used_reason": []}
 
-    @classmethod
-    def _load_data(cls):
-        if cls._data is not None:
-            return cls._data
-        if cls.PATH.exists():
-            with cls.PATH.open("r") as f:
-                cls._data = json.load(f)
-        else:
-            os.makedirs(os.path.dirname(cls.PATH), exist_ok=True)
-            cls._data = {}
-        return cls._data
+class DiceCacheHandler(JsonHandler):
+    data: dict[str, DiceCacheInfo]
 
-    @classmethod
-    def _save_data(cls):
-        if cls._data is None:
-            return
-        with cls.PATH.open("w") as f:
-            json.dump(cls._data, f, indent=4)
+    def __init__(self):
+        super().__init__("dice_cache")
 
-    @classmethod
-    def store_expression(cls, itr: Interaction, expression: str):
+    def load_from_json(self, data):
+        self.data = {}
+        for key, item in data.items():
+            self.data[key] = DiceCacheInfo(
+                last_used=item.get("last_used", []), last_used_reason=item.get("last_used_reason", [])
+            )
+
+    def to_json_data(self):
+        return {key: asdict(item) for key, item in self.data.items()}
+
+    def store_expression(self, itr: Interaction, expression: str):
         """Stores a user's used diceroll input to the cache, if it is without errors."""
 
         user_id = str(itr.user.id)
-        data = cls._load_data()
-        user_data = data.get(user_id, cls._get_user_data_template())
-        last_used = user_data.get("last_used", [])
-        if expression in last_used:
-            last_used.remove(expression)
-        last_used.append(expression)
+        if user_id not in self.data:
+            self.data[user_id] = DiceCacheInfo([expression], [])
+            self.save()
+            return
 
-        user_data["last_used"] = last_used[-5:]  # Store max 5 expressions
-        data[user_id] = user_data
-        cls._save_data()
+        if expression in self.data[user_id].last_used:
+            self.data[user_id].last_used.remove(expression)
+        self.data[user_id].last_used.append(expression)
 
-    @classmethod
-    def store_reason(cls, itr: Interaction, reason: str | None):
+        self.data[user_id].last_used = self.data[user_id].last_used[-5:]  # Store max 5 expressions
+        self.save()
+
+    def store_reason(self, itr: Interaction, reason: str | None):
         if reason is None:
             return
 
         user_id = str(itr.user.id)
-        data = cls._load_data()
-        user_data = data.get(user_id, cls._get_user_data_template())
-        last_used_reasons = user_data.get("last_used_reason", [])
-        if reason in last_used_reasons:
-            last_used_reasons.remove(reason)
-        last_used_reasons.append(reason)
+        if user_id not in self.data:
+            self.data[user_id] = DiceCacheInfo([], [reason])
+            self.save()
+            return
 
-        user_data["last_used_reason"] = last_used_reasons[-5:]  # Store max 5 reasons
-        data[user_id] = user_data
-        cls._save_data()
+        if reason in self.data[user_id].last_used_reason:
+            self.data[user_id].last_used_reason.remove(reason)
+        self.data[user_id].last_used_reason.append(reason)
 
-    @classmethod
-    def get_autocomplete_suggestions(cls, itr: Interaction, query: str) -> list[Choice[str]]:
+        self.data[user_id].last_used_reason = self.data[user_id].last_used_reason[-5:]  # Store max 5 reasons
+        self.save()
+
+    def get_autocomplete_suggestions(self, itr: Interaction, query: str) -> list[Choice[str]]:
         """
         Returns auto-complete choices for the last roll expressions a user used when no query is given.
         """
         user_id = str(itr.user.id)
-        user_data = cls._load_data().get(user_id, cls._get_user_data_template())
-        last_used = user_data.get("last_used", [])
+        if user_id not in self.data:
+            return []
 
+        last_used = self.data[user_id].last_used
         if len(last_used) == 0:
             return []
 
@@ -84,16 +78,16 @@ class DiceCache:
 
         return filtered[:25]
 
-    @classmethod
-    def get_autocomplete_reason_suggestions(cls, itr: Interaction, query: str) -> list[Choice[str]]:
+    def get_autocomplete_reason_suggestions(self, itr: Interaction, query: str) -> list[Choice[str]]:
         """
         Returns auto-complete choices for the last reasons a user used when no query is given.
         If query is given, will suggest reasons containing the query.
         """
         user_id = str(itr.user.id)
-        user_data = cls._load_data().get(user_id, cls._get_user_data_template())
-        last_used = user_data.get("last_used_reason", [])
+        if user_id not in self.data:
+            return []
 
+        last_used = self.data[user_id].last_used_reason
         if len(last_used) == 0:
             return []
 
@@ -137,3 +131,6 @@ class DiceCache:
             key=lambda x: x.lower().index(query),
         )
         return [discord.app_commands.Choice(name=reason, value=reason) for reason in filtered_reasons[:25]]
+
+
+DiceCache = DiceCacheHandler()

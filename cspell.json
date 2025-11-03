@@ -61,6 +61,7 @@
     "ylim",
     "yticklabels",
     "yticks",
-    "zxcvbnm"
+    "zxcvbnm",
+    "jsonhandler"
   ]
 }

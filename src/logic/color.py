@@ -67,21 +67,14 @@ def save_rgb_color(itr: discord.Interaction, r: int, g: int, b: int) -> UserColo
     return UserColorSaveResult(old_color, color)
 
 
-class UserColorFileHandler(JsonHandler):
+class UserColorFileHandler(JsonHandler[int]):
     """Class to handle user colors, which are used in embeds."""
-
-    data: dict[str, int]
 
     def __init__(self):
         super().__init__(filename="user_colors")
 
-    def load_from_json(self, data: Any):
-        self.data = {}
-        if isinstance(data, dict):
-            self.data = data
-
-    def to_json_data(self) -> Any:
-        return self.data
+    def deserialize(self, obj: Any) -> int:
+        return int(obj)
 
     def add(self, itr: discord.Interaction, color: int) -> None:
         """Saves the user's color to a JSON file."""
@@ -113,7 +106,7 @@ class UserColorFileHandler(JsonHandler):
 
         # This cute little function converts characters into unicode
         # I made it so the the alpha_value assignment line wouldn't be so hard to read
-        def get_alpha(char):
+        def get_alpha(char: str):
             return abs(ord(char.lower()) - 96)
 
         while hex_place < 6:

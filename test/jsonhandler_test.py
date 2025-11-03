@@ -20,6 +20,7 @@ class TestJsonHandler:
     def handler(self) -> SimpleJsonHandler:
         handler = SimpleJsonHandler()
         handler.data.clear()
+        handler.save()
         return handler
 
     def test_save_load(self, handler: SimpleJsonHandler) -> None:

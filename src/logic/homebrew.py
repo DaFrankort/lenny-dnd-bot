@@ -1,13 +1,13 @@
+import dataclasses
 import json
 import logging
 import os
-from typing import Any, NamedTuple, Set
+from typing import Any, Set
 import discord
 from rapidfuzz import fuzz
 from methods import ChoicedEnum
 from logic.config import user_is_admin_or_has_config_permissions
 from discord.app_commands import Choice
-
 
 HOMEBREW_PATH: str = "./temp/homebrew/"
 
@@ -45,7 +45,8 @@ class HomebrewObjectType(str, ChoicedEnum):
         return emojis.get(self, "❓")
 
 
-class HomebrewObject(NamedTuple):
+@dataclasses.dataclass
+class HomebrewObject(object):
     name: str
     author_id: int
     object_type: HomebrewObjectType
@@ -77,13 +78,7 @@ class HomebrewObject(NamedTuple):
 
     @classmethod
     def fromdict(cls, data: Any) -> "HomebrewObject":
-        return cls(
-            name=data["name"],
-            author_id=data["author_id"],
-            object_type=data["object_type"],
-            description=data["description"],
-            select_description=data["select_description"],
-        )
+        return cls(**data)
 
 
 class HomebrewGuildData:
@@ -112,8 +107,9 @@ class HomebrewGuildData:
 
     def _save(self):
         os.makedirs(os.path.dirname(self._file_path), exist_ok=True)
+        entries = {k: [dataclasses.asdict(o) for o in v] for k, v in self.entries.items()}
         with open(self._file_path, "w", encoding="utf-8") as file:
-            json.dump(self.entries, file, indent=2)
+            json.dump(entries, file, indent=2)
 
     def _find(self, name: str) -> HomebrewObject | None:
         for _, items in self.entries.items():
@@ -144,6 +140,8 @@ class HomebrewGuildData:
             description=description,
             author_id=author_id,
         )
+        if object_type not in self.entries:
+            self.entries[object_type] = []
         self.entries[object_type].append(new_entry)
         self._save()
         return new_entry

@@ -1,13 +1,14 @@
 import discord
 import pytest
 import os
+from discord import Interaction
 from utils.mocking import MockInteraction
 from logic.homebrew import GlobalHomebrewData, HomebrewObjectType, HOMEBREW_PATH
 
 
 class TestHomebrew:
     @pytest.fixture(autouse=True)
-    def setup_cleanup(self, itr: discord.Interaction):
+    def setup_cleanup(self, itr: Interaction):
         os.makedirs(HOMEBREW_PATH, exist_ok=True)
         file_path = os.path.join(HOMEBREW_PATH, f"{itr.guild_id}.json")
 
@@ -27,18 +28,18 @@ class TestHomebrew:
     def itr(self):
         return MockInteraction()
 
-    def test_add_server(self, itr: discord.Interaction, data: GlobalHomebrewData):
+    def test_add_server(self, itr: Interaction, data: GlobalHomebrewData):
         guild_data = data.get(itr)
         assert guild_data is not None
         assert itr.guild_id in data.guilds
 
-    def test_add_homebrew_entry(self, itr: discord.Interaction, data: GlobalHomebrewData):
+    def test_add_homebrew_entry(self, itr: Interaction, data: GlobalHomebrewData):
         guild_data = data.get(itr)
         entry = guild_data.add(itr, HomebrewObjectType.SPELL, "Fireball", "A powerful fire spell", "Deals 8d6 fire damage")
         assert entry.name == "Fireball"
         assert entry.object_type == HomebrewObjectType.SPELL
 
-    def test_get_homebrew_entry(self, itr: discord.Interaction, data: GlobalHomebrewData):
+    def test_get_homebrew_entry(self, itr: Interaction, data: GlobalHomebrewData):
         guild_data = data.get(itr)
         guild_data.add(itr, HomebrewObjectType.SPELL, "Ice Bolt", "A cold spell", "Deals 4d6 cold damage")
 
@@ -46,7 +47,7 @@ class TestHomebrew:
         assert entry.name == "Ice Bolt"
         assert entry.description == "Deals 4d6 cold damage"
 
-    def test_delete_homebrew_entry(self, itr: discord.Interaction, data: GlobalHomebrewData):
+    def test_delete_homebrew_entry(self, itr: Interaction, data: GlobalHomebrewData):
         guild_data = data.get(itr)
         guild_data.add(itr, HomebrewObjectType.SPELL, "Lightning", "An electric spell", "Deals 6d6 lightning damage")
 
@@ -56,7 +57,7 @@ class TestHomebrew:
         with pytest.raises(ValueError):
             guild_data.get("Lightning")
 
-    def test_edit_homebrew_entry(self, itr: discord.Interaction, data: GlobalHomebrewData):
+    def test_edit_homebrew_entry(self, itr: Interaction, data: GlobalHomebrewData):
         guild_data = data.get(itr)
         original = guild_data.add(itr, HomebrewObjectType.SPELL, "Magic", "Old description", "Old details")
 
@@ -66,14 +67,14 @@ class TestHomebrew:
         assert edited.select_description == "New description"
         assert edited.description == "New details"
 
-    def test_duplicate_name_raises_error(self, itr: discord.Interaction, data: GlobalHomebrewData):
+    def test_duplicate_name_raises_error(self, itr: Interaction, data: GlobalHomebrewData):
         guild_data = data.get(itr)
         guild_data.add(itr, HomebrewObjectType.SPELL, "Duplicate", "desc", "details")
 
         with pytest.raises(ValueError):
             guild_data.add(itr, HomebrewObjectType.SPELL, "Duplicate", "desc", "details")
 
-    def test_get_all_entries(self, itr: discord.Interaction, data: GlobalHomebrewData):
+    def test_get_all_entries(self, itr: Interaction, data: GlobalHomebrewData):
         guild_data = data.get(itr)
         guild_data.entries = {HomebrewObjectType.SPELL: [], HomebrewObjectType.ITEM: []}  # Reset entries
         guild_data.add(itr, HomebrewObjectType.SPELL, "Spell1", "d1", "desc1")

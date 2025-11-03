@@ -1,6 +1,7 @@
+from typing import Any
 import discord
 
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from discord import Interaction
 from discord.app_commands import Choice
 from jsonhandler import JsonHandler
@@ -12,21 +13,14 @@ class DiceCacheInfo:
     last_used_reason: list[str]
 
 
-class DiceCacheHandler(JsonHandler):
+class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
     data: dict[str, DiceCacheInfo]
 
     def __init__(self):
         super().__init__("dice_cache")
 
-    def load_from_json(self, data):
-        self.data = {}
-        for key, item in data.items():
-            self.data[key] = DiceCacheInfo(
-                last_used=item.get("last_used", []), last_used_reason=item.get("last_used_reason", [])
-            )
-
-    def to_json_data(self):
-        return {key: asdict(item) for key, item in self.data.items()}
+    def deserialize(self, obj: Any) -> DiceCacheInfo:
+        return DiceCacheInfo(last_used=obj["last_used"], last_used_reason=obj["last_used_reason"])
 
     def store_expression(self, itr: Interaction, expression: str):
         """Stores a user's used diceroll input to the cache, if it is without errors."""

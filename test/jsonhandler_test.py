@@ -110,5 +110,7 @@ class TestJsonHandler:
     def test_unimplemented_complex_will_throw_error(self):
         with pytest.raises(NotImplementedError):
             unimplemented = UnimplementedComplexJsonHandler()
+            unimplemented.data["1"] = ComplexClass(1, "2", 3.0)
+
             unimplemented.save()
             unimplemented.load()

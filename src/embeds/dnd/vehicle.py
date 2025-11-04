@@ -18,4 +18,4 @@ class VehicleEmbed(DNDObjectEmbed):
             self.add_field(name="Travel Pace", value=vehicle.travel_pace)
 
         if vehicle.description:
-            self.add_description_fields(vehicle.description, ignore_tables=True, MAX_FIELDS=3)
+            self.add_description_fields(vehicle.description, ignore_tables=True)

@@ -1,18 +1,40 @@
 import copy
+import dataclasses
 from typing import Any
 
 import pytest
 from jsonhandler import JsonHandler
 
 
+@dataclasses.dataclass
+class ComplexClass(object):
+    a: int
+    b: str
+    c: float
+
+
 class SimpleJsonHandler(JsonHandler[list[str]]):
-    """This is a basic implementation of JsonHandler, meant to deal with simple data."""
+    """This is a basic implementation of JsonHandler, meant to deal with simple data. As such, it is not needed to implement a deserialize method."""
 
     def __init__(self):
-        super().__init__("test")
+        super().__init__("test1")
 
-    def deserialize(self, obj: Any) -> list[str]:
-        return [str(o) for o in obj]
+
+class ComplexJsonHandler(JsonHandler[ComplexClass]):
+    """This is an implementation of JsonHandler with a complexer class. A deserialize method is implemented."""
+
+    def __init__(self):
+        super().__init__("test2")
+
+    def deserialize(self, obj: Any) -> ComplexClass:
+        return ComplexClass(a=obj["a"], b=obj["b"], c=obj["c"])
+
+
+class UnimplementedComplexJsonHandler(JsonHandler[ComplexClass]):
+    """This is an implementation of JsonHandler with a complexer class. A deserialize method is *not* implemented."""
+
+    def __init__(self):
+        super().__init__("test3")
 
 
 class TestJsonHandler:
@@ -22,6 +44,13 @@ class TestJsonHandler:
         handler.data.clear()
         handler.save()
         return handler
+
+    @pytest.fixture
+    def complex(self) -> ComplexJsonHandler:
+        complex = ComplexJsonHandler()
+        complex.data.clear()
+        complex.save()
+        return complex
 
     def test_save_load(self, handler: SimpleJsonHandler) -> None:
         handler.data["spells"] = ["Fire Bolt", "Chain Lightning"]
@@ -66,3 +95,22 @@ class TestJsonHandler:
         assert "items" in handler.data, "Saved data should still exist."
         assert "spells" in handler.data, "Saved data should still exist."
         assert "skills" not in handler.data, "Loading without saving should not maintain contents."
+
+    def test_complex_json_handler(self, complex: ComplexJsonHandler) -> None:
+        complex.data["1"] = ComplexClass(1, "2", 3.0)
+        complex.save()
+
+        complex.data.clear()
+
+        complex.load()
+        assert complex.data["1"].a == 1
+        assert complex.data["1"].b == "2"
+        assert complex.data["1"].c == 3.0
+
+    def test_unimplemented_complex_will_throw_error(self):
+        with pytest.raises(NotImplementedError):
+            unimplemented = UnimplementedComplexJsonHandler()
+            unimplemented.data["1"] = ComplexClass(1, "2", 3.0)
+
+            unimplemented.save()
+            unimplemented.load()

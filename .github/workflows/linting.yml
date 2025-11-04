@@ -16,34 +16,31 @@ on:
 jobs:
   flake8-lint:
     runs-on: ubuntu-latest
-    name: flake8
     steps:
-      - name: Check out source repository
-        uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: ./.github/actions/setup
-
-      - name: flake8 Lint
+      - name: flake8 with reviewdog
         uses: reviewdog/action-flake8@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           reporter: github-pr-check
-          fail_level: error
+          filter_mode: diff_context
           flake8_args: "--ignore=W503 --max-line-length=999 src test"
 
-  black-lints:
+  black-lint:
     runs-on: ubuntu-latest
-    name: black
     steps:
-      - name: Check out source repository
-        uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: ./.github/actions/setup
-
-      - name: Black linter
+      - name: black with reviewdog
         uses: reviewdog/action-black@v2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           reporter: github-pr-check
-          level: warning
+          filter_mode: diff_context
           black_args: "--check --verbose src test"
+

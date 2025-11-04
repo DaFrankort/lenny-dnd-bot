@@ -109,4 +109,6 @@ class TestJsonHandler:
 
     def test_unimplemented_complex_will_throw_error(self):
         with pytest.raises(NotImplementedError):
-            UnimplementedComplexJsonHandler()
+            unimplemented = UnimplementedComplexJsonHandler()
+            unimplemented.save()
+            unimplemented.load()

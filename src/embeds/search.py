@@ -16,6 +16,7 @@ from embeds.dnd.rule import RuleEmbed
 from embeds.dnd.species import SpeciesEmbed
 from embeds.dnd.spell import SpellEmbed
 from embeds.dnd.table import DNDTableContainerView
+from embeds.dnd.vehicle import VehicleEmbed
 from logic.dnd.abstract import DNDObject
 from logic.dnd.action import Action
 from logic.dnd.background import Background
@@ -30,6 +31,7 @@ from logic.dnd.rule import Rule
 from logic.dnd.species import Species
 from logic.dnd.spell import Spell
 from logic.dnd.table import DNDTable
+from logic.dnd.vehicle import Vehicle
 
 
 def get_dnd_embed(itr: discord.Interaction, dnd_object: DNDObject):
@@ -58,6 +60,8 @@ def get_dnd_embed(itr: discord.Interaction, dnd_object: DNDObject):
             return DNDTableContainerView(dnd_object)
         case Species():
             return SpeciesEmbed(dnd_object)
+        case Vehicle():
+            return VehicleEmbed(dnd_object)
     logging.error(f"Could not find embed for class {dnd_object.__class__.__name__}")
     return None
 

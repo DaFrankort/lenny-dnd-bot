@@ -259,6 +259,25 @@ class SearchSpeciesCommand(SimpleCommand):
         await send_DNDObject_lookup_result(itr, "species", found, name)
 
 
+async def vehicle_name_autocomplete(itr: discord.Interaction, current: str):
+    sources = Config.allowed_sources(server=itr.guild)
+    return Data.vehicles.get_autocomplete_suggestions(current, sources)
+
+
+class SearchVehicleCommand(SimpleCommand):
+    name = "vehicle"
+    desc = "Get the details of a vehicle."
+    help = "Looks up a D&D Vehicle by name."
+
+    @autocomplete(name=vehicle_name_autocomplete)
+    @describe(name="Name of the vehicle to look up.")
+    async def callback(self, itr: discord.Interaction, name: str):  # pyright: ignore
+        self.log(itr)
+        sources = Config.allowed_sources(server=itr.guild)
+        found = Data.vehicles.get(name, sources)
+        await send_DNDObject_lookup_result(itr, "vehicle", found, name)
+
+
 class SearchAnyCommand(SimpleCommand):
     name = "all"
     desc = "Search for all matching D&D entries."
@@ -297,4 +316,5 @@ class SearchCommandGroup(SimpleCommandGroup):
         self.add_command(SearchBackgroundCommand())
         self.add_command(SearchTableCommand())
         self.add_command(SearchSpeciesCommand())
+        self.add_command(SearchVehicleCommand())
         self.add_command(SearchAnyCommand())

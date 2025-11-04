@@ -106,6 +106,7 @@ class TestBotCommands:
             ("search background", {"name": ["Soldier", "abcdef"]}),
             ("search table", {"name": ["Wild Magic", "abcdef"]}),
             ("search species", {"name": ["Human", "abcdef"]}),
+            ("search vehicle", {"name": ["Galley", "abcdef"]}),
             (
                 "search all",
                 [

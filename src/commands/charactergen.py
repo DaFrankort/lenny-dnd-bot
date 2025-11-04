@@ -7,9 +7,10 @@ from logic.dnd.name import Gender
 from discord.app_commands import describe, choices
 
 
+
 class CharacterGenCommand(SimpleCommand):
     name = "charactergen"
-    desc = "Generate a random D&D character!"
+    desc = 'Generate a random D&D character!'
     help = "Generates a random D&D 5e character, using XPHB classes, species and backgrounds."
 
     @choices(gender=Gender.choices(), species=species_choices(), char_class=class_choices())

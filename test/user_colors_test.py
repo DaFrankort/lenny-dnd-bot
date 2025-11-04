@@ -35,8 +35,6 @@ class TestUserColor:
         itr = MockInteraction()
         color = 7110183
 
-        ORIGINAL_FILE_NAME = UserColor._filename
-        UserColor._filename = UserColor._filename + "_test"
         UserColor.load()
         if os.path.exists(UserColor.file_path):
             os.remove(UserColor.file_path)
@@ -66,4 +64,3 @@ class TestUserColor:
         assert not remove_status, "Removal should fail as color is already removed."
 
         os.remove(UserColor.file_path)
-        UserColor._filename = ORIGINAL_FILE_NAME

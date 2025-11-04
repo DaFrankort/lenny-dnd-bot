@@ -5,7 +5,7 @@ from methods import ChoicedEnum
 from logic.dnd.abstract import DNDObjectList
 
 
-class Gender(ChoicedEnum):
+class Gender(str, ChoicedEnum):
     FEMALE = "female"
     MALE = "male"
     OTHER = "other"

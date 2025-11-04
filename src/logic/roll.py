@@ -6,13 +6,13 @@ import d20
 from methods import ChoicedEnum
 
 
-class Advantage(ChoicedEnum):
+class Advantage(str, ChoicedEnum):
     Normal = "normal"
     Advantage = "advantage"
     Disadvantage = "disadvantage"
 
 
-class DiceSpecial(Enum):
+class DiceSpecial(str, Enum):
     Natural20 = "nat20"
     Natural1 = "nat1"
     Dirty20 = "dirty20"
@@ -24,10 +24,10 @@ class DiceStringifier(d20.Stringifier):
             return ""
         return super()._stringify(node)
 
-    def _extract_values(self, values: Any):
-        results = []
+    def _extract_values(self, values: Any) -> list[str]:
+        results: list[str] = []
         for result in [self._stringify(value) for value in values]:
-            if result is not None:
+            if result:
                 results.append(result)
         return results
 

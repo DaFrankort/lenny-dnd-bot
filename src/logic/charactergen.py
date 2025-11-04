@@ -13,12 +13,12 @@ from logic.dnd.table import DNDTable
 from logic.stats import Stats
 
 
-def species_choices(xphb_only: bool = True) -> list[discord.app_commands.Choice]:
+def species_choices(xphb_only: bool = True) -> list[discord.app_commands.Choice[str]]:
     species = [e.name for e in Data.species.entries if (e.source == "XPHB" or not xphb_only) and "(" not in e.name]
     return [discord.app_commands.Choice(name=spec, value=spec) for spec in species[:25]]
 
 
-def class_choices(xphb_only: bool = True) -> list[discord.app_commands.Choice]:
+def class_choices(xphb_only: bool = True) -> list[discord.app_commands.Choice[str]]:
     classes = [e.name for e in Data.classes.entries if (e.source == "XPHB" or not xphb_only)]
     return [discord.app_commands.Choice(name=char_cls, value=char_cls) for char_cls in classes[:25]]
 

@@ -88,17 +88,17 @@ async def send_dnd_embed(itr: discord.Interaction, dnd_entry: DNDEntry):
 
 
 class SearchSelectButton(ui.Button):
-    object: DNDEntry
+    entry: DNDEntry
 
-    def __init__(self, object: DNDEntry):
-        self.object = object
-        label = f"{object.name} ({object.source})"
+    def __init__(self, entry: DNDEntry):
+        self.entry = entry
+        label = f"{entry.name} ({entry.source})"
         if len(label) > 80:
             label = label[:77] + "..."
-        super().__init__(label=label, emoji=object.emoji, style=discord.ButtonStyle.gray)
+        super().__init__(label=label, emoji=entry.emoji, style=discord.ButtonStyle.gray)
 
     async def callback(self, interaction: discord.Interaction):
-        await send_dnd_embed(interaction, self.object)
+        await send_dnd_embed(interaction, self.entry)
 
 
 class SearchLayoutView(PaginatedLayoutView):

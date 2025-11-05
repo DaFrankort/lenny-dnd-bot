@@ -16,14 +16,14 @@ class DNDEntryEmbed(discord.Embed):
     view: discord.ui.View | None = None
     file: discord.File | None = None
 
-    def __init__(self, object: DNDEntry):
-        self._entry = object
+    def __init__(self, entry: DNDEntry):
+        self._entry = entry
 
         super().__init__(
-            title=object.title,
+            title=entry.title,
             type="rich",
             color=discord.Color.dark_green(),
-            url=object.url,
+            url=entry.url,
         )
 
     @property

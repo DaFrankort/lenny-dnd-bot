@@ -285,7 +285,7 @@ async def object_name_autocomplete(itr: discord.Interaction, current: str):
 
 class SearchObjectCommand(SimpleCommand):
     name = "object"
-    desc = "Get the details of a object."
+    desc = "Get the details of an object."
     help = "Looks up a D&D Object by name."
 
     @autocomplete(name=object_name_autocomplete)

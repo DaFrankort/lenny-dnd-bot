@@ -11,9 +11,9 @@ from logic.color import UserColor
 
 
 class _CharacterGenInfoButton(ui.Button):
-    def __init__(self, object: DNDEntry, emoji: str):
+    def __init__(self, entry: DNDEntry, emoji: str):
         style = discord.ButtonStyle.url
-        super().__init__(style=style, label=object.name, emoji=emoji, url=object.url)
+        super().__init__(style=style, label=entry.name, emoji=emoji, url=entry.url)
 
 
 class CharacterGenContainerView(ui.LayoutView):

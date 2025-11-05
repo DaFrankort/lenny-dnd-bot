@@ -2,12 +2,12 @@ import discord
 from discord import ui
 from components.items import SimpleSeparator, TitleTextDisplay
 from components.paginated_view import PaginatedLayoutView
-from logic.homebrew import HomebrewObject, HomebrewData, HomebrewObjectType
+from logic.homebrew import HomebrewEntry, HomebrewData, HomebrewEntryType
 from modals import SimpleModal
 
 
 class HomebrewEmbed(discord.Embed):
-    def __init__(self, itr: discord.Interaction, entry: HomebrewObject):
+    def __init__(self, itr: discord.Interaction, entry: HomebrewEntry):
         subtitle = f"*{entry.select_description}*\n\n"
         if len(entry.description) < 4000 - len(subtitle) and entry.select_description:
             description = subtitle + entry.description
@@ -27,7 +27,7 @@ class HomebrewEmbed(discord.Embed):
 
 
 class HomebrewEntryAddModal(SimpleModal):
-    type: HomebrewObjectType
+    type: HomebrewEntryType
     name = ui.TextInput["HomebrewListView"](label="Name", placeholder="Peanut")
     subtitle = ui.TextInput["HomebrewListView"](
         label="Subtitle",
@@ -42,7 +42,7 @@ class HomebrewEntryAddModal(SimpleModal):
         style=discord.TextStyle.paragraph,
     )
 
-    def __init__(self, itr: discord.Interaction, dnd_type: HomebrewObjectType):
+    def __init__(self, itr: discord.Interaction, dnd_type: HomebrewEntryType):
         self.type = dnd_type
         super().__init__(itr=itr, title=f"Add new {dnd_type.title()}")
 
@@ -63,12 +63,12 @@ class HomebrewEntryAddModal(SimpleModal):
 
 
 class HomebrewEditModal(SimpleModal):
-    entry: HomebrewObject
+    entry: HomebrewEntry
     name = ui.TextInput["HomebrewListView"](label="Name")
     subtitle = ui.TextInput["HomebrewListView"](label="Subtitle", required=False, max_length=80)
     description = ui.TextInput["HomebrewListView"](label="Description", max_length=4000, style=discord.TextStyle.paragraph)
 
-    def __init__(self, itr: discord.Interaction, entry: HomebrewObject):
+    def __init__(self, itr: discord.Interaction, entry: HomebrewEntry):
         self.entry = entry
         self.name.default = entry.name
         self.name.placeholder = entry.name
@@ -76,7 +76,7 @@ class HomebrewEditModal(SimpleModal):
         self.subtitle.placeholder = entry.select_description or "Subtitle"
         self.description.default = entry.description
         self.description.placeholder = entry.description[:97] + "..." if len(entry.description) > 97 else entry.description
-        super().__init__(itr=itr, title=f"Edit {entry.object_type.value}: {entry.name}")
+        super().__init__(itr=itr, title=f"Edit {entry.entry_type.value}: {entry.name}")
 
     async def on_submit(self, itr: discord.Interaction):
         self.log_inputs(itr)
@@ -92,14 +92,14 @@ class HomebrewEditModal(SimpleModal):
         updated_entry = HomebrewData.get(itr).edit(itr, self.entry, name, subtitle, description)
         embed = HomebrewEmbed(itr, updated_entry)
         await itr.response.send_message(
-            content=f"Edited {self.entry.object_type.value}: ``{self.entry.name}`` => ``{name}``!", embed=embed, ephemeral=True
+            content=f"Edited {self.entry.entry_type.value}: ``{self.entry.name}`` => ``{name}``!", embed=embed, ephemeral=True
         )
 
 
 class HomebrewListButton(ui.Button["HomebrewListView"]):
-    entry: HomebrewObject
+    entry: HomebrewEntry
 
-    def __init__(self, entry: HomebrewObject):
+    def __init__(self, entry: HomebrewEntry):
         self.entry = entry
         label = entry.name
         if len(label) > 80:
@@ -112,14 +112,14 @@ class HomebrewListButton(ui.Button["HomebrewListView"]):
 
 
 class HomebrewListView(PaginatedLayoutView):
-    filter: HomebrewObjectType | None
-    entries: list[HomebrewObject]
+    filter: HomebrewEntryType | None
+    entries: list[HomebrewEntry]
 
     def __init__(self, itr: discord.Interaction, filter: str | None):
         self.filter = None
         label = "All Entries"
         if filter is not None:
-            self.filter = HomebrewObjectType(filter)
+            self.filter = HomebrewEntryType(filter)
             label = filter.title()
 
         self.entries = HomebrewData.get(itr).get_all(self.filter)

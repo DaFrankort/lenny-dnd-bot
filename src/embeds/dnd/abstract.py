@@ -8,7 +8,7 @@ HORIZONTAL_LINE = "~~-----------------------------------------------------------
 
 class DNDEntryEmbed(discord.Embed):
     """
-    Superclass for DNDObjects that helps ensure data stays within Discord's character limits.
+    Superclass for DNDEntries that helps ensure data stays within Discord's character limits.
     Additionally provides functions to handle Description-field & Table generation.
     """
 

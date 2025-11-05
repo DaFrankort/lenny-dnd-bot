@@ -2,7 +2,7 @@ from logic.dnd.abstract import DNDEntryList
 
 
 class Source(object):
-    """Note: this object does not inherit from DNDObject as it is meta data about DNDObjects"""
+    """Note: this object does not inherit from DNDEntry as it is meta data about DNDEntries"""
 
     id: str
     name: str

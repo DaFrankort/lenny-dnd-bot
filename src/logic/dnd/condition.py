@@ -6,7 +6,7 @@ class Condition(DNDEntry):
     image: str | None
 
     def __init__(self, json: dict):
-        self.object_type = "condition"
+        self.entry_type = "condition"
         self.emoji = "💀"
 
         self.name = json["name"]

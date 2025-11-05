@@ -84,7 +84,7 @@ class DNDEntryEmbed(discord.Embed):
         for description in descriptions:
             if (len(self.fields)) >= MAX_FIELDS:
                 logging.debug(
-                    f"{self._entry.object_type.upper()} - Max field count reached! {len(self.fields)} >= {MAX_FIELDS}"
+                    f"{self._entry.entry_type.upper()} - Max field count reached! {len(self.fields)} >= {MAX_FIELDS}"
                 )
                 break
 
@@ -100,14 +100,14 @@ class DNDEntryEmbed(discord.Embed):
             field_length = len(name) + len(value)
             if field_length >= CHAR_FIELD_LIMIT:
                 logging.debug(
-                    f"{self._entry.object_type.upper()} - Field character limit reached! {field_length} >= {CHAR_FIELD_LIMIT}"
+                    f"{self._entry.entry_type.upper()} - Field character limit reached! {field_length} >= {CHAR_FIELD_LIMIT}"
                 )
                 continue  # TODO split field to fit, possibly concatenate descriptions to make optimal use of field-limits
 
             char_count += field_length
             if char_count >= CHAR_EMBED_LIMIT:
                 logging.debug(
-                    f"{self._entry.object_type.upper()} - Embed character limit reached! {char_count} >= {CHAR_EMBED_LIMIT}"
+                    f"{self._entry.entry_type.upper()} - Embed character limit reached! {char_count} >= {CHAR_EMBED_LIMIT}"
                 )
                 break  # TODO Cut description short and add a message
 

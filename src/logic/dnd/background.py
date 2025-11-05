@@ -6,7 +6,7 @@ class Background(DNDEntry):
     description: list[Description]
 
     def __init__(self, json: dict):
-        self.object_type = "background"
+        self.entry_type = "background"
         self.emoji = "📕"
 
         self.name = json["name"]

@@ -5,7 +5,7 @@ class Action(DNDEntry):
     description: list[Description]
 
     def __init__(self, json: dict):
-        self.object_type = "action"
+        self.entry_type = "action"
         self.emoji = "🏃"
 
         self.name = json["name"]

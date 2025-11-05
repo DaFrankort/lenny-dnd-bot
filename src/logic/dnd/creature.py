@@ -8,7 +8,7 @@ class Creature(DNDEntry):
     description: list[Description]
 
     def __init__(self, json: dict):
-        self.object_type = "creature"
+        self.entry_type = "creature"
         self.emoji = "🐉"
 
         self.name = json["name"]

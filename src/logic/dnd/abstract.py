@@ -25,7 +25,7 @@ class Description(TypedDict):
 
 
 class DNDEntry(abc.ABC):
-    object_type: str
+    entry_type: str
     name: str
     source: str
     url: str | None

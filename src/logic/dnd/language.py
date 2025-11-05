@@ -7,7 +7,7 @@ class Language(DNDEntry):
     description: list[Description]
 
     def __init__(self, json: dict):
-        self.object_type = "dict"
+        self.entry_type = "dict"
         self.emoji = "🗣️"
 
         self.name = json["name"]

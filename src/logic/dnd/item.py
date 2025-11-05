@@ -9,7 +9,7 @@ class Item(DNDEntry):
     description: list[Description]
 
     def __init__(self, json: dict):
-        self.object_type = "item"
+        self.entry_type = "item"
         self.emoji = "🗡️"
 
         self.name = json["name"]

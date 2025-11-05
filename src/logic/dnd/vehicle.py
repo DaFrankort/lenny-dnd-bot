@@ -9,7 +9,7 @@ class Vehicle(DNDEntry):
     description: list[Description]
 
     def __init__(self, json: dict):
-        self.object_type = "vehicle"
+        self.entry_type = "vehicle"
         self.emoji = "⛵"
 
         self.name = json["name"]

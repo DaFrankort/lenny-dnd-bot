@@ -6,7 +6,7 @@ class DNDObject(DNDEntry):
     token_url: str
 
     def __init__(self, json: dict):
-        self.object_type = "object"
+        self.entry_type = "object"
         self.emoji = "🪨"
 
         self.name = json["name"]

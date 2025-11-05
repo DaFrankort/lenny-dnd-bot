@@ -9,7 +9,7 @@ class DNDTable(DNDEntry):
     footnotes: list[str] | None
 
     def __init__(self, json: dict):
-        self.object_type = "table"
+        self.entry_type = "table"
         self.emoji = "📊"
 
         self.name = json["name"]

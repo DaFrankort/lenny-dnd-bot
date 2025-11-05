@@ -154,7 +154,7 @@ class DNDSearchResults(object):
         return all_entries
 
     def get_all_sorted(self) -> list[DNDEntry]:
-        return sorted(self.get_all(), key=lambda r: (r.object_type, r.name, r.source))
+        return sorted(self.get_all(), key=lambda r: (r.entry_type, r.name, r.source))
 
     def __len__(self) -> int:
         return len(self.get_all())

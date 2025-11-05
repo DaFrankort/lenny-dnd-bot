@@ -14,7 +14,7 @@ class Spell(DNDEntry):
     classes: list
 
     def __init__(self, json: dict):
-        self.object_type = "spell"
+        self.entry_type = "spell"
         self.emoji = "🔥"
 
         self.name = json["name"]

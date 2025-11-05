@@ -8,6 +8,7 @@ from logic.dnd.feat import Feat, FeatList
 from logic.dnd.item import Item, ItemList
 from logic.dnd.language import Language, LanguageList
 from logic.dnd.name import NameTable
+from logic.dnd.object import Object, ObjectList
 from logic.dnd.rule import Rule, RuleList
 from logic.dnd.species import Species, SpeciesList
 from logic.dnd.spell import Spell, SpellList
@@ -30,6 +31,7 @@ class DNDData(object):
     tables: DNDTableList
     species: SpeciesList
     vehicles: VehicleList
+    objects: ObjectList
 
     names: NameTable
 
@@ -48,6 +50,7 @@ class DNDData(object):
         self.tables = DNDTableList()
         self.species = SpeciesList()
         self.vehicles = VehicleList()
+        self.objects = ObjectList()
 
         # TABLES
         self.names = NameTable()
@@ -66,6 +69,7 @@ class DNDData(object):
         yield self.tables
         yield self.species
         yield self.vehicles
+        yield self.objects
 
     def search(
         self,
@@ -101,6 +105,7 @@ class DNDSearchResults(object):
     tables: list[DNDTable]
     species: list[Species]
     vehicles: list[Vehicle]
+    objects: list[Object]
     _type_map: dict[type, list]
 
     def __init__(self):
@@ -117,6 +122,7 @@ class DNDSearchResults(object):
         self.tables = []
         self.species = []
         self.vehicles = []
+        self.objects = []
 
         self._type_map = {
             Spell: self.spells,
@@ -132,6 +138,7 @@ class DNDSearchResults(object):
             DNDTable: self.tables,
             Species: self.species,
             Vehicle: self.vehicles,
+            Object: self.objects,
         }
 
     def add(self, entry):

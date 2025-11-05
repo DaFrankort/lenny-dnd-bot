@@ -12,6 +12,7 @@ from embeds.dnd.creature import CreatureEmbed
 from embeds.dnd.feat import FeatEmbed
 from embeds.dnd.item import ItemEmbed
 from embeds.dnd.language import LanguageEmbed
+from embeds.dnd.object import ObjectEmbed
 from embeds.dnd.rule import RuleEmbed
 from embeds.dnd.species import SpeciesEmbed
 from embeds.dnd.spell import SpellEmbed
@@ -27,6 +28,7 @@ from logic.dnd.data import DNDSearchResults
 from logic.dnd.feat import Feat
 from logic.dnd.item import Item
 from logic.dnd.language import Language
+from logic.dnd.object import Object
 from logic.dnd.rule import Rule
 from logic.dnd.species import Species
 from logic.dnd.spell import Spell
@@ -62,6 +64,8 @@ def get_dnd_embed(itr: discord.Interaction, dnd_object: DNDObject):
             return SpeciesEmbed(dnd_object)
         case Vehicle():
             return VehicleEmbed(dnd_object)
+        case Object():
+            return ObjectEmbed(dnd_object)
     logging.error(f"Could not find embed for class {dnd_object.__class__.__name__}")
     return None
 

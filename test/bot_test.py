@@ -107,6 +107,7 @@ class TestBotCommands:
             ("search table", {"name": ["Wild Magic", "abcdef"]}),
             ("search species", {"name": ["Human", "abcdef"]}),
             ("search vehicle", {"name": ["Galley", "abcdef"]}),
+            ("search object", {"name": ["Ballista", "abcdef"]}),
             (
                 "search all",
                 [

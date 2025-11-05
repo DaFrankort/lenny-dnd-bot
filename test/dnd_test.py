@@ -25,7 +25,7 @@ class TestDndData:
                 try:
                     data.search(query, allowed_sources=sources)
                 except Exception:
-                    assert False, f"{data.entries[0].object_type} DNDDataList failed search()"
+                    assert False, f"{data.entries[0].entry_type} DNDDataList failed search()"
 
     def test_search_from_query(self):
         server = MockGuild(1234)

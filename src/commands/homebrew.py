@@ -2,7 +2,7 @@ import discord
 
 from embeds.homebrew import HomebrewEditModal, HomebrewEmbed, HomebrewEntryAddModal, HomebrewListView
 from command import SimpleCommand, SimpleCommandGroup
-from logic.homebrew import HomebrewObjectType, HomebrewData
+from logic.homebrew import HomebrewEntryType, HomebrewData
 from discord.app_commands import describe, choices, autocomplete
 
 
@@ -25,12 +25,12 @@ class HomebrewAddCommand(SimpleCommand):
     desc = "Add custom content to your tome of homebrew."
     help = "Add new homebrew content to your server."
 
-    @choices(type=HomebrewObjectType.choices())
+    @choices(type=HomebrewEntryType.choices())
     @describe(type="The type of entry you are adding.")
     async def callback(  # pyright: ignore[reportIncompatibleMethodOverride]
         self,
         itr: discord.Interaction,
-        type: HomebrewObjectType,
+        type: HomebrewEntryType,
     ):
         self.log(itr)
         modal = HomebrewEntryAddModal(itr, type)
@@ -60,7 +60,7 @@ class HomebrewListCommand(SimpleCommand):
     desc = "View all entries in your server's tome of homebrew!"
     help = "Shows all homebrew content in your server and filter by entry type."
 
-    @choices(filter=HomebrewObjectType.choices())
+    @choices(filter=HomebrewEntryType.choices())
     @describe(filter="Show only homebrew entries of a certain type. Shows all by default.")
     async def callback(self, itr: discord.Interaction, filter: str | None = None):
         self.log(itr)
@@ -94,4 +94,4 @@ class HomebrewRemoveCommand(SimpleCommand):
         entry = HomebrewData.get(itr).delete(itr, name)
         embed = HomebrewEmbed(itr, entry)
         embed.color = discord.Color.red()
-        await itr.response.send_message(f"{itr.user.mention} removed a homebrew {entry.object_type.value}:", embed=embed)
+        await itr.response.send_message(f"{itr.user.mention} removed a homebrew {entry.entry_type.value}:", embed=embed)

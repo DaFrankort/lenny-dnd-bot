@@ -1,12 +1,12 @@
-from logic.dnd.abstract import DNDObject, DNDObjectList, Description
+from logic.dnd.abstract import DNDEntry, DNDEntryList, Description
 
 
-class Condition(DNDObject):
+class Condition(DNDEntry):
     description: list[Description]
     image: str | None
 
     def __init__(self, json: dict):
-        self.object_type = "condition"
+        self.entry_type = "condition"
         self.emoji = "💀"
 
         self.name = json["name"]
@@ -16,7 +16,7 @@ class Condition(DNDObject):
         self.image = json["image"]
 
 
-class ConditionList(DNDObjectList[Condition]):
+class ConditionList(DNDEntryList[Condition]):
     paths = [
         "./submodules/lenny-dnd-data/generated/conditions.json",
         "./submodules/lenny-dnd-data/generated/diseases.json",

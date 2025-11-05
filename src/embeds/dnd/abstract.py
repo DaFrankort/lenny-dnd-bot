@@ -1,29 +1,29 @@
 import logging
 import discord
-from logic.dnd.abstract import DNDObject, Description
+from logic.dnd.abstract import DNDEntry, Description
 from methods import build_table
 
 HORIZONTAL_LINE = "~~-------------------------------------------------------------------------------------~~"
 
 
-class DNDObjectEmbed(discord.Embed):
+class DNDEntryEmbed(discord.Embed):
     """
-    Superclass for DNDObjects that helps ensure data stays within Discord's character limits.
+    Superclass for DNDEntries that helps ensure data stays within Discord's character limits.
     Additionally provides functions to handle Description-field & Table generation.
     """
 
-    _object: DNDObject
+    _entry: DNDEntry
     view: discord.ui.View | None = None
     file: discord.File | None = None
 
-    def __init__(self, object: DNDObject):
-        self._object = object
+    def __init__(self, entry: DNDEntry):
+        self._entry = entry
 
         super().__init__(
-            title=object.title,
+            title=entry.title,
             type="rich",
             color=discord.Color.dark_green(),
-            url=object.url,
+            url=entry.url,
         )
 
     @property
@@ -50,7 +50,7 @@ class DNDObjectEmbed(discord.Embed):
         table_string = build_table(value)
 
         if len(table_string) > CHAR_FIELD_LIMIT:
-            return f"The table for [{self._object.name} can be found here]({self._object.url})."
+            return f"The table for [{self._entry.name} can be found here]({self._entry.url})."
         return table_string
 
     def add_description_fields(
@@ -83,9 +83,7 @@ class DNDObjectEmbed(discord.Embed):
         char_count = self.char_count
         for description in descriptions:
             if (len(self.fields)) >= MAX_FIELDS:
-                logging.debug(
-                    f"{self._object.object_type.upper()} - Max field count reached! {len(self.fields)} >= {MAX_FIELDS}"
-                )
+                logging.debug(f"{self._entry.entry_type.upper()} - Max field count reached! {len(self.fields)} >= {MAX_FIELDS}")
                 break
 
             name = description["name"]
@@ -100,14 +98,14 @@ class DNDObjectEmbed(discord.Embed):
             field_length = len(name) + len(value)
             if field_length >= CHAR_FIELD_LIMIT:
                 logging.debug(
-                    f"{self._object.object_type.upper()} - Field character limit reached! {field_length} >= {CHAR_FIELD_LIMIT}"
+                    f"{self._entry.entry_type.upper()} - Field character limit reached! {field_length} >= {CHAR_FIELD_LIMIT}"
                 )
                 continue  # TODO split field to fit, possibly concatenate descriptions to make optimal use of field-limits
 
             char_count += field_length
             if char_count >= CHAR_EMBED_LIMIT:
                 logging.debug(
-                    f"{self._object.object_type.upper()} - Embed character limit reached! {char_count} >= {CHAR_EMBED_LIMIT}"
+                    f"{self._entry.entry_type.upper()} - Embed character limit reached! {char_count} >= {CHAR_EMBED_LIMIT}"
                 )
                 break  # TODO Cut description short and add a message
 

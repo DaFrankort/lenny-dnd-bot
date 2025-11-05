@@ -2,7 +2,7 @@ import dataclasses
 import random
 
 from methods import ChoicedEnum
-from logic.dnd.abstract import DNDObjectList
+from logic.dnd.abstract import DNDEntryList
 
 
 class Gender(str, ChoicedEnum):
@@ -33,7 +33,7 @@ class NameTable:
 
     def __init__(self):
         self.tables = dict()
-        data = DNDObjectList.read_dnd_data_contents(self.path)
+        data = DNDEntryList.read_dnd_data_contents(self.path)
 
         for datum in data:
             male = datum["tables"]["male"]

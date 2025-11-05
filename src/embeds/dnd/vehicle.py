@@ -1,8 +1,8 @@
-from embeds.dnd.abstract import DNDObjectEmbed
+from embeds.dnd.abstract import DNDEntryEmbed
 from logic.dnd.vehicle import Vehicle
 
 
-class VehicleEmbed(DNDObjectEmbed):
+class VehicleEmbed(DNDEntryEmbed):
     def __init__(self, vehicle: Vehicle):
         super().__init__(vehicle)
         self.description = f"*{vehicle.select_description}*"

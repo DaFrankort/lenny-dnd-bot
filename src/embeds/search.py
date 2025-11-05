@@ -12,12 +12,13 @@ from embeds.dnd.creature import CreatureEmbed
 from embeds.dnd.feat import FeatEmbed
 from embeds.dnd.item import ItemEmbed
 from embeds.dnd.language import LanguageEmbed
+from embeds.dnd.object import DNDObjectEmbed
 from embeds.dnd.rule import RuleEmbed
 from embeds.dnd.species import SpeciesEmbed
 from embeds.dnd.spell import SpellEmbed
 from embeds.dnd.table import DNDTableContainerView
 from embeds.dnd.vehicle import VehicleEmbed
-from logic.dnd.abstract import DNDObject
+from logic.dnd.abstract import DNDEntry
 from logic.dnd.action import Action
 from logic.dnd.background import Background
 from logic.dnd.class_ import Class
@@ -27,6 +28,7 @@ from logic.dnd.data import DNDSearchResults
 from logic.dnd.feat import Feat
 from logic.dnd.item import Item
 from logic.dnd.language import Language
+from logic.dnd.object import DNDObject
 from logic.dnd.rule import Rule
 from logic.dnd.species import Species
 from logic.dnd.spell import Spell
@@ -34,43 +36,45 @@ from logic.dnd.table import DNDTable
 from logic.dnd.vehicle import Vehicle
 
 
-def get_dnd_embed(itr: discord.Interaction, dnd_object: DNDObject):
-    match dnd_object:
+def get_dnd_embed(itr: discord.Interaction, dnd_entry: DNDEntry):
+    match dnd_entry:
         case Spell():
-            return SpellEmbed(itr, dnd_object)
+            return SpellEmbed(itr, dnd_entry)
         case Item():
-            return ItemEmbed(dnd_object)
+            return ItemEmbed(dnd_entry)
         case Condition():
-            return ConditionEmbed(dnd_object)
+            return ConditionEmbed(dnd_entry)
         case Creature():
-            return CreatureEmbed(dnd_object)
+            return CreatureEmbed(dnd_entry)
         case Class():
-            return ClassEmbed(dnd_object)
+            return ClassEmbed(dnd_entry)
         case Rule():
-            return RuleEmbed(dnd_object)
+            return RuleEmbed(dnd_entry)
         case Action():
-            return ActionEmbed(dnd_object)
+            return ActionEmbed(dnd_entry)
         case Feat():
-            return FeatEmbed(dnd_object)
+            return FeatEmbed(dnd_entry)
         case Language():
-            return LanguageEmbed(dnd_object)
+            return LanguageEmbed(dnd_entry)
         case Background():
-            return BackgroundEmbed(dnd_object)
+            return BackgroundEmbed(dnd_entry)
         case DNDTable():
-            return DNDTableContainerView(dnd_object)
+            return DNDTableContainerView(dnd_entry)
         case Species():
-            return SpeciesEmbed(dnd_object)
+            return SpeciesEmbed(dnd_entry)
         case Vehicle():
-            return VehicleEmbed(dnd_object)
-    logging.error(f"Could not find embed for class {dnd_object.__class__.__name__}")
+            return VehicleEmbed(dnd_entry)
+        case DNDObject():
+            return DNDObjectEmbed(dnd_entry)
+    logging.error(f"Could not find embed for class {dnd_entry.__class__.__name__}")
     return None
 
 
-async def send_dnd_embed(itr: discord.Interaction, dnd_object: DNDObject):
+async def send_dnd_embed(itr: discord.Interaction, dnd_entry: DNDEntry):
     await itr.response.defer(thinking=False)
-    embed = get_dnd_embed(itr, dnd_object)
+    embed = get_dnd_embed(itr, dnd_entry)
     if embed is None:
-        await itr.followup.send(f"Could not create an embed for {dnd_object.name}...")
+        await itr.followup.send(f"Could not create an embed for {dnd_entry.name}...")
         return
 
     file = embed.file or discord.interactions.MISSING
@@ -84,17 +88,17 @@ async def send_dnd_embed(itr: discord.Interaction, dnd_object: DNDObject):
 
 
 class SearchSelectButton(ui.Button):
-    object: DNDObject
+    entry: DNDEntry
 
-    def __init__(self, object: DNDObject):
-        self.object = object
-        label = f"{object.name} ({object.source})"
+    def __init__(self, entry: DNDEntry):
+        self.entry = entry
+        label = f"{entry.name} ({entry.source})"
         if len(label) > 80:
             label = label[:77] + "..."
-        super().__init__(label=label, emoji=object.emoji, style=discord.ButtonStyle.gray)
+        super().__init__(label=label, emoji=entry.emoji, style=discord.ButtonStyle.gray)
 
     async def callback(self, interaction: discord.Interaction):
-        await send_dnd_embed(interaction, self.object)
+        await send_dnd_embed(interaction, self.entry)
 
 
 class SearchLayoutView(PaginatedLayoutView):
@@ -147,9 +151,9 @@ class SearchLayoutView(PaginatedLayoutView):
 class MultiDNDSelect(discord.ui.Select):
     name: str
     query: str
-    entries: Sequence[DNDObject]
+    entries: Sequence[DNDEntry]
 
-    def __init__(self, query: str, entries: Sequence[DNDObject]):
+    def __init__(self, query: str, entries: Sequence[DNDEntry]):
         self.name = entries[0].__class__.__name__.upper() if entries else "UNKNOWN"
         self.query = query
         self.entries = entries
@@ -167,7 +171,7 @@ class MultiDNDSelect(discord.ui.Select):
 
         logging.debug(f"{self.name}: found {len(entries)} entries for '{query}'")
 
-    def select_option(self, entry: DNDObject) -> discord.SelectOption:
+    def select_option(self, entry: DNDEntry) -> discord.SelectOption:
         index = self.entries.index(entry)
         return discord.SelectOption(
             label=f"{entry.name} ({entry.source})",
@@ -186,6 +190,6 @@ class MultiDNDSelect(discord.ui.Select):
 class MultiDNDSelectView(discord.ui.View):
     """A class representing a Discord view for multiple DNDObject selection."""
 
-    def __init__(self, query: str, entries: Sequence[DNDObject]):
+    def __init__(self, query: str, entries: Sequence[DNDEntry]):
         super().__init__()
         self.add_item(MultiDNDSelect(query, entries))

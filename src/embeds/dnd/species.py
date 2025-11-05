@@ -1,8 +1,8 @@
-from embeds.dnd.abstract import HORIZONTAL_LINE, DNDObjectEmbed
+from embeds.dnd.abstract import HORIZONTAL_LINE, DNDEntryEmbed
 from logic.dnd.species import Species
 
 
-class SpeciesEmbed(DNDObjectEmbed):
+class SpeciesEmbed(DNDEntryEmbed):
     def __init__(self, species: Species):
         super().__init__(species)
 

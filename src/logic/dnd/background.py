@@ -1,12 +1,12 @@
-from logic.dnd.abstract import DNDObject, DNDObjectList, Description
+from logic.dnd.abstract import DNDEntry, DNDEntryList, Description
 
 
-class Background(DNDObject):
+class Background(DNDEntry):
     abilities: list[str]
     description: list[Description]
 
     def __init__(self, json: dict):
-        self.object_type = "background"
+        self.entry_type = "background"
         self.emoji = "📕"
 
         self.name = json["name"]
@@ -16,7 +16,7 @@ class Background(DNDObject):
         self.description = json["description"]
 
 
-class BackgroundList(DNDObjectList[Background]):
+class BackgroundList(DNDEntryList[Background]):
     path = "./submodules/lenny-dnd-data/generated/backgrounds.json"
 
     def __init__(self):

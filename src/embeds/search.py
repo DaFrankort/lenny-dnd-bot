@@ -36,45 +36,45 @@ from logic.dnd.table import DNDTable
 from logic.dnd.vehicle import Vehicle
 
 
-def get_dnd_embed(itr: discord.Interaction, dnd_object: DNDEntry):
-    match dnd_object:
+def get_dnd_embed(itr: discord.Interaction, dnd_entry: DNDEntry):
+    match dnd_entry:
         case Spell():
-            return SpellEmbed(itr, dnd_object)
+            return SpellEmbed(itr, dnd_entry)
         case Item():
-            return ItemEmbed(dnd_object)
+            return ItemEmbed(dnd_entry)
         case Condition():
-            return ConditionEmbed(dnd_object)
+            return ConditionEmbed(dnd_entry)
         case Creature():
-            return CreatureEmbed(dnd_object)
+            return CreatureEmbed(dnd_entry)
         case Class():
-            return ClassEmbed(dnd_object)
+            return ClassEmbed(dnd_entry)
         case Rule():
-            return RuleEmbed(dnd_object)
+            return RuleEmbed(dnd_entry)
         case Action():
-            return ActionEmbed(dnd_object)
+            return ActionEmbed(dnd_entry)
         case Feat():
-            return FeatEmbed(dnd_object)
+            return FeatEmbed(dnd_entry)
         case Language():
-            return LanguageEmbed(dnd_object)
+            return LanguageEmbed(dnd_entry)
         case Background():
-            return BackgroundEmbed(dnd_object)
+            return BackgroundEmbed(dnd_entry)
         case DNDTable():
-            return DNDTableContainerView(dnd_object)
+            return DNDTableContainerView(dnd_entry)
         case Species():
-            return SpeciesEmbed(dnd_object)
+            return SpeciesEmbed(dnd_entry)
         case Vehicle():
-            return VehicleEmbed(dnd_object)
+            return VehicleEmbed(dnd_entry)
         case DNDObject():
-            return DNDObjectEmbed(dnd_object)
-    logging.error(f"Could not find embed for class {dnd_object.__class__.__name__}")
+            return DNDObjectEmbed(dnd_entry)
+    logging.error(f"Could not find embed for class {dnd_entry.__class__.__name__}")
     return None
 
 
-async def send_dnd_embed(itr: discord.Interaction, dnd_object: DNDEntry):
+async def send_dnd_embed(itr: discord.Interaction, dnd_entry: DNDEntry):
     await itr.response.defer(thinking=False)
-    embed = get_dnd_embed(itr, dnd_object)
+    embed = get_dnd_embed(itr, dnd_entry)
     if embed is None:
-        await itr.followup.send(f"Could not create an embed for {dnd_object.name}...")
+        await itr.followup.send(f"Could not create an embed for {dnd_entry.name}...")
         return
 
     file = embed.file or discord.interactions.MISSING

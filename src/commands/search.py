@@ -10,7 +10,7 @@ from logic.dnd.data import Data
 from discord.app_commands import describe, autocomplete
 
 
-async def send_DNDObject_lookup_result(
+async def send_DNDEntry_lookup_result(
     itr: discord.Interaction,
     label: str,
     found: Sequence[DNDEntry],
@@ -47,7 +47,7 @@ class SearchSpellCommand(SimpleCommand):
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         found = Data.spells.get(name, sources)
-        await send_DNDObject_lookup_result(itr, "spells", found, name)
+        await send_DNDEntry_lookup_result(itr, "spells", found, name)
 
 
 async def item_name_autocomplete(itr: discord.Interaction, current: str):
@@ -66,7 +66,7 @@ class SearchItemCommand(SimpleCommand):
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         found = Data.items.get(name, sources)
-        await send_DNDObject_lookup_result(itr, "items", found, name)
+        await send_DNDEntry_lookup_result(itr, "items", found, name)
 
 
 async def condition_name_autocomplete(itr: discord.Interaction, current: str):
@@ -85,7 +85,7 @@ class SearchConditionCommand(SimpleCommand):
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         found = Data.conditions.get(name, sources)
-        await send_DNDObject_lookup_result(itr, "conditions", found, name)
+        await send_DNDEntry_lookup_result(itr, "conditions", found, name)
 
 
 async def creature_name_autocomplete(itr: discord.Interaction, current: str):
@@ -104,7 +104,7 @@ class SearchCreatureCommand(SimpleCommand):
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         found = Data.creatures.get(name, sources)
-        await send_DNDObject_lookup_result(itr, "creatures", found, name)
+        await send_DNDEntry_lookup_result(itr, "creatures", found, name)
 
 
 async def class_name_autocomplete(itr: discord.Interaction, current: str):
@@ -123,7 +123,7 @@ class SearchClassCommand(SimpleCommand):
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         found = Data.classes.get(name, sources)
-        await send_DNDObject_lookup_result(itr, "classes", found, name)
+        await send_DNDEntry_lookup_result(itr, "classes", found, name)
 
 
 async def rule_name_autocomplete(itr: discord.Interaction, current: str):
@@ -142,7 +142,7 @@ class SearchRuleCommand(SimpleCommand):
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         found = Data.rules.get(name, sources)
-        await send_DNDObject_lookup_result(itr, "rules", found, name)
+        await send_DNDEntry_lookup_result(itr, "rules", found, name)
 
 
 async def action_name_autocomplete(itr: discord.Interaction, current: str):
@@ -161,7 +161,7 @@ class SearchActionCommand(SimpleCommand):
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         found = Data.actions.get(name, sources)
-        await send_DNDObject_lookup_result(itr, "actions", found, name)
+        await send_DNDEntry_lookup_result(itr, "actions", found, name)
 
 
 async def feat_name_autocomplete(itr: discord.Interaction, current: str):
@@ -180,7 +180,7 @@ class SearchFeatCommand(SimpleCommand):
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         found = Data.feats.get(name, sources)
-        await send_DNDObject_lookup_result(itr, "feats", found, name)
+        await send_DNDEntry_lookup_result(itr, "feats", found, name)
 
 
 async def language_name_autocomplete(itr: discord.Interaction, current: str):
@@ -199,7 +199,7 @@ class SearchLanguageCommand(SimpleCommand):
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         found = Data.languages.get(name, sources)
-        await send_DNDObject_lookup_result(itr, "languages", found, name)
+        await send_DNDEntry_lookup_result(itr, "languages", found, name)
 
 
 async def background_name_autocomplete(itr: discord.Interaction, current: str):
@@ -218,7 +218,7 @@ class SearchBackgroundCommand(SimpleCommand):
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         found = Data.backgrounds.get(name, sources)
-        await send_DNDObject_lookup_result(itr, "background", found, name)
+        await send_DNDEntry_lookup_result(itr, "background", found, name)
 
 
 async def table_name_autocomplete(itr: discord.Interaction, current: str):
@@ -237,7 +237,7 @@ class SearchTableCommand(SimpleCommand):
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         found = Data.tables.get(name, sources)
-        await send_DNDObject_lookup_result(itr, "table", found, name)
+        await send_DNDEntry_lookup_result(itr, "table", found, name)
 
 
 async def species_name_autocomplete(itr: discord.Interaction, current: str):
@@ -256,7 +256,7 @@ class SearchSpeciesCommand(SimpleCommand):
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         found = Data.species.get(name, sources)
-        await send_DNDObject_lookup_result(itr, "species", found, name)
+        await send_DNDEntry_lookup_result(itr, "species", found, name)
 
 
 async def vehicle_name_autocomplete(itr: discord.Interaction, current: str):
@@ -275,7 +275,7 @@ class SearchVehicleCommand(SimpleCommand):
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         found = Data.vehicles.get(name, sources)
-        await send_DNDObject_lookup_result(itr, "vehicle", found, name)
+        await send_DNDEntry_lookup_result(itr, "vehicle", found, name)
 
 
 async def object_name_autocomplete(itr: discord.Interaction, current: str):
@@ -294,7 +294,7 @@ class SearchObjectCommand(SimpleCommand):
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         found = Data.objects.get(name, sources)
-        await send_DNDObject_lookup_result(itr, "object", found, name)
+        await send_DNDEntry_lookup_result(itr, "object", found, name)
 
 
 class SearchAnyCommand(SimpleCommand):

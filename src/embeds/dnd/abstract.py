@@ -1,6 +1,6 @@
 import logging
 import discord
-from logic.dnd.abstract import DNDObject, Description
+from logic.dnd.abstract import DNDEntry, Description
 from methods import build_table
 
 HORIZONTAL_LINE = "~~-------------------------------------------------------------------------------------~~"
@@ -12,11 +12,11 @@ class DNDObjectEmbed(discord.Embed):
     Additionally provides functions to handle Description-field & Table generation.
     """
 
-    _object: DNDObject
+    _object: DNDEntry
     view: discord.ui.View | None = None
     file: discord.File | None = None
 
-    def __init__(self, object: DNDObject):
+    def __init__(self, object: DNDEntry):
         self._object = object
 
         super().__init__(

@@ -1,7 +1,7 @@
-from logic.dnd.abstract import DNDObject, DNDObjectList, Description
+from logic.dnd.abstract import DNDEntry, DNDEntryList, Description
 
 
-class Species(DNDObject):
+class Species(DNDEntry):
     image: str | None
     sizes: list[str]
     speed: list[str]
@@ -27,7 +27,7 @@ class Species(DNDObject):
         self.info = json["info"]
 
 
-class SpeciesList(DNDObjectList[Species]):
+class SpeciesList(DNDEntryList[Species]):
     path = "./submodules/lenny-dnd-data/generated/species.json"
 
     def __init__(self):

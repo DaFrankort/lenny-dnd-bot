@@ -1,7 +1,7 @@
-from logic.dnd.abstract import DNDObject, DNDObjectList, Description
+from logic.dnd.abstract import DNDEntry, DNDEntryList, Description
 
 
-class Vehicle(DNDObject):
+class Vehicle(DNDEntry):
     token_url: str | None
     creature_capacity: str | None
     cargo_capacity: str | None
@@ -25,7 +25,7 @@ class Vehicle(DNDObject):
         self.select_description = json["subtitle"]
 
 
-class VehicleList(DNDObjectList[Vehicle]):
+class VehicleList(DNDEntryList[Vehicle]):
     path = "./submodules/lenny-dnd-data/generated/vehicles.json"
 
     def __init__(self):

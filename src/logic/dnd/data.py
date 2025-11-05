@@ -1,4 +1,4 @@
-from logic.dnd.abstract import DNDObject
+from logic.dnd.abstract import DNDEntry
 from logic.dnd.action import Action, ActionList
 from logic.dnd.background import Background, BackgroundList
 from logic.dnd.condition import Condition, ConditionList
@@ -8,7 +8,7 @@ from logic.dnd.feat import Feat, FeatList
 from logic.dnd.item import Item, ItemList
 from logic.dnd.language import Language, LanguageList
 from logic.dnd.name import NameTable
-from logic.dnd.object import Object, ObjectList
+from logic.dnd.object import DNDObject, DNDObjectList
 from logic.dnd.rule import Rule, RuleList
 from logic.dnd.species import Species, SpeciesList
 from logic.dnd.spell import Spell, SpellList
@@ -31,7 +31,7 @@ class DNDData(object):
     tables: DNDTableList
     species: SpeciesList
     vehicles: VehicleList
-    objects: ObjectList
+    objects: DNDObjectList
 
     names: NameTable
 
@@ -50,7 +50,7 @@ class DNDData(object):
         self.tables = DNDTableList()
         self.species = SpeciesList()
         self.vehicles = VehicleList()
-        self.objects = ObjectList()
+        self.objects = DNDObjectList()
 
         # TABLES
         self.names = NameTable()
@@ -105,7 +105,7 @@ class DNDSearchResults(object):
     tables: list[DNDTable]
     species: list[Species]
     vehicles: list[Vehicle]
-    objects: list[Object]
+    objects: list[DNDObject]
     _type_map: dict[type, list]
 
     def __init__(self):
@@ -138,7 +138,7 @@ class DNDSearchResults(object):
             DNDTable: self.tables,
             Species: self.species,
             Vehicle: self.vehicles,
-            Object: self.objects,
+            DNDObject: self.objects,
         }
 
     def add(self, entry):
@@ -147,13 +147,13 @@ class DNDSearchResults(object):
                 result_list.append(entry)
                 return
 
-    def get_all(self) -> list[DNDObject]:
+    def get_all(self) -> list[DNDEntry]:
         all_entries = []
         for entries in self._type_map.values():
             all_entries.extend(entries)
         return all_entries
 
-    def get_all_sorted(self) -> list[DNDObject]:
+    def get_all_sorted(self) -> list[DNDEntry]:
         return sorted(self.get_all(), key=lambda r: (r.object_type, r.name, r.source))
 
     def __len__(self) -> int:

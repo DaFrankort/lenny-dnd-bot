@@ -1,4 +1,4 @@
-from logic.dnd.abstract import DNDObjectList
+from logic.dnd.abstract import DNDEntryList
 
 
 class Source(object):
@@ -25,5 +25,5 @@ class SourceList(object):
     entries: list[Source]
 
     def __init__(self):
-        data = DNDObjectList.read_dnd_data_contents(self.path)
+        data = DNDEntryList.read_dnd_data_contents(self.path)
         self.entries = [Source(e) for e in data]

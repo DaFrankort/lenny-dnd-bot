@@ -1,7 +1,7 @@
-from logic.dnd.abstract import DNDObject, DNDObjectList, Description
+from logic.dnd.abstract import DNDEntry, DNDEntryList, Description
 
 
-class Action(DNDObject):
+class Action(DNDEntry):
     description: list[Description]
 
     def __init__(self, json: dict):
@@ -16,7 +16,7 @@ class Action(DNDObject):
         self.description = json["description"]
 
 
-class ActionList(DNDObjectList[Action]):
+class ActionList(DNDEntryList[Action]):
     path = "./submodules/lenny-dnd-data/generated/actions.json"
 
     def __init__(self):

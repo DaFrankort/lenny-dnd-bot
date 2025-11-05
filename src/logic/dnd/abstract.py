@@ -24,7 +24,7 @@ class Description(TypedDict):
     value: Union[str, DescriptionTable]
 
 
-class DNDObject(abc.ABC):
+class DNDEntry(abc.ABC):
     object_type: str
     name: str
     source: str
@@ -37,10 +37,10 @@ class DNDObject(abc.ABC):
         return f"{self.name} ({self.source})"
 
 
-TDND = TypeVar("TDND", bound=DNDObject)
+TDND = TypeVar("TDND", bound=DNDEntry)
 
 
-class DNDObjectList(abc.ABC, Generic[TDND]):
+class DNDEntryList(abc.ABC, Generic[TDND]):
     entries: list[TDND]
 
     def __init__(self):
@@ -111,9 +111,9 @@ class DNDObjectList(abc.ABC, Generic[TDND]):
         choices.sort(key=lambda x: (-x[0], -x[1], x[2].name))  # Sort by query match => fuzzy score => alphabetically
         return [choice for _, _, choice in choices[:limit]]
 
-    def search(self, query: str, allowed_sources: set[str], fuzzy_threshold: float = 75) -> list[DNDObject]:
+    def search(self, query: str, allowed_sources: set[str], fuzzy_threshold: float = 75) -> list[DNDEntry]:
         query = query.strip().lower()
-        found: list[DNDObject] = []
+        found: list[DNDEntry] = []
 
         for entry in self.entries:
             if entry.source not in allowed_sources:

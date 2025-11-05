@@ -1,7 +1,7 @@
-from logic.dnd.abstract import DNDObject, DNDObjectList, Description
+from logic.dnd.abstract import DNDEntry, DNDEntryList, Description
 
 
-class Class(DNDObject):
+class Class(DNDEntry):
     subclass_unlock_level: int | None
     primary_ability: str | None
     spellcast_ability: str | None
@@ -30,7 +30,7 @@ class Class(DNDObject):
         return str(self)
 
 
-class ClassList(DNDObjectList[Class]):
+class ClassList(DNDEntryList[Class]):
     path = "./submodules/lenny-dnd-data/generated/classes.json"
 
     def __init__(self):

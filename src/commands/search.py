@@ -5,7 +5,7 @@ from embeds.search import MultiDNDSelectView, SearchLayoutView, send_dnd_embed
 from command import SimpleCommand, SimpleCommandGroup
 from logic.config import Config
 from embed import NoResultsFoundEmbed
-from logic.dnd.abstract import DNDObject
+from logic.dnd.abstract import DNDEntry
 from logic.dnd.data import Data
 from discord.app_commands import describe, autocomplete
 
@@ -13,7 +13,7 @@ from discord.app_commands import describe, autocomplete
 async def send_DNDObject_lookup_result(
     itr: discord.Interaction,
     label: str,
-    found: Sequence[DNDObject],
+    found: Sequence[DNDEntry],
     name: str,
 ):
     """Helper function to send generic D&D lookup embeds and views."""

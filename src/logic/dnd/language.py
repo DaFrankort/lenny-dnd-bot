@@ -1,7 +1,7 @@
-from logic.dnd.abstract import DNDObject, DNDObjectList, Description
+from logic.dnd.abstract import DNDEntry, DNDEntryList, Description
 
 
-class Language(DNDObject):
+class Language(DNDEntry):
     speakers: str | None
     script: str | None
     description: list[Description]
@@ -20,7 +20,7 @@ class Language(DNDObject):
         self.description = json["description"]
 
 
-class LanguageList(DNDObjectList[Language]):
+class LanguageList(DNDEntryList[Language]):
     path = "./submodules/lenny-dnd-data/generated/languages.json"
 
     def __init__(self):

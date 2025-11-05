@@ -18,7 +18,7 @@ from embeds.dnd.species import SpeciesEmbed
 from embeds.dnd.spell import SpellEmbed
 from embeds.dnd.table import DNDTableContainerView
 from embeds.dnd.vehicle import VehicleEmbed
-from logic.dnd.abstract import DNDObject
+from logic.dnd.abstract import DNDEntry
 from logic.dnd.action import Action
 from logic.dnd.background import Background
 from logic.dnd.class_ import Class
@@ -28,7 +28,7 @@ from logic.dnd.data import DNDSearchResults
 from logic.dnd.feat import Feat
 from logic.dnd.item import Item
 from logic.dnd.language import Language
-from logic.dnd.object import Object
+from logic.dnd.object import DNDObject
 from logic.dnd.rule import Rule
 from logic.dnd.species import Species
 from logic.dnd.spell import Spell
@@ -36,7 +36,7 @@ from logic.dnd.table import DNDTable
 from logic.dnd.vehicle import Vehicle
 
 
-def get_dnd_embed(itr: discord.Interaction, dnd_object: DNDObject):
+def get_dnd_embed(itr: discord.Interaction, dnd_object: DNDEntry):
     match dnd_object:
         case Spell():
             return SpellEmbed(itr, dnd_object)
@@ -64,13 +64,13 @@ def get_dnd_embed(itr: discord.Interaction, dnd_object: DNDObject):
             return SpeciesEmbed(dnd_object)
         case Vehicle():
             return VehicleEmbed(dnd_object)
-        case Object():
+        case DNDObject():
             return ObjectEmbed(dnd_object)
     logging.error(f"Could not find embed for class {dnd_object.__class__.__name__}")
     return None
 
 
-async def send_dnd_embed(itr: discord.Interaction, dnd_object: DNDObject):
+async def send_dnd_embed(itr: discord.Interaction, dnd_object: DNDEntry):
     await itr.response.defer(thinking=False)
     embed = get_dnd_embed(itr, dnd_object)
     if embed is None:
@@ -88,9 +88,9 @@ async def send_dnd_embed(itr: discord.Interaction, dnd_object: DNDObject):
 
 
 class SearchSelectButton(ui.Button):
-    object: DNDObject
+    object: DNDEntry
 
-    def __init__(self, object: DNDObject):
+    def __init__(self, object: DNDEntry):
         self.object = object
         label = f"{object.name} ({object.source})"
         if len(label) > 80:
@@ -151,9 +151,9 @@ class SearchLayoutView(PaginatedLayoutView):
 class MultiDNDSelect(discord.ui.Select):
     name: str
     query: str
-    entries: Sequence[DNDObject]
+    entries: Sequence[DNDEntry]
 
-    def __init__(self, query: str, entries: Sequence[DNDObject]):
+    def __init__(self, query: str, entries: Sequence[DNDEntry]):
         self.name = entries[0].__class__.__name__.upper() if entries else "UNKNOWN"
         self.query = query
         self.entries = entries
@@ -171,7 +171,7 @@ class MultiDNDSelect(discord.ui.Select):
 
         logging.debug(f"{self.name}: found {len(entries)} entries for '{query}'")
 
-    def select_option(self, entry: DNDObject) -> discord.SelectOption:
+    def select_option(self, entry: DNDEntry) -> discord.SelectOption:
         index = self.entries.index(entry)
         return discord.SelectOption(
             label=f"{entry.name} ({entry.source})",
@@ -190,6 +190,6 @@ class MultiDNDSelect(discord.ui.Select):
 class MultiDNDSelectView(discord.ui.View):
     """A class representing a Discord view for multiple DNDObject selection."""
 
-    def __init__(self, query: str, entries: Sequence[DNDObject]):
+    def __init__(self, query: str, entries: Sequence[DNDEntry]):
         super().__init__()
         self.add_item(MultiDNDSelect(query, entries))

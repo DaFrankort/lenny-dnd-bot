@@ -1,7 +1,7 @@
-from logic.dnd.abstract import DNDObject, DNDObjectList, Description
+from logic.dnd.abstract import DNDEntry, DNDEntryList, Description
 
 
-class Object(DNDObject):
+class DNDObject(DNDEntry):
     description: list[Description]
     token_url: str
 
@@ -18,10 +18,10 @@ class Object(DNDObject):
         self.description = json["description"]
 
 
-class ObjectList(DNDObjectList[Object]):
+class DNDObjectList(DNDEntryList[DNDObject]):
     path = "./submodules/lenny-dnd-data/generated/objects.json"
 
     def __init__(self):
         super().__init__()
         for obj in self.read_dnd_data_contents(self.path):
-            self.entries.append(Object(obj))
+            self.entries.append(DNDObject(obj))

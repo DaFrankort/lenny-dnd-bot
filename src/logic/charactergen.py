@@ -3,7 +3,7 @@ import random
 from typing import TypeVar
 
 import discord
-from logic.dnd.abstract import DNDObject
+from logic.dnd.abstract import DNDEntry
 from logic.dnd.background import Background
 from logic.dnd.class_ import Class
 from logic.dnd.data import Data
@@ -35,7 +35,7 @@ class CharacterGenResult(object):
     boosted_stats: list[tuple[int, str]]
 
 
-TDND = TypeVar("TDND", bound=DNDObject)
+TDND = TypeVar("TDND", bound=DNDEntry)
 
 
 def _get_random_xphb_object(entries: list[TDND]) -> TDND:
@@ -150,7 +150,7 @@ def _apply_background_boosts(stats: list[tuple[int, str]], background: Backgroun
     return new_stats
 
 
-def _get_backstory(table_name: str, object: DNDObject) -> str:
+def _get_backstory(table_name: str, object: DNDEntry) -> str:
     table_name = f"{table_name} [{object.name}]"
     table = _get_dnd_table(table_name, "XGE")
     if table is None:

@@ -1,7 +1,7 @@
-from logic.dnd.abstract import DNDObject, DNDObjectList, Description
+from logic.dnd.abstract import DNDEntry, DNDEntryList, Description
 
 
-class Item(DNDObject):
+class Item(DNDEntry):
     value: str | None
     weight: str | None
     type: list[str]
@@ -46,7 +46,7 @@ class Item(DNDObject):
         return ", ".join(self.properties).capitalize()
 
 
-class ItemList(DNDObjectList[Item]):
+class ItemList(DNDEntryList[Item]):
     path = "./submodules/lenny-dnd-data/generated/items.json"
 
     def __init__(self):

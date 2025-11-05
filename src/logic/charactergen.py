@@ -38,7 +38,7 @@ class CharacterGenResult(object):
 TDND = TypeVar("TDND", bound=DNDEntry)
 
 
-def _get_random_xphb_object(entries: list[TDND]) -> TDND:
+def _get_random_xphb_entry(entries: list[TDND]) -> TDND:
     xphb_entries = [e for e in entries if e.source == "XPHB" and "(" not in e.name]
     return random.choice(xphb_entries)
 
@@ -75,7 +75,7 @@ def _get_optimal_background(char_class: Class) -> Background:
                 recommended.update(bg.strip().lower() for bg in backgrounds)
         backgrounds = [entry for entry in Data.backgrounds.entries if entry.name.lower() in recommended]
 
-    background: Background = _get_random_xphb_object(backgrounds)
+    background: Background = _get_random_xphb_entry(backgrounds)
     return background
 
 
@@ -172,7 +172,7 @@ def generate_dnd_character(gender_str: str | None, species_str: str | None, char
     gender = Gender.OTHER if gender_str is None else Gender(gender_str)
 
     if species_str is None:
-        species: Species = _get_random_xphb_object(Data.species.entries)
+        species: Species = _get_random_xphb_entry(Data.species.entries)
     else:
         species: Species = Data.species.get(query=species_str, allowed_sources=set(["XPHB"]))[0]
     name, _, gender = Data.names.get_random(species.name, gender)
@@ -181,7 +181,7 @@ def generate_dnd_character(gender_str: str | None, species_str: str | None, char
         raise LookupError("Could not determine name and gender for generated character.")
 
     if char_class_str is None:
-        char_class: Class = _get_random_xphb_object(Data.classes.entries)
+        char_class: Class = _get_random_xphb_entry(Data.classes.entries)
     else:
         char_class: Class = Data.classes.get(query=char_class_str, allowed_sources=set(["XPHB"]))[0]
     background = _get_optimal_background(char_class)

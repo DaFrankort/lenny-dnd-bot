@@ -83,9 +83,7 @@ class DNDEntryEmbed(discord.Embed):
         char_count = self.char_count
         for description in descriptions:
             if (len(self.fields)) >= MAX_FIELDS:
-                logging.debug(
-                    f"{self._entry.entry_type.upper()} - Max field count reached! {len(self.fields)} >= {MAX_FIELDS}"
-                )
+                logging.debug(f"{self._entry.entry_type.upper()} - Max field count reached! {len(self.fields)} >= {MAX_FIELDS}")
                 break
 
             name = description["name"]

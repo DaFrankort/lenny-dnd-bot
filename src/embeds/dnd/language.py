@@ -1,8 +1,8 @@
-from embeds.dnd.abstract import HORIZONTAL_LINE, DNDObjectEmbed
+from embeds.dnd.abstract import HORIZONTAL_LINE, DNDEntryEmbed
 from logic.dnd.language import Language
 
 
-class LanguageEmbed(DNDObjectEmbed):
+class LanguageEmbed(DNDEntryEmbed):
     def __init__(self, language: Language):
         super().__init__(language)
         self.description = f"*{language.select_description}*"

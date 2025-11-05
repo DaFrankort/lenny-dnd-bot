@@ -1,8 +1,8 @@
-from embeds.dnd.abstract import DNDObjectEmbed
+from embeds.dnd.abstract import DNDEntryEmbed
 from logic.dnd.object import DNDObject
 
 
-class ObjectEmbed(DNDObjectEmbed):
+class DNDObjectEmbed(DNDEntryEmbed):
     def __init__(self, obj: DNDObject):
         super().__init__(obj)
         self.description = f"*{obj.select_description}*"

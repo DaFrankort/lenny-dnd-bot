@@ -1,8 +1,8 @@
-from embeds.dnd.abstract import DNDObjectEmbed
+from embeds.dnd.abstract import DNDEntryEmbed
 from logic.dnd.background import Background
 
 
-class BackgroundEmbed(DNDObjectEmbed):
+class BackgroundEmbed(DNDEntryEmbed):
     def __init__(self, background: Background):
         super().__init__(background)
         if background.description:

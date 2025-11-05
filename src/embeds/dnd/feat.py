@@ -1,8 +1,8 @@
-from embeds.dnd.abstract import HORIZONTAL_LINE, DNDObjectEmbed
+from embeds.dnd.abstract import HORIZONTAL_LINE, DNDEntryEmbed
 from logic.dnd.feat import Feat
 
 
-class FeatEmbed(DNDObjectEmbed):
+class FeatEmbed(DNDEntryEmbed):
     def __init__(self, feat: Feat):
         super().__init__(feat)
         self.description = f"*{feat.select_description}*"

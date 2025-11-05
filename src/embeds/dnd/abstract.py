@@ -6,7 +6,7 @@ from methods import build_table
 HORIZONTAL_LINE = "~~-------------------------------------------------------------------------------------~~"
 
 
-class DNDObjectEmbed(discord.Embed):
+class DNDEntryEmbed(discord.Embed):
     """
     Superclass for DNDObjects that helps ensure data stays within Discord's character limits.
     Additionally provides functions to handle Description-field & Table generation.

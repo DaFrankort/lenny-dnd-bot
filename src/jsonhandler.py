@@ -64,10 +64,11 @@ class JsonHandler(Generic[T]):
             backup_folder = os.path.join(self._path, "_backup")
             os.makedirs(backup_folder, exist_ok=True)
 
-            backup_filename = f"{datetime.now():%Y%m%d%H%M%S}-{self._filename}"
+            backup_filename = f"{self._filename}_{datetime.now():%Y%m%d%H%M%S}"
             backup_path = f"{os.path.join(backup_folder, backup_filename)}.json"
             os.rename(self.file_path, backup_path)
             logging.error(f"Could not read '{self.file_path}'." f"Saved backup to '{backup_path}'. Error: {e}")
+
             self.data = {}
             self.save()
 

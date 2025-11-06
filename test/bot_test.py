@@ -52,7 +52,7 @@ class TestBotCommands:
             bot = Bot(voice=False)
             bot.register_commands()
         except Exception:
-            pytest.fail('Bot could not be launched!')
+            pytest.fail("Bot could not be launched!")
         return bot
 
     @pytest.fixture()

@@ -48,8 +48,11 @@ def get_cmd(commands: dict[str, SimpleCommand | SimpleCommandGroup], name: str) 
 class TestBotCommands:
     @pytest.fixture()
     def bot(self):
-        bot = Bot(voice=False)
-        bot.register_commands()
+        try:
+            bot = Bot(voice=False)
+            bot.register_commands()
+        except Exception:
+            pytest.fail('Bot could not be launched!')
         return bot
 
     @pytest.fixture()

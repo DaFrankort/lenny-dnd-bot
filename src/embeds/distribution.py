@@ -33,6 +33,6 @@ class DistributionEmbed(discord.Embed):
             min_to_beat, odds = result.min_to_beat
             self.add_field(
                 name=f"Odds to beat {min_to_beat}",
-                value=f"{100*odds:.2f}%",
+                value=f"{100 * odds:.2f}%",
                 inline=True,
             )

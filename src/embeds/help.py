@@ -116,15 +116,14 @@ class HelpEmbed(discord.Embed):
                 cmds = [f"- ``/{command}``" for command in tab_commands]
                 tabs_commands.append((tab.name, cmds))
 
-            context_cmds: list[str] = []
-            for context in self.tree.walk_commands(type=discord.AppCommandType.message):
-                if isinstance(context, SimpleContextMenu):
-                    context_cmds.append(f"- ``{context.name}``")
-            for context in self.tree.walk_commands(type=discord.AppCommandType.user):
-                if isinstance(context, SimpleContextMenu):
-                    context_cmds.append(f"- ``{context.name}``")
-
-            if len(context_cmds) > 0:
+            # Add context menu overview
+            context_cmds = [
+                f"- ``{ctx.name}``"
+                for ctx_type in (discord.AppCommandType.message, discord.AppCommandType.user)
+                for ctx in self.tree.walk_commands(type=ctx_type)
+                if isinstance(ctx, SimpleContextMenu)
+            ]
+            if context_cmds:
                 tabs_commands.append((HelpTabs.ContextMenus.name, context_cmds))
 
             tabs_commands.sort(key=lambda t: (-len(t[1]), t[0]))

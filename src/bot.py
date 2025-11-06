@@ -117,7 +117,7 @@ class Bot(discord.Client):
             VC.disable_vc()
 
         await self.change_presence(
-            activity=discord.CustomActivity(name="Rolling d20s! "),
+            activity=discord.CustomActivity(name="Rolling d20s!"),
             status=discord.Status.online,
         )
         logging.info("Finished initialization")

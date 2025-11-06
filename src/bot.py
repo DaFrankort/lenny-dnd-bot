@@ -26,6 +26,7 @@ from commands.tokengen import TokenGenCommandGroup
 from context_menus.delete import DeleteContextMenu
 from context_menus.timestamp import RequestTimestampContextMenu
 from context_menus.reroll import RerollContextMenu
+from context_menus.zip_files import ZipAttachmentsContextMenu
 from logic.initiative import InitiativeTracker
 from logic.voice_chat import VC, Sounds
 
@@ -88,6 +89,7 @@ class Bot(discord.Client):
         self.tree.add_command(DeleteContextMenu())
         self.tree.add_command(RerollContextMenu())
         self.tree.add_command(RequestTimestampContextMenu())
+        self.tree.add_command(ZipAttachmentsContextMenu())
 
         logging.info("Registered slash-commands")
 

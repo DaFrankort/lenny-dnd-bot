@@ -55,8 +55,6 @@ jobs:
         with:
           submodules: recursive
 
-      - uses: ./.github/actions/setup
-
       - name: Install pip-check-reqs
         run: |
           pip install pip-check-reqs

@@ -7,6 +7,7 @@ from command import SimpleContextMenu
 
 class ZipAttachmentsContextMenu(SimpleContextMenu):
     name = "Zip message files"
+    help = "Packs all attachments from a message into one ZIP file, making it faster to download many files."
 
     def __init__(self):
         super().__init__()

@@ -61,7 +61,7 @@ class JsonHandler(Generic[T]):
             logging.warning(f"File not found, new file created at: '{self.file_path}'")
             self.data = dict()
             self.save()
-        except Exception as e:
+        except KeyError as e:
             logging.error(f"Failed to read '{self.file_path}', saving will be disabled for this file!\n{e}")
             self._allow_save = False
             self.data = dict()

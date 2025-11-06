@@ -126,7 +126,7 @@ class HelpEmbed(discord.Embed):
             user_contexts: list[str] = []
             for context in self.tree.walk_commands(type=discord.AppCommandType.message):
                 if isinstance(context, SimpleContextMenu):
-                    name = f"`` MESSAGE > {context.name}``"
+                    name = f"``MESSAGE > {context.name}``"
                     desc = context.help
                     msg_contexts.append(f"{name}\n{desc}\n")
 

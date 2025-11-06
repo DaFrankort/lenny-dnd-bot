@@ -13,7 +13,7 @@ from logic.dnd.rule import Rule, RuleList
 from logic.dnd.species import Species, SpeciesList
 from logic.dnd.spell import Spell, SpellList
 from logic.dnd.table import DNDTable, DNDTableList
-from logic.dnd.hazard import HazardList
+from logic.dnd.hazard import Hazard, HazardList
 from logic.dnd.vehicle import Vehicle, VehicleList
 from rapidfuzz import fuzz
 
@@ -110,6 +110,7 @@ class DNDSearchResults(object):
     species: list[Species]
     vehicles: list[Vehicle]
     objects: list[DNDObject]
+    hazards: list[Hazard]
     _type_map: dict[type, list]
 
     def __init__(self):
@@ -127,6 +128,7 @@ class DNDSearchResults(object):
         self.species = []
         self.vehicles = []
         self.objects = []
+        self.hazards = []
 
         self._type_map = {
             Spell: self.spells,
@@ -143,6 +145,7 @@ class DNDSearchResults(object):
             Species: self.species,
             Vehicle: self.vehicles,
             DNDObject: self.objects,
+            Hazard: self.hazards,
         }
 
     def add(self, entry):

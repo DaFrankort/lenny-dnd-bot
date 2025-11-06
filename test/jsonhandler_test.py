@@ -1,5 +1,7 @@
 import copy
 import dataclasses
+import json
+import os
 from typing import Any
 
 import pytest
@@ -114,3 +116,24 @@ class TestJsonHandler:
 
             unimplemented.save()
             unimplemented.load()
+
+    def test_keyerror_locks_saving(self, complex: ComplexJsonHandler):
+        """Tests if a KeyError during load() causes save() to be blocked."""
+        key = "1"
+        complex.data[key] = ComplexClass(1, "2", 3.0)
+        try:
+            complex.save()
+        except RuntimeError:
+            assert False, "save() may not cause RuntimeError if there is no data-mismatch."
+
+        # File's data must be a mismatch from what we expect in deserialize.
+        with open(complex.file_path, "r", encoding="utf-8") as file:
+            data: dict[str, Any] = json.load(file)
+            data[key] = {"spell": "Fire Bolt"}
+            with open(complex.file_path, "w", encoding="utf-8") as file:
+                json.dump(data, file, indent=2)
+
+        complex.load()
+        with pytest.raises(RuntimeError):
+            complex.save()
+        os.remove(complex.file_path)  # Prevent unintended fails, when ComplexJsonHandler is loaded in the future.

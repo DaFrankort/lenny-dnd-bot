@@ -85,7 +85,9 @@ class HomebrewEntry(object):
         return cls(
             name=data["name"],
             author_id=data["author_id"],
-            entry_type=HomebrewEntryType(data.get("entry_type", None) or data["object_type"]),  # Name conversion requires support for old format.
+            entry_type=HomebrewEntryType(
+                data.get("entry_type", None) or data["object_type"]
+            ),  # Name conversion requires support for old format.
             description=data["description"],
             select_description=data["select_description"],
         )

@@ -1,4 +1,5 @@
 import dataclasses
+from datetime import datetime
 import json
 import logging
 import os
@@ -55,9 +56,20 @@ class JsonHandler(Generic[T]):
             with open(self.file_path, "r", encoding="utf-8") as file:
                 data: dict[str, Any] = json.load(file)
                 self.data = {k: self.deserialize(v) for k, v in data.items()}
-        except FileNotFoundError as e:
-            logging.warning(f"Failed to read file '{self.file_path}': {e}")
+        except FileNotFoundError:
+            logging.warning(f"File not found, new file created at: '{self.file_path}'")
             self.data = {}
+            self.save()
+        except Exception as e:
+            backup_folder = os.path.join(self._path, "_backup")
+            os.makedirs(backup_folder, exist_ok=True)
+
+            backup_filename = f"{datetime.now():%Y%m%d%H%M%S}-{self._filename}"
+            backup_path = f"{os.path.join(backup_folder, backup_filename)}.json"
+            os.rename(self.file_path, backup_path)
+            logging.error(f"Could not read '{self.file_path}'." f"Saved backup to '{backup_path}'. Error: {e}")
+            self.data = {}
+            self.save()
 
     def save(self):
         os.makedirs(self._path, exist_ok=True)

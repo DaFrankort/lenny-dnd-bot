@@ -10,6 +10,7 @@ from embeds.dnd.class_ import ClassEmbed
 from embeds.dnd.condition import ConditionEmbed
 from embeds.dnd.creature import CreatureEmbed
 from embeds.dnd.feat import FeatEmbed
+from embeds.dnd.hazard import HazardEmbed
 from embeds.dnd.item import ItemEmbed
 from embeds.dnd.language import LanguageEmbed
 from embeds.dnd.object import DNDObjectEmbed
@@ -26,6 +27,7 @@ from logic.dnd.condition import Condition
 from logic.dnd.creature import Creature
 from logic.dnd.data import DNDSearchResults
 from logic.dnd.feat import Feat
+from logic.dnd.hazard import Hazard
 from logic.dnd.item import Item
 from logic.dnd.language import Language
 from logic.dnd.object import DNDObject
@@ -66,6 +68,8 @@ def get_dnd_embed(itr: discord.Interaction, dnd_entry: DNDEntry):
             return VehicleEmbed(dnd_entry)
         case DNDObject():
             return DNDObjectEmbed(dnd_entry)
+        case Hazard():
+            return HazardEmbed(dnd_entry)
     logging.error(f"Could not find embed for class {dnd_entry.__class__.__name__}")
     return None
 

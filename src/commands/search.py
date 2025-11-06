@@ -297,6 +297,25 @@ class SearchObjectCommand(SimpleCommand):
         await send_DNDEntry_lookup_result(itr, "object", found, name)
 
 
+async def hazard_name_autocomplete(itr: discord.Interaction, current: str):
+    sources = Config.allowed_sources(server=itr.guild)
+    return Data.hazards.get_autocomplete_suggestions(current, sources)
+
+
+class SearchHazardCommand(SimpleCommand):
+    name = "hazard"
+    desc = "Get the details of a trap or hazard."
+    help = "Looks up a D&D Trap or Hazard by name."
+
+    @autocomplete(name=hazard_name_autocomplete)
+    @describe(name="Name of the trap or hazard to look up.")
+    async def callback(self, itr: discord.Interaction, name: str):  # pyright: ignore
+        self.log(itr)
+        sources = Config.allowed_sources(server=itr.guild)
+        found = Data.hazards.get(name, sources)
+        await send_DNDEntry_lookup_result(itr, "hazard", found, name)
+
+
 class SearchAnyCommand(SimpleCommand):
     name = "all"
     desc = "Search for all matching D&D entries."
@@ -337,4 +356,5 @@ class SearchCommandGroup(SimpleCommandGroup):
         self.add_command(SearchSpeciesCommand())
         self.add_command(SearchVehicleCommand())
         self.add_command(SearchObjectCommand())
+        self.add_command(SearchHazardCommand())
         self.add_command(SearchAnyCommand())

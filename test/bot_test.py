@@ -108,6 +108,7 @@ class TestBotCommands:
             ("search species", {"name": ["Human", "abcdef"]}),
             ("search vehicle", {"name": ["Galley", "abcdef"]}),
             ("search object", {"name": ["Ballista", "abcdef"]}),
+            ("search hazard", {"name": ["Spiked Pit", "abcdef"]}),
             (
                 "search all",
                 [

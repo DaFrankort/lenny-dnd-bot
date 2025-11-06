@@ -13,6 +13,7 @@ from logic.dnd.rule import Rule, RuleList
 from logic.dnd.species import Species, SpeciesList
 from logic.dnd.spell import Spell, SpellList
 from logic.dnd.table import DNDTable, DNDTableList
+from logic.dnd.hazard import HazardList
 from logic.dnd.vehicle import Vehicle, VehicleList
 from rapidfuzz import fuzz
 
@@ -32,6 +33,7 @@ class DNDData(object):
     species: SpeciesList
     vehicles: VehicleList
     objects: DNDObjectList
+    hazards: HazardList
 
     names: NameTable
 
@@ -51,6 +53,7 @@ class DNDData(object):
         self.species = SpeciesList()
         self.vehicles = VehicleList()
         self.objects = DNDObjectList()
+        self.hazards = HazardList()
 
         # TABLES
         self.names = NameTable()
@@ -70,6 +73,7 @@ class DNDData(object):
         yield self.species
         yield self.vehicles
         yield self.objects
+        yield self.hazards
 
     def search(
         self,

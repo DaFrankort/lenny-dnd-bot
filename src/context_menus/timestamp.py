@@ -6,7 +6,11 @@ from logic.timestamp import get_relative_timestamp_from_message
 
 
 class RequestTimestampContextMenu(SimpleContextMenu):
-    name = "Request Timestamp from message"
+    name = "Request timestamp from message"
+    help = (
+        "Generates a timestamp relative to when a message was sent.\n"
+        "Example: A message saying 'I am ready in 5 minutes!', sent at 14:00: this context will create a timestamp for 14:05."
+    )
 
     def __init__(self):
         super().__init__()

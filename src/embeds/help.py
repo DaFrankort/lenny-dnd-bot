@@ -1,5 +1,5 @@
 import discord
-from command import SimpleCommand, SimpleCommandGroup
+from command import SimpleCommand, SimpleCommandGroup, SimpleContextMenu
 from logic.help import HelpSelectOption, HelpTab, HelpTabs
 from discord.app_commands import Command, Group, CommandTree, Choice
 
@@ -120,6 +120,26 @@ class HelpEmbed(discord.Embed):
 
             for name, commands in tabs_commands:
                 self.add_field(name=name, value="\n".join(commands), inline=True)
+
+        elif tab.tab == "context":
+            msg_contexts: list[str] = []
+            user_contexts: list[str] = []
+            for context in self.tree.walk_commands(type=discord.AppCommandType.message):
+                if isinstance(context, SimpleContextMenu):
+                    name = f"`` MESSAGE > {context.name}``"
+                    desc = context.help
+                    msg_contexts.append(f"{name}\n{desc}\n")
+
+            for context in self.tree.walk_commands(type=discord.AppCommandType.user):
+                if isinstance(context, SimpleContextMenu):
+                    name = f"``USER > {context.name}``"
+                    desc = context.help
+                    user_contexts.append(f"{name}\n{desc}\n")
+
+            if len(msg_contexts) > 0:
+                self.add_field(name="Message contexts", value="\n".join(msg_contexts))
+            if len(user_contexts) > 0:
+                self.add_field(name="User contexts", value="\n".join(user_contexts))
 
     @staticmethod
     def get_tab_choices() -> list[Choice]:

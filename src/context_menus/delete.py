@@ -5,6 +5,7 @@ from command import SimpleContextMenu
 
 class DeleteContextMenu(SimpleContextMenu):
     name = "Delete message"
+    help = "Deletes the bot's message, useful for cleaning up accidental searches, spoilers or general bot-clutter."
 
     def __init__(self):
         super().__init__()

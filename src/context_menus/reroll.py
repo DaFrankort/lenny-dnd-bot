@@ -9,6 +9,7 @@ from logic.voice_chat import VC
 
 class RerollContextMenu(SimpleContextMenu):
     name = "Re-roll"
+    help = "Will repeat a roll done with the __/roll__, __/advantage__, or __/disadvantage__ commands."
 
     def __init__(self):
         super().__init__()

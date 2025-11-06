@@ -106,10 +106,13 @@ class SimpleCommand(discord.app_commands.Command):
 
 class SimpleContextMenu(discord.app_commands.ContextMenu):
     name: str = ""
+    help: str = ""
 
     def __init__(self):
         if not self.name:
             raise NotImplementedError(f"'name' not defined in {type(self)}")
+        if not self.help:
+            raise NotImplementedError(f"'help' not defined in {type(self)}")
 
         super().__init__(
             name=self.name,

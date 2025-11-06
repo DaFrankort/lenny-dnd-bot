@@ -30,6 +30,14 @@ class HelpTabList(object):
         ],
     )
 
+    ContextMenus = HelpTab(
+        tab="context",
+        name="Context Menus",
+        commands=[],
+        text="When you right click on a user or message and navigate to Apps you can perform the following actions:",
+        info=[],
+    )
+
     Roll = HelpTab(
         tab="roll",
         name="Roll",
@@ -193,6 +201,7 @@ class HelpTabList(object):
     def tabs(self) -> list[HelpTab]:
         return [
             self.Overview,
+            self.ContextMenus,
             self.Roll,
             self.Utility,
             self.Character,

@@ -55,6 +55,11 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11.5"
+
       - name: Install pip-check-reqs
         run: |
           pip install pip-check-reqs

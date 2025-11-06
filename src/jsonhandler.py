@@ -1,5 +1,4 @@
 import dataclasses
-from datetime import datetime
 import json
 import logging
 import os
@@ -33,12 +32,14 @@ class JsonHandler(Generic[T]):
 
     _filename: str
     _path: str
+    _allow_save: bool
     data: dict[str, T]
 
     def __init__(self, filename: str, sub_dir: str = ""):
         base_dir = "./temp"
         self._filename = filename
         self._path = os.path.join(base_dir, sub_dir) if sub_dir else base_dir
+        self._allow_save = True
         self.data = dict()
         self.load()
 
@@ -58,21 +59,16 @@ class JsonHandler(Generic[T]):
                 self.data = {k: self.deserialize(v) for k, v in data.items()}
         except FileNotFoundError:
             logging.warning(f"File not found, new file created at: '{self.file_path}'")
-            self.data = {}
+            self.data = dict()
             self.save()
         except Exception as e:
-            backup_folder = os.path.join(self._path, "_backup")
-            os.makedirs(backup_folder, exist_ok=True)
-
-            backup_filename = f"{self._filename}_{datetime.now():%Y%m%d%H%M%S}"
-            backup_path = f"{os.path.join(backup_folder, backup_filename)}.json"
-            os.rename(self.file_path, backup_path)
-            logging.error(f"Could not read '{self.file_path}'." f"Saved backup to '{backup_path}'. Error: {e}")
-
-            self.data = {}
-            self.save()
+            logging.error(f"Failed to read '{self.file_path}', saving will be disabled for this file!\n{e}")
+            self._allow_save = False
+            self.data = dict()
 
     def save(self):
+        if not self._allow_save:
+            raise RuntimeError("Your command worked, but the information will not be retained on a restart.\nKeep a backup of your changes and reach out to the bot's host to resolve this!")
         os.makedirs(self._path, exist_ok=True)
         data = {k: self.serialize(v) for k, v in self.data.items()}
         with open(self.file_path, "w", encoding="utf-8") as file:

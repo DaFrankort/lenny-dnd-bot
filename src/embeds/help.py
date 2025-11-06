@@ -104,7 +104,7 @@ class HelpEmbed(discord.Embed):
 
         # If on overview tab, list all commands, grouped by category
         if tab.tab == "overview":
-            tabs = [tab for tab in HelpTabs.tabs if tab.tab != "overview"]
+            tabs = [tab for tab in HelpTabs.tabs if tab.tab not in ["overview", "context"]]
             tabs_commands = []
             for tab in tabs:
                 tab_commands = []
@@ -116,6 +116,17 @@ class HelpEmbed(discord.Embed):
                 cmds = [f"- ``/{command}``" for command in tab_commands]
                 tabs_commands.append((tab.name, cmds))
 
+            context_cmds: list[str] = []
+            for context in self.tree.walk_commands(type=discord.AppCommandType.message):
+                if isinstance(context, SimpleContextMenu):
+                    context_cmds.append(f"- ``{context.name}``")
+            for context in self.tree.walk_commands(type=discord.AppCommandType.user):
+                if isinstance(context, SimpleContextMenu):
+                    context_cmds.append(f"- ``{context.name}``")
+
+            if len(context_cmds) > 0:
+                tabs_commands.append((HelpTabs.ContextMenus.name, context_cmds))
+
             tabs_commands.sort(key=lambda t: (-len(t[1]), t[0]))
 
             for name, commands in tabs_commands:
@@ -126,13 +137,13 @@ class HelpEmbed(discord.Embed):
             user_contexts: list[str] = []
             for context in self.tree.walk_commands(type=discord.AppCommandType.message):
                 if isinstance(context, SimpleContextMenu):
-                    name = f"``MESSAGE > {context.name}``"
+                    name = f"``MESSAGE > APPS > {context.name}``"
                     desc = context.help
                     msg_contexts.append(f"{name}\n{desc}\n")
 
             for context in self.tree.walk_commands(type=discord.AppCommandType.user):
                 if isinstance(context, SimpleContextMenu):
-                    name = f"``USER > {context.name}``"
+                    name = f"``USER > APPS > {context.name}``"
                     desc = context.help
                     user_contexts.append(f"{name}\n{desc}\n")
 

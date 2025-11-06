@@ -68,7 +68,9 @@ class JsonHandler(Generic[T]):
 
     def save(self):
         if not self._allow_save:
-            raise RuntimeError("Your command worked, but the information will not be retained on a restart.\nKeep a backup of your changes and reach out to the bot's host to resolve this!")
+            raise RuntimeError(
+                "Your command worked, but the information will not be retained on a restart.\nKeep a backup of your changes and reach out to the bot's host to resolve this!"
+            )
         os.makedirs(self._path, exist_ok=True)
         data = {k: self.serialize(v) for k, v in self.data.items()}
         with open(self.file_path, "w", encoding="utf-8") as file:

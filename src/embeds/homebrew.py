@@ -45,6 +45,10 @@ class HomebrewEntryAddModal(SimpleModal):
 
     def __init__(self, itr: discord.Interaction, dnd_type: HomebrewEntryType, md_file: MDFile | None):
         if md_file:
+            if len(md_file.content) > 4000:
+                raise ValueError(
+                    "Markdown file's content exceeds exceeds character-limit!\nPlease use a file with less than 4000 characters."
+                )
             self.name.default = md_file.title
             self.name.placeholder = self.format_placeholder(md_file.title)
             self.description.default = md_file.content

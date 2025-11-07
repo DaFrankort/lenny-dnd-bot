@@ -2,8 +2,8 @@ import dataclasses
 import io
 import math
 import d20
-import d20distribution
-from d20distribution.distribution import DiceDistribution
+import d20distribution  # type: ignore
+from d20distribution.distribution import DiceDistribution  # type: ignore
 import discord
 from matplotlib import pyplot as plt
 
@@ -36,7 +36,7 @@ def _distribution_chart(
 
     white = UserColor.parse("#FFFFFF")
 
-    colors = []
+    colors: list[tuple[float, float, float]] = []
     for key in keys:
         if key >= min_to_beat:
             colors.append(to_matplotlib_color(color))
@@ -44,25 +44,25 @@ def _distribution_chart(
             colors.append(to_matplotlib_color(white))
 
     plt.rcParams["figure.dpi"] = 600
-    fig, ax = plt.subplots(subplot_kw=dict())
+    fig, ax = plt.subplots(subplot_kw=dict())  # type: ignore
 
     keys = list(distribution.keys())
     max_ticks = 20 / len(str(max(keys)))
     steps = int(math.ceil(len(keys) / max_ticks))
-    ax.set_xticks(range(distribution.min(), distribution.max() + 1, steps))
+    ax.set_xticks(range(distribution.min(), distribution.max() + 1, steps))  # type: ignore
     ax.yaxis.set_major_formatter("{x:.2f}%")  # Add percent on y-axis
 
-    ax.tick_params(colors="white")
-    ax.grid(color="white", alpha=0.3, linewidth=1)
+    ax.tick_params(colors="white")  # type: ignore
+    ax.grid(color="white", alpha=0.3, linewidth=1)  # type: ignore
     ax.spines["top"].set_color("white")
     ax.spines["right"].set_color("white")
     ax.spines["bottom"].set_color("white")
     ax.spines["left"].set_color("white")
-    ax.bar(keys, values, color=colors)
+    ax.bar(keys, values, color=colors)  # type: ignore
     ax.set_axisbelow(True)
 
     buf = io.BytesIO()
-    plt.savefig(buf, format="png", bbox_inches="tight", transparent=True)
+    plt.savefig(buf, format="png", bbox_inches="tight", transparent=True)  # type: ignore
     buf.seek(0)
     plt.close(fig)
 

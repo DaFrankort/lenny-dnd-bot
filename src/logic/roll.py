@@ -229,3 +229,17 @@ def roll(expression: str, advantage: Advantage = Advantage.Normal) -> RollResult
         raise ValueError(f"Expression '{expression}' has too many dice rolls!")
     except Exception as exception:
         raise exception
+
+
+def multi_roll(expression: str, amount: int) -> RollResult:
+    try:
+        expression = str(d20.parse(expression, allow_comments=False))
+        rolls = [_roll_single(expression) for _ in range(amount)]
+        return RollResult(expression, Advantage.Normal, rolls)
+
+    except d20.errors.RollSyntaxError:
+        raise ValueError(f"Expression '{expression}' has an invalid syntax!")
+    except d20.errors.TooManyRolls:
+        raise ValueError(f"Expression '{expression}' has too many dice rolls!")
+    except Exception as exception:
+        raise exception

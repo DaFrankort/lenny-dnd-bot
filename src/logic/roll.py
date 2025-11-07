@@ -183,7 +183,7 @@ class RollResult(object):
             case Advantage.Disadvantage:
                 total = min(totals)
             case _:
-                total = totals[0]
+                total = sum(totals)
 
         for r in self.rolls:
             if r.total == total:

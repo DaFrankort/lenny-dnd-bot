@@ -133,13 +133,16 @@ class VC:
                 sound_type = SoundType.DAMAGE
             case "fire":
                 sound_type = SoundType.FIRE
+            case _:
+                sound_type = None
 
         if roll.is_natural_twenty:
             sound_type = SoundType.NAT_20
         elif roll.is_natural_one:
             sound_type = SoundType.NAT_1
 
-        await VC.play(itr, sound_type)
+        if sound_type:
+            await VC.play(itr, sound_type)
 
     @staticmethod
     async def play_attachment(itr: discord.Interaction, attachment: discord.Attachment):

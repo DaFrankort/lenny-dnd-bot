@@ -143,7 +143,7 @@ class InitiativeTracker:
         if query == "":
             return []
 
-        choices = []
+        choices: list[tuple[bool, float, Choice[str]]] = []
         for e in self.get(itr):
             name_clean = self._sanitize_name(e.name)
             score = fuzz.partial_ratio(query, name_clean)
@@ -202,7 +202,7 @@ class InitiativeTracker:
         if initiative_count > self.INITIATIVE_LIMIT:
             raise RuntimeError(f"You attempted to add too many initiatives, the max limit is {self.INITIATIVE_LIMIT}!")
 
-        initiatives = []
+        initiatives: list[Initiative] = []
         for i in range(amount):
             initiative = Initiative(itr, modifier, f"{name}", advantage)
             if shared and i != 0:

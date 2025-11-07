@@ -7,7 +7,6 @@ from command import SimpleCommand, SimpleCommandGroup
 from logic.dnd.data import Data
 from logic.dnd.name import Gender
 from logic.roll import Advantage
-from logic.charactergen import class_choices, species_choices
 from utils.utils import listify
 from utils.mocking import MockImage, MockInteraction, MockSound
 from commands.tokengen import AlignH, AlignV

@@ -1,13 +1,13 @@
-from logic.dnd.abstract import DNDObject, DNDObjectList, Description
+from logic.dnd.abstract import DNDEntry, DNDEntryList, Description
 
 
-class Feat(DNDObject):
+class Feat(DNDEntry):
     prerequisite: str | None
     ability_increase: str | None
     description: list[Description]
 
-    def __init__(self, json: any):
-        self.object_type = "feat"
+    def __init__(self, json: dict):
+        self.entry_type = "feat"
         self.emoji = "🎖️"
 
         self.name = json["name"]
@@ -20,7 +20,7 @@ class Feat(DNDObject):
         self.description = json["description"]
 
 
-class FeatList(DNDObjectList):
+class FeatList(DNDEntryList[Feat]):
     paths = [
         "./submodules/lenny-dnd-data/generated/feats.json",
         "./submodules/lenny-dnd-data/generated/classfeats.json",

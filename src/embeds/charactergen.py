@@ -3,7 +3,7 @@ from discord import ui
 from logic.charts import get_radar_chart
 from components.items import SimpleSeparator, TitleTextDisplay
 from logic.charactergen import CharacterGenResult
-from logic.dnd.abstract import DNDObject
+from logic.dnd.abstract import DNDEntry
 from logic.dnd.background import Background
 from logic.dnd.name import Gender
 from methods import build_table_from_rows
@@ -11,13 +11,13 @@ from logic.color import UserColor
 
 
 class _CharacterGenInfoButton(ui.Button):
-    def __init__(self, object: DNDObject, emoji: str):
+    def __init__(self, entry: DNDEntry, emoji: str):
         style = discord.ButtonStyle.url
-        super().__init__(style=style, label=object.name, emoji=emoji, url=object.url)
+        super().__init__(style=style, label=entry.name, emoji=emoji, url=entry.url)
 
 
 class CharacterGenContainerView(ui.LayoutView):
-    chart: discord.File = None
+    chart: discord.File
 
     def _build_ability_table(
         self,
@@ -70,11 +70,10 @@ class CharacterGenContainerView(ui.LayoutView):
         total = sum([val for val, _ in result.stats])
         ability_desc = ability_table + f"\n**Total**: {total} + 3"
 
-        self.chart = get_radar_chart(
-            results=result.stats,
-            boosted_results=result.boosted_stats,
-            color=color.value,
-        )
+        values = [stat[0] for stat in result.stats]
+        labels = [stat[1] for stat in result.stats]
+        boosts = [stat[0] for stat in result.boosted_stats]
+        self.chart = get_radar_chart(values=values, labels=labels, boosts=boosts, color=color.value)
         ability_image = ui.Thumbnail(media=self.chart)
         ability_section = ui.Section(ability_desc, accessory=ability_image)
         container.add_item(ability_section)

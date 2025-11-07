@@ -1,4 +1,4 @@
-from logic.dnd.abstract import DNDObject
+from logic.dnd.abstract import DNDEntry
 from logic.dnd.action import Action, ActionList
 from logic.dnd.background import Background, BackgroundList
 from logic.dnd.condition import Condition, ConditionList
@@ -8,11 +8,13 @@ from logic.dnd.feat import Feat, FeatList
 from logic.dnd.item import Item, ItemList
 from logic.dnd.language import Language, LanguageList
 from logic.dnd.name import NameTable
+from logic.dnd.object import DNDObject, DNDObjectList
 from logic.dnd.rule import Rule, RuleList
 from logic.dnd.species import Species, SpeciesList
 from logic.dnd.spell import Spell, SpellList
 from logic.dnd.table import DNDTable, DNDTableList
-
+from logic.dnd.hazard import HazardList
+from logic.dnd.vehicle import Vehicle, VehicleList
 from rapidfuzz import fuzz
 
 
@@ -29,6 +31,9 @@ class DNDData(object):
     backgrounds: BackgroundList
     tables: DNDTableList
     species: SpeciesList
+    vehicles: VehicleList
+    objects: DNDObjectList
+    hazards: HazardList
 
     names: NameTable
 
@@ -46,6 +51,9 @@ class DNDData(object):
         self.backgrounds = BackgroundList()
         self.tables = DNDTableList()
         self.species = SpeciesList()
+        self.vehicles = VehicleList()
+        self.objects = DNDObjectList()
+        self.hazards = HazardList()
 
         # TABLES
         self.names = NameTable()
@@ -63,6 +71,9 @@ class DNDData(object):
         yield self.backgrounds
         yield self.tables
         yield self.species
+        yield self.vehicles
+        yield self.objects
+        yield self.hazards
 
     def search(
         self,
@@ -97,7 +108,9 @@ class DNDSearchResults(object):
     backgrounds: list[Background]
     tables: list[DNDTable]
     species: list[Species]
-    _type_map: dict[type, list[DNDObject]]
+    vehicles: list[Vehicle]
+    objects: list[DNDObject]
+    _type_map: dict[type, list]
 
     def __init__(self):
         self.spells = []
@@ -112,6 +125,8 @@ class DNDSearchResults(object):
         self.backgrounds = []
         self.tables = []
         self.species = []
+        self.vehicles = []
+        self.objects = []
 
         self._type_map = {
             Spell: self.spells,
@@ -126,22 +141,24 @@ class DNDSearchResults(object):
             Background: self.backgrounds,
             DNDTable: self.tables,
             Species: self.species,
+            Vehicle: self.vehicles,
+            DNDObject: self.objects,
         }
 
     def add(self, entry):
         for entry_type, result_list in self._type_map.items():
             if isinstance(entry, entry_type):
                 result_list.append(entry)
-                break
+                return
 
-    def get_all(self) -> list[DNDObject]:
+    def get_all(self) -> list[DNDEntry]:
         all_entries = []
         for entries in self._type_map.values():
             all_entries.extend(entries)
         return all_entries
 
-    def get_all_sorted(self) -> list[DNDObject]:
-        return sorted(self.get_all(), key=lambda r: (r.object_type, r.name, r.source))
+    def get_all_sorted(self) -> list[DNDEntry]:
+        return sorted(self.get_all(), key=lambda r: (r.entry_type, r.name, r.source))
 
     def __len__(self) -> int:
         return len(self.get_all())

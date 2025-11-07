@@ -32,37 +32,35 @@ class TestUserColor:
         assert UserColor.validate(hex(generated_color)[2:]), "Generated color is not a valid hex value."
 
     def test_file_operations(self):
-        interaction = MockInteraction()
+        itr = MockInteraction()
         color = 7110183
 
-        ORIGINAL_FILE_PATH = UserColor.FILE_PATH
-        UserColor.FILE_PATH = ORIGINAL_FILE_PATH.replace(".json", "_test.json")
-        if os.path.exists(UserColor.FILE_PATH):
-            os.remove(UserColor.FILE_PATH)
+        UserColor.load()
+        if os.path.exists(UserColor.file_path):
+            os.remove(UserColor.file_path)
         else:
-            dirname = os.path.dirname(UserColor.FILE_PATH)
+            dirname = os.path.dirname(UserColor.file_path)
             os.makedirs(dirname, exist_ok=True)
 
-        assert not os.path.exists(UserColor.FILE_PATH), "Test file should not exist before the test."
+        assert not os.path.exists(UserColor.file_path), "Test file should not exist before the test."
 
         # Assert random color generation, if no data
-        random_color = UserColor.get(interaction)
+        random_color = UserColor.get(itr)
         assert random_color != color, "If file has no color for user, it should return a generated one."
 
         # Test saving
-        UserColor.save(interaction, color)
-        assert os.path.exists(UserColor.FILE_PATH), "Test file should exist after saving."
+        UserColor.add(itr, color)
+        assert os.path.exists(UserColor.file_path), "Test file should exist after saving."
 
         # Test getting color
-        stored_color = UserColor.get(interaction)
+        stored_color = UserColor.get(itr)
         assert stored_color == color, f"Stored color {stored_color} does not match expected color {color}."
-        assert os.path.exists(UserColor.FILE_PATH), "Test file should exist after getting color."
+        assert os.path.exists(UserColor.file_path), "Test file should exist after getting color."
 
         # Test removing color
-        remove_status = UserColor.remove(interaction)
+        remove_status = UserColor.remove(itr)
         assert remove_status, "Failed to remove color from file."
-        remove_status = UserColor.remove(interaction)
+        remove_status = UserColor.remove(itr)
         assert not remove_status, "Removal should fail as color is already removed."
 
-        os.remove(UserColor.FILE_PATH)
-        UserColor.FILE_PATH = ORIGINAL_FILE_PATH
+        os.remove(UserColor.file_path)

@@ -1,57 +1,66 @@
+import dataclasses
 import random
 
-from logic.app_commands import ChoicedEnum
-from logic.dnd.abstract import DNDObjectList
+from methods import ChoicedEnum
+from logic.dnd.abstract import DNDEntryList
 
 
-class Gender(ChoicedEnum):
+class Gender(str, ChoicedEnum):
     FEMALE = "female"
     MALE = "male"
     OTHER = "other"
+
+
+@dataclasses.dataclass
+class NameTableNames(object):
+    male: list[str]
+    female: list[str]
+    family: list[str]
+
+    def names(self, gender: Gender | None) -> list[str]:
+        if gender == Gender.MALE:
+            return self.male
+        if gender == Gender.FEMALE:
+            return self.female
+        return self.male + self.female
 
 
 class NameTable:
     """Names supplied by 5etools, does not adhere to normal DNDObject format!"""
 
     path = "./submodules/lenny-dnd-data/generated/names.json"
-    tables: dict[str, dict[str, list[str]]] = {}
+    tables: dict[str, NameTableNames]
 
     def __init__(self):
-        data = DNDObjectList.read_dnd_data_contents(self.path)
-        if len(data) == 0:
-            self.tables = None
-            return
+        self.tables = dict()
+        data = DNDEntryList.read_dnd_data_contents(self.path)
 
-        for d in data:
-            species = d["name"].lower()
-            table = {}
-            table[Gender.FEMALE.value] = d["tables"]["female"]
-            table[Gender.MALE.value] = d["tables"]["male"]
-            table["family"] = d["tables"]["family"]
+        for datum in data:
+            male = datum["tables"]["male"]
+            female = datum["tables"]["female"]
+            family = datum["tables"]["family"]
 
-            self.tables[species] = table
+            species = datum["name"].lower()
+            self.tables[species] = NameTableNames(male, female, family)
 
-    def get_random(self, species: str | None, gender: Gender) -> tuple[str, str, Gender] | tuple[None, None, None]:
+    def get_random(self, species: str | None, gender: Gender | None) -> tuple[str, str, Gender] | tuple[None, None, None]:
         """
         Species and gender are randomised if not specified.
         Returns the selected name, species and gender in a tuple.
         """
-        if self.tables is None:
-            return None, None, None
-
-        if species:
-            species = species.lower()
-
-        table = self.tables.get(species, None)
-        if table is None:
+        if species is None or species not in self.tables:
             species = random.choice(list(self.tables.keys()))
-            table = self.tables.get(species)
-
-        if gender is Gender.OTHER:
+        if gender is Gender.OTHER or gender is None:
             gender = random.choice([Gender.FEMALE, Gender.MALE])
 
-        names = table.get(gender.value, None)
-        surnames = table.get("family", [])
+        species = species.lower()
+        table = self.tables.get(species, None)
+
+        if table is None:
+            return None, None, None
+
+        names = table.names(gender)
+        surnames = table.family
 
         name = random.choice(names)
         if len(surnames) != 0:

@@ -1,4 +1,4 @@
-# DnD Discord Bot
+# DnD Discord Bot - Lenny
 
 A Discord bot for Dungeons & Dragons players which aims to provide commands using modern Discord features.
 
@@ -8,15 +8,17 @@ Powered by [5e.tools](https://5e.tools/) for up-to-date 5e data.
 
 - **Dice Roll Commands**: Easily roll dice with flexible expressions, such as `2d6`, `1d20+6`, or `1d8+4+2d6`.
 - **D&D Data Lookup**: Look up D&D data and get detailed information about them directly in Discord, powered by [5e.tools](https://5e.tools/).
+- **D&D Homebrew data**: Allows servers to add and manage their own homebrew data for spells, items, creatures, and more.
 - **Customizable Color Embeds**: Customize the colors of your dice roll embeds for better visual appeal and easy identification, auto-generated if not specified.
 - **Character Stat Rolling**: Automatically roll and generate D&D character stats.
 - **Voice Chat Sound Effects**: The bot can join voice channels to play sound effects for your rolls, including special sounds for natural 1s and 20s, as well as effects for attacks, damage, and fire.
 - **Token-Image Generation** - Generate a 5etools-style token from an image or image-url for your characters or custom creatures.
 - **Initiative Tracking** - Track initiatives for combat easily, with easy-to-use buttons for players and dungeon masters.
+- **Discord Utilities** - Various utility commands to help with planning sessions, generating timestamps, and playing sound effects.
 
 ## Installation
 
-To get the bot running on your own Discord server, follow these steps:
+To get the bot running and usable for your own Discord servers, follow these steps:
 
 ### 1. Clone the Repository
 
@@ -51,7 +53,8 @@ GUILD_ID=0
 
 - If you don't have a bot token, you can create one by following [Discord's bot creation guide](https://discordpy.readthedocs.io/en/stable/discord.html).
 - To get a guild ID, enable [developer mode](https://help.mee6.xyz/support/solutions/articles/101000482629-how-to-enable-developer-mode) on discord.
-  Afterwards you can right click on your server of choice and select `Copy Server ID`
+  Afterwards you can right click on your server of choice and select `Copy Server ID`.
+  The ``GUILD_ID`` field is optional and mainly serves to prioritize syncing with a certain server (for development purposes).
 
 ### 4. (Optional) Install FFMPEG
 
@@ -65,7 +68,7 @@ You can follow [this tutorial](https://www.hostinger.com/tutorials/how-to-instal
 To start the bot, simply run the following command:
 
 ```bash
-python ./src/main.py
+python src/main.py
 ```
 
 You can add the following arguments if you wish:
@@ -77,7 +80,14 @@ The bot should now be online, don't forget to invite it to your servers!
 
 ## Usage
 
-Once the bot is added to your server, you can use the following commands:
+Once the bot is added to your server, the commands below are available. When setting up the bot, the config commands should be used first to set the game master roles.
+
+### Config
+
+Configure bot-specific settings for your server.
+
+- `/config permissions` - Set the roles which are allowed to configure the bot further. Only the server admin is allowed to use this command.
+- `/config sources` - Enable or disable which sources will be used during the `/search` commands. Only users with the permission roles can change the sources.
 
 ### Dice Rolls
 
@@ -93,26 +103,40 @@ Roll D&D dice using dice-expressions (e.g. `2d6` / `1d20+2`).
 
 Look up various D&D data from [5e.tools](https://5e.tools/).
 
-- `/search spell <spell-name>` – Look up information about a D&D spell (e.g. Fireball).
-- `/search item <item-name>` - Look up information about a D&D item (e.g. Dagger).
-- `/search condition <condition-name>` - Look up information about a D&D condition (e.g. Blinded).
-- `/search creature <creature-name>` – Look up information about a D&D creature (e.g. Orc).
-- `/search class <class-name>` – Look up information about a D&D Class (e.g. Wizard).
-- `/search rule <rule-name>` – Look up information about a D&D rule (e.g. Saving Throw).
-- `/search action <action-name>` – Look up information about a D&D action (e.g. Dash).
-- `/search feat <feat-name>` – Look up information about a D&D feat (e.g. Savage Attacker).
-- `/search language <language-name>` - Look up a D&D language (e.g. Common).
+- `/search spell <spell-name>` – Look up a D&D Spell (e.g. Fireball).
+- `/search item <item-name>` - Look up a D&D Item (e.g. Dagger).
+- `/search condition <condition-name>` - Look up a D&D Condition (e.g. Blinded).
+- `/search creature <creature-name>` – Look up a D&D Creature (e.g. Orc).
+- `/search class <class-name>` – Look up a D&D Class (e.g. Wizard).
+- `/search rule <rule-name>` – Look up a D&D Rule (e.g. Saving Throw).
+- `/search action <action-name>` – Look up a D&D Action (e.g. Dash).
+- `/search feat <feat-name>` – Look up a D&D Feat (e.g. Savage Attacker).
+- `/search language <language-name>` - Look up a D&D Language (e.g. Common).
 - `/search background <background-name>` - Look up a D&D Background (e.g. Soldier).
 - `/search table <table-name>` - Look up a D&D Table (e.g. Wild Magic Surge).
 - `/search species <species-name>` - Look up a D&D Species (e.g. Human).
+- `/search vehicle <vehicle-name>` - Look up a D&D Vehicle (e.g. Galley).
+- `/search object <object-name>` - Look up a D&D Object (e.g. Ballista).
+- `/search hazard <hazard-name>` - Look up a D&D Trap or Hazard (e.g. Spiked Pit).
 - `/search all <query>` - Look for many related results regarding D&D data. Example: `/search fire` would return any data with 'fire' in the name.
+
+### D&D Homebrew Data
+
+Manage your server's homebrew D&D data for spells, items, creatures, and more.
+For entry deletion or editing you will need to either be the original creator of the entry, have config permissions or have the Manage Messages permission for the server.
+
+- `/homebrew add <dnd-type>` - Add a new homebrew entry of the specified D&D type (e.g. spell, item, creature).
+- `/homebrew edit <entry>` - Edit an existing homebrew entry.
+- `/homebrew delete <entry>` - Delete an existing homebrew entry.
+- `/homebrew list [filter]` - List all homebrew entries in the server, can be filtered by D&D type.
+- `/homebrew search <entry>` - Show details of a specific homebrew entry by its ID.
 
 ### Character Tools
 
 - `/stats roll` – Automatically roll stats for a new character's skills, using the 4d6 drop lowest method. Also generates a radar-graph to visualize the stats.
 - `/stats visualize <str> <dex> <con> <int> <wis> <cha>` – Visualizes character stats in a radar-graph.
 - `/namegen [race] [gender]` - Generate a random name, race and/or gender can be specified but will default to random.
-- `/charactergen` - Generates a character with name, class, species, background and stats. Ensures that the build that is generated is somewhat optimal for your class; automatically selecting fitting backgrounds and assigning stats optimally.
+- `/charactergen [gender] [species] [char_class]` - Generates a character with name, class, species, background and stats. Ensures that the build that is generated is somewhat optimal for your class; automatically selecting fitting backgrounds and assigning stats optimally. Preferred gender, species or class can be provided.
 
 ### Token-Image Generation
 

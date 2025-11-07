@@ -11,7 +11,7 @@ from discord import Interaction
 from logic.roll import RollResult
 
 
-class SoundType(Enum):
+class SoundType(str, Enum):
     ROLL = "dice/roll"
     NAT_20 = "dice/nat_20"
     NAT_1 = "dice/nat_1"
@@ -53,11 +53,16 @@ class VC:
         if not VC.voice_available:
             return
 
+        if not isinstance(itr.user, discord.Member):
+            return  # Only members can be in voice channels
+
         if not itr.guild or not itr.user.voice:
             return  # User in DMs or not in voice chat
 
-        guild_id = itr.guild_id
+        guild_id = itr.guild.id
         voice_channel = itr.user.voice.channel
+        if not voice_channel:
+            return
 
         old_client = VC.clients.get(guild_id)
         if old_client:
@@ -84,12 +89,15 @@ class VC:
         if not VC.voice_available:
             return
 
+        if not isinstance(itr.user, discord.Member):
+            return  # Only members can be in voice channels
+
         if not itr.guild or not itr.user.voice:
             return  # User in DMs or not in voice chat
 
         await VC.join(itr)
 
-        client = VC.clients.get(itr.guild_id)
+        client = VC.clients.get(itr.guild.id)
         if not client:
             return
 
@@ -113,7 +121,7 @@ class VC:
             os.mkdir(VC.TEMP_PATH)
 
     @staticmethod
-    async def play_dice_roll(itr: Interaction, result: RollResult, reason: str = None):
+    async def play_dice_roll(itr: Interaction, result: RollResult, reason: str | None = None):
         roll = result.roll
         sound_type = SoundType.ROLL
 
@@ -138,13 +146,17 @@ class VC:
         """Play an audio file from an attachment. Returns a tuple with a boolean for success and a description."""
         if not VC.voice_available:
             raise RuntimeError("Voice chat is not enabled on this bot.")
+        if not attachment.content_type:
+            raise ValueError("Unknown attachment type!")
         if not attachment.content_type.startswith("audio"):
             raise ValueError("Attachment must be an audio file!")
+        if not isinstance(itr.user, discord.Member):
+            raise RuntimeError("You must be in a server to use this command!")
         if not itr.guild or not itr.user.voice:
             raise RuntimeError("You must be in a voice channel to use this command.")
 
         await VC.join(itr)
-        client = VC.clients.get(itr.guild_id)
+        client = VC.clients.get(itr.guild.id)
         if not client:
             raise RuntimeError("Failed to join your voice channel, does the bot have the correct permissions?")
 
@@ -217,7 +229,7 @@ class Sounds:
         return options_map.get(sound_type, option())
 
     @staticmethod
-    def get(sound_type: SoundType) -> discord.FFmpegPCMAudio:
+    def get(sound_type: SoundType) -> discord.FFmpegPCMAudio | None:
         """Get a random sound file for the given sound type."""
         folder = Sounds.BASE_PATH / sound_type.value
         if not folder.exists() or not folder.is_dir():

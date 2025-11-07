@@ -15,8 +15,8 @@ class TimestampButton(discord.ui.Button):
         super().__init__(style=discord.ButtonStyle.primary, label="Clip")
         self.timestamp = timestamp
 
-    async def callback(self, itr: discord.Interaction):
-        await itr.response.send_message(f"{self.timestamp}", ephemeral=True)
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.send_message(f"{self.timestamp}", ephemeral=True)
 
 
 class TimestampDatesContainerView(discord.ui.LayoutView):

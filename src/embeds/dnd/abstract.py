@@ -1,29 +1,29 @@
 import logging
 import discord
-from logic.dnd.abstract import DNDObject, Description
+from logic.dnd.abstract import DNDEntry, Description
 from methods import build_table
 
 HORIZONTAL_LINE = "~~-------------------------------------------------------------------------------------~~"
 
 
-class DNDObjectEmbed(discord.Embed):
+class DNDEntryEmbed(discord.Embed):
     """
-    Superclass for DNDObjects that helps ensure data stays within Discord's character limits.
+    Superclass for DNDEntries that helps ensure data stays within Discord's character limits.
     Additionally provides functions to handle Description-field & Table generation.
     """
 
-    _object: DNDObject
-    view: discord.ui.View = None
-    file: discord.File = None
+    _entry: DNDEntry
+    view: discord.ui.View | None = None
+    file: discord.File | None = None
 
-    def __init__(self, object: DNDObject):
-        self._object = object
+    def __init__(self, entry: DNDEntry):
+        self._entry = entry
 
         super().__init__(
-            title=object.title,
+            title=entry.title,
             type="rich",
             color=discord.Color.dark_green(),
-            url=object.url,
+            url=entry.url,
         )
 
     @property
@@ -34,12 +34,14 @@ class DNDObjectEmbed(discord.Embed):
             (len(self.title) if self.title else 0)
             + (len(self.description) if self.description else 0)
             + (len(self.footer.text) if self.footer and self.footer.text else 0)
-            + (len(self.author.name) if self.author else 0)
+            + (len(self.author.name) if self.author.name else 0)
         )
 
         if self.fields:
             for field in self.fields:
-                char_count += len(field.name) + len(field.value)
+                field_name_len = len(field.name) if field.name else 0
+                field_value_len = len(field.value) if field.value else 0
+                char_count += field_name_len + field_value_len
 
         return char_count
 
@@ -48,7 +50,7 @@ class DNDObjectEmbed(discord.Embed):
         table_string = build_table(value)
 
         if len(table_string) > CHAR_FIELD_LIMIT:
-            return f"The table for [{self._object.name} can be found here]({self._object.url})."
+            return f"The table for [{self._entry.name} can be found here]({self._entry.url})."
         return table_string
 
     def add_description_fields(
@@ -81,9 +83,7 @@ class DNDObjectEmbed(discord.Embed):
         char_count = self.char_count
         for description in descriptions:
             if (len(self.fields)) >= MAX_FIELDS:
-                logging.debug(
-                    f"{self._object.object_type.upper()} - Max field count reached! {len(self.fields)} >= {MAX_FIELDS}"
-                )
+                logging.debug(f"{self._entry.entry_type.upper()} - Max field count reached! {len(self.fields)} >= {MAX_FIELDS}")
                 break
 
             name = description["name"]
@@ -98,68 +98,15 @@ class DNDObjectEmbed(discord.Embed):
             field_length = len(name) + len(value)
             if field_length >= CHAR_FIELD_LIMIT:
                 logging.debug(
-                    f"{self._object.object_type.upper()} - Field character limit reached! {field_length} >= {CHAR_FIELD_LIMIT}"
+                    f"{self._entry.entry_type.upper()} - Field character limit reached! {field_length} >= {CHAR_FIELD_LIMIT}"
                 )
                 continue  # TODO split field to fit, possibly concatenate descriptions to make optimal use of field-limits
 
             char_count += field_length
             if char_count >= CHAR_EMBED_LIMIT:
                 logging.debug(
-                    f"{self._object.object_type.upper()} - Embed character limit reached! {char_count} >= {CHAR_EMBED_LIMIT}"
+                    f"{self._entry.entry_type.upper()} - Embed character limit reached! {char_count} >= {CHAR_EMBED_LIMIT}"
                 )
                 break  # TODO Cut description short and add a message
 
             self.add_field(name=name, value=value, inline=False)
-
-
-class MultiDNDSelect(discord.ui.Select):
-    name: str
-    query: str
-    entries: list[DNDObject]
-
-    def __init__(self, query: str, entries: list[DNDObject]):
-        self.name = entries[0].__class__.__name__.upper() if entries else "UNKNOWN"
-        self.query = query
-        self.entries = entries
-
-        options = []
-        for entry in entries:
-            options.append(self.select_option(entry))
-
-        super().__init__(
-            placeholder=f"Results for '{query}'",
-            options=options,
-            min_values=1,
-            max_values=1,
-        )
-
-        logging.debug(f"{self.name}: found {len(entries)} entries for '{query}'")
-
-    def select_option(self, entry: DNDObject) -> discord.SelectOption:
-        index = self.entries.index(entry)
-        return discord.SelectOption(
-            label=f"{entry.name} ({entry.source})",
-            description=entry.select_description,
-            value=str(index),
-        )
-
-    async def callback(self, interaction: discord.Interaction):
-        """Handles the selection of a spell from the select menu."""
-        index = int(self.values[0])
-        entry = self.entries[index]
-
-        logging.debug(f"{self.name}: user {interaction.user.display_name} selected option {index}: '{entry.name}`")
-
-        embed = entry.get_embed(interaction)
-        if isinstance(embed, discord.Embed):
-            await interaction.response.send_message(embed=embed)
-        elif isinstance(embed, discord.ui.LayoutView):
-            await interaction.response.send_message(view=embed)
-
-
-class MultiDNDSelectView(discord.ui.View):
-    """A class representing a Discord view for multiple DNDObject selection."""
-
-    def __init__(self, query: str, entries: list[DNDObject]):
-        super().__init__()
-        self.add_item(MultiDNDSelect(query, entries))

@@ -1,14 +1,14 @@
-from logic.dnd.abstract import DNDObject, DNDObjectList, Description
+from logic.dnd.abstract import DNDEntry, DNDEntryList, Description
 
 
-class Creature(DNDObject):
+class Creature(DNDEntry):
     subtitle: str | None
     summoned_by_spell: str | None
     token_url: str | None
     description: list[Description]
 
-    def __init__(self, json: any):
-        self.object_type = "creature"
+    def __init__(self, json: dict):
+        self.entry_type = "creature"
         self.emoji = "🐉"
 
         self.name = json["name"]
@@ -23,7 +23,7 @@ class Creature(DNDObject):
         self.select_description = self.subtitle
 
 
-class CreatureList(DNDObjectList):
+class CreatureList(DNDEntryList[Creature]):
     path = "./submodules/lenny-dnd-data/generated/creatures.json"
 
     def __init__(self):

@@ -2,7 +2,7 @@ import abc
 import json
 import logging
 import os
-from typing import Literal, TypedDict, Union
+from typing import Generic, Literal, TypeVar, TypedDict, Union
 import discord
 from rapidfuzz import fuzz
 
@@ -11,10 +11,6 @@ class DescriptionRowRange(TypedDict):
     type: Literal["range"]
     min: int
     max: int
-
-    @property
-    def notation(self) -> str:
-        return f"{self['min']} - {self['max']}"
 
 
 class DescriptionTable(TypedDict):
@@ -28,8 +24,8 @@ class Description(TypedDict):
     value: Union[str, DescriptionTable]
 
 
-class DNDObject(abc.ABC):
-    object_type: str
+class DNDEntry(abc.ABC):
+    entry_type: str
     name: str
     source: str
     url: str | None
@@ -41,8 +37,11 @@ class DNDObject(abc.ABC):
         return f"{self.name} ({self.source})"
 
 
-class DNDObjectList(abc.ABC):
-    entries: list[DNDObject]
+TDND = TypeVar("TDND", bound=DNDEntry)
+
+
+class DNDEntryList(abc.ABC, Generic[TDND]):
+    entries: list[TDND]
 
     def __init__(self):
         self.entries = []
@@ -58,15 +57,10 @@ class DNDObjectList(abc.ABC):
         with open(path, "r", encoding="utf-8") as file:
             return json.load(file)
 
-    def get(
-        self,
-        query: str,
-        allowed_sources: set[str],
-        fuzzy_threshold: float = 75,
-    ) -> list[DNDObject]:
+    def get(self, query: str, allowed_sources: set[str], fuzzy_threshold: float = 75) -> list[TDND]:
         query = query.strip().lower()
-        exact: list[DNDObject] = []
-        fuzzy: list[DNDObject] = []
+        exact = []
+        fuzzy = []
 
         for entry in self.entries:
             if entry.source not in allowed_sources:
@@ -86,11 +80,7 @@ class DNDObjectList(abc.ABC):
         return fuzzy
 
     def get_autocomplete_suggestions(
-        self,
-        query: str,
-        allowed_sources: set[str],
-        fuzzy_threshold: float = 75,
-        limit: int = 25,
+        self, query: str, allowed_sources: set[str], fuzzy_threshold: float = 75, limit: int = 25
     ) -> list[discord.app_commands.Choice[str]]:
         query = query.strip().lower().replace(" ", "")
 
@@ -121,14 +111,9 @@ class DNDObjectList(abc.ABC):
         choices.sort(key=lambda x: (-x[0], -x[1], x[2].name))  # Sort by query match => fuzzy score => alphabetically
         return [choice for _, _, choice in choices[:limit]]
 
-    def search(
-        self,
-        query: str,
-        allowed_sources: set[str],
-        fuzzy_threshold: float = 75,
-    ) -> list[DNDObject]:
+    def search(self, query: str, allowed_sources: set[str], fuzzy_threshold: float = 75) -> list[DNDEntry]:
         query = query.strip().lower()
-        found: list[DNDObject] = []
+        found: list[DNDEntry] = []
 
         for entry in self.entries:
             if entry.source not in allowed_sources:

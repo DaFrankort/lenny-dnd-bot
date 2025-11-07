@@ -1,6 +1,7 @@
 import discord
 from embeds.plansession import SessionPlanPoll
-from logic.app_commands import SimpleCommand
+from command import SimpleCommand
+from discord.app_commands import describe
 
 
 class PlanSessionCommand(SimpleCommand):
@@ -8,11 +9,15 @@ class PlanSessionCommand(SimpleCommand):
     desc = "Stop squandering and poll your party's availability in x weeks!"
     help = "Creates a poll for players to select their availability in x weeks. Generates poll-answers from Monday - Sunday, along with an 'Earlier' and 'Later' option. If 0 is specified it will poll for the remaining days in the current week."
 
-    @discord.app_commands.describe(
+    def __init__(self):
+        super().__init__()
+        self.guild_only = True
+
+    @describe(
         in_weeks="How many weeks from now? (0 = this week, 1 = next week, ...)",
         poll_duration="How long until the poll closes? (Defaults to 24h)",
     )
-    async def callback(
+    async def callback(  # pyright: ignore
         self,
         itr: discord.Interaction,
         in_weeks: discord.app_commands.Range[int, 0, 48],

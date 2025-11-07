@@ -30,6 +30,14 @@ class HelpTabList(object):
         ],
     )
 
+    ContextMenus = HelpTab(
+        tab="context",
+        name="Context Menus",
+        commands=[],
+        text="When you right click on a user or message and navigate to Apps you can perform the following actions:",
+        info=[],
+    )
+
     Roll = HelpTab(
         tab="roll",
         name="Roll",
@@ -98,6 +106,23 @@ class HelpTabList(object):
         info=[],
     )
 
+    Homebrew = HelpTab(
+        tab="homebrew",
+        name="D&D Homebrew",
+        commands=["homebrew"],
+        text="You can create custom information to use in your D&D sessions.",
+        info=[
+            (
+                "Permissions",
+                [
+                    "A user can edit or remove homebrew entries if they are the author of that entry.",
+                    "If a user has the ``Manage Messages`` permission they can edit or remove any homebrew entry.",
+                    "If a user is an admin or they have permission granted in ``/config permissions`` they may also manage homebrew content.",
+                ],
+            )
+        ],
+    )
+
     Initiative = HelpTab(
         tab="initiative",
         name="Initiative",
@@ -161,7 +186,13 @@ class HelpTabList(object):
         info=[
             (
                 "Server Configuration",
-                ["The bot can only be configured in servers and will always use the default settings in private messages."],
+                [
+                    "The bot can only be configured in servers and will always use the default settings in private messages.",
+                    "",
+                    'Bot configuration happens through discord roles. A server admin can determine which roles are allowed to edit the bot\'s configuration using `/config permissions`. By default, all roles with the terms "game master" (or any variants thereof) will be allowed to configure the bot.',
+                    "",
+                    "Once the server admin is done allowing or disallowing specific roles, users with the allowed roles can then change the bot's behavior.",
+                ],
             )
         ],
     )
@@ -170,10 +201,12 @@ class HelpTabList(object):
     def tabs(self) -> list[HelpTab]:
         return [
             self.Overview,
+            self.ContextMenus,
             self.Roll,
             self.Utility,
             self.Character,
             self.DND,
+            self.Homebrew,
             self.Initiative,
             self.TokenGen,
             self.Config,

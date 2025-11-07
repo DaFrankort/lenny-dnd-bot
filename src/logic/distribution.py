@@ -1,3 +1,4 @@
+import dataclasses
 import io
 import math
 import d20
@@ -10,22 +11,14 @@ from logic.color import UserColor
 from logic.roll import Advantage
 
 
+@dataclasses.dataclass
 class DistributionResult(object):
     expression: str
     chart: discord.File
-    advantage: str
+    advantage: Advantage
     mean: float
     stdev: float
     min_to_beat: tuple[float, float] | None
-    error: str | None
-
-    def __init__(self):
-        self.expression = ""
-        self.chart = None
-        self.mean = 0
-        self.stdev = 0
-        self.min_to_beat = None
-        self.error = None
 
 
 def to_matplotlib_color(color: int) -> tuple[float, float, float]:
@@ -35,8 +28,8 @@ def to_matplotlib_color(color: int) -> tuple[float, float, float]:
 
 def _distribution_chart(
     distribution: DiceDistribution,
-    color: UserColor,
-    min_to_beat: int,
+    color: int,
+    min_to_beat: float,
 ) -> discord.File:
     keys = list(sorted(distribution.keys()))
     values = [100 * distribution.get(key) for key in keys]  # In percent
@@ -53,8 +46,9 @@ def _distribution_chart(
     plt.rcParams["figure.dpi"] = 600
     fig, ax = plt.subplots(subplot_kw=dict())
 
-    max_ticks = 20 / len(str(max(distribution.keys())))
-    steps = int(math.ceil(len(distribution.keys()) / max_ticks))
+    keys = list(distribution.keys())
+    max_ticks = 20 / len(str(max(keys)))
+    steps = int(math.ceil(len(keys) / max_ticks))
     ax.set_xticks(range(distribution.min(), distribution.max() + 1, steps))
     ax.yaxis.set_major_formatter("{x:.2f}%")  # Add percent on y-axis
 
@@ -77,37 +71,33 @@ def _distribution_chart(
 
 def distribution(
     expression: str,
-    advantage: str,
-    color: UserColor,
-    min_to_beat: int | None = None,
+    advantage: Advantage,
+    color: int,
+    min_to_beat: float | None = None,
 ):
-    result = DistributionResult()
-
     try:
         dist = d20distribution.parse(expression)
         expression = str(d20.parse(expr=expression))
 
-        if advantage == Advantage.Advantage.value:
+        if advantage == Advantage.Advantage:
             dist = dist.advantage()
-        elif advantage == Advantage.Disadvantage.value:
+        elif advantage == Advantage.Disadvantage:
             dist = dist.disadvantage()
 
-        result.expression = expression
-        result.advantage = advantage
-        result.chart = _distribution_chart(dist, color, min_to_beat or -1e6)
-        result.mean = dist.mean()
-        result.stdev = dist.stdev()
-
-        if min_to_beat is not None:
+        if min_to_beat is None:
+            min_to_beat = 0
+            min_to_beat_and_odds = None
+        else:
+            min_to_beat = float(min_to_beat or 0)
             odds = 0
             for key in dist.keys():
                 odds += dist.get(key) if key >= min_to_beat else 0
-            result.min_to_beat = (min_to_beat, odds)
-        else:
-            result.min_to_beat = None
+            min_to_beat_and_odds = (min_to_beat, odds)
 
-    except Exception as e:
-        result.expression = expression
-        result.error = str(e)
+        mean = dist.mean()
+        stdev = dist.stdev()
+        chart = _distribution_chart(dist, color, min_to_beat)
 
-    return result
+        return DistributionResult(expression, chart, advantage, mean, stdev, min_to_beat_and_odds)
+    except Exception as exception:
+        raise exception

@@ -8,6 +8,7 @@ from commands.color import ColorCommandGroup
 from commands.config import ConfigCommand
 from commands.distribution import DistributionCommand
 from commands.help import HelpCommand
+from commands.homebrew import HomebrewCommandGroup
 from commands.initiative import InitiativeCommand
 from commands.namegen import NameGenCommand
 from commands.plansession import PlanSessionCommand
@@ -26,6 +27,7 @@ from commands.tokengen import TokenGenCommandGroup
 from context_menus.delete import DeleteContextMenu
 from context_menus.timestamp import RequestTimestampContextMenu
 from context_menus.reroll import RerollContextMenu
+from context_menus.zip_files import ZipAttachmentsContextMenu
 from logic.initiative import InitiativeTracker
 from logic.profile import UserProfilesCache
 from logic.voice_chat import VC, Sounds
@@ -49,15 +51,20 @@ class Bot(discord.Client):
         )
 
         self.tree = app_commands.CommandTree(self)
-        self.token = os.getenv("DISCORD_BOT_TOKEN")
 
+        token = os.getenv("DISCORD_BOT_TOKEN")
+        if not token:
+            logging.warning("Could not get bot token, is the .env file correctly configured?")
+            token = ""
+
+        self.token = token
         guild_id = os.getenv("GUILD_ID")
         self.guild_id = int(guild_id) if guild_id is not None else None
         self.voice_enabled = voice
 
         self.initiatives = InitiativeTracker()
 
-    def _register_commands(self):
+    def register_commands(self):
         logging.info("Registering slash-commands")
 
         # Commands
@@ -78,12 +85,14 @@ class Bot(discord.Client):
         self.tree.add_command(ConfigCommand())
         self.tree.add_command(SearchCommandGroup())
         self.tree.add_command(TimestampCommandGroup())
+        self.tree.add_command(HomebrewCommandGroup())
         self.tree.add_command(ProfileCommandGroup())
 
         # Context menus
         self.tree.add_command(DeleteContextMenu())
         self.tree.add_command(RerollContextMenu())
         self.tree.add_command(RequestTimestampContextMenu())
+        self.tree.add_command(ZipAttachmentsContextMenu())
 
         logging.info("Registered slash-commands")
 
@@ -94,10 +103,13 @@ class Bot(discord.Client):
 
     async def on_ready(self):
         """Runs automatically when the bot is online"""
+        if self.user is None:
+            raise RuntimeError("The bot is not associated with a user client account!")
+
         logging.info("Initializing")
         logging.info(f"Logged in as {self.user} (ID: {self.user.id})")
 
-        self._register_commands()
+        self.register_commands()
         await self._attempt_sync_guild()
         await self.tree.sync()
         UserProfilesCache.load()

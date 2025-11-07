@@ -1,71 +1,98 @@
 import io
+from typing import TypeVar
 import discord
 from matplotlib import pyplot as plt
 import numpy as np
 
+T = TypeVar("T")
+
+
+def _shift_list(list: list[T]) -> list[T]:
+    return list[-1:] + list[:-1]
+
+
+def _repeat_first(list: list[T]) -> list[T]:
+    return list + list[:1]
+
+
+class RadarChart:
+    values: list[int]
+    labels: list[str] | None
+    boosts: list[int] | None
+    color: int
+
+    def __init__(self, values: list[int], labels: list[str] | None, boosts: list[int] | None, color: int):
+        self.values = values
+        self.labels = labels
+        self.boosts = boosts
+        self.color = color
+
+    def __len__(self) -> int:
+        return len(self.values)
+
+    def total_value(self, index: int) -> int:
+        if self.boosts is not None:
+            return self.boosts[index]
+        return self.values[index]
+
+    def label(self, index: int) -> str:
+        if self.labels is None:
+            return str(self.total_value(index))
+        else:
+            return f"{self.labels[index]}\n{self.total_value(index)}"
+
+    def build(self) -> io.BytesIO:
+        values = _shift_list(self.values)
+        labels = _shift_list([self.label(i) for i in range(len(self))])
+        boosts = _shift_list([self.total_value(i) for i in range(len(self))]) if self.boosts is not None else None
+        angles = np.linspace(0, 2 * np.pi, len(self), endpoint=False).tolist()
+
+        values = _repeat_first(values)  # Repeat to close polygon
+        angles = _repeat_first(angles)
+
+        y_limit = max(18, max(values))
+        if boosts is not None:
+            y_limit = max(y_limit, max(boosts))
+            boosts = _repeat_first(boosts)
+
+        fig, ax = plt.subplots(subplot_kw=dict(polar=True))
+        ax.set_theta_offset(np.pi)  # Start on the left        # type: ignore
+        ax.set_theta_direction(-1)  # Shift one to the right   # type: ignore
+        ax.set_ylim(0, y_limit)
+        ax.set_xticks(angles[:-1])
+        ax.set_xticklabels(labels)
+        ax.set_yticklabels([])  # Remove labels on the chart
+        ax.grid(color="white", alpha=0.3, linewidth=1)
+        ax.tick_params(colors="white")
+        ax.spines["polar"].set_color("white")
+
+        # Draw underlying boost lines
+        if boosts is not None:
+            boosted_rgb = (1.0, 1.0, 1.0)
+            ax.plot(angles, boosts, color=boosted_rgb, linewidth=1, linestyle="--")
+            ax.fill(angles, boosts, color=boosted_rgb, alpha=0.1)
+
+        # Draw the overlapping lines
+        r, g, b = discord.Color(self.color).to_rgb()
+        color = (r / 255.0, g / 255.0, b / 255.0)
+        ax.plot(angles, values, color=color, linewidth=2)
+        ax.fill(angles, values, color=color, alpha=0.4)
+
+        # Save to memory
+        buf = io.BytesIO()
+        plt.savefig(buf, format="png", bbox_inches="tight", transparent=True)
+        buf.seek(0)
+        plt.close(fig)
+
+        return buf
+
 
 def get_radar_chart(
-    results: list[int] | list[tuple[int, str]],
-    boosted_results: list[int] | list[tuple[int, str]] = None,
-    offset: int = 1,
+    values: list[int],
+    labels: list[str] | None = None,
+    boosts: list[int] | None = None,
     color: int = discord.Color.dark_green().value,
 ) -> discord.File:
-    # Shift results, to show them in a different spot.
-    results = results[-offset:] + results[:-offset]
-    if boosted_results:
-        boosted_results = boosted_results[-offset:] + boosted_results[:-offset]
-
-    if isinstance(results[0], tuple):
-        values = [v for v, _ in results]
-        labels = [f"{v}\n{label}" for v, label in results]
-        if boosted_results:
-            boosted_values = [v for v, _ in boosted_results]
-            labels = [f"{v}\n{label}" for v, label in boosted_results]
-    else:
-        values = results
-        labels = [str(v) for v in results]
-        if boosted_results:
-            boosted_values = boosted_results
-
-    N = len(values)
-    # repeat first to close polygon
-    values = values + values[:1]
-    if boosted_results:
-        boosted_values = boosted_values + boosted_values[:1]
-
-    angles = np.linspace(0, 2 * np.pi, N, endpoint=False).tolist()
-    angles += angles[:1]
-
-    # Create radar chart
-    fig, ax = plt.subplots(subplot_kw=dict(polar=True))
-    ax.set_theta_offset(np.pi)  # Start on the left
-    ax.set_theta_direction(-1)  # Shift one to the right
-
-    ax.set_xticks(angles[:-1])
-    ax.set_xticklabels(labels)
-    ax.set_ylim(0, max(18, max(values)))
-    if boosted_results:
-        ax.set_ylim(0, max(18, max(boosted_values)))
-    ax.set_yticklabels([])  # Remove numbers on radial rings
-
-    if boosted_results:
-        boosted_rgb = (1.0, 1.0, 1.0)
-        ax.plot(angles, boosted_values, color=boosted_rgb, linewidth=1, linestyle="--")
-        ax.fill(angles, boosted_values, color=boosted_rgb, alpha=0.1)
-
-    r, g, b = discord.Color(color).to_rgb()
-    color = (r / 255.0, g / 255.0, b / 255.0)
-    ax.plot(angles, values, color=color, linewidth=2)
-    ax.fill(angles, values, color=color, alpha=0.4)
-
-    ax.spines["polar"].set_color("white")
-    ax.tick_params(colors="white")
-    ax.grid(color="white", alpha=0.3, linewidth=1)
-
-    # Save to memory
-    buf = io.BytesIO()
-    plt.savefig(buf, format="png", bbox_inches="tight", transparent=True)
-    buf.seek(0)
-    plt.close(fig)
-
-    return discord.File(fp=buf, filename="stats.png")
+    chart = RadarChart(values, labels, boosts, color)
+    bytes = chart.build()
+    return discord.File(fp=bytes, filename="stats.png")

@@ -2,10 +2,11 @@ import discord
 
 from embeds.stats import StatsEmbed
 from logic.charts import get_radar_chart
-from logic.app_commands import SimpleCommand, SimpleCommandGroup
+from command import SimpleCommand, SimpleCommandGroup
 from embed import UserActionEmbed
 from logic.stats import Stats
 from logic.color import UserColor
+from discord.app_commands import describe
 
 
 class StatsCommandGroup(SimpleCommandGroup):
@@ -38,7 +39,15 @@ class StatsVisualizeCommand(SimpleCommand):
     desc = "Visualize your stats onto a radar graph!"
     help = "Visualizes your character's stats inside of a radar graph."
 
-    async def callback(
+    @describe(
+        str="A value from 0-48 representing your Strength score.",
+        dex="A value from 0-48 representing your Dexterity score.",
+        con="A value from 0-48 representing your Constitution score.",
+        int="A value from 0-48 representing your Intelligence score.",
+        wis="A value from 0-48 representing your Wisdom score.",
+        cha="A value from 0-48 representing your Charisma score.",
+    )
+    async def callback(  # pyright:ignore
         self,
         itr: discord.Interaction,
         str: discord.app_commands.Range[int, 0, 48],
@@ -55,16 +64,8 @@ class StatsVisualizeCommand(SimpleCommand):
             description="",
         )
         color = UserColor.get(itr)
-        chart = get_radar_chart(
-            results=[
-                (str, "STR"),
-                (dex, "DEX"),
-                (con, "CON"),
-                (int, "INT"),
-                (wis, "WIS"),
-                (cha, "CHA"),
-            ],
-            color=color,
-        )
+        values = [str, dex, con, int, wis, cha]
+        labels = ["STR", "DEX", "CON", "INT", "WIS", "CHA"]
+        chart = get_radar_chart(values=values, labels=labels, color=color)
         embed.set_image(url=f"attachment://{chart.filename}")
         await itr.response.send_message(embed=embed, file=chart)

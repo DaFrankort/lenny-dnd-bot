@@ -1,7 +1,7 @@
-from logic.dnd.abstract import DNDObject, DNDObjectList, Description
+from logic.dnd.abstract import DNDEntry, DNDEntryList, Description
 
 
-class Spell(DNDObject):
+class Spell(DNDEntry):
     """A class representing a Dungeons & Dragons spell."""
 
     level: str
@@ -13,8 +13,8 @@ class Spell(DNDObject):
     description: list[Description]
     classes: list
 
-    def __init__(self, json: any):
-        self.object_type = "spell"
+    def __init__(self, json: dict):
+        self.entry_type = "spell"
         self.emoji = "🔥"
 
         self.name = json["name"]
@@ -51,7 +51,7 @@ class Spell(DNDObject):
         return f"{self.level} {self.school}"
 
 
-class SpellList(DNDObjectList):
+class SpellList(DNDEntryList[Spell]):
     path = "./submodules/lenny-dnd-data/generated/spells.json"
 
     def __init__(self):

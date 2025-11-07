@@ -1,7 +1,9 @@
+import dataclasses
 import random
+from typing import TypeVar
 
 import discord
-from logic.dnd.abstract import DNDObject
+from logic.dnd.abstract import DNDEntry
 from logic.dnd.background import Background
 from logic.dnd.class_ import Class
 from logic.dnd.data import Data
@@ -11,16 +13,17 @@ from logic.dnd.table import DNDTable
 from logic.stats import Stats
 
 
-def species_choices(xphb_only: bool = True) -> list[discord.app_commands.Choice]:
+def species_choices(xphb_only: bool = True) -> list[discord.app_commands.Choice[str]]:
     species = [e.name for e in Data.species.entries if (e.source == "XPHB" or not xphb_only) and "(" not in e.name]
     return [discord.app_commands.Choice(name=spec, value=spec) for spec in species[:25]]
 
 
-def class_choices(xphb_only: bool = True) -> list[discord.app_commands.Choice]:
+def class_choices(xphb_only: bool = True) -> list[discord.app_commands.Choice[str]]:
     classes = [e.name for e in Data.classes.entries if (e.source == "XPHB" or not xphb_only)]
     return [discord.app_commands.Choice(name=char_cls, value=char_cls) for char_cls in classes[:25]]
 
 
+@dataclasses.dataclass
 class CharacterGenResult(object):
     name: str
     gender: Gender
@@ -31,33 +34,20 @@ class CharacterGenResult(object):
     stats: list[tuple[int, str]]
     boosted_stats: list[tuple[int, str]]
 
-    def __init__(self):
-        self.name = ""
-        self.gender = None
-        self.species = None
-        self.char_class = None
-        self.background = None
-        self.backstory = ""
-        self.stats = None
-        self.boosted_stats = None
+
+TDND = TypeVar("TDND", bound=DNDEntry)
 
 
-def _get_random_xphb_object(entries: list[DNDObject]) -> DNDObject:
+def _get_random_xphb_entry(entries: list[TDND]) -> TDND:
     xphb_entries = [e for e in entries if e.source == "XPHB" and "(" not in e.name]
     return random.choice(xphb_entries)
 
 
-def _get_dnd_table(table_name: str, source: str = "XPHB", raise_errors: bool = True) -> DNDTable:
-    table: DNDTable = None
-    for t in Data.tables.get(query=table_name, allowed_sources=set([source])):
-        if t.name == table_name:
-            table = t
-            break
-    if table is None:
-        if raise_errors:
-            raise f"CharacterGen - Table '{table_name}' no longer exists in 5e.tools, charactergen will not work without it."
-        return None
-    return table
+def _get_dnd_table(table_name: str, source: str = "XPHB") -> DNDTable | None:
+    for table in Data.tables.get(query=table_name, allowed_sources=set([source])):
+        if table.name == table_name:
+            return table
+    return None
 
 
 def _get_optimal_background(char_class: Class) -> Background:
@@ -71,13 +61,21 @@ def _get_optimal_background(char_class: Class) -> Background:
 
     table_name = "Choose a Background; Ability Scores and Backgrounds"
     background_table = _get_dnd_table(table_name)
-    recommended_backgrounds: set[str] = set()
-    for row in background_table.table["value"]["rows"]:
-        if row[0].lower() in char_class.primary_ability.lower():
-            recommended_backgrounds.update(r.strip().lower() for r in row[1].split(","))
+    if background_table is None:
+        raise LookupError("Background table is required for CharacterGen, but it could not be found!")
 
-    backgrounds = [entry for entry in Data.backgrounds.entries if entry.name.lower() in recommended_backgrounds]
-    background: Background = _get_random_xphb_object(backgrounds)
+    # If the primary ability of the class cannot be determined, choose randomly
+    if char_class.primary_ability is None:
+        backgrounds = Data.backgrounds.entries
+    else:
+        recommended: set[str] = set()
+        for ability, backgrounds in background_table.table["value"]["rows"]:
+            backgrounds = backgrounds.split(",")
+            if ability.lower() in char_class.primary_ability.lower():
+                recommended.update(bg.strip().lower() for bg in backgrounds)
+        backgrounds = [entry for entry in Data.backgrounds.entries if entry.name.lower() in recommended]
+
+    background: Background = _get_random_xphb_entry(backgrounds)
     return background
 
 
@@ -90,6 +88,9 @@ def _get_optimal_stats(char_class: Class) -> list[tuple[int, str]]:
 
     table_name = "Assign Ability Scores; Standard Array by Class"
     ability_table = _get_dnd_table(table_name)
+    if ability_table is None:
+        raise LookupError("Ability table is required for CharacterGen, but it could not be found!")
+
     headers = ability_table.table["value"]["headers"][1:]  # skip "Class"
     optimal_stats = None
     for row in ability_table.table["value"]["rows"]:
@@ -98,8 +99,9 @@ def _get_optimal_stats(char_class: Class) -> list[tuple[int, str]]:
             optimal_stats = [(int(val), stat) for stat, val in zip(headers, values)]
             optimal_stats.sort(key=lambda x: x[0], reverse=True)
             break
+
     if optimal_stats is None:
-        raise f"CharacterGen - Class '{char_class.name}' does not exist in Standard Array table!"
+        raise LookupError(f"Class '{char_class.name}' does not exist in CharacterGen Standard Array table!")
 
     stats = Stats()
     rolled_stats = [val for _, val in stats.stats]
@@ -122,7 +124,7 @@ def _apply_background_boosts(stats: list[tuple[int, str]], background: Backgroun
     elif abilities[0][0] % 2 == 0:  # Highest value is round number
         up_each_by_one = False
 
-    if not up_each_by_one:
+    if not up_each_by_one and char_class.primary_ability is not None:
         class_abilities = char_class.primary_ability.replace(" or ", " ")
         class_abilities = class_abilities.replace(" and ", " ")
         class_abilities = class_abilities.split()
@@ -148,13 +150,17 @@ def _apply_background_boosts(stats: list[tuple[int, str]], background: Backgroun
     return new_stats
 
 
-def _get_backstory(table_name: str, object: DNDObject) -> str:
+def _get_backstory(table_name: str, object: DNDEntry) -> str:
     table_name = f"{table_name} [{object.name}]"
-    table = _get_dnd_table(table_name, "XGE", False)
+    table = _get_dnd_table(table_name, "XGE")
     if table is None:
         return ""
 
-    reason = table.roll()[0][1]
+    roll = table.roll()
+    if roll is None:
+        return ""
+
+    reason = roll[0][1]
     if not reason.startswith("I "):
         reason = reason[0].lower() + reason[1:]
 
@@ -163,17 +169,19 @@ def _get_backstory(table_name: str, object: DNDObject) -> str:
 
 
 def generate_dnd_character(gender_str: str | None, species_str: str | None, char_class_str: str | None) -> CharacterGenResult:
-    result = CharacterGenResult()
     gender = Gender.OTHER if gender_str is None else Gender(gender_str)
 
     if species_str is None:
-        species: Species = _get_random_xphb_object(Data.species.entries)
+        species: Species = _get_random_xphb_entry(Data.species.entries)
     else:
         species: Species = Data.species.get(query=species_str, allowed_sources=set(["XPHB"]))[0]
     name, _, gender = Data.names.get_random(species.name, gender)
 
+    if name is None or gender is None:
+        raise LookupError("Could not determine name and gender for generated character.")
+
     if char_class_str is None:
-        char_class: Class = _get_random_xphb_object(Data.classes.entries)
+        char_class: Class = _get_random_xphb_entry(Data.classes.entries)
     else:
         char_class: Class = Data.classes.get(query=char_class_str, allowed_sources=set(["XPHB"]))[0]
     background = _get_optimal_background(char_class)
@@ -185,12 +193,4 @@ def generate_dnd_character(gender_str: str | None, species_str: str | None, char
     stats = _get_optimal_stats(char_class)
     boosted_stats = _apply_background_boosts(stats=stats, background=background, char_class=char_class)
 
-    result.name = name
-    result.gender = gender
-    result.species = species
-    result.char_class = char_class
-    result.background = background
-    result.backstory = backstory
-    result.stats = stats
-    result.boosted_stats = boosted_stats
-    return result
+    return CharacterGenResult(name, gender, species, char_class, background, backstory, stats, boosted_stats)

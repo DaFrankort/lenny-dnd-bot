@@ -1,11 +1,11 @@
-from logic.dnd.abstract import DNDObject, DNDObjectList, Description
+from logic.dnd.abstract import DNDEntry, DNDEntryList, Description
 
 
-class Rule(DNDObject):
+class Rule(DNDEntry):
     description: list[Description]
 
-    def __init__(self, json: any):
-        self.object_type = "rule"
+    def __init__(self, json: dict):
+        self.entry_type = "rule"
         self.emoji = "📜"
 
         self.name = json["name"]
@@ -16,7 +16,7 @@ class Rule(DNDObject):
         self.description = json["description"]
 
 
-class RuleList(DNDObjectList):
+class RuleList(DNDEntryList[Rule]):
     path = "./submodules/lenny-dnd-data/generated/rules.json"
 
     def __init__(self):

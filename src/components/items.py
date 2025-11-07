@@ -6,7 +6,7 @@ from methods import when
 class TitleTextDisplay(ui.TextDisplay):
     """A TextDisplay which is formatted as a title, with optional source and URL."""
 
-    def __init__(self, name: str, source: str = None, url: str = None, id=None):
+    def __init__(self, name: str, source: str | None = None, url: str | None = None, id: int | None = None):
         title = when(source, f"{name} ({source})", name)
         title = when(url, f"[{title}]({url})", title)
         title = f"### {title}"

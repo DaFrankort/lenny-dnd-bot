@@ -1,4 +1,5 @@
 import logging
+from typing import Sequence
 import discord
 from discord import ui
 from components.items import SimpleSeparator, TitleTextDisplay
@@ -9,13 +10,16 @@ from embeds.dnd.class_ import ClassEmbed
 from embeds.dnd.condition import ConditionEmbed
 from embeds.dnd.creature import CreatureEmbed
 from embeds.dnd.feat import FeatEmbed
+from embeds.dnd.hazard import HazardEmbed
 from embeds.dnd.item import ItemEmbed
 from embeds.dnd.language import LanguageEmbed
+from embeds.dnd.object import DNDObjectEmbed
 from embeds.dnd.rule import RuleEmbed
 from embeds.dnd.species import SpeciesEmbed
 from embeds.dnd.spell import SpellEmbed
 from embeds.dnd.table import DNDTableContainerView
-from logic.dnd.abstract import DNDObject
+from embeds.dnd.vehicle import VehicleEmbed
+from logic.dnd.abstract import DNDEntry
 from logic.dnd.action import Action
 from logic.dnd.background import Background
 from logic.dnd.class_ import Class
@@ -23,49 +27,58 @@ from logic.dnd.condition import Condition
 from logic.dnd.creature import Creature
 from logic.dnd.data import DNDSearchResults
 from logic.dnd.feat import Feat
+from logic.dnd.hazard import Hazard
 from logic.dnd.item import Item
 from logic.dnd.language import Language
+from logic.dnd.object import DNDObject
 from logic.dnd.rule import Rule
 from logic.dnd.species import Species
 from logic.dnd.spell import Spell
 from logic.dnd.table import DNDTable
+from logic.dnd.vehicle import Vehicle
 
 
-def get_dnd_embed(itr: discord.Interaction, dnd_object: DNDObject):
-    match dnd_object:
+def get_dnd_embed(itr: discord.Interaction, dnd_entry: DNDEntry):
+    match dnd_entry:
         case Spell():
-            return SpellEmbed(itr, dnd_object)
+            return SpellEmbed(itr, dnd_entry)
         case Item():
-            return ItemEmbed(dnd_object)
+            return ItemEmbed(dnd_entry)
         case Condition():
-            return ConditionEmbed(dnd_object)
+            return ConditionEmbed(dnd_entry)
         case Creature():
-            return CreatureEmbed(dnd_object)
+            return CreatureEmbed(dnd_entry)
         case Class():
-            return ClassEmbed(dnd_object)
+            return ClassEmbed(dnd_entry)
         case Rule():
-            return RuleEmbed(dnd_object)
+            return RuleEmbed(dnd_entry)
         case Action():
-            return ActionEmbed(dnd_object)
+            return ActionEmbed(dnd_entry)
         case Feat():
-            return FeatEmbed(dnd_object)
+            return FeatEmbed(dnd_entry)
         case Language():
-            return LanguageEmbed(dnd_object)
+            return LanguageEmbed(dnd_entry)
         case Background():
-            return BackgroundEmbed(dnd_object)
+            return BackgroundEmbed(dnd_entry)
         case DNDTable():
-            return DNDTableContainerView(dnd_object)
+            return DNDTableContainerView(dnd_entry)
         case Species():
-            return SpeciesEmbed(dnd_object)
-    logging.error(f"Could not find embed for class {dnd_object.__class__.__name__}")
+            return SpeciesEmbed(dnd_entry)
+        case Vehicle():
+            return VehicleEmbed(dnd_entry)
+        case DNDObject():
+            return DNDObjectEmbed(dnd_entry)
+        case Hazard():
+            return HazardEmbed(dnd_entry)
+    logging.error(f"Could not find embed for class {dnd_entry.__class__.__name__}")
     return None
 
 
-async def send_dnd_embed(itr: discord.Interaction, dnd_object: DNDObject):
+async def send_dnd_embed(itr: discord.Interaction, dnd_entry: DNDEntry):
     await itr.response.defer(thinking=False)
-    embed = get_dnd_embed(itr, dnd_object)
+    embed = get_dnd_embed(itr, dnd_entry)
     if embed is None:
-        await itr.followup.send(f"Could not create an embed for {dnd_object.name}...")
+        await itr.followup.send(f"Could not create an embed for {dnd_entry.name}...")
         return
 
     file = embed.file or discord.interactions.MISSING
@@ -79,17 +92,17 @@ async def send_dnd_embed(itr: discord.Interaction, dnd_object: DNDObject):
 
 
 class SearchSelectButton(ui.Button):
-    object: DNDObject
+    entry: DNDEntry
 
-    def __init__(self, object: DNDObject):
-        self.object = object
-        label = f"{object.name} ({object.source})"
+    def __init__(self, entry: DNDEntry):
+        self.entry = entry
+        label = f"{entry.name} ({entry.source})"
         if len(label) > 80:
             label = label[:77] + "..."
-        super().__init__(label=label, emoji=object.emoji, style=discord.ButtonStyle.gray)
+        super().__init__(label=label, emoji=entry.emoji, style=discord.ButtonStyle.gray)
 
-    async def callback(self, itr: discord.Interaction):
-        await send_dnd_embed(itr, self.object)
+    async def callback(self, interaction: discord.Interaction):
+        await send_dnd_embed(interaction, self.entry)
 
 
 class SearchLayoutView(PaginatedLayoutView):
@@ -137,3 +150,50 @@ class SearchLayoutView(PaginatedLayoutView):
         container.add_item(self.navigation_footer())
 
         self.add_item(container)
+
+
+class MultiDNDSelect(discord.ui.Select):
+    name: str
+    query: str
+    entries: Sequence[DNDEntry]
+
+    def __init__(self, query: str, entries: Sequence[DNDEntry]):
+        self.name = entries[0].__class__.__name__.upper() if entries else "UNKNOWN"
+        self.query = query
+        self.entries = entries
+
+        options = []
+        for entry in entries:
+            options.append(self.select_option(entry))
+
+        super().__init__(
+            placeholder=f"Results for '{query}'",
+            options=options,
+            min_values=1,
+            max_values=1,
+        )
+
+        logging.debug(f"{self.name}: found {len(entries)} entries for '{query}'")
+
+    def select_option(self, entry: DNDEntry) -> discord.SelectOption:
+        index = self.entries.index(entry)
+        return discord.SelectOption(
+            label=f"{entry.name} ({entry.source})",
+            description=entry.select_description,
+            value=str(index),
+        )
+
+    async def callback(self, interaction: discord.Interaction):
+        index = int(self.values[0])
+        entry = self.entries[index]
+
+        logging.debug(f"{self.name}: user {interaction.user.display_name} selected option {index}: '{entry.name}`")
+        await send_dnd_embed(interaction, entry)
+
+
+class MultiDNDSelectView(discord.ui.View):
+    """A class representing a Discord view for multiple DNDObject selection."""
+
+    def __init__(self, query: str, entries: Sequence[DNDEntry]):
+        super().__init__()
+        self.add_item(MultiDNDSelect(query, entries))

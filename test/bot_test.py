@@ -1,74 +1,70 @@
 from itertools import product
-import discord
+from typing import Any
 import pytest
-import pytest_asyncio
-from unittest.mock import AsyncMock, MagicMock
 
 from bot import Bot
+from command import SimpleCommand, SimpleCommandGroup
 from logic.dnd.data import Data
 from logic.dnd.name import Gender
 from logic.roll import Advantage
 from logic.charactergen import class_choices, species_choices
-from utils.mocking import mock_image, mock_sound
-from utils.test_utils import enum_values, listify
+from utils.utils import listify
+from utils.mocking import MockImage, MockInteraction, MockSound
 from commands.tokengen import AlignH, AlignV
 
+# Required to mark the library as essential for testing in our workflows
+import pytest_asyncio  # noqa: F401 # type: ignore
 
-def get_cmd_from_group(group: discord.app_commands.Group, parts: list[str]) -> discord.app_commands.Command:
+
+def get_cmd_from_group(group: SimpleCommandGroup, parts: list[str]) -> SimpleCommand | None:
     """Recursively looks for a command within command-groups."""
+    if len(parts) == 0:
+        return None
+
     cmd = group.get_command(parts[0])
-    if isinstance(cmd, discord.app_commands.Group):
+    if not isinstance(cmd, (SimpleCommand, SimpleCommandGroup)):
+        raise ValueError("All commands in a SimpleCommandGroup should either be SimpleCommandGroups or SimpleCommands")
+    if isinstance(cmd, SimpleCommandGroup):
         return get_cmd_from_group(cmd, parts[1:])
     return cmd
 
 
-def get_cmd(
-    commands: dict[
-        str,
-        discord.app_commands.Command | discord.app_commands.ContextMenu | discord.app_commands.Group,
-    ],
-    name: str,
-):
-    if " " in name:
-        # Only groups can have spaces in the name
-        parts = [p.strip() for p in name.split(" ")]
-        root = commands.get(parts[0])
-        return get_cmd_from_group(root, parts[1:])
+def get_cmd(commands: dict[str, SimpleCommand | SimpleCommandGroup], name: str) -> SimpleCommand | None:
+    name = name.strip()
+    if not name:
+        return None
+
+    names = [n.strip() for n in name.split(" ")]
+    name = names[0]
+    rest = names[1:]
+
+    command = commands.get(name, None)
+    if isinstance(command, SimpleCommandGroup):
+        return get_cmd_from_group(command, rest)
     else:
-        return commands.get(name)
+        return command
 
 
 class TestBotCommands:
     @pytest.fixture()
     def bot(self):
-        bot = Bot(voice=False)
-        bot._register_commands()
+        try:
+            bot = Bot(voice=False)
+            bot.register_commands()
+        except Exception:
+            pytest.fail("Bot could not be launched!")
         return bot
 
     @pytest.fixture()
-    def commands(self, bot):
-        return {cmd.name: cmd for cmd in bot.tree.get_commands()}
+    def commands(self, bot: Bot) -> dict[str, SimpleCommand | SimpleCommandGroup]:
+        return {cmd.name: cmd for cmd in bot.tree.get_commands() if isinstance(cmd, (SimpleCommand, SimpleCommandGroup))}
 
-    @pytest_asyncio.fixture(autouse=True)
-    def setup(self):
-        self.mock_interaction = MagicMock(spec=discord.Interaction)
-        self.mock_interaction.user = MagicMock(spec=discord.User)
-        self.mock_interaction.user.id = 123456789  # Static user-id for commands that write user-data to files.
-        self.mock_interaction.user.display_name = "TestUser"
-        self.mock_interaction.guild = MagicMock(spec=discord.Guild)
-        self.mock_interaction.guild.id = 1234
-        self.mock_interaction.channel = MagicMock(spec=discord.TextChannel)
-        self.mock_interaction.response = MagicMock()
-        self.mock_interaction.response.send_message = AsyncMock()
-        self.mock_interaction.response.defer = AsyncMock()
-        self.mock_interaction.followup = AsyncMock()
-
-    def expand_arg_variants(self, arg: dict[str, any]) -> list[dict[str, any]]:
+    def expand_arg_variants(self, arg: dict[str, Any]) -> list[dict[str, Any]]:
         """
         Iterates over the arguments and produces combinations when an argument is a list.
         """
         keys = list(arg.keys())
-        values = [v if isinstance(v, list) else [v] for v in (arg[k] for k in keys)]
+        values: list[list[Any]] = [v if isinstance(v, list) else [v] for v in (arg[k] for k in keys)]
         combinations = product(*values)
         return [dict(zip(keys, combo)) for combo in combinations]
 
@@ -113,6 +109,9 @@ class TestBotCommands:
             ("search background", {"name": ["Soldier", "abcdef"]}),
             ("search table", {"name": ["Wild Magic", "abcdef"]}),
             ("search species", {"name": ["Human", "abcdef"]}),
+            ("search vehicle", {"name": ["Galley", "abcdef"]}),
+            ("search object", {"name": ["Ballista", "abcdef"]}),
+            ("search hazard", {"name": ["Spiked Pit", "abcdef"]}),
             (
                 "search all",
                 [
@@ -129,7 +128,7 @@ class TestBotCommands:
                 "namegen",
                 {
                     "species": [None, "foobar"].extend([spec.title() for spec in Data.names.get_species()]),
-                    "gender": enum_values(Gender),
+                    "gender": Gender.values(),
                 },
             ),
             (
@@ -150,33 +149,21 @@ class TestBotCommands:
             (
                 "tokengen file",
                 [
-                    {"image": mock_image()},
-                    {"image": mock_image(), "frame_hue": [-180, 0, 180]},
-                    {
-                        "image": mock_image(),
-                        "h_alignment": enum_values(AlignH),
-                    },
-                    {
-                        "image": mock_image(),
-                        "v_alignment": enum_values(AlignV),
-                    },
-                    {"image": mock_image(), "variants": [0, 3, 10]},
+                    {"image": MockImage()},
+                    {"image": MockImage(), "frame_hue": [-180, 0, 180]},
+                    {"image": MockImage(), "h_alignment": AlignH.values()},
+                    {"image": MockImage(), "v_alignment": AlignV.values()},
+                    {"image": MockImage(), "variants": [0, 3, 10]},
                 ],
             ),
             (
                 "tokengen url",
                 [
-                    {"url": mock_image().url},
-                    {"url": mock_image().url, "frame_hue": [-180, 0, 180]},
-                    {
-                        "url": mock_image().url,
-                        "h_alignment": enum_values(AlignH),
-                    },
-                    {
-                        "url": mock_image().url,
-                        "v_alignment": enum_values(AlignV),
-                    },
-                    {"url": mock_image().url, "variants": [0, 3, 10]},
+                    {"url": MockImage().url},
+                    {"url": MockImage().url, "frame_hue": [-180, 0, 180]},
+                    {"url": MockImage().url, "h_alignment": AlignH.values()},
+                    {"url": MockImage().url, "v_alignment": AlignV.values()},
+                    {"url": MockImage().url, "variants": [0, 3, 10]},
                 ],
             ),
             ("initiative", {}),
@@ -212,20 +199,13 @@ class TestBotCommands:
                     },
                 ],
             ),
-            (
-                "distribution",
-                {
-                    "expression": ["1d20", "1d8ro1"],
-                    "advantage": enum_values(Advantage),
-                    "min_to_beat": [None, "5"],
-                },
-            ),
+            ("distribution", {"expression": ["1d20", "1d8ro1"], "advantage": Advantage.values(), "min_to_beat": [None, "5"]}),
             (
                 "charactergen",
                 {
-                    "gender": [None].extend(enum_values(Gender)),
-                    "species": [None].extend([c.value for c in species_choices()]),
-                    "char_class": [None].extend([c.value for c in class_choices()]),
+                    "gender": [None].extend(Gender.values()),
+                    "species": [None, *[c.value for c in species_choices()]],
+                    "char_class": [None, *[c.value for c in class_choices()]],
                 },
             ),
             (
@@ -258,15 +238,17 @@ class TestBotCommands:
                     "profile": "Deleted",
                 },
             ),
+            # Homebrew commands work through modals, and are thus not testable.
             # ("", {"": "", "": ""}),
         ],
     )
     async def test_slash_commands(
         self,
-        commands: list[discord.app_commands.Command],
+        commands: dict[str, SimpleCommand | SimpleCommandGroup],
         cmd_name: str,
-        arguments: dict | list[dict],
+        arguments: dict[str, Any] | list[dict[str, Any]],
     ):
+        itr = MockInteraction()
         cmd = get_cmd(commands, cmd_name)
         assert cmd is not None, f"{cmd_name} command not found"
 
@@ -276,7 +258,7 @@ class TestBotCommands:
             arg_variants = self.expand_arg_variants(arg_set)
             for args in arg_variants:
                 try:
-                    await cmd.callback(itr=self.mock_interaction, **args)
+                    await cmd.callback(itr=itr, **args)  # pyright: ignore[reportCallIssue]
                 except Exception as e:
                     pytest.fail(f"Error while running command /{cmd_name} with args {args}: {e}")
 
@@ -318,12 +300,12 @@ class TestBotCommands:
             ),
             (
                 "playsound",
-                {"sound": [mock_sound(), mock_image()]},
+                {"sound": [MockSound(), MockImage()]},
             ),
             (
                 "tokengen file",
                 [
-                    {"image": mock_sound()},
+                    {"image": MockSound()},
                 ],
             ),
             (
@@ -337,10 +319,11 @@ class TestBotCommands:
     )
     async def test_slash_commands_expecting_failure(
         self,
-        commands: list[discord.app_commands.Command],
+        commands: dict[str, SimpleCommand | SimpleCommandGroup],
         cmd_name: str,
-        arguments: dict | list[dict],
+        arguments: dict[str, Any] | list[dict[str, Any]],
     ):
+        itr = MockInteraction()
         # This is the same test as test_slash_commands, except
         # we expect errors to be thrown
         cmd = get_cmd(commands, cmd_name)
@@ -352,7 +335,7 @@ class TestBotCommands:
             arg_variants = self.expand_arg_variants(arg_set)
             for args in arg_variants:
                 with pytest.raises(Exception):
-                    await cmd.callback(itr=self.mock_interaction, **args)
+                    await cmd.callback(itr=itr, **args)  # pyright: ignore[reportCallIssue]
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
@@ -378,25 +361,24 @@ class TestBotCommands:
     )
     async def test_autocomplete_suggestions(
         self,
-        commands: list[discord.app_commands.Command],
+        commands: dict[str, SimpleCommand | SimpleCommandGroup],
         cmd_name: str,
         param_name: str,
         queries: str | list[str],
     ):
+        itr = MockInteraction()
         cmd = get_cmd(commands, cmd_name)
         assert cmd is not None, f"Command {cmd_name} not found"
 
-        param = cmd._params.get(param_name)
-        assert param is not None, f"Parameter '{param_name}' not found in command '{cmd_name}'"
+        param = cmd.params.get(param_name)
 
-        autocomplete_fn = param.autocomplete
-        assert autocomplete_fn is not None, f"No autocomplete function set for parameter '{param_name}' in {cmd_name}"
-        assert not isinstance(autocomplete_fn, bool), f"No autocomplete function set for parameter '{param_name}' in {cmd_name}"
+        assert param is not None, f"Parameter '{param_name}' not found in command '{cmd_name}'"
+        assert param.autocomplete is not None, f"No autocomplete function set for parameter '{param_name}' in {cmd_name}"
 
         queries = listify(queries)
 
         for current in queries:
             try:
-                await autocomplete_fn(cmd, self.mock_interaction, current)
+                await param.autocomplete(itr, current)
             except Exception as e:
                 pytest.fail(f"Error while autocompleting '{param_name}' for /{cmd_name} with query '{current}': {e}")

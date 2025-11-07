@@ -1,10 +1,11 @@
 import discord
 from embeds.timestamp import RelativeTimestampEmbed, TimestampDatesContainerView
-from logic.app_commands import SimpleCommand, SimpleCommandGroup
+from command import SimpleCommand, SimpleCommandGroup
 from logic.timestamp import (
     get_date_timestamp,
     get_relative_timestamp_from_now,
 )
+from discord.app_commands import describe, Range
 
 
 class TimestampCommandGroup(SimpleCommandGroup):
@@ -22,7 +23,7 @@ class TimestampRelativeCommand(SimpleCommand):
     desc = "Generate a 'in x'-style timestamp, relative from when you use this command."
     help = "Generates a relative timestamp like this example: <t:2102148000:R>"
 
-    @discord.app_commands.describe(
+    @describe(
         seconds="Seconds from now (0-60)",
         minutes="Minutes from now (0-60)",
         hours="Hours from now (0-24)",
@@ -32,11 +33,11 @@ class TimestampRelativeCommand(SimpleCommand):
     async def callback(
         self,
         itr: discord.Interaction,
-        seconds: discord.app_commands.Range[int, 0, 60] = 0,
-        minutes: discord.app_commands.Range[int, 0, 60] = 0,
-        hours: discord.app_commands.Range[int, 0, 24] = 0,
-        days: discord.app_commands.Range[int, 0, 7] = 0,
-        weeks: discord.app_commands.Range[int, 0, 999] = 0,
+        seconds: Range[int, 0, 60] = 0,
+        minutes: Range[int, 0, 60] = 0,
+        hours: Range[int, 0, 24] = 0,
+        days: Range[int, 0, 7] = 0,
+        weeks: Range[int, 0, 999] = 0,
     ):
         self.log(itr)
         result = get_relative_timestamp_from_now(seconds, minutes, hours, days, weeks)
@@ -49,17 +50,17 @@ class TimestampDateCommand(SimpleCommand):
     desc = "Generate a timestamp which is synced between timezones."
     help = "Will generate all variants of timestamps to copy paste in discord."
 
-    @discord.app_commands.describe(
+    @describe(
         time="Time in HHMM or HH format (e.g. 930, 15:45 or 20).",
         timezone="Timezone offset from UTC (between -14 and +14).",
         date="Optional date in DD/MM/YYYY or DD/MM format (defaults to today).",
     )
-    async def callback(
+    async def callback(  # pyright: ignore
         self,
         itr: discord.Interaction,
         time: str,
-        timezone: discord.app_commands.Range[int, -14, 14],
-        date: str = None,
+        timezone: Range[int, -14, 14],
+        date: str | None = None,
     ):
         self.log(itr)
         result = get_date_timestamp(time, timezone, date)

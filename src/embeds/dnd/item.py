@@ -1,9 +1,9 @@
 import discord
-from embeds.dnd.abstract import HORIZONTAL_LINE, DNDObjectEmbed
+from embeds.dnd.abstract import HORIZONTAL_LINE, DNDEntryEmbed
 from logic.dnd.item import Item
 
 
-class ItemEmbed(DNDObjectEmbed):
+class ItemEmbed(DNDEntryEmbed):
     def __init__(self, item: Item) -> None:
         super().__init__(item)
 

@@ -6,8 +6,7 @@ import aiohttp
 import discord
 import numpy as np
 from PIL import Image, ImageDraw
-from logic.app_commands import ChoicedEnum
-from methods import FontType, get_font
+from methods import ChoicedEnum, FontType, get_font
 
 TOKEN_FRAME = Image.open("./assets/images/token_border.png").convert("RGBA")
 TOKEN_BG = Image.open("./assets/images/token_bg.jpg").convert("RGBA")
@@ -15,13 +14,13 @@ TOKEN_NUMBER_LABEL = Image.open("./assets/images/token_number_label.png").conver
 TOKEN_NUMBER_OVERLAY = Image.open("./assets/images/token_number_overlay.png").convert("RGBA")
 
 
-class AlignH(ChoicedEnum):
+class AlignH(str, ChoicedEnum):
     LEFT = "left"
     CENTER = "center"
     RIGHT = "right"
 
 
-class AlignV(ChoicedEnum):
+class AlignV(str, ChoicedEnum):
     TOP = "top"
     CENTER = "center"
     BOTTOM = "bottom"
@@ -65,20 +64,20 @@ def _squarify_image(image: Image.Image, h_align: AlignH, v_align: AlignV) -> Ima
 
     size = min(image.size)
 
-    if h_align == AlignH.LEFT.value:
+    if h_align == AlignH.LEFT:
         left = 0
         right = size
-    elif h_align == AlignH.RIGHT.value:
+    elif h_align == AlignH.RIGHT:
         left = image.width - size
         right = image.width
     else:
         left = (image.width - size) // 2
         right = left + size
 
-    if v_align == AlignV.TOP.value:
+    if v_align == AlignV.TOP:
         top = 0
         bottom = size
-    elif v_align == AlignV.BOTTOM.value:
+    elif v_align == AlignV.BOTTOM:
         top = image.height - size
         bottom = image.height
     else:
@@ -113,7 +112,7 @@ def _crop_image(
     # Resize with inset to avoid sticking out of the frame
     inner_width = width_x - 2 * inset
     inner_height = width_y - 2 * inset
-    image = image.resize((inner_width, inner_height), Image.LANCZOS)
+    image = image.resize((inner_width, inner_height), Image.Resampling.LANCZOS)
 
     # Add white background, for cleaner png-tokens
     white_bg = Image.new("RGBA", image.size, (255, 255, 255, 255))
@@ -220,7 +219,7 @@ def add_number_to_tokenimage(token_image: Image.Image, number: int, amount: int)
     font_size = int(min(label_size) * 0.6) if number < 10 else int(min(label_size) * 0.5)
 
     label = TOKEN_NUMBER_LABEL.copy()
-    variant_hue = (number - 1) * (360 / amount)
+    variant_hue = int((number - 1) * (360 / amount))
     overlay = _shift_hue(TOKEN_NUMBER_OVERLAY.copy(), variant_hue)
     label.alpha_composite(overlay)
     label = label.rotate(
@@ -240,7 +239,7 @@ def add_number_to_tokenimage(token_image: Image.Image, number: int, amount: int)
     x = (label_size[0] - text_width) // 2
     y = (label_size[1] - text_height * 2) // 2
 
-    if number == 7 and "merienda" in font.font.family.lower():
+    if number == 7 and font.font.family and "merienda" in font.font.family.lower():
         y += (
             text_height // 6
         )  # Merienda's '7' is shifted upwards, thus requires compensation, dividing by 6 gave nicest results.
@@ -271,10 +270,12 @@ def add_number_to_tokenimage(token_image: Image.Image, number: int, amount: int)
 async def generate_token_from_file(
     image: discord.Attachment,
     frame_hue: int,
-    h_alignment: str,
-    v_alignment: str,
+    h_alignment: AlignH,
+    v_alignment: AlignV,
     variants: int,
 ) -> list[discord.File]:
+    if not image.content_type:
+        raise ValueError("Unknown attachment type!")
     if not image.content_type.startswith("image"):
         raise ValueError("Attachment must be an image.")
 
@@ -292,7 +293,7 @@ async def generate_token_from_file(
 
 
 async def generate_token_from_url(
-    url: str, frame_hue: int, h_alignment: str, v_alignment: str, variants: int
+    url: str, frame_hue: int, h_alignment: AlignH, v_alignment: AlignV, variants: int
 ) -> list[discord.File]:
     if not url.startswith("http"):
         raise ValueError(f"Not a valid URL: '{url}'")

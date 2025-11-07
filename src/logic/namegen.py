@@ -1,29 +1,20 @@
-from logic.color import UserColor
+import dataclasses
 from logic.dnd.data import Data
 from logic.dnd.name import Gender
 
 
+@dataclasses.dataclass
 class NameGenResult(object):
-    name: str | None
-    desc: str | None
-    color: int | None
-
-    def __init__(self):
-        self.name = None
-        self.desc = None
-        self.color = None
+    name: str
+    species: str
+    gender: str
 
 
-def generate_name(species: str | None, gender: str) -> NameGenResult:
-    result = NameGenResult()
-
+def generate_name(species: str | None, gender: Gender | str) -> NameGenResult:
     gender = Gender(gender)
     name, new_species, new_gender = Data.names.get_random(species, gender)
 
     if name and new_species and new_gender:
-        result.name = name
-        result.desc = f"*{new_gender.value} {new_species}*".title()
-        result.color = UserColor.generate(name)
-        return result
+        return NameGenResult(name, new_species, new_gender.value)
     else:
-        raise LookupError("Can't generate names at this time")
+        raise LookupError("Can't generate names at this time!")

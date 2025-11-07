@@ -1,10 +1,10 @@
 import discord
-from embeds.dnd.abstract import HORIZONTAL_LINE, DNDObjectEmbed
+from embeds.dnd.abstract import HORIZONTAL_LINE, DNDEntryEmbed
 from logic.config import Config
 from logic.dnd.spell import Spell
 
 
-class SpellEmbed(DNDObjectEmbed):
+class SpellEmbed(DNDEntryEmbed):
     """A class representing a Discord embed for a Dungeons & Dragons spell."""
 
     def __init__(self, itr: discord.Interaction, spell: Spell):

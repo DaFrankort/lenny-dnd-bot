@@ -12,15 +12,9 @@ class DistributionEmbed(discord.Embed):
         self.chart = result.chart or MISSING
         color = UserColor.get(itr)
 
-        if result.error is not None:
-            title = f"Error in '{result.expression}'!"
-            desc = f"⚠️ {result.error}"
-            super().__init__(color=color, title=title, description=desc)
-            return
-
-        if result.advantage == Advantage.Advantage.value:
+        if result.advantage == Advantage.Advantage:
             title_suffix = " with advantage"
-        elif result.advantage == Advantage.Disadvantage.value:
+        elif result.advantage == Advantage.Disadvantage:
             title_suffix = " with disadvantage"
         else:
             title_suffix = ""
@@ -39,6 +33,6 @@ class DistributionEmbed(discord.Embed):
             min_to_beat, odds = result.min_to_beat
             self.add_field(
                 name=f"Odds to beat {min_to_beat}",
-                value=f"{100*odds:.2f}%",
+                value=f"{100 * odds:.2f}%",
                 inline=True,
             )

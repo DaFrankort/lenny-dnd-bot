@@ -12,7 +12,7 @@ TIME_MULTIPLIERS = {
 }
 
 
-def _get_relative_timestamp(start: datetime, delay_seconds: int | float) -> str:
+def _get_relative_timestamp(start: datetime.datetime, delay_seconds: int | float) -> str:
     time = start.replace(second=0, microsecond=0)
     base_time = int(time.timestamp())
     unix_timestamp = base_time + int(delay_seconds)
@@ -74,7 +74,7 @@ def _parse_date_from_string(date: str) -> datetime.date:
     return base_date
 
 
-def get_date_timestamp(time: str, timezone: int, date: str) -> str:
+def get_date_timestamp(time: str, timezone: int, date: str | None) -> int:
     base_date = discord.utils.utcnow().date()
     if date:
         date = date.replace(".", "/").strip()

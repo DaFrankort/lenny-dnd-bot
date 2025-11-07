@@ -22,9 +22,9 @@ class DiceSpecial(str, Enum):
 
 class DiceStringifier(d20.Stringifier):
     def _stringify(self, node: d20.expression.Number | Any) -> str:
-        if not node.kept:
+        if not node.kept: # type: ignore
             return ""
-        return super()._stringify(node)
+        return super()._stringify(node) # type: ignore
 
     def _extract_values(self, values: Any) -> list[str]:
         results: list[str] = []
@@ -51,15 +51,15 @@ class DiceStringifier(d20.Stringifier):
         return f"({self._stringify(node.value)}){self._str_ops(node.operations)}"  # type: ignore
 
     def _str_set(self, node: d20.expression.Set):
-        values = self._extract_values(node.values)
+        values = self._extract_values(node.values) # type: ignore
         return "{" + ",".join(values) + "}"
 
     def _str_dice(self, node: d20.expression.Dice):
-        values = self._extract_values(node.values)
+        values = self._extract_values(node.values) # type: ignore
         return "[" + ",".join(values) + "]"
 
     def _str_die(self, node: d20.expression.Die):
-        values = self._extract_values(node.values)
+        values = self._extract_values(node.values) # type: ignore
         return ",".join(values)
 
 
@@ -127,7 +127,7 @@ def _is_natural_20(node: d20.Number) -> bool:
     if len(dice) != 1:
         return False
 
-    return _is_d20(dice[0]) and dice[0].total == 20
+    return _is_d20(dice[0]) and dice[0].total == 20 # type: ignore
 
 
 def _is_natural_1(node: d20.Number) -> bool:
@@ -137,7 +137,7 @@ def _is_natural_1(node: d20.Number) -> bool:
     dice = _extract_dice(node)
     if len(dice) != 1:
         return False
-    return _is_d20(dice[0]) and dice[0].total == 1
+    return _is_d20(dice[0]) and dice[0].total == 1 # type: ignore
 
 
 def _is_dirty_20(node: d20.Number) -> bool:
@@ -147,7 +147,7 @@ def _is_dirty_20(node: d20.Number) -> bool:
     dice = _extract_dice(node)
     if len(dice) != 1:
         return False
-    return _is_d20(dice[0]) and node.total == 20
+    return _is_d20(dice[0]) and node.total == 20 # type: ignore
 
 
 @dataclasses.dataclass

@@ -2,9 +2,14 @@ import abc
 import json
 import logging
 import os
-from typing import Generic, Literal, TypeVar, TypedDict, Union
+from typing import Any, Generic, Iterable, Literal, TypeVar, TypedDict, Union
 import discord
 from rapidfuzz import fuzz
+import io
+import rich
+import rich.box
+from rich.table import Table
+from rich.console import Console
 
 
 class DescriptionRowRange(TypedDict):
@@ -15,7 +20,7 @@ class DescriptionRowRange(TypedDict):
 
 class DescriptionTable(TypedDict):
     headers: list[str]
-    rows: list[list[str] | DescriptionRowRange]
+    rows: list[Iterable[str] | DescriptionRowRange]
 
 
 class Description(TypedDict):
@@ -47,7 +52,7 @@ class DNDEntryList(abc.ABC, Generic[TDND]):
         self.entries = []
 
     @staticmethod
-    def read_dnd_data_contents(path: str) -> list[dict]:
+    def read_dnd_data_contents(path: str) -> list[dict[str, Any]]:
         if not os.path.exists(path):
             logging.warning(f"D&D data file not found: '{path}'")
             return []
@@ -59,8 +64,8 @@ class DNDEntryList(abc.ABC, Generic[TDND]):
 
     def get(self, query: str, allowed_sources: set[str], fuzzy_threshold: float = 75) -> list[TDND]:
         query = query.strip().lower()
-        exact = []
-        fuzzy = []
+        exact: list[TDND] = []
+        fuzzy: list[TDND] = []
 
         for entry in self.entries:
             if entry.source not in allowed_sources:
@@ -87,8 +92,8 @@ class DNDEntryList(abc.ABC, Generic[TDND]):
         if query == "":
             return []
 
-        choices = []
-        seen_names = set()  # Required to avoid duplicate suggestions
+        choices: list[tuple[bool, float, discord.app_commands.Choice[str]]] = []
+        seen_names: set[str] = set()  # Required to avoid duplicate suggestions
         for e in self.entries:
             if e.source not in allowed_sources:
                 continue
@@ -125,3 +130,50 @@ class DNDEntryList(abc.ABC, Generic[TDND]):
 
         found = sorted(found, key=lambda e: (e.name, e.source))
         return found
+
+
+def build_table(value: str | DescriptionTable, width: int | None = 56, show_lines: bool = False) -> str:
+    if isinstance(value, str):
+        return value
+
+    def format_cell_value(value: int | str | dict[str, Any]) -> str:
+        if isinstance(value, int):
+            return str(value)
+        elif isinstance(value, str):
+            return value
+        elif value["type"] == "range":
+            if value["min"] == value["max"]:
+                return str(value["min"])
+            else:
+                return f"{value['min']}-{value['max']}"
+        raise Exception("Unsupported cell type")
+
+    headers = value["headers"]
+    rows = value["rows"]
+
+    box_style = rich.box.SQUARE_DOUBLE_HEAD if show_lines else rich.box.ROUNDED
+    table = Table(box=box_style, show_lines=show_lines)
+
+    for header in headers:
+        table.add_column(header, justify="left", style=None)
+
+    for row in rows:
+        formatted_row = [format_cell_value(value) for value in row]
+        table.add_row(*formatted_row)
+
+    buffer = io.StringIO()
+    console = Console(file=buffer, width=width)
+    console.print(table)
+    table_string = f"```{buffer.getvalue()}```"
+    buffer.close()
+
+    return table_string
+
+
+def build_table_from_rows(
+    headers: list[str],
+    rows: list[Iterable[str]],
+    width: int | None = 56,
+    show_lines: bool = False,
+) -> str:
+    return build_table({"headers": headers, "rows": rows}, width, show_lines)

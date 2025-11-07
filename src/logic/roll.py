@@ -238,7 +238,7 @@ def roll(expression: str, advantage: Advantage = Advantage.Normal) -> RollResult
     _validate_expression(expression)
     expression = str(d20.parse(expression, allow_comments=False))
 
-    rolls = []
+    rolls: list[SingleRollResult] = []
     if advantage in [Advantage.Advantage, Advantage.Disadvantage]:
         rolls.append(_roll_single(expression))
         rolls.append(_roll_single(expression))

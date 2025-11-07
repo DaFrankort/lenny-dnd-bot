@@ -1,10 +1,10 @@
 import discord
 
 from dice import DiceCache
-from embeds.roll import RollEmbed
+from embeds.roll import MultiRollEmbed, RollEmbed
 from command import SimpleCommand
-from logic.roll import Advantage, roll
-from logic.voice_chat import VC
+from logic.roll import Advantage, multi_roll, roll
+from logic.voice_chat import VC, SoundType
 from discord.app_commands import describe, autocomplete
 
 
@@ -78,3 +78,34 @@ class D20Command(SimpleCommand):
         embed = RollEmbed(itr, result, None)
         await itr.response.send_message(embed=embed)
         await VC.play_dice_roll(itr, result)
+
+
+class MultiRollCommand(SimpleCommand):
+    name = "multiroll"
+    desc = "Roll multiple dice!"
+    help = "Roll a dice expression multiple times."
+
+    @autocomplete(
+        diceroll=diceroll_autocomplete,
+        reason=reason_autocomplete,
+    )
+    @describe(
+        diceroll="The dice-expression of the roll you want to make (Example: 1d20+3, 1d8ro1, ...)",
+        amount="How many times to roll the expression.",
+        reason="An optional reason for rolling, for additional clarity. (Example: Attack, Damage, ...)",
+    )
+    async def callback(  # pyright: ignore
+        self,
+        itr: discord.Interaction,
+        diceroll: str,
+        amount: discord.app_commands.Range[int, 1, 32],
+        reason: str | None = None,
+    ):
+        self.log(itr)
+        result = multi_roll(diceroll, amount)
+        DiceCache.store_expression(itr, result.expression)
+        DiceCache.store_reason(itr, reason)
+        embed = MultiRollEmbed(itr, result, reason)
+
+        await itr.response.send_message(embed=embed)
+        await VC.play(itr, SoundType.ROLL)

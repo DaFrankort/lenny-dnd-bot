@@ -17,6 +17,7 @@ from commands.roll import (
     AdvantageRollCommand,
     D20Command,
     DisadvantageRollCommand,
+    MultiRollCommand,
     RollCommand,
 )
 from commands.search import SearchCommandGroup
@@ -73,6 +74,7 @@ class Bot(discord.Client):
         self.tree.add_command(AdvantageRollCommand())
         self.tree.add_command(DisadvantageRollCommand())
         self.tree.add_command(D20Command())
+        self.tree.add_command(MultiRollCommand())
         self.tree.add_command(TokenGenCommandGroup())
         self.tree.add_command(InitiativeCommand(initiatives=self.initiatives))
         self.tree.add_command(PlanSessionCommand())

@@ -183,7 +183,7 @@ class RollResult(object):
             case Advantage.Disadvantage:
                 total = min(totals)
             case _:
-                total = totals[0]
+                total = sum(totals)
 
         for r in self.rolls:
             if r.total == total:
@@ -191,6 +191,16 @@ class RollResult(object):
 
         # Fallback: return the last result
         return self.rolls[-1]
+
+
+@dataclasses.dataclass
+class MultiRollResult(object):
+    expression: str
+    rolls: list[SingleRollResult]
+
+    @property
+    def total(self) -> int:
+        return sum(r.total for r in self.rolls)
 
 
 def _roll_single(expression: str) -> SingleRollResult:
@@ -209,23 +219,35 @@ def _roll_single(expression: str) -> SingleRollResult:
     return SingleRollResult(str(roll), roll.total, special, contains_dice)
 
 
-def roll(expression: str, advantage: Advantage = Advantage.Normal) -> RollResult:
+def _validate_expression(expression: str) -> None:
+    # Roll an expression once, to check for errors
     try:
-        # Clean expression
         expression = str(d20.parse(expression, allow_comments=False))
-
-        rolls = []
-        if advantage in [Advantage.Advantage, Advantage.Disadvantage]:
-            rolls.append(_roll_single(expression))
-            rolls.append(_roll_single(expression))
-        else:
-            rolls.append(_roll_single(expression))
-
-        return RollResult(expression, advantage, rolls)
-
+        _roll_single(expression)
     except d20.errors.RollSyntaxError:
         raise ValueError(f"Expression '{expression}' has an invalid syntax!")
     except d20.errors.TooManyRolls:
         raise ValueError(f"Expression '{expression}' has too many dice rolls!")
     except Exception as exception:
         raise exception
+
+
+def roll(expression: str, advantage: Advantage = Advantage.Normal) -> RollResult:
+    _validate_expression(expression)
+    expression = str(d20.parse(expression, allow_comments=False))
+
+    rolls = []
+    if advantage in [Advantage.Advantage, Advantage.Disadvantage]:
+        rolls.append(_roll_single(expression))
+        rolls.append(_roll_single(expression))
+    else:
+        rolls.append(_roll_single(expression))
+
+    return RollResult(expression, advantage, rolls)
+
+
+def multi_roll(expression: str, amount: int) -> MultiRollResult:
+    _validate_expression(expression)
+    expression = str(d20.parse(expression, allow_comments=False))
+    rolls = [_roll_single(expression) for _ in range(amount)]
+    return MultiRollResult(expression, rolls)

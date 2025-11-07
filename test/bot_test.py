@@ -1,34 +1,34 @@
 from itertools import product
 from typing import Any
-import discord
 import pytest
 
 from bot import Bot
+from command import SimpleCommand, SimpleCommandGroup
 from logic.dnd.data import Data
 from logic.dnd.name import Gender
 from logic.roll import Advantage
-from logic.charactergen import class_choices, species_choices
+from utils.utils import listify
 from utils.mocking import MockImage, MockInteraction, MockSound
-from utils.test_utils import listify
 from commands.tokengen import AlignH, AlignV
-from discord.app_commands import Command, Group
 
 # Required to mark the library as essential for testing in our workflows
-import pytest_asyncio  # noqa: F401
+import pytest_asyncio  # noqa: F401 # type: ignore
 
 
-def get_cmd_from_group(group: discord.app_commands.Group, parts: list[str]) -> Command | None:
+def get_cmd_from_group(group: SimpleCommandGroup, parts: list[str]) -> SimpleCommand | None:
     """Recursively looks for a command within command-groups."""
     if len(parts) == 0:
         return None
 
     cmd = group.get_command(parts[0])
-    if isinstance(cmd, discord.app_commands.Group):
+    if not isinstance(cmd, (SimpleCommand, SimpleCommandGroup)):
+        raise ValueError("All commands in a SimpleCommandGroup should either be SimpleCommandGroups or SimpleCommands")
+    if isinstance(cmd, SimpleCommandGroup):
         return get_cmd_from_group(cmd, parts[1:])
     return cmd
 
 
-def get_cmd(commands: dict[str, Command | Group], name: str) -> Command | None:
+def get_cmd(commands: dict[str, SimpleCommand | SimpleCommandGroup], name: str) -> SimpleCommand | None:
     name = name.strip()
     if not name:
         return None
@@ -38,7 +38,7 @@ def get_cmd(commands: dict[str, Command | Group], name: str) -> Command | None:
     rest = names[1:]
 
     command = commands.get(name, None)
-    if isinstance(command, Group):
+    if isinstance(command, SimpleCommandGroup):
         return get_cmd_from_group(command, rest)
     else:
         return command
@@ -47,20 +47,23 @@ def get_cmd(commands: dict[str, Command | Group], name: str) -> Command | None:
 class TestBotCommands:
     @pytest.fixture()
     def bot(self):
-        bot = Bot(voice=False)
-        bot._register_commands()
+        try:
+            bot = Bot(voice=False)
+            bot.register_commands()
+        except Exception:
+            pytest.fail("Bot could not be launched!")
         return bot
 
     @pytest.fixture()
-    def commands(self, bot) -> dict[str, Command | Group]:
-        return {cmd.name: cmd for cmd in bot.tree.get_commands()}
+    def commands(self, bot: Bot) -> dict[str, SimpleCommand | SimpleCommandGroup]:
+        return {cmd.name: cmd for cmd in bot.tree.get_commands() if isinstance(cmd, (SimpleCommand, SimpleCommandGroup))}
 
     def expand_arg_variants(self, arg: dict[str, Any]) -> list[dict[str, Any]]:
         """
         Iterates over the arguments and produces combinations when an argument is a list.
         """
         keys = list(arg.keys())
-        values = [v if isinstance(v, list) else [v] for v in (arg[k] for k in keys)]
+        values: list[list[Any]] = [v if isinstance(v, list) else [v] for v in (arg[k] for k in keys)]
         combinations = product(*values)
         return [dict(zip(keys, combo)) for combo in combinations]
 
@@ -105,6 +108,9 @@ class TestBotCommands:
             ("search background", {"name": ["Soldier", "abcdef"]}),
             ("search table", {"name": ["Wild Magic", "abcdef"]}),
             ("search species", {"name": ["Human", "abcdef"]}),
+            ("search vehicle", {"name": ["Galley", "abcdef"]}),
+            ("search object", {"name": ["Ballista", "abcdef"]}),
+            ("search hazard", {"name": ["Spiked Pit", "abcdef"]}),
             (
                 "search all",
                 [
@@ -196,9 +202,9 @@ class TestBotCommands:
             (
                 "charactergen",
                 {
-                    "gender": [None].extend(Gender.values()),
-                    "species": [None].extend([c.value for c in species_choices()]),
-                    "char_class": [None].extend([c.value for c in class_choices()]),
+                    "gender": [None, Gender.FEMALE],
+                    "species": [None, "human"],
+                    "char_class": [None, "rogue"],
                 },
             ),
             # Homebrew commands work through modals, and are thus not testable.
@@ -207,9 +213,9 @@ class TestBotCommands:
     )
     async def test_slash_commands(
         self,
-        commands: dict[str, Command | Group],
+        commands: dict[str, SimpleCommand | SimpleCommandGroup],
         cmd_name: str,
-        arguments: dict | list[dict],
+        arguments: dict[str, Any] | list[dict[str, Any]],
     ):
         itr = MockInteraction()
         cmd = get_cmd(commands, cmd_name)
@@ -282,9 +288,9 @@ class TestBotCommands:
     )
     async def test_slash_commands_expecting_failure(
         self,
-        commands: dict[str, Command | Group],
+        commands: dict[str, SimpleCommand | SimpleCommandGroup],
         cmd_name: str,
-        arguments: dict | list[dict],
+        arguments: dict[str, Any] | list[dict[str, Any]],
     ):
         itr = MockInteraction()
         # This is the same test as test_slash_commands, except
@@ -324,7 +330,7 @@ class TestBotCommands:
     )
     async def test_autocomplete_suggestions(
         self,
-        commands: dict[str, Command | Group],
+        commands: dict[str, SimpleCommand | SimpleCommandGroup],
         cmd_name: str,
         param_name: str,
         queries: str | list[str],
@@ -333,7 +339,7 @@ class TestBotCommands:
         cmd = get_cmd(commands, cmd_name)
         assert cmd is not None, f"Command {cmd_name} not found"
 
-        param = cmd._params.get(param_name)
+        param = cmd.params.get(param_name)
 
         assert param is not None, f"Parameter '{param_name}' not found in command '{cmd_name}'"
         assert param.autocomplete is not None, f"No autocomplete function set for parameter '{param_name}' in {cmd_name}"

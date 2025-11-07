@@ -1,15 +1,15 @@
 from typing import Any
-from logic.dnd.abstract import DNDObject, DNDObjectList
+from logic.dnd.abstract import DNDEntry, DNDEntryList
 from logic.roll import RollResult, roll
 
 
-class DNDTable(DNDObject):
+class DNDTable(DNDEntry):
     table: dict
     dice_notation: str | None
     footnotes: list[str] | None
 
     def __init__(self, json: dict):
-        self.object_type = "table"
+        self.entry_type = "table"
         self.emoji = "📊"
 
         self.name = json["name"]
@@ -38,7 +38,7 @@ class DNDTable(DNDObject):
         return None
 
 
-class DNDTableList(DNDObjectList[DNDTable]):
+class DNDTableList(DNDEntryList[DNDTable]):
     path = "./submodules/lenny-dnd-data/generated/tables.json"
 
     def __init__(self):

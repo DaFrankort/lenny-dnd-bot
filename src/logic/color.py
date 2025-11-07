@@ -1,6 +1,5 @@
 import dataclasses
 import io
-from typing import Any
 import discord
 import re
 from jsonhandler import JsonHandler
@@ -72,9 +71,6 @@ class UserColorFileHandler(JsonHandler[int]):
 
     def __init__(self):
         super().__init__(filename="user_colors")
-
-    def deserialize(self, obj: Any) -> int:
-        return int(obj)
 
     def add(self, itr: discord.Interaction, color: int) -> None:
         """Saves the user's color to a JSON file."""

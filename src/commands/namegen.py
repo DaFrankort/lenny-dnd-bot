@@ -2,6 +2,7 @@ import discord
 
 from embed import SimpleEmbed
 from command import SimpleCommand
+from logic.color import UserColor
 from logic.dnd.data import Data
 from logic.dnd.name import Gender
 from logic.namegen import generate_name
@@ -33,5 +34,9 @@ class NameGenCommand(SimpleCommand):
     ):
         self.log(itr)
         result = generate_name(species, gender)
-        embed = SimpleEmbed(title=result.name, description=result.desc, color=discord.Color(result.color))
+
+        desc = f"*{result.gender} {result.species}*".title()
+        color = UserColor.generate(result.name)
+
+        embed = SimpleEmbed(title=result.name, description=desc, color=discord.Color(color))
         await itr.response.send_message(embed=embed)

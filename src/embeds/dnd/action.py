@@ -1,8 +1,8 @@
-from embeds.dnd.abstract import DNDObjectEmbed
+from embeds.dnd.abstract import DNDEntryEmbed
 from logic.dnd.action import Action
 
 
-class ActionEmbed(DNDObjectEmbed):
+class ActionEmbed(DNDEntryEmbed):
     def __init__(self, action: Action):
         super().__init__(action)
         self.description = f"*{action.select_description}*"

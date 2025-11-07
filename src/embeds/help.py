@@ -1,5 +1,5 @@
 import discord
-from command import SimpleCommand, SimpleCommandGroup
+from command import SimpleCommand, SimpleCommandGroup, SimpleContextMenu
 from logic.help import HelpSelectOption, HelpTab, HelpTabs
 from discord.app_commands import Command, Group, CommandTree, Choice
 
@@ -104,7 +104,7 @@ class HelpEmbed(discord.Embed):
 
         # If on overview tab, list all commands, grouped by category
         if tab.tab == "overview":
-            tabs = [tab for tab in HelpTabs.tabs if tab.tab != "overview"]
+            tabs = [tab for tab in HelpTabs.tabs if tab.tab not in ["overview", "context"]]
             tabs_commands = []
             for tab in tabs:
                 tab_commands = []
@@ -116,10 +116,40 @@ class HelpEmbed(discord.Embed):
                 cmds = [f"- ``/{command}``" for command in tab_commands]
                 tabs_commands.append((tab.name, cmds))
 
+            # Add context menu overview
+            context_cmds = [
+                f"- ``{ctx.name}``"
+                for ctx_type in (discord.AppCommandType.message, discord.AppCommandType.user)
+                for ctx in self.tree.walk_commands(type=ctx_type)
+                if isinstance(ctx, SimpleContextMenu)
+            ]
+            if context_cmds:
+                tabs_commands.append((HelpTabs.ContextMenus.name, context_cmds))
+
             tabs_commands.sort(key=lambda t: (-len(t[1]), t[0]))
 
             for name, commands in tabs_commands:
                 self.add_field(name=name, value="\n".join(commands), inline=True)
+
+        elif tab.tab == "context":
+            msg_contexts: list[str] = []
+            user_contexts: list[str] = []
+            for context in self.tree.walk_commands(type=discord.AppCommandType.message):
+                if isinstance(context, SimpleContextMenu):
+                    name = f"``MESSAGE > APPS > {context.name}``"
+                    desc = context.help
+                    msg_contexts.append(f"{name}\n{desc}\n")
+
+            for context in self.tree.walk_commands(type=discord.AppCommandType.user):
+                if isinstance(context, SimpleContextMenu):
+                    name = f"``USER > APPS > {context.name}``"
+                    desc = context.help
+                    user_contexts.append(f"{name}\n{desc}\n")
+
+            if len(msg_contexts) > 0:
+                self.add_field(name="Message contexts", value="\n".join(msg_contexts))
+            if len(user_contexts) > 0:
+                self.add_field(name="User contexts", value="\n".join(user_contexts))
 
     @staticmethod
     def get_tab_choices() -> list[Choice]:

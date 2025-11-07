@@ -1,8 +1,8 @@
-from logic.dnd.abstract import DNDObjectList
+from logic.dnd.abstract import DNDEntryList
 
 
 class Source(object):
-    """Note: this object does not inherit from DNDObject as it is meta data about DNDObjects"""
+    """Note: this object does not inherit from DNDEntry as it is meta data about DNDEntries"""
 
     id: str
     name: str
@@ -25,5 +25,5 @@ class SourceList(object):
     entries: list[Source]
 
     def __init__(self):
-        data = DNDObjectList.read_dnd_data_contents(self.path)
+        data = DNDEntryList.read_dnd_data_contents(self.path)
         self.entries = [Source(e) for e in data]

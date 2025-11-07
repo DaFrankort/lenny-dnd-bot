@@ -15,7 +15,7 @@ from logic.roll import Advantage
 class DistributionResult(object):
     expression: str
     chart: discord.File
-    advantage: str
+    advantage: Advantage
     mean: float
     stdev: float
     min_to_beat: tuple[float, float] | None
@@ -71,7 +71,7 @@ def _distribution_chart(
 
 def distribution(
     expression: str,
-    advantage: str,
+    advantage: Advantage,
     color: int,
     min_to_beat: float | None = None,
 ):
@@ -79,9 +79,9 @@ def distribution(
         dist = d20distribution.parse(expression)
         expression = str(d20.parse(expr=expression))
 
-        if advantage == Advantage.Advantage.value:
+        if advantage == Advantage.Advantage:
             dist = dist.advantage()
-        elif advantage == Advantage.Disadvantage.value:
+        elif advantage == Advantage.Disadvantage:
             dist = dist.disadvantage()
 
         if min_to_beat is None:

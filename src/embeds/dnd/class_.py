@@ -1,6 +1,6 @@
 from typing import Callable
 import discord
-from embeds.dnd.abstract import HORIZONTAL_LINE, DNDObjectEmbed
+from embeds.dnd.abstract import HORIZONTAL_LINE, DNDEntryEmbed
 from logic.config import is_source_phb2014
 from logic.dnd.class_ import Class
 
@@ -85,7 +85,7 @@ class ClassNavigationView(discord.ui.View):
             self.add_item(MultiClassSubclassSelect(self.character_class, lambda: self.level, self.subclass, self))
 
 
-class ClassEmbed(DNDObjectEmbed):
+class ClassEmbed(DNDEntryEmbed):
     def __init__(self, character_class: Class, level: int = 0, subclass: str | None = None):
         level = max(0, min(20, level))
 

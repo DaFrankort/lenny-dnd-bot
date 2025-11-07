@@ -3,17 +3,16 @@ from discord import ui
 from logic.charts import get_radar_chart
 from components.items import SimpleSeparator, TitleTextDisplay
 from logic.charactergen import CharacterGenResult
-from logic.dnd.abstract import DNDObject
+from logic.dnd.abstract import DNDEntry, build_table_from_rows
 from logic.dnd.background import Background
 from logic.dnd.name import Gender
-from methods import build_table_from_rows
 from logic.color import UserColor
 
 
 class _CharacterGenInfoButton(ui.Button):
-    def __init__(self, object: DNDObject, emoji: str):
+    def __init__(self, entry: DNDEntry, emoji: str):
         style = discord.ButtonStyle.url
-        super().__init__(style=style, label=object.name, emoji=emoji, url=object.url)
+        super().__init__(style=style, label=entry.name, emoji=emoji, url=entry.url)
 
 
 class CharacterGenContainerView(ui.LayoutView):

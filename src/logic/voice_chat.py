@@ -11,7 +11,7 @@ from discord import Interaction
 from logic.roll import RollResult
 
 
-class SoundType(Enum):
+class SoundType(str, Enum):
     ROLL = "dice/roll"
     NAT_20 = "dice/nat_20"
     NAT_1 = "dice/nat_1"

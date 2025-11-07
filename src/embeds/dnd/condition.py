@@ -1,8 +1,8 @@
-from embeds.dnd.abstract import DNDObjectEmbed
+from embeds.dnd.abstract import DNDEntryEmbed
 from logic.dnd.condition import Condition
 
 
-class ConditionEmbed(DNDObjectEmbed):
+class ConditionEmbed(DNDEntryEmbed):
     def __init__(self, condition: Condition):
         super().__init__(condition)
 

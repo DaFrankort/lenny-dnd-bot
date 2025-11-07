@@ -1,8 +1,8 @@
-from embeds.dnd.abstract import DNDObjectEmbed
+from embeds.dnd.abstract import DNDEntryEmbed
 from logic.dnd.creature import Creature
 
 
-class CreatureEmbed(DNDObjectEmbed):
+class CreatureEmbed(DNDEntryEmbed):
     def __init__(self, creature: Creature):
         super().__init__(creature)
         self.description = creature.subtitle

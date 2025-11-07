@@ -26,6 +26,7 @@ from commands.tokengen import TokenGenCommandGroup
 from context_menus.delete import DeleteContextMenu
 from context_menus.timestamp import RequestTimestampContextMenu
 from context_menus.reroll import RerollContextMenu
+from context_menus.zip_files import ZipAttachmentsContextMenu
 from logic.initiative import InitiativeTracker
 from logic.voice_chat import VC, Sounds
 
@@ -61,7 +62,7 @@ class Bot(discord.Client):
 
         self.initiatives = InitiativeTracker()
 
-    def _register_commands(self):
+    def register_commands(self):
         logging.info("Registering slash-commands")
 
         # Commands
@@ -88,6 +89,7 @@ class Bot(discord.Client):
         self.tree.add_command(DeleteContextMenu())
         self.tree.add_command(RerollContextMenu())
         self.tree.add_command(RequestTimestampContextMenu())
+        self.tree.add_command(ZipAttachmentsContextMenu())
 
         logging.info("Registered slash-commands")
 
@@ -104,7 +106,7 @@ class Bot(discord.Client):
         logging.info("Initializing")
         logging.info(f"Logged in as {self.user} (ID: {self.user.id})")
 
-        self._register_commands()
+        self.register_commands()
         await self._attempt_sync_guild()
         await self.tree.sync()
         Sounds.init_folders()

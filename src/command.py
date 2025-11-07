@@ -99,13 +99,20 @@ class SimpleCommand(discord.app_commands.Command):
         message = await itr.original_response()
         await message.delete(delay=10)
 
+    @property
+    def params(self):
+        return self._params
+
 
 class SimpleContextMenu(discord.app_commands.ContextMenu):
     name: str = ""
+    help: str = ""
 
     def __init__(self):
         if not self.name:
             raise NotImplementedError(f"'name' not defined in {type(self)}")
+        if not self.help:
+            raise NotImplementedError(f"'help' not defined in {type(self)}")
 
         super().__init__(
             name=self.name,

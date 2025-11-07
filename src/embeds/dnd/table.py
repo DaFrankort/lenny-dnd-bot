@@ -13,7 +13,7 @@ from logger import log_button_press
 from logic.color import UserColor
 from logic.dnd.table import DNDTable
 from logic.roll import RollResult
-from methods import build_table_from_rows
+from logic.dnd.abstract import build_table_from_rows
 from logic.voice_chat import VC, SoundType
 
 

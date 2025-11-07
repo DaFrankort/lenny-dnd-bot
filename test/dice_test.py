@@ -4,6 +4,7 @@ import pytest
 from dice import DiceCache
 from logic.roll import Advantage, roll
 from utils.mocking import MockInteraction
+from discord import Interaction
 
 
 class TestDiceExpression:
@@ -14,7 +15,7 @@ class TestDiceExpression:
             "1d20-1d20-1d20-1d20 / 2",
         ],
     )
-    def test_is_dice_expression_valid(self, expression):
+    def test_is_dice_expression_valid(self, expression: str):
         # This should not raise an exception
         roll(expression)
 
@@ -22,7 +23,7 @@ class TestDiceExpression:
         "expression",
         ["1d", "d", "1d20+(4", "invalid", "1d20d20"],
     )
-    def test_is_dice_expression_invalid(self, expression):
+    def test_is_dice_expression_invalid(self, expression: str):
         with pytest.raises(Exception):
             roll(expression)
 
@@ -36,7 +37,7 @@ class TestDiceExpression:
         assert len(disadvantage.rolls) == 2, "Disadvantage rolls should have two rolls."
 
     @pytest.mark.parametrize("iterations", [1000])
-    def test_advantage_is_greater(self, iterations):
+    def test_advantage_is_greater(self, iterations: int):
         # Monte Carlo test to see if advantage is always the greatest of the two numbers
         for _ in range(iterations):
             dice = roll("1d20+5", Advantage.Advantage)
@@ -46,7 +47,7 @@ class TestDiceExpression:
                 assert dice.roll.total >= roll_.total, "Advantage result should be greater or equal to all rolls."
 
     @pytest.mark.parametrize("iterations", [1000])
-    def test_disadvantage_is_less(self, iterations):
+    def test_disadvantage_is_less(self, iterations: int):
         # Same as test_advantage_is_greater, except for disadvantage
         for _ in range(iterations):
             dice = roll("1d20+5", Advantage.Disadvantage)
@@ -64,7 +65,7 @@ class TestDiceExpression:
             ("(100 + 150) * (1000+ 1500) + 4", (100 + 150) * (1000 + 1500) + 4),
         ],
     )
-    def test_mathematical_expressions(self, expression, result):
+    def test_mathematical_expressions(self, expression: str, result: int):
         dice = roll(expression)
         assert dice.roll.total == result, f"Math expression '{expression}' should equal {result}"
 
@@ -75,7 +76,7 @@ class TestDiceExpression:
             ("2d20", 2, 40, 1000),
         ],
     )
-    def test_rolls_are_bounded(self, expression, min, max, iterations):
+    def test_rolls_are_bounded(self, expression: str, min: int, max: int, iterations: int):
         for _ in range(iterations):
             dice = roll(expression)
             assert min <= dice.roll.total <= max, f"Expression '{expression}' should be within [{min}, {max}]"
@@ -106,12 +107,6 @@ class TestDiceExpression:
 
 
 class TestDiceExpressionCache:
-    @pytest.fixture(autouse=True)
-    def setup(self, tmp_path):
-        self.test_path = tmp_path / "dice_cache.json"
-        DiceCache.PATH = self.test_path
-        DiceCache._data = {}  # Reset cache before each test
-
     @pytest.fixture
     def itr(self):
         return MockInteraction()
@@ -136,27 +131,27 @@ class TestDiceExpressionCache:
         "expression",
         ["1d20+5", "123+456", "6"],
     )
-    def test_store_expression_adds_to_cache(self, itr, expression: str):
+    def test_store_expression_adds_to_cache(self, itr: Interaction, expression: str):
         DiceCache.store_expression(itr, expression)
         user_id = str(itr.user.id)
-        data = DiceCache._data
+        data = DiceCache.data
 
         assert user_id in data, f"User ID {user_id} should be in cache data."
-        assert expression in data[user_id]["last_used"], f"'{expression}' should be in last_used for user."
+        assert expression in data[user_id].last_used, f"'{expression}' should be in last_used for user."
 
     @pytest.mark.parametrize(
         "reason",
         ["reason", "attack", "1d20"],
     )
-    def test_store_reason(self, itr, reason: str):
+    def test_store_reason(self, itr: Interaction, reason: str):
         DiceCache.store_reason(itr, reason)
         user_id = str(itr.user.id)
-        data = DiceCache._data
+        data = DiceCache.data
 
         assert user_id in data, f"User ID {user_id} should not be in cache for invalid expression."
-        assert reason in data[user_id]["last_used_reason"], f"'{reason} should be in last_used_reason"
+        assert reason in data[user_id].last_used_reason, f"'{reason} should be in last_used_reason"
 
-    def test_get_autocomplete_suggestions_empty(self, itr):
-        DiceCache._data = {}
+    def test_get_autocomplete_suggestions_empty(self, itr: Interaction):
+        DiceCache.data = {}
         suggestions = DiceCache.get_autocomplete_suggestions(itr, "")
         assert suggestions == [], "Suggestions should be empty when no data is present."

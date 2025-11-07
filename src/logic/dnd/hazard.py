@@ -1,30 +1,30 @@
 from logic.dnd.abstract import DNDEntry, DNDEntryList, Description
 
 
-class Condition(DNDEntry):
+class Hazard(DNDEntry):
     description: list[Description]
-    image: str | None
 
     def __init__(self, json: dict):
-        self.entry_type = "condition"
-        self.emoji = "💀"
+        self.entry_type = "hazard"
+        self.emoji = "🪤"
 
         self.name = json["name"]
         self.source = json["source"]
         self.url = json["url"]
+        self.select_description = json["subtitle"]
+
         self.description = json["description"]
-        self.image = json["image"]
 
 
-class ConditionList(DNDEntryList[Condition]):
+class HazardList(DNDEntryList[Hazard]):
     paths = [
-        "./submodules/lenny-dnd-data/generated/conditions.json",
-        "./submodules/lenny-dnd-data/generated/diseases.json",
+        "./submodules/lenny-dnd-data/generated/traps.json",
+        "./submodules/lenny-dnd-data/generated/hazards.json",
     ]
 
     def __init__(self):
         super().__init__()
         for path in self.paths:
             data = self.read_dnd_data_contents(path)
-            for condition in data:
-                self.entries.append(Condition(condition))
+            for hazard in data:
+                self.entries.append(Hazard(hazard))

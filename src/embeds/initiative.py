@@ -16,14 +16,16 @@ class _InitiativeModal(SimpleModal):
 
 
 class InitiativeRollModal(_InitiativeModal):
-    modifier = ui.TextInput(label="Your Initiative Modifier", placeholder="0", max_length=2, required=False)
-    name = ui.TextInput(
+    modifier = ui.TextInput["InitiativeRollModal"](
+        label="Your Initiative Modifier", placeholder="0", max_length=2, required=False
+    )
+    name = ui.TextInput["InitiativeRollModal"](
         label="Name (Username by default)",
         placeholder="Goblin",
         required=False,
         max_length=128,
     )
-    advantage = ui.TextInput(
+    advantage = ui.TextInput["InitiativeRollModal"](
         label="Roll Mode (Normal by default)",
         placeholder="Advantage / Disadvantage",
         required=False,
@@ -58,16 +60,16 @@ class InitiativeRollModal(_InitiativeModal):
         else:
             title += "!"
 
-        description = []
+        descriptions: list[str] = []
         roll_count = 1 if advantage == Advantage.Normal else 2
         for i in range(roll_count):
             d20 = initiative.d20[i]
             mod = initiative.modifier
             total = d20 + mod
             mod_str = f"+ {mod}" if mod > 0 else f"- {-mod}"
-            description.append(f"- ``[{d20}] {mod_str}`` -> {total}\n")
-        description.append(f"\n**Initiative**: {initiative.get_total()}")
-        description = "\n".join(description)
+            descriptions.append(f"- ``[{d20}] {mod_str}`` -> {total}\n")
+        descriptions.append(f"\n**Initiative**: {initiative.get_total()}")
+        description = "\n".join(descriptions)
 
         view = InitiativeContainerView(itr, self.tracker)
         sound_type = SoundType.CREATURE if name else SoundType.PLAYER
@@ -82,8 +84,8 @@ class InitiativeRollModal(_InitiativeModal):
 
 
 class InitiativeSetModal(_InitiativeModal):
-    value = ui.TextInput(label="Initiative value", placeholder="20", max_length=3)
-    name = ui.TextInput(
+    value = ui.TextInput["InitiativeSetModal"](label="Initiative value", placeholder="20", max_length=3)
+    name = ui.TextInput["InitiativeSetModal"](
         label="Name (Username by default)",
         placeholder="Goblin",
         required=False,
@@ -118,7 +120,7 @@ class InitiativeSetModal(_InitiativeModal):
 
 
 class InitiativeDeleteModal(_InitiativeModal):
-    name = ui.TextInput(
+    name = ui.TextInput["InitiativeDeleteModal"](
         label="Name (Username by default)",
         placeholder="Goblin",
         required=False,
@@ -144,21 +146,21 @@ class InitiativeDeleteModal(_InitiativeModal):
 
 
 class InitiativeBulkModal(_InitiativeModal):
-    modifier = ui.TextInput(
+    modifier = ui.TextInput["InitiativeBulkModal"](
         label="Creature's Initiative Modifier",
         placeholder="0",
         max_length=3,
         required=False,
     )
-    name = ui.TextInput(label="Creature's Name", placeholder="Goblin", max_length=128)
-    amount = ui.TextInput(label="Amount of creatures to add", placeholder="1", max_length=2)
-    advantage = ui.TextInput(
+    name = ui.TextInput["InitiativeBulkModal"](label="Creature's Name", placeholder="Goblin", max_length=128)
+    amount = ui.TextInput["InitiativeBulkModal"](label="Amount of creatures to add", placeholder="1", max_length=2)
+    advantage = ui.TextInput["InitiativeBulkModal"](
         label="Roll Mode (Normal by default)",
         placeholder="Advantage / Disadvantage",
         required=False,
         max_length=12,
     )
-    shared = ui.TextInput(
+    shared = ui.TextInput["InitiativeBulkModal"](
         label="Share Initiative (False by default)",
         placeholder="True / False",
         required=False,
@@ -197,7 +199,7 @@ class InitiativeBulkModal(_InitiativeModal):
         initiatives = self.tracker.add_bulk(itr, modifier, name, amount, advantage, shared)
 
         title = f"{itr.user.display_name} rolled Initiative for {amount} {name.strip().title()}(s)!"
-        descriptions = []
+        descriptions: list[str] = []
         for initiative in initiatives:
             descriptions.append(f"``{initiative.get_total():>2}`` - {initiative.name}")
         description = "\n".join(descriptions)
@@ -212,7 +214,7 @@ class InitiativeBulkModal(_InitiativeModal):
 
 
 class InitiativeClearConfirmModal(_InitiativeModal):
-    confirm = ui.TextInput(label="Type 'CLEAR' to confirm", placeholder="CLEAR")
+    confirm = ui.TextInput["InitiativeClearConfirmModal"](label="Type 'CLEAR' to confirm", placeholder="CLEAR")
 
     def __init__(self, itr: Interaction, tracker: InitiativeTracker):
         super().__init__(itr, title="Are you sure you want to clear?", tracker=tracker)
@@ -238,17 +240,17 @@ class InitiativeClearConfirmModal(_InitiativeModal):
         )
 
 
-class InitiativePlayerRow(ui.ActionRow):
+class InitiativePlayerRow(ui.ActionRow["InitiativeContainerView"]):
     def __init__(self, tracker: InitiativeTracker):
         super().__init__()
         self.tracker = tracker
 
     @ui.button(label="Roll", style=discord.ButtonStyle.success, custom_id="roll_btn", row=0)
-    async def roll_initiative(self, itr: Interaction, button: ui.Button):
+    async def roll_initiative(self, itr: Interaction, button: ui.Button["InitiativeContainerView"]):
         await itr.response.send_modal(InitiativeRollModal(itr, self.tracker))
 
     @ui.button(label="Set", style=discord.ButtonStyle.success, custom_id="set_btn", row=0)
-    async def set_initiative(self, itr: Interaction, button: ui.Button):
+    async def set_initiative(self, itr: Interaction, button: ui.Button["InitiativeContainerView"]):
         await itr.response.send_modal(InitiativeSetModal(itr, self.tracker))
 
     @ui.button(
@@ -257,21 +259,21 @@ class InitiativePlayerRow(ui.ActionRow):
         custom_id="delete_btn",
         row=0,
     )
-    async def remove_initiative(self, itr: Interaction, button: ui.Button):
+    async def remove_initiative(self, itr: Interaction, button: ui.Button["InitiativeContainerView"]):
         await itr.response.send_modal(InitiativeDeleteModal(itr, self.tracker))
 
 
-class InitiativeDMRow(ui.ActionRow):
+class InitiativeDMRow(ui.ActionRow["InitiativeContainerView"]):
     def __init__(self, tracker: InitiativeTracker):
         super().__init__()
         self.tracker = tracker
 
     @ui.button(label="Bulk", style=discord.ButtonStyle.primary, custom_id="bulk_btn", row=1)
-    async def bulk_roll_initiative(self, itr: Interaction, button: ui.Button):
+    async def bulk_roll_initiative(self, itr: Interaction, button: ui.Button["InitiativeContainerView"]):
         await itr.response.send_modal(InitiativeBulkModal(itr, self.tracker))
 
     @ui.button(label="Lock", style=discord.ButtonStyle.primary, custom_id="lock_btn", row=1)
-    async def lock(self, itr: Interaction, button: ui.Button):
+    async def lock(self, itr: Interaction, button: ui.Button["InitiativeContainerView"]):
         log_button_press(itr, button, "InitiativeContainerView")
         await VC.play(itr, SoundType.LOCK)
         await itr.response.edit_message(view=InitiativeContainerView(itr, self.tracker, True))
@@ -282,11 +284,11 @@ class InitiativeDMRow(ui.ActionRow):
         custom_id="clear_btn",
         row=1,
     )
-    async def clear_initiative(self, itr: Interaction, button: ui.Button):
+    async def clear_initiative(self, itr: Interaction, button: ui.Button["InitiativeContainerView"]):
         await itr.response.send_modal(InitiativeClearConfirmModal(itr, self.tracker))
 
 
-class InitiativeUnlockButton(ui.Button):
+class InitiativeUnlockButton(ui.Button["InitiativeContainerView"]):
     def __init__(self, tracker: InitiativeTracker):
         super().__init__(style=discord.ButtonStyle.primary, label="Unlock", custom_id="unlock_btn")
         self.tracker = tracker
@@ -301,7 +303,7 @@ class InitiativeContainerView(ui.LayoutView):
     def __init__(self, itr: Interaction, tracker: InitiativeTracker, locked: bool = False):
         super().__init__(timeout=None)
 
-        container = ui.Container(accent_color=discord.Color.dark_green())
+        container = ui.Container["InitiativeContainerView"](accent_color=discord.Color.dark_green())
         container.add_item(ui.TextDisplay("# Initiatives"))
         container.add_item(SimpleSeparator())
 
@@ -313,7 +315,7 @@ class InitiativeContainerView(ui.LayoutView):
         container.add_item(SimpleSeparator())
 
         if locked:
-            unlock_section = ui.Section("‎", accessory=InitiativeUnlockButton(tracker))
+            unlock_section = ui.Section["InitiativeContainerView"]("‎", accessory=InitiativeUnlockButton(tracker))
             container.add_item(unlock_section)
         else:
             container.add_item(InitiativePlayerRow(tracker))

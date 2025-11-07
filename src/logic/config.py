@@ -36,10 +36,9 @@ class Config(object):
 
     def create_file(self):
         """Creates the associated config file. Does not change anything if it already exists."""
-        if self.path is not None:
-            path = pathlib.Path(self.path)
-            path.parent.mkdir(exist_ok=True, parents=True)
-            open(path, "a").close()  # Ensure file exists
+        path = pathlib.Path(self.path)
+        path.parent.mkdir(exist_ok=True, parents=True)
+        open(path, "a").close()  # Ensure file exists
 
     def reset(self):
         if os.path.exists(self.path):
@@ -60,9 +59,6 @@ class Config(object):
         return sources - disallowed
 
     def get_disallowed_sources(self) -> set[str]:
-        if self.path is None:
-            return set([*SOURCES_PHB2014])
-
         config = toml.load(self.path)
         lookup = config.get("lookup", {})
         disallowed = lookup.get("disallowed_sources", None)
@@ -115,9 +111,6 @@ class Config(object):
             toml.dump(config, f)
 
     def get_allowed_config_roles(self) -> set[int]:
-        if self.path is None:
-            return set()
-
         config = toml.load(self.path)
         lookup = config.get("permissions", {})
         roles = lookup.get("roles", None)
@@ -130,10 +123,7 @@ class Config(object):
         return set(roles)
 
     def get_default_config_roles(self) -> set[int]:
-        if self.server is None:
-            return set()
-
-        config_roles = []
+        config_roles: list[int] = []
 
         # The default allowed roles are those matching the terms game master, dungeon master, dm...
         for role in self.server.roles:

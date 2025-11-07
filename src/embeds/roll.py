@@ -1,6 +1,6 @@
 import discord
 from embed import UserActionEmbed
-from logic.roll import Advantage, RollResult
+from logic.roll import Advantage, MultiRollResult, RollResult
 
 
 class RollEmbed(UserActionEmbed):
@@ -43,6 +43,46 @@ class RollEmbed(UserActionEmbed):
             description.append("💀 **Critical Fail!**")
         if roll.is_dirty_twenty:
             description.append("⚔️  **Dirty 20!**")
+
+        description = "\n".join(description)
+        if len(description) > 1024:
+            description = "⚠️ Message too long, try sending a shorter expression!"
+
+        super().__init__(itr, title, description)
+
+
+class MultiRollEmbed(UserActionEmbed):
+    def __init__(
+        self,
+        itr: discord.Interaction,
+        result: MultiRollResult,
+        reason: str | None,
+        reroll: bool = False,
+    ):
+        if reroll:
+            title = f"Re-rolling {result.expression} multiple times!"
+        else:
+            title = f"Rolling {result.expression} multiple times!"
+
+        if reason is None:
+            reason = "Total"
+
+        description = []
+        if not result.rolls[0].contains_dice:
+            description.append("⚠️ Expression contains no dice. ⚠️")
+
+        for roll in result.rolls:
+            roll_message = f"- `{roll.expression} -> {roll.total}`"
+            if roll.is_natural_twenty:
+                roll_message += " 🎯"
+            elif roll.is_natural_one:
+                roll_message += " 💀"
+            elif roll.is_dirty_twenty:
+                roll_message += " ⚔️"
+            description.append(roll_message)
+
+        description.append("")
+        description.append(f"🎲 **{reason}: {result.total}**")
 
         description = "\n".join(description)
         if len(description) > 1024:

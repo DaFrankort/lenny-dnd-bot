@@ -46,6 +46,7 @@ class HelpTabList(object):
             "d20",
             "advantage",
             "disadvantage",
+            "multiroll",
             "distribution",
         ],
         text="You can roll dice using the following commands:",

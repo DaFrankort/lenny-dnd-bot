@@ -97,6 +97,7 @@ Roll D&D dice using dice-expressions (e.g. `2d6` / `1d20+2`).
 - `/advantage <dice-expression> [reason]` – Rolls twice, highlights the highest result.
 - `/disadvantage <dice-expression> [reason]` – Rolls twice, highlights the lowest result.
 - `/d20` - Rolls a basic 1d20 without any modifiers.
+- `/multiroll <dice-expression> <amount> [reason]` – Roll a dice expression multiple times, shows the individual results as well as the total.
 - `/distribution <expression> [advantage] [min-to-beat]` - Creates a graph showing likeliness of your dice expression's roll results.
 
 ### D&D Data lookup

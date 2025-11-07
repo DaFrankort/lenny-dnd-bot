@@ -1,3 +1,4 @@
+from typing import Any
 from logic.dnd.abstract import DNDEntry, DNDEntryList, Description
 
 
@@ -8,7 +9,7 @@ class Vehicle(DNDEntry):
     travel_pace: str | None
     description: list[Description]
 
-    def __init__(self, json: dict):
+    def __init__(self, json: dict[str, Any]):
         self.entry_type = "vehicle"
         self.emoji = "⛵"
 

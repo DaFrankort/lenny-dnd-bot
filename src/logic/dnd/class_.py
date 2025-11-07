@@ -1,3 +1,4 @@
+from typing import Any
 from logic.dnd.abstract import DNDEntry, DNDEntryList, Description
 
 
@@ -10,7 +11,7 @@ class Class(DNDEntry):
     level_features: dict[str, list[Description]]
     subclass_level_features: dict[str, dict[str, list[Description]]]
 
-    def __init__(self, json: dict):
+    def __init__(self, json: dict[str, Any]):
         self.entry_type = "class"
         self.emoji = "🧙‍♂️"
 

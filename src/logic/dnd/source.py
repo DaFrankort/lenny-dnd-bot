@@ -1,3 +1,4 @@
+from typing import Any
 from logic.dnd.abstract import DNDEntryList
 
 
@@ -11,7 +12,7 @@ class Source(object):
     author: str | None
     group: str
 
-    def __init__(self, source: dict):
+    def __init__(self, source: dict[str, Any]):
         self.id = source["id"]
         self.name = source["name"]
         self.source = source["source"]

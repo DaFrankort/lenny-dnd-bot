@@ -2,7 +2,7 @@ import argparse
 import logging
 from bot import Bot
 import os
-from discord.utils import _ColourFormatter
+from discord.utils import _ColourFormatter # type: ignore # Discord's private formatter has proven to be quite nice to use
 
 if __name__ == "__main__":
     # Parse command line arguments, see `python src/main.py --help`

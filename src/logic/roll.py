@@ -1,7 +1,9 @@
 import dataclasses
 from enum import Enum
 from typing import Any
-import d20
+
+# The usage of d20 requires many type: ignore comments, as d20 does not use any form of typing internally
+import d20  # type: ignore
 
 from methods import ChoicedEnum
 
@@ -19,7 +21,7 @@ class DiceSpecial(str, Enum):
 
 
 class DiceStringifier(d20.Stringifier):
-    def _stringify(self, node):
+    def _stringify(self, node: d20.expression.Number | Any) -> str:
         if not node.kept:
             return ""
         return super()._stringify(node)
@@ -31,32 +33,32 @@ class DiceStringifier(d20.Stringifier):
                 results.append(result)
         return results
 
-    def _str_expression(self, node):
-        return self._stringify(node.roll)
+    def _str_expression(self, node: d20.expression.Expression):
+        return self._stringify(node.roll)  # type: ignore
 
-    def _str_literal(self, node):
+    def _str_literal(self, node: d20.expression.Literal):
         # See d20 stringifiers.py:122 SimpleStringifier
         # A literal can have multiple values, and the last value in the list is the final value
-        return str(node.values[-1])
+        return str(node.values[-1])  # type: ignore
 
-    def _str_unop(self, node):
-        return f"{node.op}{self._stringify(node.value)}"
+    def _str_unop(self, node: d20.expression.UnOp):
+        return f"{node.op}{self._stringify(node.value)}"  # type: ignore
 
-    def _str_binop(self, node):
-        return f"{self._stringify(node.left)} {node.op} {self._stringify(node.right)}"
+    def _str_binop(self, node: d20.expression.BinOp):
+        return f"{self._stringify(node.left)} {node.op} {self._stringify(node.right)}"  # type: ignore
 
-    def _str_parenthetical(self, node):
-        return f"({self._stringify(node.value)}){self._str_ops(node.operations)}"
+    def _str_parenthetical(self, node: d20.expression.Parenthetical):
+        return f"({self._stringify(node.value)}){self._str_ops(node.operations)}"  # type: ignore
 
-    def _str_set(self, node):
+    def _str_set(self, node: d20.expression.Set):
         values = self._extract_values(node.values)
         return "{" + ",".join(values) + "}"
 
-    def _str_dice(self, node):
+    def _str_dice(self, node: d20.expression.Dice):
         values = self._extract_values(node.values)
         return "[" + ",".join(values) + "]"
 
-    def _str_die(self, node):
+    def _str_die(self, node: d20.expression.Die):
         values = self._extract_values(node.values)
         return ",".join(values)
 
@@ -71,17 +73,17 @@ def _is_only_dice_modifiers_and_additions(node: d20.Number | None) -> bool:
     if isinstance(node, d20.Die):
         return True
     if isinstance(node, d20.Parenthetical):
-        return _is_only_dice_modifiers_and_additions(node.children[0])
+        return _is_only_dice_modifiers_and_additions(node.children[0])  # type: ignore
     if isinstance(node, d20.UnOp):
-        return _is_only_dice_modifiers_and_additions(node.children[0])
+        return _is_only_dice_modifiers_and_additions(node.children[0])  # type: ignore
     if isinstance(node, d20.BinOp):
         return (
-            node.op in ["+", "-"]
-            and _is_only_dice_modifiers_and_additions(node.left)
-            and _is_only_dice_modifiers_and_additions(node.right)
+            node.op in ["+", "-"]  # type: ignore
+            and _is_only_dice_modifiers_and_additions(node.left)  # type: ignore
+            and _is_only_dice_modifiers_and_additions(node.right)  # type: ignore
         )
     if isinstance(node, d20.Expression):
-        return _is_only_dice_modifiers_and_additions(node.roll)
+        return _is_only_dice_modifiers_and_additions(node.roll)  # type: ignore
 
     raise NotImplementedError(f"Unsupported type '{type(node)}'")
 
@@ -90,17 +92,17 @@ def _extract_dice(node: d20.Number | None) -> list[d20.Dice | d20.Die]:
     if node is None:
         return []
     if isinstance(node, d20.Die) or isinstance(node, d20.Dice):
-        return node.keptset
+        return node.keptset  # type: ignore
     if isinstance(node, d20.Literal):
         return []
     if isinstance(node, d20.Parenthetical):
-        return _extract_dice(node.children[0])
+        return _extract_dice(node.children[0])  # type: ignore
     if isinstance(node, d20.UnOp):
-        return _extract_dice(node.children[0])
+        return _extract_dice(node.children[0])  # type: ignore
     if isinstance(node, d20.BinOp):
-        return _extract_dice(node.left) + _extract_dice(node.right)
+        return _extract_dice(node.left) + _extract_dice(node.right)  # type: ignore
     if isinstance(node, d20.Expression):
-        return _extract_dice(node.roll)
+        return _extract_dice(node.roll)  # type: ignore
 
     raise NotImplementedError(f"Unsupported type '{type(node)}'")
 
@@ -109,11 +111,11 @@ def _contains_dice(node: d20.Number) -> bool:
     return len(_extract_dice(node)) > 0
 
 
-def _is_d20(dice: d20.Die | d20.Dice) -> bool:
+def _is_d20(dice: d20.Die | d20.Dice | Any) -> bool:
     if isinstance(dice, d20.Die):
-        return dice.size == 20
+        return dice.size == 20  # type: ignore
     if isinstance(dice, d20.Dice):
-        return dice.num == 1 and dice.size == 20
+        return dice.num == 1 and dice.size == 20  # type: ignore
     return False
 
 

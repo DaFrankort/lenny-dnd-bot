@@ -8,7 +8,7 @@ class RelativeTimestampEmbed(SimpleEmbed):
         super().__init__(title=timestamp, description=f"```{timestamp}```")
 
 
-class TimestampButton(discord.ui.Button):
+class TimestampButton(discord.ui.Button["TimestampDatesContainerView"]):
     timestamp: str
 
     def __init__(self, timestamp: str):
@@ -22,7 +22,7 @@ class TimestampButton(discord.ui.Button):
 class TimestampDatesContainerView(discord.ui.LayoutView):
     def __init__(self, unix_timestamp: int):
         super().__init__(timeout=None)
-        container = discord.ui.Container(accent_color=discord.Color.dark_green())
+        container = discord.ui.Container[TimestampDatesContainerView](accent_color=discord.Color.dark_green())
 
         title = f"Timestamps for <t:{unix_timestamp}:f>"
         container.add_item(TitleTextDisplay(name=title))

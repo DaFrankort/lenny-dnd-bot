@@ -1,9 +1,7 @@
 from profile import Profile
-from discord import Color, Interaction, ui
-from components.items import SimpleSeparator
+from discord import Interaction
 from embed import SimpleEmbed
 from logic.color import UserColor
-from logic.profile import ProfileList
 
 
 class ProfileEmbed(SimpleEmbed):

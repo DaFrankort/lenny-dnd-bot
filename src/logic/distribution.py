@@ -1,7 +1,7 @@
 import dataclasses
 import io
 import math
-import d20 # type: ignore # Ignore missing stubs
+import d20  # type: ignore # Ignore missing stubs
 import d20distribution  # type: ignore
 from d20distribution.distribution import DiceDistribution  # type: ignore
 import discord

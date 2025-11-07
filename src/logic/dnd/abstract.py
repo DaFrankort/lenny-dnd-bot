@@ -6,7 +6,6 @@ from typing import Any, Generic, Iterable, Literal, TypeVar, TypedDict, Union
 import discord
 from rapidfuzz import fuzz
 import io
-from typing import Iterable, TypeVar
 import rich
 import rich.box
 from rich.table import Table

@@ -5,6 +5,8 @@ from command import SimpleCommand, SimpleCommandGroup
 from logic.homebrew import HomebrewEntryType, HomebrewData
 from discord.app_commands import describe, choices, autocomplete
 
+from methods import MDFile
+
 
 class HomebrewCommandGroup(SimpleCommandGroup):
     name = "homebrew"
@@ -28,12 +30,13 @@ class HomebrewAddCommand(SimpleCommand):
     @choices(type=HomebrewEntryType.choices())
     @describe(type="The type of entry you are adding.")
     async def callback(  # pyright: ignore[reportIncompatibleMethodOverride]
-        self,
-        itr: discord.Interaction,
-        type: HomebrewEntryType,
+        self, itr: discord.Interaction, type: HomebrewEntryType, md_file: discord.Attachment | None = None
     ):
         self.log(itr)
-        modal = HomebrewEntryAddModal(itr, type)
+        md_data = None
+        if md_file:
+            md_data = await MDFile.from_attachment(md_file)
+        modal = HomebrewEntryAddModal(itr, type, md_data)
         await itr.response.send_modal(modal)
 
 

@@ -51,5 +51,8 @@ class SimpleModal(Modal):
             if user_input.startswith(key.lower()):
                 choice = choice_value
                 break
-
         return choice
+
+    def format_placeholder(self, text: str) -> str:
+        """Cuts off a string to stay within an embed's 100 character-limit for placeholders."""
+        return text[:97] + "..." if len(text) > 97 else text

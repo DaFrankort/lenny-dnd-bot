@@ -1,3 +1,4 @@
+import dataclasses
 from enum import Enum
 import logging
 from typing import TypeVar, Any
@@ -35,3 +36,21 @@ class ChoicedEnum(Enum):
     @classmethod
     def values(cls) -> list[Any]:
         return [e.value for e in cls]
+
+
+@dataclasses.dataclass
+class MDFile:
+    title: str
+    content: str
+
+    @classmethod
+    async def from_attachment(cls, file: discord.Attachment):
+        if not file.content_type:
+            raise ValueError("Attached file has unknown filetype.")
+        if "text/markdown" not in file.content_type:
+            raise ValueError("Attached file must be a .md file.")
+
+        file_bytes = await file.read()
+        title = file.filename.replace(".md", "").replace("_", " ")
+        content = file_bytes.decode("utf-8")
+        return cls(title, content)

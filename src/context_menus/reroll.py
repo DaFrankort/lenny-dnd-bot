@@ -38,7 +38,7 @@ class RerollContextMenu(SimpleContextMenu):
             if "- `" in line:
                 amount += 1
 
-        result = multi_roll(dice_notation, amount)  # TODO GET AMOUNT
+        result = multi_roll(dice_notation, amount)
         embed = MultiRollEmbed(interaction, result, reason, reroll=True)
         DiceCache.store_expression(interaction, dice_notation)
 

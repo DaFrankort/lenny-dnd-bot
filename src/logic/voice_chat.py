@@ -239,7 +239,7 @@ class Sounds:
             folder.mkdir(parents=True, exist_ok=True)
 
         supported_extensions = ["*.mp3", "*.ogg", "*.wav"]
-        sound_files = []
+        sound_files: list[Path] = []
         for ext in supported_extensions:
             sound_files.extend(folder.glob(ext))
 

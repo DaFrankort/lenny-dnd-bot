@@ -1,10 +1,10 @@
 import discord
 
 from dice import DiceCache
-from embeds.roll import RollEmbed
+from embeds.roll import MultiRollEmbed, RollEmbed
 from command import SimpleCommand
 from logic.roll import Advantage, multi_roll, roll
-from logic.voice_chat import VC
+from logic.voice_chat import VC, SoundType
 from discord.app_commands import describe, autocomplete
 
 
@@ -98,14 +98,14 @@ class MultiRollCommand(SimpleCommand):
         self,
         itr: discord.Interaction,
         diceroll: str,
-        amount: discord.app_commands.Range[int, 1, 16],
+        amount: discord.app_commands.Range[int, 1, 32],
         reason: str | None = None,
     ):
         self.log(itr)
         result = multi_roll(diceroll, amount)
         DiceCache.store_expression(itr, result.expression)
         DiceCache.store_reason(itr, reason)
-        embed = RollEmbed(itr, result, reason)
+        embed = MultiRollEmbed(itr, result, reason)
 
         await itr.response.send_message(embed=embed)
-        await VC.play_dice_roll(itr, result, reason)
+        await VC.play(itr, SoundType.ROLL)

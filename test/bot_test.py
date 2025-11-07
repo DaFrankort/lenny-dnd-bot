@@ -94,6 +94,14 @@ class TestBotCommands:
                     "reason": [None, "Fire"],
                 },
             ),
+            (
+                "multiroll",
+                {
+                    "diceroll": ["1d20+6", "4d8kh3", "1d8ro1"],
+                    "amount": [1, 3],
+                    "reason": [None, "Attack"],
+                },
+            ),
             ("search spell", {"name": ["Fire Bolt", "abcdef"]}),
             ("search item", {"name": ["Sword", "abcdef"]}),
             ("search condition", {"name": ["Poisoned", "abcdef"]}),

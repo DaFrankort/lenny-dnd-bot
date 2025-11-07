@@ -29,7 +29,7 @@ class DNDTableEntryView(discord.ui.LayoutView):
         super().__init__(timeout=None)
 
         color = UserColor.get(itr)
-        container = ui.Container(accent_color=color)
+        container = ui.Container[DNDTableEntryView](accent_color=color)
 
         title_display = TitleTextDisplay(
             name=f"{table.name} - Rolled {result.roll.total}!",
@@ -37,7 +37,7 @@ class DNDTableEntryView(discord.ui.LayoutView):
         )
         reroll_button = DNDTableRollButton(table)
         reroll_button.label = "Re-roll"
-        title_section = ui.Section(title_display, accessory=reroll_button)
+        title_section = ui.Section[DNDTableEntryView](title_display, accessory=reroll_button)
 
         console_table = Table(box=rich.box.ROUNDED)
 
@@ -52,7 +52,7 @@ class DNDTableEntryView(discord.ui.LayoutView):
         description = f"```{buffer.getvalue()}```"
         buffer.close()
 
-        text_display = ui.TextDisplay(description)
+        text_display = ui.TextDisplay[DNDTableEntryView](description)
 
         container.add_item(title_section)
         container.add_item(text_display)
@@ -60,7 +60,7 @@ class DNDTableEntryView(discord.ui.LayoutView):
         self.add_item(container)
 
 
-class DNDTableRollButton(ui.Button):
+class DNDTableRollButton(ui.Button[DNDTableEntryView]):
     def __init__(self, table: DNDTable):
         super().__init__(style=discord.ButtonStyle.primary, label="Roll", custom_id="roll_btn")
         self.table = table
@@ -126,7 +126,7 @@ class DNDTableContainerView(PaginatedLayoutView):
 
     def build(self) -> None:
         self.clear_items()
-        container = ui.Container(accent_color=discord.Color.dark_green())
+        container = ui.Container[DNDTableContainerView](accent_color=discord.Color.dark_green())
 
         title_display = TitleTextDisplay(name=self.table.name, source=self.table.source, url=self.table.url)
         if self.table.is_rollable:
@@ -136,7 +136,7 @@ class DNDTableContainerView(PaginatedLayoutView):
             container.add_item(title_display)
 
         table_string = self.tables[self.page]
-        table_display = ui.TextDisplay(table_string)
+        table_display = ui.TextDisplay[DNDTableContainerView](table_string)
         container.add_item(table_display)
 
         if self.table.footnotes:

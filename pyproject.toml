@@ -4,4 +4,4 @@ line-length = 128
 [tool.pyright]
 include = ["src", "test"]
 exclude = ["**/__pycache__"]
-typeCheckingMode = "standard"
+typeCheckingMode = "strict"

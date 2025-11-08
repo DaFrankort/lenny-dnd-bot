@@ -195,7 +195,7 @@ def generate_token_variants(
     filename_seed: discord.Attachment | str,
     amount: int,
 ) -> list[discord.File]:
-    files = []
+    files: list[discord.File] = []
     for i in range(amount):
         id = i + 1
         labeled_image = add_number_to_tokenimage(token_image=token_image, number=id, amount=amount)

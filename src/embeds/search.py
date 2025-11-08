@@ -70,17 +70,13 @@ def get_dnd_embed(itr: discord.Interaction, dnd_entry: DNDEntry):
             return DNDObjectEmbed(dnd_entry)
         case Hazard():
             return HazardEmbed(dnd_entry)
-    logging.error(f"Could not find embed for class {dnd_entry.__class__.__name__}")
-    return None
+        case _:
+            raise LookupError(f"D&D entry '{type(DNDEntry).__name__}' not supported")
 
 
 async def send_dnd_embed(itr: discord.Interaction, dnd_entry: DNDEntry):
     await itr.response.defer(thinking=False)
     embed = get_dnd_embed(itr, dnd_entry)
-    if embed is None:
-        await itr.followup.send(f"Could not create an embed for {dnd_entry.name}...")
-        return
-
     file = embed.file or discord.interactions.MISSING
 
     if isinstance(embed, discord.ui.LayoutView):
@@ -91,7 +87,7 @@ async def send_dnd_embed(itr: discord.Interaction, dnd_entry: DNDEntry):
     await itr.followup.send(embed=embed, view=view, file=file)
 
 
-class SearchSelectButton(ui.Button):
+class SearchSelectButton(ui.Button["SearchLayoutView"]):
     entry: DNDEntry
 
     def __init__(self, entry: DNDEntry):
@@ -108,7 +104,7 @@ class SearchSelectButton(ui.Button):
 class SearchLayoutView(PaginatedLayoutView):
     results: DNDSearchResults
 
-    container: ui.Container
+    container: ui.Container["SearchLayoutView"]
     title_item: TitleTextDisplay
 
     def __init__(self, query: str, results: DNDSearchResults):
@@ -134,7 +130,7 @@ class SearchLayoutView(PaginatedLayoutView):
 
     def build(self):
         self.clear_items()
-        container = ui.Container(accent_color=discord.Color.dark_green())
+        container = ui.Container[SearchLayoutView](accent_color=discord.Color.dark_green())
 
         # HEADER
         container.add_item(self.title_item)
@@ -152,7 +148,7 @@ class SearchLayoutView(PaginatedLayoutView):
         self.add_item(container)
 
 
-class MultiDNDSelect(discord.ui.Select):
+class MultiDNDSelect(discord.ui.Select["MultiDNDSelectView"]):
     name: str
     query: str
     entries: Sequence[DNDEntry]
@@ -162,7 +158,7 @@ class MultiDNDSelect(discord.ui.Select):
         self.query = query
         self.entries = entries
 
-        options = []
+        options: list[discord.SelectOption] = []
         for entry in entries:
             options.append(self.select_option(entry))
 

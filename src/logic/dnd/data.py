@@ -1,3 +1,4 @@
+from typing import Any, List
 from logic.dnd.abstract import DNDEntry
 from logic.dnd.action import Action, ActionList
 from logic.dnd.background import Background, BackgroundList
@@ -79,7 +80,7 @@ class DNDData(object):
         self,
         query: str,
         allowed_sources: set[str],
-        threshold=75.0,
+        threshold: float = 75.0,
     ) -> "DNDSearchResults":
         query = query.strip().lower()
         results = DNDSearchResults()
@@ -111,7 +112,7 @@ class DNDSearchResults(object):
     vehicles: list[Vehicle]
     objects: list[DNDObject]
     hazards: list[Hazard]
-    _type_map: dict[type, list]
+    _type_map: dict[type, List[Any]]
 
     def __init__(self):
         self.spells = []
@@ -148,14 +149,14 @@ class DNDSearchResults(object):
             Hazard: self.hazards,
         }
 
-    def add(self, entry):
+    def add(self, entry: DNDEntry) -> None:
         for entry_type, result_list in self._type_map.items():
             if isinstance(entry, entry_type):
                 result_list.append(entry)
                 return
 
     def get_all(self) -> list[DNDEntry]:
-        all_entries = []
+        all_entries: list[DNDEntry] = []
         for entries in self._type_map.values():
             all_entries.extend(entries)
         return all_entries

@@ -1,10 +1,10 @@
 import discord
 from command import SimpleCommand, SimpleCommandGroup, SimpleContextMenu
 from logic.help import HelpSelectOption, HelpTab, HelpTabs
-from discord.app_commands import Command, Group, CommandTree, Choice
+from discord.app_commands import Group, CommandTree, Choice
 
 
-class HelpSelect(discord.ui.Select):
+class HelpSelect(discord.ui.Select["HelpSelectView"]):
     def __init__(self, embed: "HelpEmbed", options: list[HelpSelectOption]):
         self.embed = embed
         self.option_choices = [discord.SelectOption(value=option.value, label=option.label) for option in options]
@@ -45,33 +45,39 @@ class HelpEmbed(discord.Embed):
         found_tab = HelpTabs.find(tab)
         self.load_tab(found_tab)
 
-    def _get_command_desc_line(self, cmd: SimpleCommand | SimpleCommandGroup | Command | Group) -> str:
+    @classmethod
+    def _get_commands(cls, group: Group) -> list[SimpleCommand | SimpleCommandGroup]:
+        commands: list[SimpleCommand | SimpleCommandGroup] = []
+        for command in group.commands:
+            if isinstance(command, (SimpleCommand, SimpleCommandGroup)):
+                commands.append(command)
+        return commands
+
+    def _get_command_desc_line(self, cmd: SimpleCommand | SimpleCommandGroup) -> str:
         if isinstance(cmd, SimpleCommand):
             command_comm = cmd.command
             command_help = cmd.help
             return f"``{command_comm}``\n{command_help}\n"
 
-        if isinstance(cmd, SimpleCommandGroup):
-            group_desc = []
-            commands = cmd.commands
+        # SimpleCommandGroup
+        else:
+            group_desc: list[str] = []
+            commands = self._get_commands(cmd)
             for group_cmd in commands:
                 desc = self._get_command_desc_line(group_cmd)
                 group_desc.append(desc)
 
             return "\n".join(group_desc)
 
-        raise NotImplementedError(f"app_command type '{type(cmd)}' not implemented in _get_command_desc_line!")
+    def _iterate_commands(self, cmd: SimpleCommand | SimpleCommandGroup) -> list[str]:
+        commands: list[str] = []
 
-    def _iterate_commands(self, cmd_or_grp: Command | Group) -> list[str]:
-        commands = []
-
-        if isinstance(cmd_or_grp, Command):
-            commands.append(cmd_or_grp.qualified_name)
-        elif isinstance(cmd_or_grp, Group):
-            for sub_cmd in cmd_or_grp.commands:
-                commands.extend(self._iterate_commands(sub_cmd))
+        if isinstance(cmd, SimpleCommand):
+            commands.append(cmd.qualified_name)
+        # SimpleCommandGroup
         else:
-            raise NotImplementedError(f"app_command type '{type(cmd_or_grp)}' not implemented in _get_tab_commands_list!")
+            for sub_cmd in self._get_commands(cmd):
+                commands.extend(self._iterate_commands(sub_cmd))
         return commands
 
     def load_tab(self, tab: HelpTab):
@@ -82,7 +88,7 @@ class HelpEmbed(discord.Embed):
 
         # List all commands
         commands = tab.commands
-        commands_desc = []
+        commands_desc: list[str] = []
 
         if tab.text is not None:
             commands_desc.append(tab.text + "\n")
@@ -105,13 +111,14 @@ class HelpEmbed(discord.Embed):
         # If on overview tab, list all commands, grouped by category
         if tab.tab == "overview":
             tabs = [tab for tab in HelpTabs.tabs if tab.tab not in ["overview", "context"]]
-            tabs_commands = []
+            tabs_commands: list[tuple[str, list[str]]] = []
             for tab in tabs:
-                tab_commands = []
+                tab_commands: list[str] = []
                 for cmd in tab.commands:
-                    cmd_or_grp = self.tree.get_command(cmd)
-                    if cmd_or_grp is not None:
-                        tab_commands.extend(self._iterate_commands(cmd_or_grp))
+                    cmd = self.tree.get_command(cmd)
+                    # Only handle SimpleCommand and SimpleCommandGroup, any other commands are ill-formed
+                    if cmd is not None and isinstance(cmd, (SimpleCommand, SimpleCommandGroup)):
+                        tab_commands.extend(self._iterate_commands(cmd))
 
                 cmds = [f"- ``/{command}``" for command in tab_commands]
                 tabs_commands.append((tab.name, cmds))
@@ -152,8 +159,8 @@ class HelpEmbed(discord.Embed):
                 self.add_field(name="User contexts", value="\n".join(user_contexts))
 
     @staticmethod
-    def get_tab_choices() -> list[Choice]:
-        choices: list[Choice] = []
+    def get_tab_choices() -> list[Choice[str]]:
+        choices: list[Choice[str]] = []
         for tab in HelpTabs.tabs:
             name = tab.name
             choices.append(Choice(name=name, value=tab.tab))

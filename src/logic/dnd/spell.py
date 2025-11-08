@@ -1,3 +1,4 @@
+from typing import Any
 from logic.dnd.abstract import DNDEntry, DNDEntryList, Description
 
 
@@ -11,9 +12,9 @@ class Spell(DNDEntry):
     components: str
     duration: str
     description: list[Description]
-    classes: list
+    classes: list[Any]
 
-    def __init__(self, json: dict):
+    def __init__(self, json: dict[str, Any]):
         self.entry_type = "spell"
         self.emoji = "🔥"
 
@@ -39,7 +40,7 @@ class Spell(DNDEntry):
         return str(self)
 
     def get_formatted_classes(self, allowed_sources: set[str]):
-        classes = set()
+        classes: set[str] = set()
         for class_ in self.classes:
             if class_["source"] not in allowed_sources:
                 continue

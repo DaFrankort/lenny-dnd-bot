@@ -133,6 +133,8 @@ class VC:
                 sound_type = SoundType.DAMAGE
             case "fire":
                 sound_type = SoundType.FIRE
+            case _:
+                ...
 
         if roll.is_natural_twenty:
             sound_type = SoundType.NAT_20
@@ -236,7 +238,7 @@ class Sounds:
             folder.mkdir(parents=True, exist_ok=True)
 
         supported_extensions = ["*.mp3", "*.ogg", "*.wav"]
-        sound_files = []
+        sound_files: list[Path] = []
         for ext in supported_extensions:
             sound_files.extend(folder.glob(ext))
 

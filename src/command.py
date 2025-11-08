@@ -1,4 +1,5 @@
 import logging
+from typing import Any
 import discord
 from abc import abstractmethod
 from embed import SimpleEmbed
@@ -41,7 +42,7 @@ class SimpleCommandGroup(discord.app_commands.Group):
         super().__init__(name=self.name, description=self.desc)
 
 
-class SimpleCommand(discord.app_commands.Command):
+class SimpleCommand(discord.app_commands.Command[SimpleCommandGroup, Any, None]):
     name: str = ""
     desc: str = ""
     help: str = ""
@@ -54,12 +55,12 @@ class SimpleCommand(discord.app_commands.Command):
         if not self.help:
             raise NotImplementedError(f"'help' not defined in {type(self)}")
 
-        super().__init__(name=self.name, description=self.desc, callback=self.callback)
+        super().__init__(name=self.name, description=self.desc, callback=self.callback)  # type: ignore
         self.on_error = self.error_handler
 
     @property
     def command(self) -> str:
-        args = []
+        args: list[str] = []
         for param in self.parameters:
             arg = param.name
             arg = f"<{arg}>" if param.required else f"[{arg}]"
@@ -85,7 +86,7 @@ class SimpleCommand(discord.app_commands.Command):
 
     async def error_handler(
         self,
-        _,
+        _: Any,
         itr: discord.Interaction,
         error: discord.app_commands.AppCommandError,
     ):

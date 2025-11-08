@@ -1,9 +1,8 @@
-from discord import ui
 import discord
 from methods import when
 
 
-class TitleTextDisplay(ui.TextDisplay):
+class TitleTextDisplay(discord.ui.TextDisplay[discord.ui.LayoutView]):
     """A TextDisplay which is formatted as a title, with optional source and URL."""
 
     def __init__(self, name: str, source: str | None = None, url: str | None = None, id: int | None = None):
@@ -13,8 +12,8 @@ class TitleTextDisplay(ui.TextDisplay):
         super().__init__(content=title, id=id)
 
 
-class SimpleSeparator(ui.Separator):
-    def __init__(self, is_large=False):
+class SimpleSeparator(discord.ui.Separator[discord.ui.LayoutView]):
+    def __init__(self, is_large: bool = False):
         if is_large:
             super().__init__(spacing=discord.SeparatorSpacing.large)
         else:

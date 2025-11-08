@@ -1,3 +1,4 @@
+from typing import Iterable
 import discord
 from discord import ui
 from logic.charts import get_radar_chart
@@ -9,7 +10,7 @@ from logic.dnd.name import Gender
 from logic.color import UserColor
 
 
-class _CharacterGenInfoButton(ui.Button):
+class _CharacterGenInfoButton(ui.Button["CharacterGenContainerView"]):
     def __init__(self, entry: DNDEntry, emoji: str):
         style = discord.ButtonStyle.url
         super().__init__(style=style, label=entry.name, emoji=emoji, url=entry.url)
@@ -25,7 +26,7 @@ class CharacterGenContainerView(ui.LayoutView):
         boosted_stats: list[tuple[int, str]],
     ):
         headers = ["Ability", "Score", "Mod"]
-        rows = []
+        rows: list[Iterable[str]] = []
         for stat, boosted in zip(stats, boosted_stats):
             base_value, name = stat
             boosted_value, _ = boosted
@@ -49,10 +50,10 @@ class CharacterGenContainerView(ui.LayoutView):
     def __init__(self, result: CharacterGenResult):
         super().__init__(timeout=None)
         color = discord.Color(UserColor.generate(result.name))
-        container = ui.Container(accent_color=color)
+        container = ui.Container[CharacterGenContainerView](accent_color=color)
         container.add_item(TitleTextDisplay(result.name))
 
-        btn_row = ui.ActionRow()
+        btn_row = ui.ActionRow[CharacterGenContainerView]()
         species_emoji = "🧝‍♀️" if result.gender is Gender.FEMALE else "🧝‍♂️"
         btn_row.add_item(_CharacterGenInfoButton(result.species, species_emoji))
         class_emoji = "🧙‍♀️" if result.gender is Gender.FEMALE else "🧙‍♂️"
@@ -73,8 +74,8 @@ class CharacterGenContainerView(ui.LayoutView):
         labels = [stat[1] for stat in result.stats]
         boosts = [stat[0] for stat in result.boosted_stats]
         self.chart = get_radar_chart(values=values, labels=labels, boosts=boosts, color=color.value)
-        ability_image = ui.Thumbnail(media=self.chart)
-        ability_section = ui.Section(ability_desc, accessory=ability_image)
+        ability_image = ui.Thumbnail[CharacterGenContainerView](media=self.chart)
+        ability_section = ui.Section[CharacterGenContainerView](ability_desc, accessory=ability_image)
         container.add_item(ability_section)
 
         self.add_item(container)

@@ -25,26 +25,26 @@ class RollEmbed(UserActionEmbed):
         if reason is None:
             reason = "Result"
 
-        description = []
+        descriptions: list[str] = []
 
         if not result.roll.contains_dice:
-            description.append("⚠️ Expression contains no dice. ⚠️")
+            descriptions.append("⚠️ Expression contains no dice. ⚠️")
 
         for roll in result.rolls:
-            description.append(f"- `{roll.expression} -> {roll.total}`")
+            descriptions.append(f"- `{roll.expression} -> {roll.total}`")
 
         roll = result.roll
-        description.append("")
-        description.append(f"🎲 **{reason}: {roll.total}**")
+        descriptions.append("")
+        descriptions.append(f"🎲 **{reason}: {roll.total}**")
 
         if roll.is_natural_twenty:
-            description.append("🎯 **Critical Hit!**")
+            descriptions.append("🎯 **Critical Hit!**")
         if roll.is_natural_one:
-            description.append("💀 **Critical Fail!**")
+            descriptions.append("💀 **Critical Fail!**")
         if roll.is_dirty_twenty:
-            description.append("⚔️  **Dirty 20!**")
+            descriptions.append("⚔️  **Dirty 20!**")
 
-        description = "\n".join(description)
+        description = "\n".join(descriptions)
         if len(description) > 1024:
             description = "⚠️ Message too long, try sending a shorter expression!"
 
@@ -67,9 +67,9 @@ class MultiRollEmbed(UserActionEmbed):
         if reason is None:
             reason = "Total"
 
-        description = []
+        descriptions: list[str] = []
         if not result.rolls[0].contains_dice:
-            description.append("⚠️ Expression contains no dice. ⚠️")
+            descriptions.append("⚠️ Expression contains no dice. ⚠️")
 
         for roll in result.rolls:
             roll_message = f"- `{roll.expression} -> {roll.total}`"
@@ -79,13 +79,13 @@ class MultiRollEmbed(UserActionEmbed):
                 roll_message += " 💀"
             elif roll.is_dirty_twenty:
                 roll_message += " ⚔️"
-            description.append(roll_message)
+            descriptions.append(roll_message)
 
-        description.append("")
-        description.append(f"🎲 **{reason}: {result.total}**")
+        descriptions.append("")
+        descriptions.append(f"🎲 **{reason}: {result.total}**")
 
-        description = "\n".join(description)
-        if len(description) > 1024:
+        description = "\n".join(descriptions)
+        if len(descriptions) > 1024:
             description = "⚠️ Message too long, try sending a shorter expression!"
 
         super().__init__(itr, title, description)

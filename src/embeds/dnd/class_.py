@@ -1,21 +1,20 @@
-from typing import Callable
 import discord
 from embeds.dnd.abstract import HORIZONTAL_LINE, DNDEntryEmbed
 from logic.config import is_source_phb2014
 from logic.dnd.class_ import Class
 
 
-class MultiClassSubclassSelect(discord.ui.Select):
+class MultiClassSubclassSelect(discord.ui.Select["ClassNavigationView"]):
     """Select component to provide a Subclass-dropdown under a ClassEmbed"""
 
     def __init__(
         self,
         character_class: Class,
-        get_level: Callable,
+        level: int,
         subclass: str | None,
         parent_view: "ClassNavigationView",
     ):
-        options = []
+        options: list[discord.SelectOption] = []
         for subclass_name in character_class.subclass_level_features.keys():
             if is_source_phb2014(character_class.source) and subclass_name.endswith("(PHB)"):
                 continue  # Only show PHB subclasses for PHB classes
@@ -26,28 +25,27 @@ class MultiClassSubclassSelect(discord.ui.Select):
         super().__init__(placeholder="Select Subclass", min_values=1, max_values=1, options=options)
 
         self.character_class = character_class
-        self.get_level = get_level
+        self.level = level
         self.parent_view = parent_view
 
     async def callback(self, interaction: discord.Interaction):
         subclass = self.values[0]
         self.parent_view.subclass = subclass
-        level = self.get_level()
-        embed = ClassEmbed(self.character_class, level, subclass)
+        embed = ClassEmbed(self.character_class, self.level, subclass)
         await interaction.response.edit_message(embed=embed, view=embed.view)
 
 
-class MultiClassPageSelect(discord.ui.Select):
+class MultiClassPageSelect(discord.ui.Select["ClassNavigationView"]):
     """Select component to quickly navigate between class-pages (base info or level info)"""
 
     def __init__(
         self,
         character_class: Class,
-        get_subclass: Callable,
+        subclass: str | None,
         page: int,
         parent_view: "ClassNavigationView",
     ):
-        options = []
+        options: list[discord.SelectOption] = []
         core_label = "Core Info" if page != 0 else "Core Info [Current]"
         options.append(discord.SelectOption(label=core_label, value="0"))
         for level in character_class.level_resources.keys():
@@ -57,14 +55,13 @@ class MultiClassPageSelect(discord.ui.Select):
         super().__init__(placeholder="Select Level", min_values=1, max_values=1, options=options)
 
         self.character_class = character_class
-        self.get_subclass = get_subclass
+        self.subclass = subclass
         self.parent_view = parent_view
 
     async def callback(self, interaction: discord.Interaction):
         level = int(self.values[0])
         self.parent_view.level = level
-        subclass = self.get_subclass()
-        embed = ClassEmbed(self.character_class, level, subclass)
+        embed = ClassEmbed(self.character_class, level, self.subclass)
         await interaction.response.edit_message(embed=embed, view=embed.view)
 
 
@@ -80,9 +77,9 @@ class ClassNavigationView(discord.ui.View):
         self.subclass = subclass
 
         if character_class.level_resources:
-            self.add_item(MultiClassPageSelect(self.character_class, lambda: self.subclass, self.level, self))
+            self.add_item(MultiClassPageSelect(self.character_class, self.subclass, self.level, self))
         if character_class.subclass_level_features:
-            self.add_item(MultiClassSubclassSelect(self.character_class, lambda: self.level, self.subclass, self))
+            self.add_item(MultiClassSubclassSelect(self.character_class, self.level, self.subclass, self))
 
 
 class ClassEmbed(DNDEntryEmbed):

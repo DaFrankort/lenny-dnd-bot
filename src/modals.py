@@ -51,5 +51,10 @@ class SimpleModal(Modal):
             if user_input.startswith(key.lower()):
                 choice = choice_value
                 break
-
         return choice
+
+    def format_placeholder(self, text: str, length: int = 100) -> str:
+        """Cuts off a string to stay within a modal's 100 character-limit for placeholders."""
+        cutoff_str: str = "..."
+        length = length - len(cutoff_str)
+        return text[:length] + cutoff_str if len(text) > length else text

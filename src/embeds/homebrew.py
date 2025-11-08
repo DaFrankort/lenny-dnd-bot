@@ -3,6 +3,7 @@ from discord import ui
 from components.items import SimpleSeparator, TitleTextDisplay
 from components.paginated_view import PaginatedLayoutView
 from logic.homebrew import HomebrewEntry, HomebrewData, HomebrewEntryType
+from methods import MDFile
 from modals import SimpleModal
 
 
@@ -42,7 +43,16 @@ class HomebrewEntryAddModal(SimpleModal):
         style=discord.TextStyle.paragraph,
     )
 
-    def __init__(self, itr: discord.Interaction, dnd_type: HomebrewEntryType):
+    def __init__(self, itr: discord.Interaction, dnd_type: HomebrewEntryType, md_file: MDFile | None):
+        if md_file:
+            if len(md_file.content) > 4000:
+                raise ValueError(
+                    "Markdown file's content exceeds exceeds character-limit!\nPlease use a file with less than 4000 characters."
+                )
+            self.name.default = md_file.title
+            self.name.placeholder = self.format_placeholder(md_file.title)
+            self.description.default = md_file.content
+            self.description.placeholder = self.format_placeholder(md_file.content)
         self.type = dnd_type
         super().__init__(itr=itr, title=f"Add new {dnd_type.title()}")
 
@@ -75,7 +85,7 @@ class HomebrewEditModal(SimpleModal):
         self.subtitle.default = entry.select_description or ""
         self.subtitle.placeholder = entry.select_description or "Subtitle"
         self.description.default = entry.description
-        self.description.placeholder = entry.description[:97] + "..." if len(entry.description) > 97 else entry.description
+        self.description.placeholder = self.format_placeholder(entry.description)
         super().__init__(itr=itr, title=f"Edit {entry.entry_type.value}: {entry.name}")
 
     async def on_submit(self, itr: discord.Interaction):

@@ -1,6 +1,6 @@
 import logging
 import discord
-from logic.dnd.abstract import DNDEntry, Description, build_table
+from logic.dnd.abstract import DNDEntry, Description, DescriptionTable, build_table
 
 HORIZONTAL_LINE = "~~-------------------------------------------------------------------------------------~~"
 
@@ -44,7 +44,7 @@ class DNDEntryEmbed(discord.Embed):
 
         return char_count
 
-    def build_table(self, value, CHAR_FIELD_LIMIT=1024):
+    def build_table(self, value: str | DescriptionTable, CHAR_FIELD_LIMIT: int = 1024):
         """Turns a Description with headers & rows into a clean table using rich."""
         table_string = build_table(value)
 
@@ -55,10 +55,10 @@ class DNDEntryEmbed(discord.Embed):
     def add_description_fields(
         self,
         descriptions: list[Description],
-        ignore_tables=False,
-        CHAR_FIELD_LIMIT=1024,
-        CHAR_EMBED_LIMIT=6000,
-        MAX_FIELDS=25,
+        ignore_tables: bool = False,
+        char_field_limit: int = 1024,
+        char_embed_limit: int = 6000,
+        max_fields: int = 25,
     ):
         """
         Adds fields to the embed for each Description in the list.
@@ -75,14 +75,14 @@ class DNDEntryEmbed(discord.Embed):
         - Embed total size (including all fields, title, description, footer, etc.): 6000 characters
         """
 
-        CHAR_FIELD_LIMIT = min(CHAR_FIELD_LIMIT, 1024)
-        CHAR_EMBED_LIMIT = min(CHAR_EMBED_LIMIT, 6000)
-        MAX_FIELDS = min(MAX_FIELDS, 25)
+        char_field_limit = min(char_field_limit, 1024)
+        char_embed_limit = min(char_embed_limit, 6000)
+        max_fields = min(max_fields, 25)
 
         char_count = self.char_count
         for description in descriptions:
-            if (len(self.fields)) >= MAX_FIELDS:
-                logging.debug(f"{self._entry.entry_type.upper()} - Max field count reached! {len(self.fields)} >= {MAX_FIELDS}")
+            if (len(self.fields)) >= max_fields:
+                logging.debug(f"{self._entry.entry_type.upper()} - Max field count reached! {len(self.fields)} >= {max_fields}")
                 break
 
             name = description["name"]
@@ -92,19 +92,19 @@ class DNDEntryEmbed(discord.Embed):
             if type == "table":
                 if ignore_tables:
                     continue
-                value = self.build_table(value, CHAR_FIELD_LIMIT)
+                value = self.build_table(value, char_field_limit)
 
             field_length = len(name) + len(value)
-            if field_length >= CHAR_FIELD_LIMIT:
+            if field_length >= char_field_limit:
                 logging.debug(
-                    f"{self._entry.entry_type.upper()} - Field character limit reached! {field_length} >= {CHAR_FIELD_LIMIT}"
+                    f"{self._entry.entry_type.upper()} - Field character limit reached! {field_length} >= {char_field_limit}"
                 )
                 continue  # TODO split field to fit, possibly concatenate descriptions to make optimal use of field-limits
 
             char_count += field_length
-            if char_count >= CHAR_EMBED_LIMIT:
+            if char_count >= char_embed_limit:
                 logging.debug(
-                    f"{self._entry.entry_type.upper()} - Embed character limit reached! {char_count} >= {CHAR_EMBED_LIMIT}"
+                    f"{self._entry.entry_type.upper()} - Embed character limit reached! {char_count} >= {char_embed_limit}"
                 )
                 break  # TODO Cut description short and add a message
 

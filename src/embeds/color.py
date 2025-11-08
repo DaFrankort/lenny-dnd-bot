@@ -23,16 +23,16 @@ class ColorSetEmbed(UserActionEmbed):
         self.hex = hex
         self.file = get_palette_image(result.color)
 
-        description = []
+        descriptions: list[str] = []
         if self.hex:
-            description.append(f"``{UserColor.to_hex(result.old_color)}`` => ``#{UserColor.to_hex(result.color)}``")
+            descriptions.append(f"``{UserColor.to_hex(result.old_color)}`` => ``#{UserColor.to_hex(result.color)}``")
         else:
             ro, go, bo = UserColor.to_rgb(result.old_color)
             rn, gn, bn = UserColor.to_rgb(result.color)
-            description.append(f"R ``{ro:03}`` => ``{rn:03}``")
-            description.append(f"G ``{go:03}`` => ``{gn:03}``")
-            description.append(f"B ``{bo:03}`` => ``{bn:03}``")
-        description = "\n".join(description)
+            descriptions.append(f"R ``{ro:03}`` => ``{rn:03}``")
+            descriptions.append(f"G ``{go:03}`` => ``{gn:03}``")
+            descriptions.append(f"B ``{bo:03}`` => ``{bn:03}``")
+        description = "\n".join(descriptions)
 
         super().__init__(
             itr=itr,

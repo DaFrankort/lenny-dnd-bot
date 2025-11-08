@@ -55,32 +55,32 @@ class RadarChart:
             y_limit = max(y_limit, max(boosts))
             boosts = _repeat_first(boosts)
 
-        fig, ax = plt.subplots(subplot_kw=dict(polar=True))
+        fig, ax = plt.subplots(subplot_kw=dict(polar=True))  # type: ignore
         ax.set_theta_offset(np.pi)  # Start on the left        # type: ignore
         ax.set_theta_direction(-1)  # Shift one to the right   # type: ignore
         ax.set_ylim(0, y_limit)
-        ax.set_xticks(angles[:-1])
-        ax.set_xticklabels(labels)
-        ax.set_yticklabels([])  # Remove labels on the chart
-        ax.grid(color="white", alpha=0.3, linewidth=1)
-        ax.tick_params(colors="white")
+        ax.set_xticks(angles[:-1])  # type: ignore
+        ax.set_xticklabels(labels)  # type: ignore
+        ax.set_yticklabels([])  # type: ignore # Remove labels on the chart
+        ax.grid(color="white", alpha=0.3, linewidth=1)  # type: ignore
+        ax.tick_params(colors="white")  # type: ignore
         ax.spines["polar"].set_color("white")
 
         # Draw underlying boost lines
         if boosts is not None:
             boosted_rgb = (1.0, 1.0, 1.0)
-            ax.plot(angles, boosts, color=boosted_rgb, linewidth=1, linestyle="--")
-            ax.fill(angles, boosts, color=boosted_rgb, alpha=0.1)
+            ax.plot(angles, boosts, color=boosted_rgb, linewidth=1, linestyle="--")  # type: ignore
+            ax.fill(angles, boosts, color=boosted_rgb, alpha=0.1)  # type: ignore
 
         # Draw the overlapping lines
         r, g, b = discord.Color(self.color).to_rgb()
         color = (r / 255.0, g / 255.0, b / 255.0)
-        ax.plot(angles, values, color=color, linewidth=2)
-        ax.fill(angles, values, color=color, alpha=0.4)
+        ax.plot(angles, values, color=color, linewidth=2)  # type: ignore
+        ax.fill(angles, values, color=color, alpha=0.4)  # type: ignore
 
         # Save to memory
         buf = io.BytesIO()
-        plt.savefig(buf, format="png", bbox_inches="tight", transparent=True)
+        plt.savefig(buf, format="png", bbox_inches="tight", transparent=True)  # type: ignore
         buf.seek(0)
         plt.close(fig)
 

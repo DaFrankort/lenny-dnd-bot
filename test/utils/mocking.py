@@ -46,7 +46,8 @@ class MockGuild(discord.Guild):
         member = MockMember(MockUser(name), self, admin)
         self._add_member(member)
         for role in roles:
-            member._roles.add(role.id)
+            # Required for mocking, as adding members normally requires a HTTP request
+            member._roles.add(role.id)  # type: ignore
         return member
 
 

@@ -113,7 +113,7 @@ def _get_optimal_stats(char_class: Class) -> list[tuple[int, str]]:
     return character_stats
 
 
-def _apply_background_boosts(stats: list[tuple[int, str]], background: Background, char_class: Class):
+def _apply_background_boosts(stats: list[tuple[int, str]], background: Background, char_class: Class) -> list[tuple[int, str]]:
     bg_abilities = [f"{ability[:3].title()}." for ability in background.abilities]
     abilities = [(value, name) for value, name in stats if name in bg_abilities]
     abilities.sort(key=lambda x: x[0], reverse=True)
@@ -140,7 +140,7 @@ def _apply_background_boosts(stats: list[tuple[int, str]], background: Backgroun
             abilities[2],
         ]
 
-    new_stats = []
+    new_stats: list[tuple[int, str]] = []
     for val, name in stats:
         if name in bg_abilities:
             new_stats.append(next((v, n) for v, n in updated if n == name))

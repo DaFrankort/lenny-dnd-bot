@@ -4,11 +4,11 @@ from logic.roll import RollResult, roll
 
 
 class DNDTable(DNDEntry):
-    table: dict
+    table: dict[str, Any]
     dice_notation: str | None
     footnotes: list[str] | None
 
-    def __init__(self, json: dict):
+    def __init__(self, json: dict[str, Any]):
         self.entry_type = "table"
         self.emoji = "📊"
 

@@ -1,3 +1,4 @@
+from typing import Any
 from logic.dnd.abstract import DNDEntry, DNDEntryList, Description
 
 
@@ -8,7 +9,7 @@ class Item(DNDEntry):
     properties: list[str]
     description: list[Description]
 
-    def __init__(self, json: dict):
+    def __init__(self, json: dict[str, Any]):
         self.entry_type = "item"
         self.emoji = "🗡️"
 
@@ -23,7 +24,7 @@ class Item(DNDEntry):
 
     @property
     def formatted_value_weight(self) -> str | None:
-        value_weight = []
+        value_weight: list[str] = []
         if self.value is not None:
             value_weight.append(self.value)
         if self.weight is not None:

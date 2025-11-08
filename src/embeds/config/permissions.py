@@ -6,7 +6,7 @@ from components.paginated_view import PaginatedLayoutView
 from logic.config import Config
 
 
-class ConfigManagePermissionsButton(discord.ui.Button):
+class ConfigManagePermissionsButton(discord.ui.Button["ConfigPermissionsView"]):
     role: discord.Role | Literal["admin"]
     server: discord.Guild
     config: Config
@@ -57,7 +57,7 @@ class ConfigPermissionsView(PaginatedLayoutView):
 
     def build(self) -> None:
         self.clear_items()
-        container = discord.ui.Container(accent_color=discord.Color.dark_green())
+        container = discord.ui.Container[self](accent_color=discord.Color.dark_green())
 
         title = "# Manage Permissions"
         container.add_item(discord.ui.TextDisplay(title))
@@ -81,8 +81,7 @@ class ConfigPermissionsView(PaginatedLayoutView):
 
     @property
     def viewed_permissions(self) -> list[discord.Role | Literal["admin"]]:
-        roles = reversed(self.server.roles)  # Prioritize higher roles
-        roles = ["admin", *roles]
+        roles: list[discord.Role | Literal["admin"]] = ["admin", *reversed(self.server.roles)]  # Prioritize higher roles
 
         start = self.page * self.per_page
         end = (self.page + 1) * self.per_page

@@ -134,7 +134,7 @@ class VC:
             case "fire":
                 sound_type = SoundType.FIRE
             case _:
-                sound_type = SoundType.ROLL
+                ...
 
         if roll.is_natural_twenty:
             sound_type = SoundType.NAT_20

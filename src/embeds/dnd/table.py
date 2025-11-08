@@ -37,7 +37,7 @@ class DNDTableEntryView(discord.ui.LayoutView):
         )
         reroll_button = DNDTableRollButton(table)
         reroll_button.label = "Re-roll"
-        title_section = ui.Section[DNDTableEntryView](title_display, accessory=reroll_button)
+        title_section = ui.Section[discord.ui.LayoutView](title_display, accessory=reroll_button)
 
         console_table = Table(box=rich.box.ROUNDED)
 

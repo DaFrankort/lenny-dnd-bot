@@ -57,7 +57,7 @@ class ConfigPermissionsView(PaginatedLayoutView):
 
     def build(self) -> None:
         self.clear_items()
-        container = discord.ui.Container[self](accent_color=discord.Color.dark_green())
+        container = discord.ui.Container[ConfigPermissionsView](accent_color=discord.Color.dark_green())
 
         title = "# Manage Permissions"
         container.add_item(discord.ui.TextDisplay(title))

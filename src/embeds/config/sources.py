@@ -5,7 +5,7 @@ from logic.config import Config
 from logic.dnd.source import Source, SourceList
 
 
-class ConfigManageSourcesButton(discord.ui.Button):
+class ConfigManageSourcesButton(discord.ui.Button["ConfigSourcesView"]):
     source: Source
     server: discord.Guild
     config: Config
@@ -51,7 +51,7 @@ class ConfigSourcesView(PaginatedLayoutView):
 
     def build(self) -> None:
         self.clear_items()
-        container = discord.ui.Container(accent_color=discord.Color.dark_green())
+        container = discord.ui.Container[ConfigSourcesView](accent_color=discord.Color.dark_green())
 
         if self.allow_configuration:
             title = "# Manage sources"
@@ -64,9 +64,9 @@ class ConfigSourcesView(PaginatedLayoutView):
         sources = SourceList()
         sources = sorted(sources.entries, key=lambda s: s.name)
         for source in self.viewed_sources:
-            text = discord.ui.TextDisplay(source.name)
+            text = discord.ui.TextDisplay["ConfigSourcesView"](source.name)
             button = ConfigManageSourcesButton(self, source, self.server, self.allow_configuration)
-            container.add_item(discord.ui.Section(text, accessory=button))
+            container.add_item(discord.ui.Section["ConfigSourcesView"](text, accessory=button))
 
         # Button navigation
         container.add_item(SimpleSeparator())

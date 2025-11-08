@@ -53,6 +53,8 @@ class SimpleModal(Modal):
                 break
         return choice
 
-    def format_placeholder(self, text: str) -> str:
-        """Cuts off a string to stay within an embed's 100 character-limit for placeholders."""
-        return text[:97] + "..." if len(text) > 97 else text
+    def format_placeholder(self, text: str, length: int = 100) -> str:
+        """Cuts off a string to stay within a modal's 100 character-limit for placeholders."""
+        cutoff_str: str = "..."
+        length = length - len(cutoff_str)
+        return text[:length] + cutoff_str if len(text) > length else text

@@ -4,7 +4,7 @@ from components.items import SimpleSeparator
 from embeds.embed import SimpleEmbed, UserActionEmbed
 from logic.initiative import Initiative, InitiativeTracker
 from logic.roll import Advantage
-from modals import SimpleModal
+from components.modals import SimpleModal
 from logic.voice_chat import VC, SoundType
 from logger import log_button_press
 

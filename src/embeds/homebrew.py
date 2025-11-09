@@ -4,7 +4,7 @@ from components.items import SimpleSeparator, TitleTextDisplay
 from components.paginated_view import PaginatedLayoutView
 from logic.homebrew import HomebrewEntry, HomebrewData, HomebrewEntryType
 from methods import MDFile
-from modals import SimpleModal
+from components.modals import SimpleModal
 
 
 class HomebrewEmbed(discord.Embed):

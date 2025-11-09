@@ -2,7 +2,7 @@ import abc
 import math
 import discord
 
-from modals import SimpleModal
+from components.modals import SimpleModal
 
 
 class PaginatedJumpModal(SimpleModal):

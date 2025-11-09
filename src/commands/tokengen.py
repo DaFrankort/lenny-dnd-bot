@@ -1,5 +1,5 @@
 import discord
-from command import SimpleCommand, SimpleCommandGroup
+from commands.command import SimpleCommand, SimpleCommandGroup
 from logic.tokengen import (
     AlignH,
     AlignV,

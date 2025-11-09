@@ -2,7 +2,7 @@ import logging
 from typing import Sequence
 import discord
 from embeds.search import MultiDNDSelectView, SearchLayoutView, send_dnd_embed
-from command import SimpleCommand, SimpleCommandGroup
+from commands.command import SimpleCommand, SimpleCommandGroup
 from logic.config import Config
 from embeds.embed import NoResultsFoundEmbed
 from logic.dnd.abstract import DNDEntry

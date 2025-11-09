@@ -1,7 +1,7 @@
 import discord
 
 from embeds.homebrew import HomebrewEditModal, HomebrewEmbed, HomebrewEntryAddModal, HomebrewListView
-from command import SimpleCommand, SimpleCommandGroup
+from commands.command import SimpleCommand, SimpleCommandGroup
 from logic.homebrew import HomebrewEntryType, HomebrewData
 from discord.app_commands import describe, choices, autocomplete
 

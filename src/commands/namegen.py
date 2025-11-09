@@ -1,7 +1,7 @@
 import discord
 
 from embeds.embed import SimpleEmbed
-from command import SimpleCommand
+from commands.command import SimpleCommand
 from logic.color import UserColor
 from logic.dnd.data import Data
 from logic.dnd.name import Gender

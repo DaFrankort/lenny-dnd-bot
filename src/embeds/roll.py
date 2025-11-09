@@ -1,5 +1,5 @@
 import discord
-from embed import UserActionEmbed
+from embeds.embed import UserActionEmbed
 from logic.roll import Advantage, MultiRollResult, RollResult
 
 

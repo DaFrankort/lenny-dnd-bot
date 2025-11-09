@@ -1,7 +1,7 @@
 import discord
 from discord import Interaction, ui
 from components.items import SimpleSeparator
-from embed import SimpleEmbed, UserActionEmbed
+from embeds.embed import SimpleEmbed, UserActionEmbed
 from logic.initiative import Initiative, InitiativeTracker
 from logic.roll import Advantage
 from modals import SimpleModal

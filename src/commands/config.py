@@ -1,6 +1,6 @@
 import discord
 
-from embed import ErrorEmbed
+from embeds.embed import ErrorEmbed
 from embeds.config.permissions import ConfigPermissionsView
 from embeds.config.sources import ConfigSourcesView
 from command import SimpleCommand, SimpleCommandGroup

@@ -3,7 +3,7 @@ import discord
 from embeds.stats import StatsEmbed
 from logic.charts import get_radar_chart
 from command import SimpleCommand, SimpleCommandGroup
-from embed import UserActionEmbed
+from embeds.embed import UserActionEmbed
 from logic.stats import Stats
 from logic.color import UserColor
 from discord.app_commands import describe

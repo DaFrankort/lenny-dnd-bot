@@ -1,5 +1,5 @@
 import discord
-from embed import SimpleEmbed
+from embeds.embed import SimpleEmbed
 from embeds.timestamp import RelativeTimestampEmbed
 from command import SimpleContextMenu
 from logic.timestamp import get_relative_timestamp_from_message

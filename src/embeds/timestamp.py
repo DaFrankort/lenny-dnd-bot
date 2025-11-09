@@ -1,6 +1,6 @@
 import discord
 from components.items import TitleTextDisplay
-from embed import SimpleEmbed
+from embeds.embed import SimpleEmbed
 
 
 class RelativeTimestampEmbed(SimpleEmbed):

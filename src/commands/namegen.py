@@ -1,6 +1,6 @@
 import discord
 
-from embed import SimpleEmbed
+from embeds.embed import SimpleEmbed
 from command import SimpleCommand
 from logic.color import UserColor
 from logic.dnd.data import Data

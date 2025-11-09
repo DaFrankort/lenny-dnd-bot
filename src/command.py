@@ -2,7 +2,7 @@ import logging
 from typing import Any
 import discord
 from abc import abstractmethod
-from embed import SimpleEmbed
+from embeds.embed import SimpleEmbed
 
 
 def get_error_embed(error: discord.app_commands.AppCommandError | Exception) -> discord.Embed:

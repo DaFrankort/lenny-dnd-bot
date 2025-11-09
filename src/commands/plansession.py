@@ -1,6 +1,6 @@
 import discord
 from embeds.plansession import SessionPlanPoll
-from command import SimpleCommand
+from commands.command import SimpleCommand
 from discord.app_commands import describe
 
 

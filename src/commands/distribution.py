@@ -1,7 +1,7 @@
 from discord import Interaction
 
 from embeds.distribution import DistributionEmbed
-from command import SimpleCommand
+from commands.command import SimpleCommand
 from logic.distribution import distribution
 from logic.color import UserColor
 from logic.roll import Advantage

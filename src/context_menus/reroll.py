@@ -1,8 +1,8 @@
 import discord
 
-from dice import DiceCache
+from logic.dicecache import DiceCache
 from embeds.roll import MultiRollEmbed, RollEmbed
-from command import SimpleContextMenu
+from commands.command import SimpleContextMenu
 from logic.roll import Advantage, multi_roll, roll
 from logic.voice_chat import VC, SoundType
 

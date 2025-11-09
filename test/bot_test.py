@@ -3,7 +3,7 @@ from typing import Any
 import pytest
 
 from bot import Bot
-from command import SimpleCommand, SimpleCommandGroup
+from commands.command import SimpleCommand, SimpleCommandGroup
 from logic.dnd.data import Data
 from logic.dnd.name import Gender
 from logic.roll import Advantage

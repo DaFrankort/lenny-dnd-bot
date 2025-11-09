@@ -2,7 +2,7 @@ import discord
 
 from embeds.initiative import InitiativeContainerView
 from logic.initiative import InitiativeTracker
-from command import SimpleCommand
+from commands.command import SimpleCommand
 from logic.voice_chat import VC, SoundType
 
 

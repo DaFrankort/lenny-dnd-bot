@@ -1,7 +1,7 @@
 import math
 from unittest.mock import MagicMock
 import pytest
-from dice import DiceCache
+from logic.dicecache import DiceCache
 from logic.roll import Advantage, roll
 from utils.mocking import MockInteraction
 from discord import Interaction

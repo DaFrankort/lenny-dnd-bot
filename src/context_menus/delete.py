@@ -1,6 +1,6 @@
 import discord
 
-from command import SimpleContextMenu
+from commands.command import SimpleContextMenu
 
 
 class DeleteContextMenu(SimpleContextMenu):

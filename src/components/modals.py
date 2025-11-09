@@ -4,7 +4,7 @@ from discord import Interaction
 from discord.ui import TextInput, Modal
 from discord.ui.view import BaseView
 
-from command import get_error_embed
+from commands.command import get_error_embed
 
 T = TypeVar("T")
 

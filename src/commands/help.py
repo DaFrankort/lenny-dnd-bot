@@ -1,7 +1,7 @@
 import discord
 
 from embeds.help import HelpEmbed
-from command import SimpleCommand
+from commands.command import SimpleCommand
 from discord.app_commands import describe, choices
 
 

@@ -2,7 +2,7 @@ import io
 import zipfile
 import discord
 
-from command import SimpleContextMenu
+from commands.command import SimpleContextMenu
 
 
 class ZipAttachmentsContextMenu(SimpleContextMenu):

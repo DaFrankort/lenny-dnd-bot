@@ -8,7 +8,7 @@ from rich.console import Console
 from discord import ui
 from components.items import SimpleSeparator, TitleTextDisplay
 from components.paginated_view import PaginatedLayoutView
-from embed import SimpleEmbed
+from embeds.embed import SimpleEmbed
 from logger import log_button_press
 from logic.color import UserColor
 from logic.dnd.table import DNDTable

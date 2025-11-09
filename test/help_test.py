@@ -1,5 +1,5 @@
 from bot import Bot
-from command import SimpleCommand
+from commands.command import SimpleCommand
 
 
 class TestHelp:

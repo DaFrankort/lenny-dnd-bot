@@ -1,8 +1,8 @@
 import discord
 
-from embed import SuccessEmbed
+from embeds.embed import SuccessEmbed
 from embeds.color import ColorSetEmbed, ColorShowEmbed
-from command import SimpleCommand, SimpleCommandGroup
+from commands.command import SimpleCommand, SimpleCommandGroup
 from logic.color import UserColor, save_hex_color, save_rgb_color
 from discord.app_commands import describe
 

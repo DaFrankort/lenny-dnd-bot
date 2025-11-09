@@ -1,9 +1,9 @@
 import discord
 
-from embed import ErrorEmbed
+from embeds.embed import ErrorEmbed
 from embeds.config.permissions import ConfigPermissionsView
 from embeds.config.sources import ConfigSourcesView
-from command import SimpleCommand, SimpleCommandGroup
+from commands.command import SimpleCommand, SimpleCommandGroup
 from logic.config import user_is_admin, user_is_admin_or_has_config_permissions
 
 

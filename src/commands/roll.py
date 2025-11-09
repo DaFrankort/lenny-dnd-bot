@@ -1,6 +1,6 @@
 import discord
 
-from dice import DiceCache
+from logic.dicecache import DiceCache
 from embeds.roll import MultiRollEmbed, RollEmbed
 from commands.command import SimpleCommand
 from logic.roll import Advantage, multi_roll, roll

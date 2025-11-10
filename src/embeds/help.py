@@ -99,7 +99,15 @@ class HelpEmbed(discord.Embed):
                 command_desc = self._get_command_desc_line(command)
                 commands_desc.append(command_desc)
 
-        self.add_field(name="", value="\n".join(commands_desc), inline=False)
+        commands_parts: list[str] = []
+        for d in commands_desc:
+            length = len("\n".join(commands_parts)) + len(d)
+            if length > 1024:
+                self.add_field(name="", value="\n".join(commands_parts), inline=False)
+                commands_parts = []
+            commands_parts.append(d)
+        if commands_parts:
+            self.add_field(name="", value="\n".join(commands_parts), inline=False)
 
         # Add extra info
         for info_name, info_fields in tab.info:

@@ -100,12 +100,12 @@ class HelpEmbed(discord.Embed):
                 commands_desc.append(command_desc)
 
         commands_parts: list[str] = []
-        for d in commands_desc:
-            length = len("\n".join(commands_parts)) + len(d)
+        for desc in commands_desc:
+            length = len("\n".join(commands_parts)) + len(desc)
             if length > 1024:
                 self.add_field(name="", value="\n".join(commands_parts), inline=False)
                 commands_parts = []
-            commands_parts.append(d)
+            commands_parts.append(desc)
         if commands_parts:
             self.add_field(name="", value="\n".join(commands_parts), inline=False)
 

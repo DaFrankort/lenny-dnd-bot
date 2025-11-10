@@ -125,8 +125,9 @@ Look up various D&D data from [5e.tools](https://5e.tools/).
 
 Manage your server's homebrew D&D data for spells, items, creatures, and more.
 For entry deletion or editing you will need to either be the original creator of the entry, have config permissions or have the Manage Messages permission for the server.
+Entries can be added straight from a markdown file, any formatting will be converted to match Discord's formatting. Additionally this handles some formatting from [Obsidian](https://obsidian.md/) (such as tables and file-links).
 
-- `/homebrew add <dnd-type>` - Add a new homebrew entry of the specified D&D type (e.g. spell, item, creature).
+- `/homebrew add <dnd-type> [md_file]` - Add a new homebrew entry of the specified D&D type (e.g. spell, item, creature).
 - `/homebrew edit <entry>` - Edit an existing homebrew entry.
 - `/homebrew delete <entry>` - Delete an existing homebrew entry.
 - `/homebrew list [filter]` - List all homebrew entries in the server, can be filtered by D&D type.

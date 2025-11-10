@@ -5,7 +5,7 @@ from commands.command import SimpleCommand, SimpleCommandGroup
 from logic.homebrew import HomebrewEntryType, HomebrewData
 from discord.app_commands import describe, choices, autocomplete
 
-from methods import MDFile
+from markdown import MDFile
 
 
 class HomebrewCommandGroup(SimpleCommandGroup):

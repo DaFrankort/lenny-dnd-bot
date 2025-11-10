@@ -20,9 +20,5 @@ class DNDObject(DNDEntry):
 
 
 class DNDObjectList(DNDEntryList[DNDObject]):
-    path = "./submodules/lenny-dnd-data/generated/objects.json"
-
-    def __init__(self):
-        super().__init__()
-        for obj in self.read_dnd_data_contents(self.path):
-            self.entries.append(DNDObject(obj))
+    type = DNDObject
+    paths = ["objects.json"]

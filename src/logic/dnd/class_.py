@@ -32,9 +32,5 @@ class Class(DNDEntry):
 
 
 class ClassList(DNDEntryList[Class]):
-    path = "./submodules/lenny-dnd-data/generated/classes.json"
-
-    def __init__(self):
-        super().__init__()
-        for character_class in self.read_dnd_data_contents(self.path):
-            self.entries.append(Class(character_class))
+    type = Class
+    paths = ["classes.json"]

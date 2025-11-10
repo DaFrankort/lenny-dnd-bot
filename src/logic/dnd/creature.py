@@ -25,9 +25,5 @@ class Creature(DNDEntry):
 
 
 class CreatureList(DNDEntryList[Creature]):
-    path = "./submodules/lenny-dnd-data/generated/creatures.json"
-
-    def __init__(self):
-        super().__init__()
-        for creature in self.read_dnd_data_contents(self.path):
-            self.entries.append(Creature(creature))
+    type = Creature
+    paths = ["creatures.json"]

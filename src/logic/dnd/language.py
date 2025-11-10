@@ -22,9 +22,5 @@ class Language(DNDEntry):
 
 
 class LanguageList(DNDEntryList[Language]):
-    path = "./submodules/lenny-dnd-data/generated/languages.json"
-
-    def __init__(self):
-        super().__init__()
-        for language in self.read_dnd_data_contents(self.path):
-            self.entries.append(Language(language))
+    type = Language
+    paths = ["languages.json"]

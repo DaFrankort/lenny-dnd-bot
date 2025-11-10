@@ -48,10 +48,5 @@ class Item(DNDEntry):
 
 
 class ItemList(DNDEntryList[Item]):
-    path = "./submodules/lenny-dnd-data/generated/items.json"
-
-    def __init__(self):
-        super().__init__()
-        data = self.read_dnd_data_contents(self.path)
-        for item in data:
-            self.entries.append(Item(item))
+    type = Item
+    paths = ["items.json"]

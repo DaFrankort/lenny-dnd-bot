@@ -1,8 +1,28 @@
+import io
 import re
 import dataclasses
 import discord
 from typing import Iterable
 from logic.dnd.abstract import build_table_from_rows
+import csv
+
+
+def _parse_md_table_csv(md_table: str) -> tuple[list[str], list[Iterable[str]]]:
+    lines = [
+        line.strip() for line in md_table.strip().splitlines() if line.strip().startswith("|") and line.strip().endswith("|")
+    ]
+    if len(lines) < 2:
+        return [], []
+
+    # Use csv.reader to split on pipes
+    def split_line(line: str) -> Iterable[str]:
+        reader = csv.reader(io.StringIO(line.strip("|")), delimiter="|")
+        return [cell.strip() for row in reader for cell in row]
+
+    headers = list(split_line(lines[0]))
+    data_lines = lines[2:] if len(lines) > 2 else []
+    rows = [split_line(line) for line in data_lines]
+    return headers, rows
 
 
 def wrapped_md_table_to_rich_table(text: str) -> str:
@@ -11,39 +31,20 @@ def wrapped_md_table_to_rich_table(text: str) -> str:
     parses them, builds Rich tables using build_table_from_rows(),
     and replaces them in the text.
     """
-    code_table_pattern = re.compile(r"```(?:[^\n]*)?\n((?:\|.*\|\n?)+)```", re.MULTILINE)  # capture just the table content
+    parts = text.split("```")
+    new_parts: list[str] = []
 
-    def split_row(row: str) -> Iterable[str]:
-        """Split a markdown table row into cells."""
-        return [cell.strip() for cell in row.strip("|").split("|")]
+    for i, part in enumerate(parts):
+        if i % 2 == 1:
+            stripped = part.strip()
+            if stripped.startswith("|") and stripped.endswith("|"):
+                headers, rows = _parse_md_table_csv(stripped)
+                if headers:
+                    rich_table = build_table_from_rows(headers=headers, rows=rows)
+                    part = str(rich_table)
+        new_parts.append(part)
 
-    def parse_table(md_table: str) -> tuple[list[str], list[Iterable[str]]]:
-        """Parse markdown table text into headers and rows."""
-        lines = [
-            line.strip()
-            for line in md_table.strip().splitlines()
-            if line.strip().startswith("|") and line.strip().endswith("|")
-        ]
-        if len(lines) < 2:
-            return [], []
-
-        headers: list[str] = list(split_row(lines[0]))
-        data_lines = lines[2:] if len(lines) > 2 else []
-        rows: list[Iterable[str]] = [split_row(line) for line in data_lines]
-
-        return headers, rows
-
-    def replace_with_rich_table(match: re.Match[str]) -> str:
-        md_table = match.group(1)
-        headers, rows = parse_table(md_table)
-        if not headers:
-            return match.group(0)
-        rich_table = build_table_from_rows(headers=headers, rows=rows)
-        return str(rich_table)
-
-    text = code_table_pattern.sub(replace_with_rich_table, text)
-
-    return text
+    return "".join(new_parts)
 
 
 def _wrap_markdown_tables(text: str) -> str:
@@ -58,16 +59,33 @@ def _wrap_markdown_tables(text: str) -> str:
     | 3   | Water   |
     | 4   | Air     |
     """
-    table_pattern = re.compile(r"((?:^\|.*\|\r?\n?)+)", re.MULTILINE)
+    lines = text.splitlines()
+    new_lines: list[str] = []
+    inside_table = False
+    buffer: list[str] = []
 
-    def wrap_table(match: re.Match[str]) -> str:
-        table_block = match.group(1).strip("\n")
-        if table_block.startswith("```"):
-            return match.group(0)
-        return f"```\n{table_block}\n```"
+    def flush_table():
+        if buffer:
+            table_text = "\n".join(buffer)
+            new_lines.append("```")
+            new_lines.append(table_text)
+            new_lines.append("```")
+            buffer.clear()
 
-    text = table_pattern.sub(wrap_table, text)
-    return text
+    for line in lines:
+        if line.strip().startswith("|") and line.strip().endswith("|"):
+            inside_table = True
+            buffer.append(line)
+        else:
+            if inside_table:
+                flush_table()
+                inside_table = False
+            new_lines.append(line)
+
+    if inside_table:
+        flush_table()
+
+    return "\n".join(new_lines)
 
 
 def format_markdown_to_discord(text: str) -> str:

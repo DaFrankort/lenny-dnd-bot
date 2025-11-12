@@ -1,7 +1,7 @@
 import discord
 from components.items import SimpleSeparator
 from components.paginated_view import PaginatedLayoutView
-from logic.config import Config
+from logic.config import Config, user_is_admin_or_has_config_permissions
 from logic.dnd.source import Source, SourceList
 
 
@@ -32,6 +32,9 @@ class ConfigManageSourcesButton(discord.ui.Button["ConfigSourcesView"]):
         self.disabled = not allow_configuration
 
     async def callback(self, interaction: discord.Interaction):
+        if not user_is_admin_or_has_config_permissions(self.server, interaction.user):
+            raise PermissionError("You don't have permission to edit sources!")
+
         if self.allowed:
             self.config.disallow_source(self.source.id)
         else:

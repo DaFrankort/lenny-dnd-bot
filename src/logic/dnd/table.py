@@ -39,9 +39,5 @@ class DNDTable(DNDEntry):
 
 
 class DNDTableList(DNDEntryList[DNDTable]):
-    path = "./submodules/lenny-dnd-data/generated/tables.json"
-
-    def __init__(self):
-        super().__init__()
-        for table in self.read_dnd_data_contents(self.path):
-            self.entries.append(DNDTable(table))
+    type = DNDTable
+    paths = ["tables.json"]

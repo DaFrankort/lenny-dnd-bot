@@ -22,9 +22,11 @@ class Source(object):
 
 
 class SourceList(object):
-    path = "./submodules/lenny-dnd-data/generated/sources.json"
+    paths = ["./submodules/lenny-dnd-data/generated/sources.json"]
     entries: list[Source]
 
     def __init__(self):
-        data = DNDEntryList.read_dnd_data_contents(self.path)
-        self.entries = [Source(e) for e in data]
+        self.entries = []
+        for path in self.paths:
+            data = DNDEntryList.read_dnd_data_contents(path)
+            self.entries.extend([Source(e) for e in data])

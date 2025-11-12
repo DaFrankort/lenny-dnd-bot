@@ -18,14 +18,5 @@ class Condition(DNDEntry):
 
 
 class ConditionList(DNDEntryList[Condition]):
-    paths = [
-        "./submodules/lenny-dnd-data/generated/conditions.json",
-        "./submodules/lenny-dnd-data/generated/diseases.json",
-    ]
-
-    def __init__(self):
-        super().__init__()
-        for path in self.paths:
-            data = self.read_dnd_data_contents(path)
-            for condition in data:
-                self.entries.append(Condition(condition))
+    type = Condition
+    paths = ["conditions.json", "diseases.json"]

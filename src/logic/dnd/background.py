@@ -18,9 +18,5 @@ class Background(DNDEntry):
 
 
 class BackgroundList(DNDEntryList[Background]):
-    path = "./submodules/lenny-dnd-data/generated/backgrounds.json"
-
-    def __init__(self):
-        super().__init__()
-        for background in self.read_dnd_data_contents(self.path):
-            self.entries.append(Background(background))
+    type = Background
+    paths = ["backgrounds.json"]

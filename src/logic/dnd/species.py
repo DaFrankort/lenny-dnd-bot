@@ -29,9 +29,5 @@ class Species(DNDEntry):
 
 
 class SpeciesList(DNDEntryList[Species]):
-    path = "./submodules/lenny-dnd-data/generated/species.json"
-
-    def __init__(self):
-        super().__init__()
-        for species in self.read_dnd_data_contents(self.path):
-            self.entries.append(Species(species))
+    type = Species
+    paths = ["species.json"]

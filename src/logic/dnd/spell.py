@@ -53,10 +53,5 @@ class Spell(DNDEntry):
 
 
 class SpellList(DNDEntryList[Spell]):
-    path = "./submodules/lenny-dnd-data/generated/spells.json"
-
-    def __init__(self):
-        super().__init__()
-        data = self.read_dnd_data_contents(self.path)
-        for spell in data:
-            self.entries.append(Spell(spell))
+    type = Spell
+    paths = ["spells.json"]

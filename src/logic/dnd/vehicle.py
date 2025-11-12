@@ -27,9 +27,5 @@ class Vehicle(DNDEntry):
 
 
 class VehicleList(DNDEntryList[Vehicle]):
-    path = "./submodules/lenny-dnd-data/generated/vehicles.json"
-
-    def __init__(self):
-        super().__init__()
-        for vehicle in self.read_dnd_data_contents(self.path):
-            self.entries.append(Vehicle(vehicle))
+    type = Vehicle
+    paths = ["vehicles.json"]

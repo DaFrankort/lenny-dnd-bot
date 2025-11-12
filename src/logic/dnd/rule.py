@@ -18,9 +18,5 @@ class Rule(DNDEntry):
 
 
 class RuleList(DNDEntryList[Rule]):
-    path = "./submodules/lenny-dnd-data/generated/rules.json"
-
-    def __init__(self):
-        super().__init__()
-        for rule in self.read_dnd_data_contents(self.path):
-            self.entries.append(Rule(rule))
+    type = Rule
+    paths = ["rules.json"]

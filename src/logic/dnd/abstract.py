@@ -1,6 +1,5 @@
 import abc
 import json
-import logging
 import os
 from typing import Any, Generic, Iterable, Literal, TypeVar, TypedDict, Union
 import discord
@@ -10,6 +9,8 @@ import rich
 import rich.box
 from rich.table import Table
 from rich.console import Console
+
+BASE_DATA_PATH = "./submodules/lenny-dnd-data/generated/"
 
 
 class DescriptionRowRange(TypedDict):
@@ -37,6 +38,10 @@ class DNDEntry(abc.ABC):
     emoji: str = "❓"
     select_description: str | None = None  # Description in dropdown menus
 
+    @abc.abstractmethod
+    def __init__(self, json: dict[str, Any]) -> None:
+        pass
+
     @property
     def title(self) -> str:
         return f"{self.name} ({self.source})"
@@ -46,19 +51,29 @@ TDND = TypeVar("TDND", bound=DNDEntry)
 
 
 class DNDEntryList(abc.ABC, Generic[TDND]):
+    type: type
+    paths: list[str]
     entries: list[TDND]
 
     def __init__(self):
+        if not hasattr(self, "type"):
+            raise NotImplementedError(f"Type not defined for '{self.__class__.__name__}'!")
+        if not hasattr(self, "paths"):
+            raise NotImplementedError(f"No data paths defined for '{self.__class__.__name__}'!")
+
         self.entries = []
+        for path in self.paths:
+            path = BASE_DATA_PATH + path
+            for data in self.read_dnd_data_contents(path):
+                entry: TDND = self.type(data)
+                self.entries.append(entry)
 
     @staticmethod
     def read_dnd_data_contents(path: str) -> list[dict[str, Any]]:
         if not os.path.exists(path):
-            logging.warning(f"D&D data file not found: '{path}'")
-            return []
+            raise FileNotFoundError(f"D&D data file not found: '{path}'")
         if not os.path.isfile(path):
-            logging.warning(f"D&D data file is not a file: '{path}'")
-            return []
+            raise TypeError(f"D&D data file is not a file: '{path}'")
         with open(path, "r", encoding="utf-8") as file:
             return json.load(file)
 

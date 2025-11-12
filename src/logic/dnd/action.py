@@ -18,9 +18,5 @@ class Action(DNDEntry):
 
 
 class ActionList(DNDEntryList[Action]):
-    path = "./submodules/lenny-dnd-data/generated/actions.json"
-
-    def __init__(self):
-        super().__init__()
-        for action in self.read_dnd_data_contents(self.path):
-            self.entries.append(Action(action))
+    type = Action
+    paths = ["actions.json"]

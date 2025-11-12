@@ -22,13 +22,5 @@ class Feat(DNDEntry):
 
 
 class FeatList(DNDEntryList[Feat]):
-    paths = [
-        "./submodules/lenny-dnd-data/generated/feats.json",
-        "./submodules/lenny-dnd-data/generated/classfeats.json",
-    ]
-
-    def __init__(self):
-        super().__init__()
-        for path in self.paths:
-            for feat in self.read_dnd_data_contents(path):
-                self.entries.append(Feat(feat))
+    type = Feat
+    paths = ["feats.json", "classfeats.json"]

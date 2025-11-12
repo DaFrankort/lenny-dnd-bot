@@ -34,14 +34,13 @@ def wrapped_md_table_to_rich_table(text: str) -> str:
     parts = text.split("```")
     new_parts: list[str] = []
 
-    for i, part in enumerate(parts):
-        if i % 2 == 1:
-            stripped = part.strip()
-            if stripped.startswith("|") and stripped.endswith("|"):
-                headers, rows = _parse_md_table_csv(stripped)
-                if headers:
-                    rich_table = build_table_from_rows(headers=headers, rows=rows)
-                    part = str(rich_table)
+    for part in parts:
+        stripped = part.strip()
+        if stripped.startswith("|") and stripped.endswith("|"):
+            headers, rows = _parse_md_table_csv(stripped)
+            if headers:
+                rich_table = build_table_from_rows(headers=headers, rows=rows)
+                part = str(rich_table)
         new_parts.append(part)
 
     return "".join(new_parts)

@@ -19,6 +19,7 @@ from embeds.dnd.species import SpeciesEmbed
 from embeds.dnd.spell import SpellEmbed
 from embeds.dnd.table import DNDTableContainerView
 from embeds.dnd.vehicle import VehicleEmbed
+from logic.config import Config
 from logic.dnd.abstract import DNDEntry
 from logic.dnd.action import Action
 from logic.dnd.background import Background
@@ -49,7 +50,8 @@ def get_dnd_embed(itr: discord.Interaction, dnd_entry: DNDEntry):
         case Creature():
             return CreatureEmbed(dnd_entry)
         case Class():
-            return ClassEmbed(dnd_entry)
+            sources = Config.allowed_sources(server=itr.guild)
+            return ClassEmbed(dnd_entry, allowed_sources=sources)
         case Rule():
             return RuleEmbed(dnd_entry)
         case Action():

@@ -1,6 +1,5 @@
 import discord
 from embeds.dnd.abstract import HORIZONTAL_LINE, DNDEntryEmbed
-from logic.config import is_source_phb2014
 from logic.dnd.class_ import Class
 
 
@@ -14,10 +13,13 @@ class MultiClassSubclassSelect(discord.ui.Select["ClassNavigationView"]):
         subclass: str | None,
         parent_view: "ClassNavigationView",
     ):
+        sources = [f"({src})" for src in parent_view.allowed_sources]
         options: list[discord.SelectOption] = []
         for subclass_name in character_class.subclass_level_features.keys():
-            if is_source_phb2014(character_class.source) and subclass_name.endswith("(PHB)"):
-                continue  # Only show PHB subclasses for PHB classes
+            if not any(src in subclass_name for src in sources):
+                continue  # Skip disallowed source-content.
+            if character_class.source == "XPHB" and "(PHB)" in subclass_name:
+                continue  # Do not show PHB subclasses for XPHB classes, unreliable data.
 
             label = subclass_name if subclass != subclass_name else f"{subclass_name} [Current]"
             options.append(discord.SelectOption(label=label, value=subclass_name))
@@ -31,7 +33,7 @@ class MultiClassSubclassSelect(discord.ui.Select["ClassNavigationView"]):
     async def callback(self, interaction: discord.Interaction):
         subclass = self.values[0]
         self.parent_view.subclass = subclass
-        embed = ClassEmbed(self.character_class, self.level, subclass)
+        embed = ClassEmbed(self.character_class, self.parent_view.allowed_sources, self.level, subclass)
         await interaction.response.edit_message(embed=embed, view=embed.view)
 
 
@@ -61,18 +63,21 @@ class MultiClassPageSelect(discord.ui.Select["ClassNavigationView"]):
     async def callback(self, interaction: discord.Interaction):
         level = int(self.values[0])
         self.parent_view.level = level
-        embed = ClassEmbed(self.character_class, level, self.subclass)
+        embed = ClassEmbed(self.character_class, self.parent_view.allowed_sources, level, self.subclass)
         await interaction.response.edit_message(embed=embed, view=embed.view)
 
 
 class ClassNavigationView(discord.ui.View):
+    character_class: Class
+    allowed_sources: set[str]
     level: int
     subclass: str | None
 
-    def __init__(self, character_class: Class, level: int, subclass: str | None):
+    def __init__(self, character_class: Class, allowed_sources: set[str], level: int, subclass: str | None):
         super().__init__()
 
         self.character_class = character_class
+        self.allowed_sources = allowed_sources
         self.level = level
         self.subclass = subclass
 
@@ -83,7 +88,7 @@ class ClassNavigationView(discord.ui.View):
 
 
 class ClassEmbed(DNDEntryEmbed):
-    def __init__(self, character_class: Class, level: int = 0, subclass: str | None = None):
+    def __init__(self, character_class: Class, allowed_sources: set[str], level: int = 0, subclass: str | None = None):
         level = max(0, min(20, level))
 
         super().__init__(character_class)
@@ -137,4 +142,4 @@ class ClassEmbed(DNDEntryEmbed):
                 self.add_description_fields(descriptions=descriptions)
 
         self.set_footer(text=f"Page {level + 1} / 21", icon_url="")
-        self.view = ClassNavigationView(character_class, level, subclass)
+        self.view = ClassNavigationView(character_class, allowed_sources, level, subclass)

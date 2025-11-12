@@ -1,6 +1,5 @@
 import discord
 from embeds.dnd.abstract import HORIZONTAL_LINE, DNDEntryEmbed
-from logic.config import is_source_phb2014
 from logic.dnd.class_ import Class
 
 
@@ -16,8 +15,8 @@ class MultiClassSubclassSelect(discord.ui.Select["ClassNavigationView"]):
     ):
         options: list[discord.SelectOption] = []
         for subclass_name in character_class.subclass_level_features.keys():
-            if is_source_phb2014(character_class.source) and subclass_name.endswith("(PHB)"):
-                continue  # Only show PHB subclasses for PHB classes
+            if character_class.source == "XPHB" and "(PHB)" in subclass_name:
+                continue  # Do not show PHB subclasses for XPHB classes, unreliable data.
 
             label = subclass_name if subclass != subclass_name else f"{subclass_name} [Current]"
             options.append(discord.SelectOption(label=label, value=subclass_name))

@@ -3,17 +3,21 @@ from discord import ui
 from components.items import SimpleSeparator, TitleTextDisplay
 from components.paginated_view import PaginatedLayoutView
 from logic.homebrew import HomebrewEntry, HomebrewData, HomebrewEntryType
-from methods import MDFile
 from components.modals import SimpleModal
+from markdown import MDFile, wrapped_md_table_to_rich_table
 
 
 class HomebrewEmbed(discord.Embed):
     def __init__(self, itr: discord.Interaction, entry: HomebrewEntry):
         subtitle = f"*{entry.select_description}*\n\n"
-        if len(entry.description) < 4000 - len(subtitle) and entry.select_description:
-            description = subtitle + entry.description
+        formatted_description = ""
+        if entry.description:
+            formatted_description = wrapped_md_table_to_rich_table(entry.description)
+
+        if len(formatted_description) < 4000 - len(subtitle) and entry.select_description:
+            description = subtitle + formatted_description
         else:
-            description = entry.description
+            description = formatted_description
 
         super().__init__(title=entry.title, type="rich", description=description, color=discord.Color.blue())
 

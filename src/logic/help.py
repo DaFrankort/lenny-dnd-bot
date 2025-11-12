@@ -120,7 +120,18 @@ class HelpTabList(object):
                     "If a user has the ``Manage Messages`` permission they can edit or remove any homebrew entry.",
                     "If a user is an admin or they have permission granted in ``/config permissions`` they may also manage homebrew content.",
                 ],
-            )
+            ),
+            (
+                "Markdown Support",
+                [
+                    "When creating a homebrew entry, you can drag a ``.md`` (Markdown) file into the ``/homebrew add`` command.",
+                    "The bot will automatically import the contents, convert the formatting, and make it compatible with Discord's display system.",
+                    "Supported Markdown features include:",
+                    "- **Headers:** Up to level 3 (``###``) — higher levels are automatically adjusted.",
+                    "- **File Links:** Obsidian-style links like ``[[filename]]`` or reference links like ``[Name][Path]`` are converted to plain text.",
+                    "- **Tables:** Obsidian-style tables (``| --- | --- |``) are formatted as monospace code blocks for clean display in Discord.",
+                ],
+            ),
         ],
     )
 

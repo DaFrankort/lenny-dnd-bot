@@ -47,7 +47,7 @@ class SimpleModal(Modal):
             return None
 
     def get_choice(self, component: ModalSelectComponent, type: type) -> Any | None:
-        """Used to simulate selection-menu functionality, allowing a user to select a certain option."""
+        """Get the selected choice of a ModalSelectComponent, or None if no choice is selected."""
         if not component.input.values:
             return None
         return type(component.input.values[0])

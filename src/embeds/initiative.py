@@ -115,6 +115,7 @@ class InitiativeDeleteModal(_InitiativeModal):
 
     def __init__(self, itr: Interaction, tracker: InitiativeTracker):
         self.name.input.placeholder = itr.user.display_name.title().strip()
+        self.name.input.options.clear()
         for initiative in tracker.get(itr):
             emoji = when(initiative.is_npc, "🐉", random.choice(["🧝", "🧝‍♂️", "🧝‍♀️"]))
             default = initiative.owner.id == itr.user.id and not initiative.is_npc
@@ -221,25 +222,32 @@ class InitiativeClearConfirmModal(_InitiativeModal):
 
 
 class InitiativePlayerRow(ui.ActionRow["InitiativeContainerView"]):
-    def __init__(self, tracker: InitiativeTracker):
+    def __init__(self, tracker: InitiativeTracker, itr: discord.Interaction):
         super().__init__()
         self.tracker = tracker
 
-    @ui.button(label="Roll", style=discord.ButtonStyle.success, custom_id="roll_btn", row=0)
-    async def roll_initiative(self, itr: Interaction, button: ui.Button["InitiativeContainerView"]):
+        roll_btn = ui.Button["InitiativeContainerView"](style=discord.ButtonStyle.success, label="Roll")
+        roll_btn.callback = lambda interaction: self.roll_initiative(interaction)
+        roll_btn.disabled = False
+        self.add_item(roll_btn)
+
+        set_btn = ui.Button["InitiativeContainerView"](style=discord.ButtonStyle.success, label="Set")
+        set_btn.callback = lambda interaction: self.set_initiative(interaction)
+        set_btn.disabled = False
+        self.add_item(set_btn)
+
+        delete_btn = ui.Button["InitiativeContainerView"](style=discord.ButtonStyle.danger, label="Delete Roll")
+        delete_btn.callback = lambda interaction: self.remove_initiative(interaction)
+        delete_btn.disabled = len(tracker.get(itr)) == 0
+        self.add_item(delete_btn)
+
+    async def roll_initiative(self, itr: Interaction):
         await itr.response.send_modal(InitiativeRollModal(itr, self.tracker))
 
-    @ui.button(label="Set", style=discord.ButtonStyle.success, custom_id="set_btn", row=0)
-    async def set_initiative(self, itr: Interaction, button: ui.Button["InitiativeContainerView"]):
+    async def set_initiative(self, itr: Interaction):
         await itr.response.send_modal(InitiativeSetModal(itr, self.tracker))
 
-    @ui.button(
-        label="Delete Roll",
-        style=discord.ButtonStyle.danger,
-        custom_id="delete_btn",
-        row=0,
-    )
-    async def remove_initiative(self, itr: Interaction, button: ui.Button["InitiativeContainerView"]):
+    async def remove_initiative(self, itr: Interaction):
         await itr.response.send_modal(InitiativeDeleteModal(itr, self.tracker))
 
 
@@ -298,7 +306,7 @@ class InitiativeContainerView(ui.LayoutView):
             unlock_section = ui.Section["InitiativeContainerView"]("‎", accessory=InitiativeUnlockButton(tracker))
             container.add_item(unlock_section)
         else:
-            container.add_item(InitiativePlayerRow(tracker))
+            container.add_item(InitiativePlayerRow(tracker, itr))
             container.add_item(InitiativeDMRow(tracker))
 
         self.add_item(container)

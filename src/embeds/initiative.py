@@ -5,6 +5,7 @@ from components.items import SimpleLabelTextInput, SimpleSeparator
 from components.modals import SimpleModal
 from embeds.embed import SimpleEmbed, UserActionEmbed
 from logger import log_button_press
+from logic.dicecache import DiceCache
 from logic.initiative import Initiative, InitiativeTracker
 from logic.roll import Advantage
 from logic.voice_chat import VC, SoundType
@@ -17,7 +18,7 @@ class _InitiativeModal(SimpleModal):
 
 
 class InitiativeRollModal(_InitiativeModal):
-    modifier = SimpleLabelTextInput(label="Your Initiative Modifier", placeholder="0", max_length=2, required=False)
+    modifier = SimpleLabelTextInput(label="Your Initiative Modifier", max_length=2, required=False)
     name = SimpleLabelTextInput(
         label="Name (Username by default)",
         placeholder="Goblin",
@@ -32,6 +33,9 @@ class InitiativeRollModal(_InitiativeModal):
     )
 
     def __init__(self, itr: Interaction, tracker: InitiativeTracker):
+        prev_initiative = str(DiceCache.get_last_initiative(itr))
+        self.modifier.input.default = prev_initiative
+        self.modifier.input.placeholder = prev_initiative
         super().__init__(itr, title="Rolling for Initiative", tracker=tracker)
 
     async def on_submit(self, itr: Interaction):
@@ -42,6 +46,7 @@ class InitiativeRollModal(_InitiativeModal):
         if modifier is None:
             await itr.response.send_message("Initiative Modifier must be a number without decimals.", ephemeral=True)
             return
+        DiceCache.store_initiative(itr, modifier)
 
         advantage = self.get_choice(
             self.advantage,

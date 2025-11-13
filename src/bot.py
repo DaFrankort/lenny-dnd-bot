@@ -15,9 +15,13 @@ from commands.initiative import InitiativeCommand
 from commands.namegen import NameGenCommand
 from commands.plansession import PlanSessionCommand
 from commands.playsound import PlaySoundCommand
-from commands.roll import (AdvantageRollCommand, D20Command,
-                           DisadvantageRollCommand, MultiRollCommand,
-                           RollCommand)
+from commands.roll import (
+    AdvantageRollCommand,
+    D20Command,
+    DisadvantageRollCommand,
+    MultiRollCommand,
+    RollCommand,
+)
 from commands.search import SearchCommandGroup
 from commands.stats import StatsCommandGroup
 from commands.timestamp import TimestampCommandGroup

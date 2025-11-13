@@ -2,6 +2,7 @@ from itertools import product
 from typing import Any
 
 import pytest
+
 # Required to mark the library as essential for testing in our workflows
 import pytest_asyncio  # noqa: F401 # type: ignore
 from utils.mocking import MockImage, MockInteraction, MockSound

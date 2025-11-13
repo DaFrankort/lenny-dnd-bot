@@ -2,8 +2,7 @@ import logging
 
 import discord
 
-from logic.dnd.abstract import (Description, DescriptionTable, DNDEntry,
-                                build_table)
+from logic.dnd.abstract import Description, DescriptionTable, DNDEntry, build_table
 
 HORIZONTAL_LINE = "~~-------------------------------------------------------------------------------------~~"
 

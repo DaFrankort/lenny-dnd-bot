@@ -1,13 +1,14 @@
 import discord
 from discord import Interaction, ui
 
-from components.items import SimpleLabelTextInput, SimpleSeparator
+from components.items import ModalSelectComponent, SimpleLabelTextInput, SimpleSeparator
 from components.modals import SimpleModal
 from embeds.embed import SimpleEmbed, UserActionEmbed
 from logger import log_button_press
 from logic.initiative import Initiative, InitiativeTracker
 from logic.roll import Advantage
 from logic.voice_chat import VC, SoundType
+from methods import Boolean
 
 
 class _InitiativeModal(SimpleModal):
@@ -24,12 +25,7 @@ class InitiativeRollModal(_InitiativeModal):
         required=False,
         max_length=128,
     )
-    advantage = SimpleLabelTextInput(
-        label="Roll Mode (Normal by default)",
-        placeholder="Advantage / Disadvantage",
-        required=False,
-        max_length=12,
-    )
+    advantage = ModalSelectComponent(label="Roll Mode", placeholder="Normal", options=Advantage.options(), required=False)
 
     def __init__(self, itr: Interaction, tracker: InitiativeTracker):
         super().__init__(itr, title="Rolling for Initiative", tracker=tracker)
@@ -43,11 +39,7 @@ class InitiativeRollModal(_InitiativeModal):
             await itr.response.send_message("Initiative Modifier must be a number without decimals.", ephemeral=True)
             return
 
-        advantage = self.get_choice(
-            self.advantage,
-            Advantage.Normal,
-            {"a": Advantage.Advantage, "d": Advantage.Disadvantage},
-        )
+        advantage = self.get_choice(self.advantage, Advantage) or Advantage.Normal
         initiative = Initiative(itr, modifier, name, advantage)
         self.tracker.add(itr, initiative)
 
@@ -66,7 +58,7 @@ class InitiativeRollModal(_InitiativeModal):
             mod = initiative.modifier
             total = d20 + mod
             mod_str = f"+ {mod}" if mod > 0 else f"- {-mod}"
-            descriptions.append(f"- ``[{d20}] {mod_str}`` -> {total}\n")
+            descriptions.append(f"- ``[{d20}] {mod_str}`` -> {total}")
         descriptions.append(f"\n**Initiative**: {initiative.get_total()}")
         description = "\n".join(descriptions)
 
@@ -153,18 +145,8 @@ class InitiativeBulkModal(_InitiativeModal):
     )
     name = SimpleLabelTextInput(label="Creature's Name", placeholder="Goblin", max_length=128)
     amount = SimpleLabelTextInput(label="Amount of creatures to add", placeholder="1", max_length=2)
-    advantage = SimpleLabelTextInput(
-        label="Roll Mode (Normal by default)",
-        placeholder="Advantage / Disadvantage",
-        required=False,
-        max_length=12,
-    )
-    shared = SimpleLabelTextInput(
-        label="Share Initiative (False by default)",
-        placeholder="True / False",
-        required=False,
-        max_length=5,
-    )
+    advantage = ModalSelectComponent(label="Roll Mode", placeholder="Normal", options=Advantage.options(), required=False)
+    shared = ModalSelectComponent(label="Share Initiative", placeholder="False", options=Boolean.options(), required=False)
 
     def __init__(self, itr: Interaction, tracker: InitiativeTracker):
         super().__init__(itr, title="Adding Initiatives in bulk!", tracker=tracker)
@@ -172,7 +154,7 @@ class InitiativeBulkModal(_InitiativeModal):
     async def on_submit(self, itr: Interaction):
         self.log_inputs(itr)
 
-        name = str(self.name)
+        name = str(self.name.input)
         modifier = self.get_int(self.modifier)
         amount = self.get_int(self.amount)
 
@@ -189,13 +171,9 @@ class InitiativeBulkModal(_InitiativeModal):
             )
             return
 
-        advantage = self.get_choice(
-            self.advantage,
-            Advantage.Normal,
-            {"a": Advantage.Advantage, "d": Advantage.Disadvantage},
-        )
-        shared = self.get_choice(self.shared, False, {"t": True})
-        initiatives = self.tracker.add_bulk(itr, modifier, name, amount, advantage, shared)
+        advantage = self.get_choice(self.advantage, Advantage) or Advantage.Normal
+        shared: Boolean = self.get_choice(self.shared, Boolean) or Boolean.false
+        initiatives = self.tracker.add_bulk(itr, modifier, name, amount, advantage, shared.bool)
 
         title = f"{itr.user.display_name} rolled Initiative for {amount} {name.strip().title()}(s)!"
         descriptions: list[str] = []

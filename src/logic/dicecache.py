@@ -12,6 +12,7 @@ from jsonhandler import JsonHandler
 class DiceCacheInfo:
     last_used: list[str]
     last_used_reason: list[str]
+    last_initiative: int
 
 
 class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
@@ -19,14 +20,16 @@ class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
         super().__init__("dice_cache")
 
     def deserialize(self, obj: Any) -> DiceCacheInfo:
-        return DiceCacheInfo(last_used=obj["last_used"], last_used_reason=obj["last_used_reason"])
+        return DiceCacheInfo(
+            last_used=obj["last_used"], last_used_reason=obj["last_used_reason"], last_initiative=obj.get("last_initiative", 0)
+        )
 
     def store_expression(self, itr: Interaction, expression: str):
         """Stores a user's used diceroll input to the cache, if it is without errors."""
 
         user_id = str(itr.user.id)
         if user_id not in self.data:
-            self.data[user_id] = DiceCacheInfo([expression], [])
+            self.data[user_id] = DiceCacheInfo([expression], [], 0)
             self.save()
             return
 
@@ -43,7 +46,7 @@ class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
 
         user_id = str(itr.user.id)
         if user_id not in self.data:
-            self.data[user_id] = DiceCacheInfo([], [reason])
+            self.data[user_id] = DiceCacheInfo([], [reason], 0)
             self.save()
             return
 
@@ -52,6 +55,18 @@ class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
         self.data[user_id].last_used_reason.append(reason)
 
         self.data[user_id].last_used_reason = self.data[user_id].last_used_reason[-5:]  # Store max 5 reasons
+        self.save()
+
+    def store_initiative(self, itr: Interaction, initiative: int):
+        user_id = str(itr.user.id)
+        if user_id not in self.data:
+            self.data[user_id] = DiceCacheInfo([], [], initiative)
+            self.save()
+            return
+
+        if initiative == self.data[user_id].last_initiative:
+            return
+        self.data[user_id].last_initiative = initiative
         self.save()
 
     def get_autocomplete_suggestions(self, itr: Interaction, query: str) -> list[Choice[str]]:
@@ -124,6 +139,12 @@ class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
             key=lambda x: x.lower().index(query),
         )
         return [discord.app_commands.Choice(name=reason, value=reason) for reason in filtered_reasons[:25]]
+
+    def get_last_initiative(self, itr: Interaction) -> int:
+        user_id = str(itr.user.id)
+        if user_id not in self.data:
+            return 0
+        return self.data[user_id].last_initiative
 
 
 DiceCache = DiceCacheHandler()

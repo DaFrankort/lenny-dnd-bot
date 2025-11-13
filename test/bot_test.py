@@ -5,13 +5,13 @@ import pytest
 
 # Required to mark the library as essential for testing in our workflows
 import pytest_asyncio  # noqa: F401 # type: ignore
-from logic.charactergen import class_choices, species_choices
 from utils.mocking import MockImage, MockInteraction, MockSound
 from utils.utils import listify
 
 from bot import Bot
 from commands.command import SimpleCommand, SimpleCommandGroup
 from commands.tokengen import AlignH, AlignV
+from logic.charactergen import class_choices, species_choices
 from logic.config import Config
 from logic.dnd.abstract import DNDEntry, DNDEntryList
 from logic.dnd.data import Data

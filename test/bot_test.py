@@ -1,5 +1,5 @@
 from itertools import product
-from typing import Any
+from typing import Any, TypeVar
 
 import pytest
 
@@ -11,6 +11,9 @@ from utils.utils import listify
 from bot import Bot
 from commands.command import SimpleCommand, SimpleCommandGroup
 from commands.tokengen import AlignH, AlignV
+from logic.charactergen import class_choices, species_choices
+from logic.config import Config
+from logic.dnd.abstract import DNDEntry, DNDEntryList
 from logic.dnd.data import Data
 from logic.dnd.name import Gender
 from logic.roll import Advantage
@@ -43,6 +46,14 @@ def get_cmd(commands: dict[str, SimpleCommand | SimpleCommandGroup], name: str) 
         return get_cmd_from_group(command, rest)
     else:
         return command
+
+
+TEntry = TypeVar("TEntry", bound=DNDEntry)
+
+
+def get_strict_search_arguments(entry_list: DNDEntryList[TEntry]) -> list[str]:
+    disallowed_sources = Config.get_default_disallowed_sources()
+    return [entry.name for entry in entry_list.entries if entry.source not in disallowed_sources]
 
 
 class TestBotCommands:
@@ -360,3 +371,62 @@ class TestBotCommands:
                 await param.autocomplete(itr, current)
             except Exception as e:
                 pytest.fail(f"Error while autocompleting '{param_name}' for /{cmd_name} with query '{current}': {e}")
+
+    @pytest.mark.strict
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "cmd_name, arguments",
+        [
+            ("search spell", {"name": get_strict_search_arguments(Data.spells)}),
+            ("search item", {"name": get_strict_search_arguments(Data.items)}),
+            ("search condition", {"name": get_strict_search_arguments(Data.conditions)}),
+            ("search creature", {"name": get_strict_search_arguments(Data.creatures)}),
+            (
+                "search class",
+                {"name": get_strict_search_arguments(Data.classes)},
+            ),
+            ("search rule", {"name": get_strict_search_arguments(Data.rules)}),
+            ("search action", {"name": get_strict_search_arguments(Data.actions)}),
+            ("search feat", {"name": get_strict_search_arguments(Data.feats)}),
+            ("search language", {"name": get_strict_search_arguments(Data.languages)}),
+            ("search background", {"name": get_strict_search_arguments(Data.backgrounds)}),
+            ("search table", {"name": get_strict_search_arguments(Data.tables)}),
+            ("search species", {"name": get_strict_search_arguments(Data.species)}),
+            ("search vehicle", {"name": get_strict_search_arguments(Data.vehicles)}),
+            ("search object", {"name": get_strict_search_arguments(Data.objects)}),
+            ("search hazard", {"name": get_strict_search_arguments(Data.hazards)}),
+            (
+                "charactergen",
+                {
+                    "gender": Gender.values(),
+                    "species": [species.value for species in species_choices()],
+                    "char_class": [class_.value for class_ in class_choices()],
+                },
+            ),
+            ("namegen", {"species": [spec.title() for spec in Data.names.get_species()], "gender": Gender.values()}),
+        ],
+    )
+    async def test_slash_strict(
+        self,
+        commands: dict[str, SimpleCommand | SimpleCommandGroup],
+        cmd_name: str,
+        arguments: dict[str, Any] | list[dict[str, Any]],
+    ):
+        itr = MockInteraction()
+        cmd = get_cmd(commands, cmd_name)
+        assert cmd is not None, f"{cmd_name} command not found"
+
+        arguments = listify(arguments)
+        failures: list[tuple[dict[str, Any], str]] = []
+
+        for arg_set in arguments:
+            arg_variants = self.expand_arg_variants(arg_set)
+            for args in arg_variants:
+                try:
+                    await cmd.callback(itr=itr, **args)  # pyright: ignore[reportCallIssue]
+                except Exception as e:
+                    failures.append((args, str(e)))
+
+        if failures:
+            failure_messages = "\n".join([f"Args: {args}, Error: {error}" for args, error in failures])
+            pytest.fail(f"Errors while running command /{cmd_name}:\n{failure_messages}")

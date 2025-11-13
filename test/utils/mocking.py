@@ -86,6 +86,7 @@ class MockInteraction(discord.Interaction):
         self._state = MagicMock()
         self._servers = MagicMock()
         self._original_response = MagicMock()
+        self._state._get_guild = MagicMock(return_value=MockGuild(guild_id))
 
 
 class MockAttachment(discord.Attachment):

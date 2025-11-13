@@ -21,7 +21,7 @@ class DescriptionRowRange(TypedDict):
 
 
 class DescriptionTable(TypedDict):
-    headers: list[str]
+    headers: list[str] | None
     rows: list[Iterable[str] | DescriptionRowRange]
 
 
@@ -168,10 +168,12 @@ def build_table(value: str | DescriptionTable, width: int | None = 56, show_line
     rows = value["rows"]
 
     box_style = rich.box.SQUARE_DOUBLE_HEAD if show_lines else rich.box.ROUNDED
-    table = Table(box=box_style, show_lines=show_lines)
+    has_headers = headers is not None
+    table = Table(box=box_style, show_lines=show_lines, show_header=has_headers)
 
-    for header in headers:
-        table.add_column(header, justify="left", style=None)
+    if has_headers:
+        for header in headers:
+            table.add_column(header, justify="left", style=None)
 
     for row in rows:
         formatted_row = [format_cell_value(value) for value in row]
@@ -187,7 +189,7 @@ def build_table(value: str | DescriptionTable, width: int | None = 56, show_line
 
 
 def build_table_from_rows(
-    headers: list[str],
+    headers: list[str] | None,
     rows: list[Iterable[str]],
     width: int | None = 56,
     show_lines: bool = False,

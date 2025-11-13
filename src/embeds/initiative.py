@@ -1,7 +1,7 @@
 import discord
 from discord import Interaction, ui
 
-from components.items import SimpleSeparator
+from components.items import LabeledTextComponent, SimpleSeparator
 from components.modals import SimpleModal
 from embeds.embed import SimpleEmbed, UserActionEmbed
 from logger import log_button_press
@@ -17,16 +17,14 @@ class _InitiativeModal(SimpleModal):
 
 
 class InitiativeRollModal(_InitiativeModal):
-    modifier = ui.TextInput["InitiativeRollModal"](
-        label="Your Initiative Modifier", placeholder="0", max_length=2, required=False
-    )
-    name = ui.TextInput["InitiativeRollModal"](
+    modifier = LabeledTextComponent(label="Your Initiative Modifier", placeholder="0", max_length=2, required=False)
+    name = LabeledTextComponent(
         label="Name (Username by default)",
         placeholder="Goblin",
         required=False,
         max_length=128,
     )
-    advantage = ui.TextInput["InitiativeRollModal"](
+    advantage = LabeledTextComponent(
         label="Roll Mode (Normal by default)",
         placeholder="Advantage / Disadvantage",
         required=False,
@@ -85,8 +83,8 @@ class InitiativeRollModal(_InitiativeModal):
 
 
 class InitiativeSetModal(_InitiativeModal):
-    value = ui.TextInput["InitiativeSetModal"](label="Initiative value", placeholder="20", max_length=3)
-    name = ui.TextInput["InitiativeSetModal"](
+    value = LabeledTextComponent(label="Initiative value", placeholder="20", max_length=3)
+    name = LabeledTextComponent(
         label="Name (Username by default)",
         placeholder="Goblin",
         required=False,
@@ -121,7 +119,7 @@ class InitiativeSetModal(_InitiativeModal):
 
 
 class InitiativeDeleteModal(_InitiativeModal):
-    name = ui.TextInput["InitiativeDeleteModal"](
+    name = LabeledTextComponent(
         label="Name (Username by default)",
         placeholder="Goblin",
         required=False,
@@ -147,21 +145,21 @@ class InitiativeDeleteModal(_InitiativeModal):
 
 
 class InitiativeBulkModal(_InitiativeModal):
-    modifier = ui.TextInput["InitiativeBulkModal"](
+    modifier = LabeledTextComponent(
         label="Creature's Initiative Modifier",
         placeholder="0",
         max_length=3,
         required=False,
     )
-    name = ui.TextInput["InitiativeBulkModal"](label="Creature's Name", placeholder="Goblin", max_length=128)
-    amount = ui.TextInput["InitiativeBulkModal"](label="Amount of creatures to add", placeholder="1", max_length=2)
-    advantage = ui.TextInput["InitiativeBulkModal"](
+    name = LabeledTextComponent(label="Creature's Name", placeholder="Goblin", max_length=128)
+    amount = LabeledTextComponent(label="Amount of creatures to add", placeholder="1", max_length=2)
+    advantage = LabeledTextComponent(
         label="Roll Mode (Normal by default)",
         placeholder="Advantage / Disadvantage",
         required=False,
         max_length=12,
     )
-    shared = ui.TextInput["InitiativeBulkModal"](
+    shared = LabeledTextComponent(
         label="Share Initiative (False by default)",
         placeholder="True / False",
         required=False,
@@ -215,7 +213,7 @@ class InitiativeBulkModal(_InitiativeModal):
 
 
 class InitiativeClearConfirmModal(_InitiativeModal):
-    confirm = ui.TextInput["InitiativeClearConfirmModal"](label="Type 'CLEAR' to confirm", placeholder="CLEAR")
+    confirm = LabeledTextComponent(label="Type 'CLEAR' to confirm", placeholder="CLEAR")
 
     def __init__(self, itr: Interaction, tracker: InitiativeTracker):
         super().__init__(itr, title="Are you sure you want to clear?", tracker=tracker)

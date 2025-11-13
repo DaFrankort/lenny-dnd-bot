@@ -6,10 +6,6 @@ from logic.dnd.name import Gender
 
 
 class TestCharacterGen:
-    @pytest.fixture
-    def enabled(self) -> bool:
-        return False
-
     @pytest.mark.strict
     def test_all_possible_combinations(self):
         """Ensures all possible species, class, and gender combinations (in XPHB) are possible."""

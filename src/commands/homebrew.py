@@ -1,10 +1,10 @@
 import discord
+from discord.app_commands import autocomplete, choices, describe
 
-from embeds.homebrew import HomebrewEditModal, HomebrewEmbed, HomebrewEntryAddModal, HomebrewListView
 from commands.command import SimpleCommand, SimpleCommandGroup
-from logic.homebrew import HomebrewEntryType, HomebrewData
-from discord.app_commands import describe, choices, autocomplete
-
+from embeds.homebrew import (HomebrewEditModal, HomebrewEmbed,
+                             HomebrewEntryAddModal, HomebrewListView)
+from logic.homebrew import HomebrewData, HomebrewEntryType
 from markdown import MDFile
 
 

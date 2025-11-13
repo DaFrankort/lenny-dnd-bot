@@ -1,4 +1,5 @@
 from typing import Any
+
 from logic.dnd.abstract import DNDEntry, DNDEntryList
 from logic.roll import RollResult, roll
 

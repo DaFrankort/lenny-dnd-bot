@@ -1,8 +1,10 @@
-import pytest
 import os
+
+import pytest
 from discord import Interaction
 from utils.mocking import MockInteraction
-from logic.homebrew import GlobalHomebrewData, HomebrewEntryType, HOMEBREW_PATH
+
+from logic.homebrew import HOMEBREW_PATH, GlobalHomebrewData, HomebrewEntryType
 
 
 class TestHomebrew:

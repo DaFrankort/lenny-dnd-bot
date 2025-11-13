@@ -2,10 +2,12 @@ import io
 import math
 import os
 import time
+
 import aiohttp
 import discord
 import numpy as np
 from PIL import Image, ImageDraw
+
 from methods import ChoicedEnum, FontType, get_font
 
 TOKEN_FRAME = Image.open("./assets/images/token_border.png").convert("RGBA")

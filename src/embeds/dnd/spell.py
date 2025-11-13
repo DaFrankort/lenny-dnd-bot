@@ -1,4 +1,5 @@
 import discord
+
 from embeds.dnd.abstract import HORIZONTAL_LINE, DNDEntryEmbed
 from logic.config import Config
 from logic.dnd.spell import Spell

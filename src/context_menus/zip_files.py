@@ -1,5 +1,6 @@
 import io
 import zipfile
+
 import discord
 
 from commands.command import SimpleContextMenu

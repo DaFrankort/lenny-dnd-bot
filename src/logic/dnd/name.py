@@ -1,8 +1,8 @@
 import dataclasses
 import random
 
-from methods import ChoicedEnum
 from logic.dnd.abstract import DNDEntryList
+from methods import ChoicedEnum
 
 
 class Gender(str, ChoicedEnum):

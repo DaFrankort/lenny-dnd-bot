@@ -1,4 +1,5 @@
 from typing import Literal
+
 import discord
 
 from components.items import SimpleSeparator

@@ -1,5 +1,6 @@
 from typing import Any
-from logic.dnd.abstract import DNDEntry, DNDEntryList, Description
+
+from logic.dnd.abstract import Description, DNDEntry, DNDEntryList
 
 
 class Item(DNDEntry):

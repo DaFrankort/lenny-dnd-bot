@@ -1,6 +1,5 @@
 from typing import List, TypeVar, Union
 
-
 T = TypeVar("T")
 
 

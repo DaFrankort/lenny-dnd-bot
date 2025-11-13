@@ -1,18 +1,18 @@
 from itertools import product
 from typing import Any
+
 import pytest
+# Required to mark the library as essential for testing in our workflows
+import pytest_asyncio  # noqa: F401 # type: ignore
+from utils.mocking import MockImage, MockInteraction, MockSound
+from utils.utils import listify
 
 from bot import Bot
 from commands.command import SimpleCommand, SimpleCommandGroup
+from commands.tokengen import AlignH, AlignV
 from logic.dnd.data import Data
 from logic.dnd.name import Gender
 from logic.roll import Advantage
-from utils.utils import listify
-from utils.mocking import MockImage, MockInteraction, MockSound
-from commands.tokengen import AlignH, AlignV
-
-# Required to mark the library as essential for testing in our workflows
-import pytest_asyncio  # noqa: F401 # type: ignore
 
 
 def get_cmd_from_group(group: SimpleCommandGroup, parts: list[str]) -> SimpleCommand | None:

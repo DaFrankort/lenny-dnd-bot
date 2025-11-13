@@ -1,7 +1,9 @@
 import logging
 from typing import Sequence
+
 import discord
 from discord import ui
+
 from components.items import SimpleSeparator, TitleTextDisplay
 from components.paginated_view import PaginatedLayoutView
 from embeds.dnd.action import ActionEmbed

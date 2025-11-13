@@ -1,11 +1,11 @@
 import os
-from typing import Iterable
-import discord
 import pathlib
+from typing import Iterable
+
+import discord
 import toml
 
 from logic.dnd.source import SourceList
-
 
 SOURCES_PHB2014 = ["PHB", "DMG", "MM"]
 

@@ -1,5 +1,7 @@
 import random
+
 import discord
+
 from logic.charts import get_radar_chart
 
 

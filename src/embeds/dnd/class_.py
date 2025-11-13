@@ -1,4 +1,5 @@
 import discord
+
 from embeds.dnd.abstract import HORIZONTAL_LINE, DNDEntryEmbed
 from logic.dnd.class_ import Class
 

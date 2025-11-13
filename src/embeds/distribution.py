@@ -1,7 +1,8 @@
 import discord
 from discord.utils import MISSING
-from logic.distribution import DistributionResult
+
 from logic.color import UserColor
+from logic.distribution import DistributionResult
 from logic.roll import Advantage
 
 

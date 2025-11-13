@@ -1,4 +1,3 @@
-import discord
 from discord.app_commands import autocomplete, choices, describe
 
 from commands.command import SimpleCommand, SimpleCommandGroup
@@ -10,6 +9,7 @@ from embeds.homebrew import (
 )
 from logic.homebrew import HomebrewData, HomebrewEntryType
 from markdown import MDFile
+import discord
 
 
 class HomebrewCommandGroup(SimpleCommandGroup):

@@ -1,4 +1,6 @@
 import discord
+from discord.app_commands import Range, choices, describe
+
 from commands.command import SimpleCommand, SimpleCommandGroup
 from logic.tokengen import (
     AlignH,
@@ -6,7 +8,6 @@ from logic.tokengen import (
     generate_token_from_file,
     generate_token_from_url,
 )
-from discord.app_commands import describe, choices, Range
 
 
 class TokenGenCommandGroup(SimpleCommandGroup):

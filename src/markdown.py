@@ -1,10 +1,12 @@
+import csv
+import dataclasses
 import io
 import re
-import dataclasses
-import discord
 from typing import Iterable
+
+import discord
+
 from logic.dnd.abstract import build_table_from_rows
-import csv
 
 
 def _parse_md_table_csv(md_table: str) -> tuple[list[str], list[Iterable[str]]]:

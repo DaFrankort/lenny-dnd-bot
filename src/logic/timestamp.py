@@ -1,7 +1,7 @@
 import datetime
 import re
-import discord
 
+import discord
 
 TIME_MULTIPLIERS = {
     "s": 1,

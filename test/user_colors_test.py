@@ -1,8 +1,10 @@
 import os
+
 import discord
 import pytest
-from logic.color import UserColor
 from utils.mocking import MockInteraction
+
+from logic.color import UserColor
 
 
 class TestUserColor:

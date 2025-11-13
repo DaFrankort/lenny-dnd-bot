@@ -1,11 +1,15 @@
 from typing import Any, List
+
+from rapidfuzz import fuzz
+
 from logic.dnd.abstract import DNDEntry
 from logic.dnd.action import Action, ActionList
 from logic.dnd.background import Background, BackgroundList
+from logic.dnd.class_ import Class, ClassList
 from logic.dnd.condition import Condition, ConditionList
 from logic.dnd.creature import Creature, CreatureList
-from logic.dnd.class_ import Class, ClassList
 from logic.dnd.feat import Feat, FeatList
+from logic.dnd.hazard import Hazard, HazardList
 from logic.dnd.item import Item, ItemList
 from logic.dnd.language import Language, LanguageList
 from logic.dnd.name import NameTable
@@ -14,9 +18,7 @@ from logic.dnd.rule import Rule, RuleList
 from logic.dnd.species import Species, SpeciesList
 from logic.dnd.spell import Spell, SpellList
 from logic.dnd.table import DNDTable, DNDTableList
-from logic.dnd.hazard import Hazard, HazardList
 from logic.dnd.vehicle import Vehicle, VehicleList
-from rapidfuzz import fuzz
 
 
 class DNDData(object):

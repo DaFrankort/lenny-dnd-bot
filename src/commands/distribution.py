@@ -1,11 +1,11 @@
 from discord import Interaction
+from discord.app_commands import choices, describe
 
-from embeds.distribution import DistributionEmbed
 from commands.command import SimpleCommand
-from logic.distribution import distribution
+from embeds.distribution import DistributionEmbed
 from logic.color import UserColor
+from logic.distribution import distribution
 from logic.roll import Advantage
-from discord.app_commands import describe, choices
 
 
 class DistributionCommand(SimpleCommand):

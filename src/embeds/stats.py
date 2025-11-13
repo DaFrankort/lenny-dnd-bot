@@ -1,4 +1,5 @@
 import discord
+
 from embeds.embed import UserActionEmbed
 from logic.color import UserColor
 from logic.stats import Stats

@@ -1,12 +1,12 @@
 import discord
+from discord.app_commands import describe
 
-from embeds.stats import StatsEmbed
-from logic.charts import get_radar_chart
 from commands.command import SimpleCommand, SimpleCommandGroup
 from embeds.embed import UserActionEmbed
-from logic.stats import Stats
+from embeds.stats import StatsEmbed
+from logic.charts import get_radar_chart
 from logic.color import UserColor
-from discord.app_commands import describe
+from logic.stats import Stats
 
 
 class StatsCommandGroup(SimpleCommandGroup):

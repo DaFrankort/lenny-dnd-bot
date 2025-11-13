@@ -1,10 +1,12 @@
 import math
 from unittest.mock import MagicMock
+
 import pytest
+from discord import Interaction
+from utils.mocking import MockInteraction
+
 from logic.dicecache import DiceCache
 from logic.roll import Advantage, roll
-from utils.mocking import MockInteraction
-from discord import Interaction
 
 
 class TestDiceExpression:

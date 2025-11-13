@@ -1,4 +1,5 @@
 import pytest
+
 from logic.charactergen import generate_dnd_character
 from logic.dnd.data import Data
 from logic.dnd.name import Gender

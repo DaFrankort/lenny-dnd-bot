@@ -1,4 +1,5 @@
 import discord
+
 from components.items import SimpleSeparator
 from components.paginated_view import PaginatedLayoutView
 from logic.config import Config, user_is_admin_or_has_config_permissions

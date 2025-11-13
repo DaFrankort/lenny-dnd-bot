@@ -1,4 +1,5 @@
 import dataclasses
+
 from logic.dnd.data import Data
 from logic.dnd.name import Gender
 

@@ -1,5 +1,6 @@
-from logic.config import Config
 from utils.mocking import MockGuild
+
+from logic.config import Config
 
 
 class TestConfig:

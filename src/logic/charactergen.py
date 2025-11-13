@@ -3,6 +3,7 @@ import random
 from typing import TypeVar
 
 import discord
+
 from logic.dnd.abstract import DNDEntry
 from logic.dnd.background import Background
 from logic.dnd.class_ import Class

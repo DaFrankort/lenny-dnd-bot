@@ -33,5 +33,18 @@ class ChoicedEnum(Enum):
         return [discord.app_commands.Choice(name=e.name.title(), value=e.value) for e in cls]
 
     @classmethod
+    def options(cls) -> list[discord.SelectOption]:
+        return [discord.SelectOption(label=e.name.title(), value=e.value) for e in cls]
+
+    @classmethod
     def values(cls) -> list[Any]:
         return [e.value for e in cls]
+
+
+class Boolean(ChoicedEnum):
+    true = "true"
+    false = "false"
+
+    @property
+    def bool(self) -> bool:
+        return self.value == "true"

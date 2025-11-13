@@ -51,3 +51,30 @@ class SimpleLabelTextInput(discord.ui.Label[discord.ui.LayoutView]):
         if isinstance(self.component, discord.ui.TextInput):
             return self.component
         raise ValueError("SimpleTextInput component is not a discord.ui.TextInput!")
+
+
+class ModalSelectComponent(discord.ui.Label[discord.ui.LayoutView]):
+    def __init__(
+        self,
+        *,
+        label: str,
+        options: list[discord.SelectOption],
+        required: bool = True,
+        disabled: bool = False,
+        placeholder: Optional[str] = None,
+    ) -> None:
+        super().__init__(
+            text=label,
+            component=discord.ui.Select(
+                options=options,
+                required=required,
+                disabled=disabled,
+                placeholder=placeholder,
+            ),
+        )
+
+    @property
+    def input(self) -> discord.ui.Select[discord.ui.LayoutView]:
+        if isinstance(self.component, discord.ui.Select):
+            return self.component
+        raise ValueError("ModalSelectComponent component is not a discord.ui.Select!")

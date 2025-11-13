@@ -1,11 +1,11 @@
 import logging
-from typing import TypeVar
+from typing import Any, TypeVar
 
 from discord import Interaction
 from discord.ui import Modal
 
 from commands.command import get_error_embed
-from components.items import SimpleLabelTextInput
+from components.items import ModalSelectComponent, SimpleLabelTextInput
 
 T = TypeVar("T")
 
@@ -46,17 +46,11 @@ class SimpleModal(Modal):
         except ValueError:
             return None
 
-    def get_choice(self, component: SimpleLabelTextInput, default: T, choices: dict[str, T]) -> T:
-        """Used to simulate selection-menu functionality, allowing a user to select a certain option."""
-        choice = default
-        user_input = str(component.input).lower()
-
-        for key in choices:
-            choice_value = choices[key]
-            if user_input.startswith(key.lower()):
-                choice = choice_value
-                break
-        return choice
+    def get_choice(self, component: ModalSelectComponent, type: type) -> Any | None:
+        """Get the selected choice of a ModalSelectComponent, or None if no choice is selected."""
+        if not component.input.values:
+            return None
+        return type(component.input.values[0])
 
     def format_placeholder(self, text: str, length: int = 100) -> str:
         """Cuts off a string to stay within a modal's 100 character-limit for placeholders."""

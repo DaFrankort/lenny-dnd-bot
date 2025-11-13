@@ -5,6 +5,7 @@ import pytest
 
 # Required to mark the library as essential for testing in our workflows
 import pytest_asyncio  # noqa: F401 # type: ignore
+from logic.charactergen import class_choices, species_choices
 from utils.mocking import MockImage, MockInteraction, MockSound
 from utils.utils import listify
 
@@ -394,6 +395,15 @@ class TestBotCommands:
             ("search vehicle", {"name": get_strict_search_arguments(Data.vehicles)}),
             ("search object", {"name": get_strict_search_arguments(Data.objects)}),
             ("search hazard", {"name": get_strict_search_arguments(Data.hazards)}),
+            (
+                "charactergen",
+                {
+                    "gender": Gender.choices(),
+                    "species": [species.value for species in species_choices()],
+                    "char_class": [class_.value for class_ in class_choices()],
+                },
+            ),
+            ("namegen", {"species": Data.names.get_species(), "gender": Gender.choices()}),
         ],
     )
     async def test_slash_strict(

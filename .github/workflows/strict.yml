@@ -1,0 +1,27 @@
+name: STRICT
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "submodules/**"
+  pull_request:
+    paths:
+      - "submodules/**"
+  workflow_dispatch:
+
+jobs:
+
+  unit-test-strict:
+    runs-on: ubuntu-latest
+    name: pytest (STRICT)
+    steps:
+      - name: Check out source repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: ./.github/actions/setup
+
+      - name: Run pytest on bot_test.py
+        run: python -m pytest --run-strict

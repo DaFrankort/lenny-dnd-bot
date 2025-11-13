@@ -96,7 +96,7 @@ class Config(object):
     @staticmethod
     def allowed_sources(server: discord.Guild | None) -> set[str]:
         if server is None:
-            return Config.get_default_disallowed_sources()
+            return Config.get_default_allowed_sources()
         return Config(server=server).get_allowed_sources()
 
     # endregion sources

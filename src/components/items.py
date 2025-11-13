@@ -24,7 +24,7 @@ class SimpleSeparator(discord.ui.Separator[discord.ui.LayoutView]):
             super().__init__(spacing=discord.SeparatorSpacing.small)
 
 
-class LabeledTextComponent(discord.ui.Label[discord.ui.LayoutView]):
+class SimpleLabelTextInput(discord.ui.Label[discord.ui.LayoutView]):
     def __init__(
         self,
         *,

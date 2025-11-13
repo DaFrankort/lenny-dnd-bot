@@ -5,7 +5,7 @@ from discord import Interaction
 from discord.ui import Modal
 
 from commands.command import get_error_embed
-from components.items import LabeledTextComponent
+from components.items import SimpleLabelTextInput
 
 T = TypeVar("T")
 
@@ -20,7 +20,7 @@ class SimpleModal(Modal):
         input_values = {
             child.text: str(child.input)
             for child in self.children
-            if isinstance(child, LabeledTextComponent) and str(child.input) != ""
+            if isinstance(child, SimpleLabelTextInput) and str(child.input) != ""
         }
 
         username = itr.user.name
@@ -31,12 +31,12 @@ class SimpleModal(Modal):
         embed = get_error_embed(error)
         await itr.response.send_message(embed=embed, ephemeral=True)
 
-    def get_str(self, component: LabeledTextComponent) -> str | None:
+    def get_str(self, component: SimpleLabelTextInput) -> str | None:
         """Safely parse string from LabeledTextComponent. Returns None if input is empty or only spaces."""
         text = str(component.input).strip()
         return text if text else None
 
-    def get_int(self, component: LabeledTextComponent) -> int | None:
+    def get_int(self, component: SimpleLabelTextInput) -> int | None:
         """Safely parse integer from LabeledTextComponent. Returns None on failure, defaults to 0 if input is ''"""
         text = str(component.input).strip()
         if text == "":
@@ -46,7 +46,7 @@ class SimpleModal(Modal):
         except ValueError:
             return None
 
-    def get_choice(self, component: LabeledTextComponent, default: T, choices: dict[str, T]) -> T:
+    def get_choice(self, component: SimpleLabelTextInput, default: T, choices: dict[str, T]) -> T:
         """Used to simulate selection-menu functionality, allowing a user to select a certain option."""
         choice = default
         user_input = str(component.input).lower()

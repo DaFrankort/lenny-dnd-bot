@@ -1,7 +1,7 @@
 import discord
 from discord import ui
 
-from components.items import LabeledTextComponent, SimpleSeparator, TitleTextDisplay
+from components.items import SimpleLabelTextInput, SimpleSeparator, TitleTextDisplay
 from components.modals import SimpleModal
 from components.paginated_view import PaginatedLayoutView
 from logic.homebrew import HomebrewData, HomebrewEntry, HomebrewEntryType
@@ -34,14 +34,14 @@ class HomebrewEmbed(discord.Embed):
 
 class HomebrewEntryAddModal(SimpleModal):
     type: HomebrewEntryType
-    name = LabeledTextComponent(label="Name", placeholder="Peanut")
-    subtitle = LabeledTextComponent(
+    name = SimpleLabelTextInput(label="Name", placeholder="Peanut")
+    subtitle = SimpleLabelTextInput(
         label="Subtitle",
         placeholder="A small legume",
         required=False,
         max_length=80,
     )
-    description = LabeledTextComponent(
+    description = SimpleLabelTextInput(
         label="Description",
         placeholder="A peanut is a legume that is often mistaken for a nut.",
         max_length=4000,
@@ -79,9 +79,9 @@ class HomebrewEntryAddModal(SimpleModal):
 
 class HomebrewEditModal(SimpleModal):
     entry: HomebrewEntry
-    name = LabeledTextComponent(label="Name")
-    subtitle = LabeledTextComponent(label="Subtitle", required=False, max_length=80)
-    description = LabeledTextComponent(label="Description", max_length=4000, style=discord.TextStyle.paragraph)
+    name = SimpleLabelTextInput(label="Name")
+    subtitle = SimpleLabelTextInput(label="Subtitle", required=False, max_length=80)
+    description = SimpleLabelTextInput(label="Description", max_length=4000, style=discord.TextStyle.paragraph)
 
     def __init__(self, itr: discord.Interaction, entry: HomebrewEntry):
         self.entry = entry

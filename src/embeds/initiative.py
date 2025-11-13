@@ -5,6 +5,7 @@ from components.items import ModalSelectComponent, SimpleLabelTextInput, SimpleS
 from components.modals import SimpleModal
 from embeds.embed import SimpleEmbed, UserActionEmbed
 from logger import log_button_press
+from logic.dicecache import DiceCache
 from logic.initiative import Initiative, InitiativeTracker
 from logic.roll import Advantage
 from logic.voice_chat import VC, SoundType
@@ -34,6 +35,7 @@ class InitiativeRollModal(_InitiativeModal):
         if modifier is None:
             await itr.response.send_message("Initiative Modifier must be a number without decimals.", ephemeral=True)
             return
+        DiceCache.store_initiative(itr, modifier)
 
         advantage = self.get_choice(self.advantage, Advantage) or Advantage.Normal
         initiative = Initiative(itr, modifier, name, advantage)

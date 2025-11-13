@@ -1,5 +1,6 @@
+import random
 import discord
-from discord import Interaction, ui
+from discord import Interaction, SelectOption, ui
 
 from components.items import ModalSelectComponent, SimpleLabelTextInput, SimpleSeparator
 from components.modals import SimpleModal
@@ -9,7 +10,7 @@ from logic.dicecache import DiceCache
 from logic.initiative import Initiative, InitiativeTracker
 from logic.roll import Advantage
 from logic.voice_chat import VC, SoundType
-from methods import Boolean
+from methods import Boolean, when
 
 
 class _InitiativeModal(SimpleModal):
@@ -108,16 +109,25 @@ class InitiativeSetModal(_InitiativeModal):
 
 
 class InitiativeDeleteModal(_InitiativeModal):
-    name = SimpleLabelTextInput(label="Name", placeholder="Goblin", required=False, max_length=128)
+    name = ModalSelectComponent(
+        label="Roll to delete (Removes user by default)", options=[], placeholder="Goblin", required=False
+    )
 
     def __init__(self, itr: Interaction, tracker: InitiativeTracker):
         self.name.input.placeholder = itr.user.display_name.title().strip()
+        for initiative in tracker.get(itr):
+            emoji = when(initiative.is_npc, "🐉", random.choice(["🧝", "🧝‍♂️", "🧝‍♀️"]))
+            default = initiative.owner.id == itr.user.id and not initiative.is_npc
+            option = SelectOption(label=initiative.name, value=initiative.name, emoji=emoji, default=default)
+            self.name.input.options.append(option)
+
         super().__init__(itr, title="Remove an Initiative", tracker=tracker)
 
     async def on_submit(self, itr: Interaction):
         self.log_inputs(itr)
 
-        name = self.get_str(self.name)
+        name = self.get_choice(self.name, type=str)
+        print(name)
         initiative = self.tracker.remove(itr, name)
         view = InitiativeContainerView(itr, self.tracker)
 

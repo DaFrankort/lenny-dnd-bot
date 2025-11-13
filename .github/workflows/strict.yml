@@ -22,5 +22,5 @@ jobs:
 
       - uses: ./.github/actions/setup
 
-      - name: Run pytest on bot_test.py
+      - name: Run pytest in strict-mode
         run: python -m pytest --run-strict

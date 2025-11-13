@@ -19,12 +19,15 @@ class _InitiativeModal(SimpleModal):
 
 
 class InitiativeRollModal(_InitiativeModal):
-    modifier = SimpleLabelTextInput(label="Your Initiative Modifier", placeholder="0", max_length=2, required=False)
+    modifier = SimpleLabelTextInput(label="Your Initiative Modifier", max_length=2, required=False)
     name = SimpleLabelTextInput(label="Name", placeholder="Goblin", required=False, max_length=128)
     advantage = ModalSelectComponent(label="Roll Mode", placeholder="Normal", options=Advantage.options(), required=False)
 
     def __init__(self, itr: Interaction, tracker: InitiativeTracker):
         self.name.input.placeholder = itr.user.display_name.title().strip()
+        prev_initiative = str(DiceCache.get_last_initiative(itr))
+        self.modifier.input.default = prev_initiative
+        self.modifier.input.placeholder = prev_initiative
         super().__init__(itr, title="Rolling for Initiative", tracker=tracker)
 
     async def on_submit(self, itr: Interaction):

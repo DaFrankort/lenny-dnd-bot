@@ -398,12 +398,12 @@ class TestBotCommands:
             (
                 "charactergen",
                 {
-                    "gender": Gender.choices(),
+                    "gender": Gender.values(),
                     "species": [species.value for species in species_choices()],
                     "char_class": [class_.value for class_ in class_choices()],
                 },
             ),
-            ("namegen", {"species": Data.names.get_species(), "gender": Gender.choices()}),
+            ("namegen", {"species": [spec.title() for spec in Data.names.get_species()], "gender": Gender.values()}),
         ],
     )
     async def test_slash_strict(

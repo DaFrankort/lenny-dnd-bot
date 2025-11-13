@@ -1,19 +1,21 @@
 import io
 from typing import Any
+
 import discord
 import rich
 import rich.box
-from rich.table import Table
-from rich.console import Console
 from discord import ui
+from rich.console import Console
+from rich.table import Table
+
 from components.items import SimpleSeparator, TitleTextDisplay
 from components.paginated_view import PaginatedLayoutView
 from embeds.embed import SimpleEmbed
 from logger import log_button_press
 from logic.color import UserColor
+from logic.dnd.abstract import build_table_from_rows
 from logic.dnd.table import DNDTable
 from logic.roll import RollResult
-from logic.dnd.abstract import build_table_from_rows
 from logic.voice_chat import VC, SoundType
 
 

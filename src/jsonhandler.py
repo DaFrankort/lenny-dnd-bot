@@ -2,7 +2,7 @@ import dataclasses
 import json
 import logging
 import os
-from typing import Any, Generic, Sequence, TypeVar, Union, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Generic, Sequence, TypeVar, Union
 
 if TYPE_CHECKING:
     from _typeshed import DataclassInstance

@@ -1,9 +1,9 @@
-from enum import Enum
 import logging
-from typing import TypeVar, Any
+from enum import Enum
+from typing import Any, TypeVar
+
 import discord
 from PIL import ImageFont
-
 
 T = TypeVar("T")
 U = TypeVar("U")

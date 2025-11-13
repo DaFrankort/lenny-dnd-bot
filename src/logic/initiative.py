@@ -1,10 +1,12 @@
 import logging
 import random
 import time
+
 import discord
 from discord import Interaction, Message, NotFound
-from rapidfuzz import fuzz
 from discord.app_commands import Choice
+from rapidfuzz import fuzz
+
 from logic.roll import Advantage
 
 

@@ -1,12 +1,12 @@
 import discord
+from discord.app_commands import autocomplete, choices, describe
 
-from embeds.embed import SimpleEmbed
 from commands.command import SimpleCommand
+from embeds.embed import SimpleEmbed
 from logic.color import UserColor
 from logic.dnd.data import Data
 from logic.dnd.name import Gender
 from logic.namegen import generate_name
-from discord.app_commands import describe, choices, autocomplete
 
 
 async def species_autocomplete(_: discord.Interaction, current: str):

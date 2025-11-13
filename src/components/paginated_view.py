@@ -1,5 +1,6 @@
 import abc
 import math
+
 import discord
 
 from components.modals import SimpleModal

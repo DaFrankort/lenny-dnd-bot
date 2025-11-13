@@ -1,13 +1,15 @@
 from typing import Iterable
+
 import discord
 from discord import ui
-from logic.charts import get_radar_chart
+
 from components.items import SimpleSeparator, TitleTextDisplay
 from logic.charactergen import CharacterGenResult
+from logic.charts import get_radar_chart
+from logic.color import UserColor
 from logic.dnd.abstract import DNDEntry, build_table_from_rows
 from logic.dnd.background import Background
 from logic.dnd.name import Gender
-from logic.color import UserColor
 
 
 class _CharacterGenInfoButton(ui.Button["CharacterGenContainerView"]):

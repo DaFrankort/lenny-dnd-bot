@@ -1,10 +1,10 @@
 import discord
-
-from embeds.embed import SuccessEmbed
-from embeds.color import ColorSetEmbed, ColorShowEmbed
-from commands.command import SimpleCommand, SimpleCommandGroup
-from logic.color import UserColor, save_hex_color, save_rgb_color
 from discord.app_commands import describe
+
+from commands.command import SimpleCommand, SimpleCommandGroup
+from embeds.color import ColorSetEmbed, ColorShowEmbed
+from embeds.embed import SuccessEmbed
+from logic.color import UserColor, save_hex_color, save_rgb_color
 
 
 class ColorCommandGroup(SimpleCommandGroup):

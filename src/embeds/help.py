@@ -1,7 +1,8 @@
 import discord
+from discord.app_commands import Choice, CommandTree, Group
+
 from commands.command import SimpleCommand, SimpleCommandGroup, SimpleContextMenu
 from logic.help import HelpSelectOption, HelpTab, HelpTabs
-from discord.app_commands import Group, CommandTree, Choice
 
 
 class HelpSelect(discord.ui.Select["HelpSelectView"]):

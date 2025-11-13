@@ -1,12 +1,13 @@
 import discord
 from discord import Interaction, ui
+
 from components.items import SimpleSeparator
+from components.modals import SimpleModal
 from embeds.embed import SimpleEmbed, UserActionEmbed
+from logger import log_button_press
 from logic.initiative import Initiative, InitiativeTracker
 from logic.roll import Advantage
-from components.modals import SimpleModal
 from logic.voice_chat import VC, SoundType
-from logger import log_button_press
 
 
 class _InitiativeModal(SimpleModal):

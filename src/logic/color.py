@@ -1,10 +1,12 @@
 import dataclasses
 import io
-import discord
 import re
+
+import discord
+from PIL import Image, ImageDraw
+
 from jsonhandler import JsonHandler
 from methods import FontType, get_font, when
-from PIL import Image, ImageDraw
 
 
 def get_palette_image(color: discord.Color | int) -> discord.File:

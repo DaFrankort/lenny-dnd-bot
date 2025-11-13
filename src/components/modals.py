@@ -1,7 +1,8 @@
 import logging
 from typing import TypeVar
+
 from discord import Interaction
-from discord.ui import TextInput, Modal
+from discord.ui import Modal, TextInput
 from discord.ui.view import BaseView
 
 from commands.command import get_error_embed

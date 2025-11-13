@@ -1,7 +1,9 @@
 import logging
-from typing import Any
-import discord
 from abc import abstractmethod
+from typing import Any
+
+import discord
+
 from embeds.embed import SimpleEmbed
 
 

@@ -1,8 +1,9 @@
 import io
 from typing import TypeVar
+
 import discord
-from matplotlib import pyplot as plt
 import numpy as np
+from matplotlib import pyplot as plt
 
 T = TypeVar("T")
 

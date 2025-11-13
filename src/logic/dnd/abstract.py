@@ -1,14 +1,15 @@
 import abc
+import io
 import json
 import os
-from typing import Any, Generic, Iterable, Literal, TypeVar, TypedDict, Union
+from typing import Any, Generic, Iterable, Literal, TypedDict, TypeVar, Union
+
 import discord
-from rapidfuzz import fuzz
-import io
 import rich
 import rich.box
-from rich.table import Table
+from rapidfuzz import fuzz
 from rich.console import Console
+from rich.table import Table
 
 BASE_DATA_PATH = "./submodules/lenny-dnd-data/generated/"
 

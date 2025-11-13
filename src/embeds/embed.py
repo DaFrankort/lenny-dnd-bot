@@ -1,4 +1,5 @@
 import discord
+
 from logic.color import UserColor
 
 

@@ -2,12 +2,14 @@ import dataclasses
 import logging
 import os
 from typing import Any, Set
+
 import discord
-from rapidfuzz import fuzz
-from jsonhandler import JsonHandler
-from methods import ChoicedEnum
-from logic.config import user_is_admin_or_has_config_permissions
 from discord.app_commands import Choice
+from rapidfuzz import fuzz
+
+from jsonhandler import JsonHandler
+from logic.config import user_is_admin_or_has_config_permissions
+from methods import ChoicedEnum
 
 HOMEBREW_PATH: str = "./temp/homebrew/"
 

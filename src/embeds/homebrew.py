@@ -1,9 +1,10 @@
 import discord
 from discord import ui
+
 from components.items import SimpleSeparator, TitleTextDisplay
-from components.paginated_view import PaginatedLayoutView
-from logic.homebrew import HomebrewEntry, HomebrewData, HomebrewEntryType
 from components.modals import SimpleModal
+from components.paginated_view import PaginatedLayoutView
+from logic.homebrew import HomebrewData, HomebrewEntry, HomebrewEntryType
 from markdown import MDFile, wrapped_md_table_to_rich_table
 
 

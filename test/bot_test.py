@@ -406,6 +406,7 @@ class TestBotCommands:
         assert cmd is not None, f"{cmd_name} command not found"
 
         arguments = listify(arguments)
+        failures: list[tuple[dict[str, Any], str]] = []
 
         for arg_set in arguments:
             arg_variants = self.expand_arg_variants(arg_set)
@@ -413,4 +414,8 @@ class TestBotCommands:
                 try:
                     await cmd.callback(itr=itr, **args)  # pyright: ignore[reportCallIssue]
                 except Exception as e:
-                    pytest.fail(f"Error while running command /{cmd_name} with args {args}: {e}")
+                    failures.append((args, str(e)))
+
+        if failures:
+            failure_messages = "\n".join([f"Args: {args}, Error: {error}" for args, error in failures])
+            pytest.fail(f"Errors while running command /{cmd_name}:\n{failure_messages}")

@@ -1,5 +1,6 @@
 from itertools import product
 from typing import Any, TypeVar
+
 import pytest
 
 # Required to mark the library as essential for testing in our workflows
@@ -9,9 +10,9 @@ from utils.utils import listify
 
 from bot import Bot
 from commands.command import SimpleCommand, SimpleCommandGroup
+from commands.tokengen import AlignH, AlignV
 from logic.config import Config
 from logic.dnd.abstract import DNDEntry, DNDEntryList
-from commands.tokengen import AlignH, AlignV
 from logic.dnd.data import Data
 from logic.dnd.name import Gender
 from logic.roll import Advantage

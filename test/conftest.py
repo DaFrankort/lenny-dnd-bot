@@ -1,8 +1,9 @@
+from typing import List
+
 import pytest
 from _pytest.config import Config
 from _pytest.config.argparsing import Parser
 from _pytest.nodes import Item
-from typing import List
 
 
 def pytest_addoption(parser: Parser) -> None:

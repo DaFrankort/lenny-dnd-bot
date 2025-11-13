@@ -19,15 +19,11 @@ class _InitiativeModal(SimpleModal):
 
 class InitiativeRollModal(_InitiativeModal):
     modifier = SimpleLabelTextInput(label="Your Initiative Modifier", placeholder="0", max_length=2, required=False)
-    name = SimpleLabelTextInput(
-        label="Name (Username by default)",
-        placeholder="Goblin",
-        required=False,
-        max_length=128,
-    )
+    name = SimpleLabelTextInput(label="Name", placeholder="Goblin", required=False, max_length=128)
     advantage = ModalSelectComponent(label="Roll Mode", placeholder="Normal", options=Advantage.options(), required=False)
 
     def __init__(self, itr: Interaction, tracker: InitiativeTracker):
+        self.name.input.placeholder = itr.user.display_name.title().strip()
         super().__init__(itr, title="Rolling for Initiative", tracker=tracker)
 
     async def on_submit(self, itr: Interaction):
@@ -45,9 +41,9 @@ class InitiativeRollModal(_InitiativeModal):
 
         title = f"{itr.user.name} rolled Initiative for {initiative.name}"
         if advantage == Advantage.Advantage:
-            title += "with Advantage!"
+            title += " with Advantage!"
         elif advantage == Advantage.Disadvantage:
-            title += "with Disadvantage!"
+            title += " with Disadvantage!"
         else:
             title += "!"
 
@@ -76,14 +72,10 @@ class InitiativeRollModal(_InitiativeModal):
 
 class InitiativeSetModal(_InitiativeModal):
     value = SimpleLabelTextInput(label="Initiative value", placeholder="20", max_length=3)
-    name = SimpleLabelTextInput(
-        label="Name (Username by default)",
-        placeholder="Goblin",
-        required=False,
-        max_length=128,
-    )
+    name = SimpleLabelTextInput(label="Name", placeholder="Goblin", required=False, max_length=128)
 
     def __init__(self, itr: Interaction, tracker: InitiativeTracker):
+        self.name.input.placeholder = itr.user.display_name.title().strip()
         super().__init__(itr, title="Setting your Initiative value", tracker=tracker)
 
     async def on_submit(self, itr: Interaction):
@@ -111,14 +103,10 @@ class InitiativeSetModal(_InitiativeModal):
 
 
 class InitiativeDeleteModal(_InitiativeModal):
-    name = SimpleLabelTextInput(
-        label="Name (Username by default)",
-        placeholder="Goblin",
-        required=False,
-        max_length=128,
-    )
+    name = SimpleLabelTextInput(label="Name", placeholder="Goblin", required=False, max_length=128)
 
     def __init__(self, itr: Interaction, tracker: InitiativeTracker):
+        self.name.input.placeholder = itr.user.display_name.title().strip()
         super().__init__(itr, title="Remove an Initiative", tracker=tracker)
 
     async def on_submit(self, itr: Interaction):

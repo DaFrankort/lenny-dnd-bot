@@ -1,5 +1,3 @@
-import random
-
 import discord
 from discord import Interaction, SelectOption, ui
 
@@ -118,8 +116,8 @@ class InitiativeDeleteModal(_InitiativeModal):
         self.name.input.placeholder = itr.user.display_name.title().strip()
         self.name.input.options.clear()
         for initiative in tracker.get(itr):
-            emoji = when(initiative.is_npc, "🐉", random.choice(["🧝", "🧝‍♂️", "🧝‍♀️"]))
-            default = initiative.owner.id == itr.user.id and not initiative.is_npc
+            emoji = when(initiative.is_npc, "🐉", "🧝")
+            default = initiative.is_owner(itr.user) and not initiative.is_npc
             option = SelectOption(label=initiative.name, value=initiative.name, emoji=emoji, default=default)
             self.name.input.options.append(option)
 
@@ -229,17 +227,15 @@ class InitiativePlayerRow(ui.ActionRow["InitiativeContainerView"]):
 
         roll_btn = ui.Button["InitiativeContainerView"](style=discord.ButtonStyle.success, label="Roll")
         roll_btn.callback = lambda interaction: self.roll_initiative(interaction)
-        roll_btn.disabled = False
         self.add_item(roll_btn)
 
         set_btn = ui.Button["InitiativeContainerView"](style=discord.ButtonStyle.success, label="Set")
         set_btn.callback = lambda interaction: self.set_initiative(interaction)
-        set_btn.disabled = False
         self.add_item(set_btn)
 
         delete_btn = ui.Button["InitiativeContainerView"](style=discord.ButtonStyle.danger, label="Delete Roll")
         delete_btn.callback = lambda interaction: self.remove_initiative(interaction)
-        delete_btn.disabled = len(tracker.get(itr)) == 0
+        delete_btn.disabled = len(tracker.get(itr)) <= 0
         self.add_item(delete_btn)
 
     async def roll_initiative(self, itr: Interaction):

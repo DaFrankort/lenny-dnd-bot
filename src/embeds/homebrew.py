@@ -1,7 +1,7 @@
 import discord
 from discord import ui
 
-from components.items import SimpleSeparator, TitleTextDisplay
+from components.items import SimpleLabelTextInput, SimpleSeparator, TitleTextDisplay
 from components.modals import SimpleModal
 from components.paginated_view import PaginatedLayoutView
 from logic.homebrew import HomebrewData, HomebrewEntry, HomebrewEntryType
@@ -34,14 +34,14 @@ class HomebrewEmbed(discord.Embed):
 
 class HomebrewEntryAddModal(SimpleModal):
     type: HomebrewEntryType
-    name = ui.TextInput["HomebrewListView"](label="Name", placeholder="Peanut")
-    subtitle = ui.TextInput["HomebrewListView"](
+    name = SimpleLabelTextInput(label="Name", placeholder="Peanut")
+    subtitle = SimpleLabelTextInput(
         label="Subtitle",
         placeholder="A small legume",
         required=False,
         max_length=80,
     )
-    description = ui.TextInput["HomebrewListView"](
+    description = SimpleLabelTextInput(
         label="Description",
         placeholder="A peanut is a legume that is often mistaken for a nut.",
         max_length=4000,
@@ -54,10 +54,10 @@ class HomebrewEntryAddModal(SimpleModal):
                 raise ValueError(
                     "Markdown file's content exceeds exceeds character-limit!\nPlease use a file with less than 4000 characters."
                 )
-            self.name.default = md_file.title
-            self.name.placeholder = self.format_placeholder(md_file.title)
-            self.description.default = md_file.content
-            self.description.placeholder = self.format_placeholder(md_file.content)
+            self.name.input.default = md_file.title
+            self.name.input.placeholder = self.format_placeholder(md_file.title)
+            self.description.input.default = md_file.content
+            self.description.input.placeholder = self.format_placeholder(md_file.content)
         self.type = dnd_type
         super().__init__(itr=itr, title=f"Add new {dnd_type.title()}")
 
@@ -79,18 +79,18 @@ class HomebrewEntryAddModal(SimpleModal):
 
 class HomebrewEditModal(SimpleModal):
     entry: HomebrewEntry
-    name = ui.TextInput["HomebrewListView"](label="Name")
-    subtitle = ui.TextInput["HomebrewListView"](label="Subtitle", required=False, max_length=80)
-    description = ui.TextInput["HomebrewListView"](label="Description", max_length=4000, style=discord.TextStyle.paragraph)
+    name = SimpleLabelTextInput(label="Name")
+    subtitle = SimpleLabelTextInput(label="Subtitle", required=False, max_length=80)
+    description = SimpleLabelTextInput(label="Description", max_length=4000, style=discord.TextStyle.paragraph)
 
     def __init__(self, itr: discord.Interaction, entry: HomebrewEntry):
         self.entry = entry
-        self.name.default = entry.name
-        self.name.placeholder = entry.name
-        self.subtitle.default = entry.select_description or ""
-        self.subtitle.placeholder = entry.select_description or "Subtitle"
-        self.description.default = entry.description
-        self.description.placeholder = self.format_placeholder(entry.description)
+        self.name.input.default = entry.name
+        self.name.input.placeholder = entry.name
+        self.subtitle.input.default = entry.select_description or ""
+        self.subtitle.input.placeholder = entry.select_description or "Subtitle"
+        self.description.input.default = entry.description
+        self.description.input.placeholder = self.format_placeholder(entry.description)
         super().__init__(itr=itr, title=f"Edit {entry.entry_type.value}: {entry.name}")
 
     async def on_submit(self, itr: discord.Interaction):

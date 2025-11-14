@@ -26,7 +26,7 @@ jobs:
         with:
           ignore: "W503"
           max-line-length: 999
-          path: lennny test
+          path: lenny test
 
   black-lints:
     runs-on: ubuntu-latest

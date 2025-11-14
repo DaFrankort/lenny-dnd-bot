@@ -1,7 +1,7 @@
 import discord
 
 from embeds.embed import UserActionEmbed
-from logic.roll import Advantage, MultiRollResult, RollResult, SingleRollResult
+from logic.roll import MultiRollResult, RollResult, SingleRollResult
 
 
 class RollEmbed(UserActionEmbed):
@@ -12,16 +12,10 @@ class RollEmbed(UserActionEmbed):
         reason: str | None,
         reroll: bool = False,
     ):
-        title_suffix = ""
-        if result.advantage == Advantage.Advantage:
-            title_suffix = " with advantage"
-        elif result.advantage == Advantage.Disadvantage:
-            title_suffix = " with disadvantage"
-
         if reroll:
-            title = f"Re-rolling {result.expression}{title_suffix}!"
+            title = f"Re-rolling {result.expression}{result.advantage.title_suffix}!"
         else:
-            title = f"Rolling {result.expression}{title_suffix}!"
+            title = f"Rolling {result.expression}{result.advantage.title_suffix}!"
 
         if reason is None:
             reason = "Result"
@@ -60,16 +54,10 @@ class MultiRollEmbed(UserActionEmbed):
         reason: str | None,
         reroll: bool = False,
     ):
-        title_suffix = ""
-        if result.advantage == Advantage.Advantage:
-            title_suffix = " with advantage"
-        elif result.advantage == Advantage.Disadvantage:
-            title_suffix = " with disadvantage"
-
         if reroll:
-            title = f"Re-rolling {result.expression} multiple times{title_suffix}!"
+            title = f"Re-rolling {result.expression} multiple times{result.advantage.title_suffix}!"
         else:
-            title = f"Rolling {result.expression} multiple times{title_suffix}!"
+            title = f"Rolling {result.expression} multiple times{result.advantage.title_suffix}!"
 
         if reason is None:
             reason = "Total"

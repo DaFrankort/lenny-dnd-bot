@@ -13,6 +13,11 @@ class Advantage(str, ChoicedEnum):
     Advantage = "advantage"
     Disadvantage = "disadvantage"
 
+    @property
+    def title_suffix(self) -> str:
+        suffixes = {self.Advantage: " with advantage", self.Disadvantage: " with disadvantage"}
+        return suffixes.get(self, "")
+
 
 class DiceSpecial(str, Enum):
     Natural20 = "nat20"
@@ -254,26 +259,22 @@ def multi_roll(expression: str, amount: int, advantage: Advantage) -> MultiRollR
     _validate_expression(expression)
     expression = str(d20.parse(expression, allow_comments=False))
     rolls = [_roll_single(expression) for _ in range(amount)]
-    rolls_2 = []
 
-    if advantage in [Advantage.Advantage, Advantage.Disadvantage]:
-        rolls_2 = [_roll_single(expression) for _ in range(amount)]
-        lower_rolls: list[SingleRollResult] = []
-        higher_rolls: list[SingleRollResult] = []
+    if advantage == Advantage.Normal:
+        return MultiRollResult(expression, advantage, rolls, rolls_lose=[])
 
-        for i in range(amount):
-            if rolls[i].total > rolls_2[i].total:
-                higher_rolls.append(rolls[i])
-                lower_rolls.append(rolls_2[i])
-            else:
-                higher_rolls.append(rolls_2[i])
-                lower_rolls.append(rolls[i])
+    extra_rolls = [_roll_single(expression) for _ in range(amount)]
+    lower_rolls: list[SingleRollResult] = []
+    higher_rolls: list[SingleRollResult] = []
 
-        if advantage == Advantage.Advantage:
-            rolls = higher_rolls
-            rolls_2 = lower_rolls
+    for i in range(amount):
+        if rolls[i].total > extra_rolls[i].total:
+            higher_rolls.append(rolls[i])
+            lower_rolls.append(extra_rolls[i])
         else:
-            rolls = lower_rolls
-            rolls_2 = higher_rolls
+            higher_rolls.append(extra_rolls[i])
+            lower_rolls.append(rolls[i])
 
-    return MultiRollResult(expression, advantage, rolls, rolls_lose=rolls_2)
+    if advantage == Advantage.Advantage:
+        return MultiRollResult(expression, advantage, higher_rolls, rolls_lose=lower_rolls)
+    return MultiRollResult(expression, advantage, lower_rolls, rolls_lose=higher_rolls)

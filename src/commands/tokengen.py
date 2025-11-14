@@ -36,7 +36,7 @@ class TokenGenCommand(SimpleCommand):
         h_alignment=AlignH.choices(),
         v_alignment=AlignV.choices(),
     )
-    async def handle(  # pyright: ignore
+    async def handle(
         self,
         itr: discord.Interaction,
         image: discord.Attachment,
@@ -70,7 +70,7 @@ class TokenGenUrlCommand(SimpleCommand):
         h_alignment=AlignH.choices(),
         v_alignment=AlignV.choices(),
     )
-    async def handle(  # pyright: ignore
+    async def handle(
         self,
         itr: discord.Interaction,
         url: str,

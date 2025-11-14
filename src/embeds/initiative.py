@@ -274,10 +274,10 @@ class InitiativeUnlockButton(ui.Button["InitiativeContainerView"]):
         super().__init__(style=discord.ButtonStyle.primary, label="Unlock", custom_id="unlock_btn")
         self.tracker = tracker
 
-    async def callback(self, itr: Interaction):  # pyright: ignore[reportIncompatibleMethodOverride]
-        log_button_press(itr, self, "InitiativeContainerView")
-        await VC.play(itr, SoundType.LOCK)
-        await itr.response.edit_message(view=InitiativeContainerView(itr, self.tracker, False))
+    async def callback(self, interaction: Interaction):
+        log_button_press(interaction, self, "InitiativeContainerView")
+        await VC.play(interaction, SoundType.LOCK)
+        await interaction.response.edit_message(view=InitiativeContainerView(interaction, self.tracker, False))
 
 
 class InitiativeContainerView(ui.LayoutView):

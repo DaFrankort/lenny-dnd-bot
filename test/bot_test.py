@@ -248,7 +248,7 @@ class TestBotCommands:
             arg_variants = self.expand_arg_variants(arg_set)
             for args in arg_variants:
                 try:
-                    await cmd.handle(itr=itr, **args)  # pyright: ignore[reportCallIssue]
+                    await cmd.handle(itr=itr, **args)
                 except Exception as e:
                     pytest.fail(f"Error while running command /{cmd_name} with args {args}: {e}")
 
@@ -325,7 +325,7 @@ class TestBotCommands:
             arg_variants = self.expand_arg_variants(arg_set)
             for args in arg_variants:
                 with pytest.raises(Exception):
-                    await cmd.handle(itr=itr, **args)  # pyright: ignore[reportCallIssue]
+                    await cmd.handle(itr=itr, **args)
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
@@ -424,7 +424,7 @@ class TestBotCommands:
             arg_variants = self.expand_arg_variants(arg_set)
             for args in arg_variants:
                 try:
-                    await cmd.handle(itr=itr, **args)  # pyright: ignore[reportCallIssue]
+                    await cmd.handle(itr=itr, **args)
                 except Exception as e:
                     failures.append((args, str(e)))
 

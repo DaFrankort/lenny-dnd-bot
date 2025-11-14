@@ -51,7 +51,7 @@ class HomebrewSearchCommand(SimpleCommand):
 
     @autocomplete(name=homebrew_name_autocomplete)
     @describe(name="The name of the entry you want to find.")
-    async def handle(self, itr: discord.Interaction, name: str):  # pyright: ignore[reportIncompatibleMethodOverride]
+    async def handle(self, itr: discord.Interaction, name: str):
         self.log(itr)
         entry = HomebrewData.get(itr).get(name)
         embed = HomebrewEmbed(itr, entry)
@@ -78,7 +78,7 @@ class HomebrewEditCommand(SimpleCommand):
 
     @autocomplete(name=homebrew_name_autocomplete)
     @describe(name="The name of the entry you want to edit.")
-    async def handle(self, itr: discord.Interaction, name: str):  # pyright: ignore[reportIncompatibleMethodOverride]
+    async def handle(self, itr: discord.Interaction, name: str):
         self.log(itr)
         entry = HomebrewData.get(itr).get(name)
         modal = HomebrewEditModal(itr, entry)
@@ -92,7 +92,7 @@ class HomebrewRemoveCommand(SimpleCommand):
 
     @autocomplete(name=homebrew_name_autocomplete)
     @describe(name="The name of the entry you want to remove.")
-    async def handle(self, itr: discord.Interaction, name: str):  # pyright: ignore[reportIncompatibleMethodOverride]
+    async def handle(self, itr: discord.Interaction, name: str):
         self.log(itr)
         entry = HomebrewData.get(itr).delete(itr, name)
         embed = HomebrewEmbed(itr, entry)

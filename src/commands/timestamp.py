@@ -53,7 +53,7 @@ class TimestampDateCommand(SimpleCommand):
         timezone="Timezone offset from UTC (between -14 and +14).",
         date="Optional date in DD/MM/YYYY or DD/MM format (defaults to today).",
     )
-    async def handle(  # pyright: ignore
+    async def handle(
         self,
         itr: discord.Interaction,
         time: str,

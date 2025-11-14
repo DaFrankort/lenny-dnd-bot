@@ -27,7 +27,7 @@ class _AbstractRollCommand(SimpleCommand):
         diceroll="The dice-expression of the roll you want to make (Example: 1d20+3, 1d8ro1, ...)",
         reason="An optional reason for rolling, for additional clarity. (Example: Attack, Damage, ...)",
     )
-    async def handle(  # pyright: ignore
+    async def handle(
         self,
         itr: discord.Interaction,
         diceroll: str,
@@ -96,7 +96,7 @@ class MultiRollCommand(SimpleCommand):
         advantage="Roll with or without advantage, rolls normal by default.",
         reason="An optional reason for rolling, for additional clarity. (Example: Attack, Damage, ...)",
     )
-    async def handle(  # pyright: ignore
+    async def handle(
         self,
         itr: discord.Interaction,
         diceroll: str,

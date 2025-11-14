@@ -6,7 +6,7 @@ from typing import Any
 
 import pytest
 
-from jsonhandler import JsonHandler
+from logic.jsonhandler import JsonHandler
 
 
 @dataclasses.dataclass

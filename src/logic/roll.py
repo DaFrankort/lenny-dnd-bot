@@ -198,7 +198,9 @@ class RollResult(object):
 @dataclasses.dataclass
 class MultiRollResult(object):
     expression: str
+    advantage: Advantage
     rolls: list[SingleRollResult]
+    rolls_lose: list[SingleRollResult]
 
     @property
     def total(self) -> int:
@@ -248,8 +250,30 @@ def roll(expression: str, advantage: Advantage = Advantage.Normal) -> RollResult
     return RollResult(expression, advantage, rolls)
 
 
-def multi_roll(expression: str, amount: int) -> MultiRollResult:
+def multi_roll(expression: str, amount: int, advantage: Advantage) -> MultiRollResult:
     _validate_expression(expression)
     expression = str(d20.parse(expression, allow_comments=False))
     rolls = [_roll_single(expression) for _ in range(amount)]
-    return MultiRollResult(expression, rolls)
+    rolls_2 = []
+
+    if advantage in [Advantage.Advantage, Advantage.Disadvantage]:
+        rolls_2 = [_roll_single(expression) for _ in range(amount)]
+        lower_rolls: list[SingleRollResult] = []
+        higher_rolls: list[SingleRollResult] = []
+
+        for i in range(amount):
+            if rolls[i].total > rolls_2[i].total:
+                higher_rolls.append(rolls[i])
+                lower_rolls.append(rolls_2[i])
+            else:
+                higher_rolls.append(rolls_2[i])
+                lower_rolls.append(rolls[i])
+
+        if advantage == Advantage.Advantage:
+            rolls = higher_rolls
+            rolls_2 = lower_rolls
+        else:
+            rolls = lower_rolls
+            rolls_2 = higher_rolls
+
+    return MultiRollResult(expression, advantage, rolls, rolls_lose=rolls_2)

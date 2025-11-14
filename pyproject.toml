@@ -1,5 +1,6 @@
 [tool.isort]
 profile = "black"
+src_paths = ["lenny"]
 
 [tool.black]
 line-length = 128

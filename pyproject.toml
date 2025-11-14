@@ -5,6 +5,7 @@ profile = "black"
 line-length = 128
 
 [tool.pyright]
-include = ["src", "test"]
+include = ["lenny", "test"]
 exclude = ["**/__pycache__"]
+extraPaths = ["lenny"]
 typeCheckingMode = "strict"

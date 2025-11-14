@@ -9,7 +9,7 @@ from discord.utils import (
 from bot import Bot
 
 if __name__ == "__main__":
-    # Parse command line arguments, see `python src/main.py --help`
+    # Parse command line arguments, see `python lenny --help`
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--verbose",

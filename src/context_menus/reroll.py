@@ -9,14 +9,14 @@ from logic.voice_chat import VC, SoundType
 
 class RerollContextMenu(SimpleContextMenu):
     name = "Re-roll"
-    help = "Will repeat a roll done with the __/roll__, __/advantage__, or __/disadvantage__ commands."
+    help = "Will repeat a roll done with the __/roll__, __/advantage__, __/disadvantage__, or __/multiroll__ commands."
 
     def __init__(self):
         super().__init__()
 
     def _get_reason(self, embed: discord.Embed):
         reason = None
-        field = embed.fields[0].value or ""
+        field = embed.fields[-1].value or ""
         if "Result" not in field:
             lines = field.strip().splitlines()
             for line in lines:
@@ -26,7 +26,17 @@ class RerollContextMenu(SimpleContextMenu):
                     break
         return reason
 
+    def _parse_advantage(self, dice_notation: str) -> Advantage:
+        if "disadvantage" in dice_notation:
+            # Check 'disadvantage' before 'advantage', may give a false positive otherwise.
+            return Advantage.Disadvantage
+        elif "advantage" in dice_notation:
+            return Advantage.Advantage
+        return Advantage.Normal
+
     async def _handle_multiroll(self, interaction: discord.Interaction, dice_notation: str, embed: discord.Embed):
+        advantage = self._parse_advantage(dice_notation)
+        dice_notation = dice_notation.replace(advantage.title_suffix.strip(), "")
         dice_notation = dice_notation.replace("multiple times", "").strip()
         reason = self._get_reason(embed)
 
@@ -35,10 +45,10 @@ class RerollContextMenu(SimpleContextMenu):
 
         amount = 0
         for line in embed.fields[0].value.split("\n"):
-            if "- `" in line:
+            if "`" in line:
                 amount += 1
 
-        result = multi_roll(dice_notation, amount)
+        result = multi_roll(dice_notation, amount, advantage)
         embed = MultiRollEmbed(interaction, result, reason, reroll=True)
         DiceCache.store_expression(interaction, dice_notation)
 
@@ -46,15 +56,8 @@ class RerollContextMenu(SimpleContextMenu):
         await VC.play(interaction, SoundType.ROLL)
 
     async def _handle_single_roll(self, interaction: discord.Interaction, dice_notation: str, embed: discord.Embed):
-        if "disadvantage" in dice_notation:
-            # Check 'disadvantage' before 'advantage', may give a false positive otherwise.
-            advantage = Advantage.Disadvantage
-            dice_notation = dice_notation.replace("with disadvantage", "")
-        elif "advantage" in dice_notation:
-            advantage = Advantage.Advantage
-            dice_notation = dice_notation.replace("with advantage", "")
-        else:
-            advantage = Advantage.Normal
+        advantage = self._parse_advantage(dice_notation)
+        dice_notation = dice_notation.replace(advantage.title_suffix.strip(), "")
         dice_notation = dice_notation.strip()
 
         reason = self._get_reason(embed)

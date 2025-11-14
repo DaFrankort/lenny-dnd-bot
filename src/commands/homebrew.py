@@ -31,16 +31,12 @@ class HomebrewAddCommand(SimpleCommand):
     desc = "Add custom content to your tome of homebrew."
     help = "Add new homebrew content to your server."
 
-    @choices(type=HomebrewEntryType.choices())
-    @describe(type="The type of entry you are adding.")
-    async def handle(  
-        self, itr: discord.Interaction, type: HomebrewEntryType, md_file: discord.Attachment | None = None
-    ):
+    async def handle(self, itr: discord.Interaction, md_file: discord.Attachment | None = None):
         self.log(itr)
         md_data = None
         if md_file:
             md_data = await MDFile.from_attachment(md_file)
-        modal = HomebrewEntryAddModal(itr, type, md_data)
+        modal = HomebrewEntryAddModal(itr, md_data)
         await itr.response.send_modal(modal)
 
 

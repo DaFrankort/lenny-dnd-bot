@@ -1,5 +1,5 @@
 import discord
-from discord.app_commands import autocomplete, describe
+from discord.app_commands import autocomplete, choices, describe
 
 from commands.command import SimpleCommand
 from embeds.roll import MultiRollEmbed, RollEmbed
@@ -89,9 +89,11 @@ class MultiRollCommand(SimpleCommand):
         diceroll=diceroll_autocomplete,
         reason=reason_autocomplete,
     )
+    @choices(advantage=Advantage.choices())
     @describe(
         diceroll="The dice-expression of the roll you want to make (Example: 1d20+3, 1d8ro1, ...)",
         amount="How many times to roll the expression.",
+        advantage="Roll with or without advantage, rolls normal by default.",
         reason="An optional reason for rolling, for additional clarity. (Example: Attack, Damage, ...)",
     )
     async def handle(  # pyright: ignore
@@ -99,10 +101,11 @@ class MultiRollCommand(SimpleCommand):
         itr: discord.Interaction,
         diceroll: str,
         amount: discord.app_commands.Range[int, 1, 32],
+        advantage: str = Advantage.Normal,
         reason: str | None = None,
     ):
         self.log(itr)
-        result = multi_roll(diceroll, amount)
+        result = multi_roll(diceroll, amount, Advantage(advantage))
         DiceCache.store_expression(itr, result.expression)
         DiceCache.store_reason(itr, reason)
         embed = MultiRollEmbed(itr, result, reason)

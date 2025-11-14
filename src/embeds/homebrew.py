@@ -1,7 +1,12 @@
 import discord
 from discord import ui
 
-from components.items import SimpleLabelTextInput, SimpleSeparator, TitleTextDisplay
+from components.items import (
+    ModalSelectComponent,
+    SimpleLabelTextInput,
+    SimpleSeparator,
+    TitleTextDisplay,
+)
 from components.modals import SimpleModal
 from components.paginated_view import PaginatedLayoutView
 from logic.homebrew import HomebrewData, HomebrewEntry, HomebrewEntryType
@@ -33,8 +38,8 @@ class HomebrewEmbed(discord.Embed):
 
 
 class HomebrewEntryAddModal(SimpleModal):
-    type: HomebrewEntryType
     name = SimpleLabelTextInput(label="Name", placeholder="Peanut")
+    type = ModalSelectComponent(label="Type", options=HomebrewEntryType.options(), required=True)
     subtitle = SimpleLabelTextInput(
         label="Subtitle",
         placeholder="A small legume",
@@ -48,7 +53,7 @@ class HomebrewEntryAddModal(SimpleModal):
         style=discord.TextStyle.paragraph,
     )
 
-    def __init__(self, itr: discord.Interaction, dnd_type: HomebrewEntryType, md_file: MDFile | None):
+    def __init__(self, itr: discord.Interaction, md_file: MDFile | None):
         if md_file:
             if len(md_file.content) > 4000:
                 raise ValueError(
@@ -58,23 +63,26 @@ class HomebrewEntryAddModal(SimpleModal):
             self.name.input.placeholder = self.format_placeholder(md_file.title)
             self.description.input.default = md_file.content
             self.description.input.placeholder = self.format_placeholder(md_file.content)
-        self.type = dnd_type
-        super().__init__(itr=itr, title=f"Add new {dnd_type.title()}")
+        super().__init__(itr=itr, title="Add new homebrew entry")
 
     async def on_submit(self, itr: discord.Interaction):
         self.log_inputs(itr)
 
         name = self.get_str(self.name)
+        type: HomebrewEntryType | None = self.get_choice(self.type, HomebrewEntryType)
         subtitle = self.get_str(self.subtitle)
         description = self.get_str(self.description)
 
-        if not name or not description:
-            await itr.response.send_message("Name and Description are required fields.", ephemeral=True)
-            return
+        if not name:
+            raise ValueError("Name is a required field.")
+        if not description:
+            raise ValueError("Description is a required field.")
+        if not type:
+            raise ValueError("Type is a required field.")
 
-        entry = HomebrewData.get(itr).add(itr, self.type, name=name, select_description=subtitle, description=description)
+        entry = HomebrewData.get(itr).add(itr, type, name=name, select_description=subtitle, description=description)
         embed = HomebrewEmbed(itr, entry)
-        await itr.response.send_message(content=f"Added {self.type.value}: ``{name}``!", embed=embed, ephemeral=True)
+        await itr.response.send_message(content=f"Added {type.value}: ``{name}``!", embed=embed, ephemeral=True)
 
 
 class HomebrewEditModal(SimpleModal):

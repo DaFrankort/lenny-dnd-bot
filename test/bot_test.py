@@ -110,6 +110,7 @@ class TestBotCommands:
                 {
                     "diceroll": ["1d20+6", "4d8kh3", "1d8ro1"],
                     "amount": [1, 3],
+                    "advantage": [None].extend(Advantage.values()),
                     "reason": [None, "Attack"],
                 },
             ),

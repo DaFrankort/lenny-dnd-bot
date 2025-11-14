@@ -74,10 +74,6 @@ class MultiRollEmbed(UserActionEmbed):
         if reason is None:
             reason = "Total"
 
-        description = ""
-        if not result.rolls[0].contains_dice:
-            description = "⚠️ Expression contains no dice. ⚠️"
-
         winning_result = self._get_roll_list(result.rolls, False)
         losing_result = self._get_roll_list(result.rolls_lose, True)
         footer = f"\n🎲 **{reason}: {result.total}**"
@@ -86,7 +82,10 @@ class MultiRollEmbed(UserActionEmbed):
             super().__init__(itr, title, "⚠️ Message too long, try sending a shorter expression!")
             return
 
-        super().__init__(itr, title, description)
+        super().__init__(itr, title, "")
+        if not result.rolls[0].contains_dice:
+            self.description = "⚠️ Expression contains no dice. ⚠️"
+
         if losing_result:
             self.add_field(name="", value=losing_result, inline=True)
         self.add_field(name="", value=winning_result, inline=True)

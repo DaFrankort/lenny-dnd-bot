@@ -1,5 +1,5 @@
 import discord
-from discord import Interaction, ui
+from discord import Interaction, SelectOption, ui
 
 from components.items import ModalSelectComponent, SimpleLabelTextInput, SimpleSeparator
 from components.modals import SimpleModal
@@ -9,7 +9,7 @@ from logic.dicecache import DiceCache
 from logic.initiative import Initiative, InitiativeTracker
 from logic.roll import Advantage
 from logic.voice_chat import VC, SoundType
-from methods import Boolean
+from methods import Boolean, when
 
 
 class _InitiativeModal(SimpleModal):
@@ -108,25 +108,31 @@ class InitiativeSetModal(_InitiativeModal):
 
 
 class InitiativeDeleteModal(_InitiativeModal):
-    name = SimpleLabelTextInput(label="Name", placeholder="Goblin", required=False, max_length=128)
+    name = ModalSelectComponent(label="Roll to delete", options=[], placeholder="Goblin", required=True)
 
     def __init__(self, itr: Interaction, tracker: InitiativeTracker):
         self.name.input.placeholder = itr.user.display_name.title().strip()
+        self.name.input.options.clear()
+        for initiative in tracker.get(itr):
+            emoji = when(initiative.is_npc, "🐉", "🧝")
+            default = initiative.is_owner(itr.user) and not initiative.is_npc
+            option = SelectOption(label=initiative.name, value=initiative.name, emoji=emoji, default=default)
+            self.name.input.options.append(option)
+
         super().__init__(itr, title="Remove an Initiative", tracker=tracker)
 
     async def on_submit(self, itr: Interaction):
         self.log_inputs(itr)
 
-        name = self.get_str(self.name)
+        name = self.get_choice(self.name, type=str)
         initiative = self.tracker.remove(itr, name)
         view = InitiativeContainerView(itr, self.tracker)
 
         await VC.play(itr, SoundType.DELETE)
         await itr.response.edit_message(view=view)
-        await itr.followup.send(
-            embed=SimpleEmbed(title="Removed initiative", description=f"Initiative removed for {initiative.name}!"),
-            ephemeral=True,
-        )
+
+        embed = SimpleEmbed(title="Removed initiative", description=f"Initiative removed for {initiative.name}!")
+        await itr.followup.send(embed=embed, ephemeral=True)
 
 
 class InitiativeBulkModal(_InitiativeModal):
@@ -211,25 +217,30 @@ class InitiativeClearConfirmModal(_InitiativeModal):
 
 
 class InitiativePlayerRow(ui.ActionRow["InitiativeContainerView"]):
-    def __init__(self, tracker: InitiativeTracker):
+    def __init__(self, tracker: InitiativeTracker, itr: discord.Interaction):
         super().__init__()
         self.tracker = tracker
 
-    @ui.button(label="Roll", style=discord.ButtonStyle.success, custom_id="roll_btn", row=0)
-    async def roll_initiative(self, itr: Interaction, button: ui.Button["InitiativeContainerView"]):
+        roll_btn = ui.Button["InitiativeContainerView"](style=discord.ButtonStyle.success, label="Roll")
+        roll_btn.callback = lambda interaction: self.roll_initiative(interaction)
+        self.add_item(roll_btn)
+
+        set_btn = ui.Button["InitiativeContainerView"](style=discord.ButtonStyle.success, label="Set")
+        set_btn.callback = lambda interaction: self.set_initiative(interaction)
+        self.add_item(set_btn)
+
+        delete_btn = ui.Button["InitiativeContainerView"](style=discord.ButtonStyle.danger, label="Delete Roll")
+        delete_btn.callback = lambda interaction: self.remove_initiative(interaction)
+        delete_btn.disabled = len(tracker.get(itr)) <= 0
+        self.add_item(delete_btn)
+
+    async def roll_initiative(self, itr: Interaction):
         await itr.response.send_modal(InitiativeRollModal(itr, self.tracker))
 
-    @ui.button(label="Set", style=discord.ButtonStyle.success, custom_id="set_btn", row=0)
-    async def set_initiative(self, itr: Interaction, button: ui.Button["InitiativeContainerView"]):
+    async def set_initiative(self, itr: Interaction):
         await itr.response.send_modal(InitiativeSetModal(itr, self.tracker))
 
-    @ui.button(
-        label="Delete Roll",
-        style=discord.ButtonStyle.danger,
-        custom_id="delete_btn",
-        row=0,
-    )
-    async def remove_initiative(self, itr: Interaction, button: ui.Button["InitiativeContainerView"]):
+    async def remove_initiative(self, itr: Interaction):
         await itr.response.send_modal(InitiativeDeleteModal(itr, self.tracker))
 
 
@@ -288,7 +299,7 @@ class InitiativeContainerView(ui.LayoutView):
             unlock_section = ui.Section["InitiativeContainerView"]("‎", accessory=InitiativeUnlockButton(tracker))
             container.add_item(unlock_section)
         else:
-            container.add_item(InitiativePlayerRow(tracker))
+            container.add_item(InitiativePlayerRow(tracker, itr))
             container.add_item(InitiativeDMRow(tracker))
 
         self.add_item(container)

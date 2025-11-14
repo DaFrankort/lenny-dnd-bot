@@ -58,11 +58,14 @@ class Initiative:
 
         return roll + self.modifier
 
+    def is_owner(self, user: discord.User | discord.Member) -> bool:
+        return self.owner.id == user.id
+
 
 class InitiativeTracker:
     server_initiatives: dict[int, list[Initiative]]
     server_messages: dict[int, Message]
-    INITIATIVE_LIMIT = 30  # 4096/128 = 32 | 4096 Chars per description, max-name-length is 128 => lowered to 30 for safety.
+    INITIATIVE_LIMIT = 25  # Max options for a discord dropdown
 
     def __init__(self):
         self.server_initiatives = {}

@@ -62,7 +62,7 @@ jobs:
           pip install pip-check-reqs
 
       - name: Check for imports missing from requirements.txt
-        run: pip-missing-reqs src test --ignore-file=requirements.txt
+        run: pip-missing-reqs lenny test --ignore-file=requirements.txt
 
       - name: Check for unused packages in requirements.txt
-        run: pip-extra-reqs src test --ignore-file=requirements.txt
+        run: pip-extra-reqs lenny test --ignore-file=requirements.txt

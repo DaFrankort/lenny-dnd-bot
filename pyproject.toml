@@ -1,10 +1,12 @@
 [tool.isort]
 profile = "black"
+src_paths = ["lenny"]
 
 [tool.black]
 line-length = 128
 
 [tool.pyright]
-include = ["src", "test"]
+include = ["lenny", "test"]
 exclude = ["**/__pycache__"]
+extraPaths = ["lenny"]
 typeCheckingMode = "strict"

@@ -9,7 +9,7 @@ from embeds.homebrew import (
     HomebrewListView,
 )
 from logic.homebrew import HomebrewData, HomebrewEntryType
-from markdown import MDFile
+from logic.markdown import MDFile
 
 
 class HomebrewCommandGroup(SimpleCommandGroup):

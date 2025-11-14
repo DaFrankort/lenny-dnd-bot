@@ -101,11 +101,11 @@ class MultiRollCommand(SimpleCommand):
         itr: discord.Interaction,
         diceroll: str,
         amount: discord.app_commands.Range[int, 1, 32],
-        advantage: Advantage = Advantage.Normal,
+        advantage: str = Advantage.Normal,
         reason: str | None = None,
     ):
         self.log(itr)
-        result = multi_roll(diceroll, amount, advantage)
+        result = multi_roll(diceroll, amount, Advantage(advantage))
         DiceCache.store_expression(itr, result.expression)
         DiceCache.store_reason(itr, reason)
         embed = MultiRollEmbed(itr, result, reason)

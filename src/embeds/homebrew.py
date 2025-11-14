@@ -73,9 +73,12 @@ class HomebrewEntryAddModal(SimpleModal):
         subtitle = self.get_str(self.subtitle)
         description = self.get_str(self.description)
 
-        if not name or not description or not type:
-            await itr.response.send_message("Name, type, and description are required fields.", ephemeral=True)
-            return
+        if not name:
+            raise ValueError("Name is a required field.")
+        if not description:
+            raise ValueError("Description is a required field.")
+        if not type:
+            raise ValueError("Type is a required field.")
 
         entry = HomebrewData.get(itr).add(itr, type, name=name, select_description=subtitle, description=description)
         embed = HomebrewEmbed(itr, entry)

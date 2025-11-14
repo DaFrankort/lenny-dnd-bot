@@ -13,7 +13,7 @@ class ZipAttachmentsContextMenu(SimpleContextMenu):
     def __init__(self):
         super().__init__()
 
-    async def callback(self, interaction: discord.Interaction, message: discord.Message):
+    async def handle(self, interaction: discord.Interaction, message: discord.Message):
         self.log(interaction)
         if not interaction.client.user:
             error = "The bot is not associated with a user account!"

@@ -17,7 +17,7 @@ class InitiativeCommand(SimpleCommand):
         self.initiatives = initiatives
         super().__init__()
 
-    async def callback(self, itr: discord.Interaction):
+    async def handle(self, itr: discord.Interaction):
         self.log(itr)
         view = InitiativeContainerView(itr, self.initiatives)
         await itr.response.send_message(view=view)

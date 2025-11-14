@@ -28,7 +28,7 @@ class TimestampRelativeCommand(SimpleCommand):
         days="Days from now (0-7)",
         weeks="Weeks from now (0-999)",
     )
-    async def callback(
+    async def handle(
         self,
         itr: discord.Interaction,
         seconds: Range[int, 0, 60] = 0,
@@ -53,7 +53,7 @@ class TimestampDateCommand(SimpleCommand):
         timezone="Timezone offset from UTC (between -14 and +14).",
         date="Optional date in DD/MM/YYYY or DD/MM format (defaults to today).",
     )
-    async def callback(  # pyright: ignore
+    async def handle(
         self,
         itr: discord.Interaction,
         time: str,

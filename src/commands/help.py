@@ -18,7 +18,7 @@ class HelpCommand(SimpleCommand):
 
     @choices(tab=HelpEmbed.get_tab_choices())
     @describe(tab="Specify a page for more information on it's commands. Shows a general overview by default.")
-    async def callback(self, itr: discord.Interaction, tab: str | None = None):
+    async def handle(self, itr: discord.Interaction, tab: str | None = None):
         self.log(itr)
         embed = HelpEmbed(self.tree, tab=tab)
         await itr.response.send_message(embed=embed, view=embed.view, ephemeral=True)

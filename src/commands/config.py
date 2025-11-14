@@ -12,7 +12,7 @@ class ConfigSourcesCommand(SimpleCommand):
     desc = "Manage your server's sources!"
     help = "Open up an overview you can use to configure the bot's sources in your server."
 
-    async def callback(self, itr: discord.Interaction):
+    async def handle(self, itr: discord.Interaction):
         self.log(itr)
 
         if itr.guild is None:
@@ -31,7 +31,7 @@ class ConfigPermissionsCommand(SimpleCommand):
     desc = "Manage your server's permissions!"
     help = "Open up an overview you can use to configure the bot's permissions in your server."
 
-    async def callback(self, itr: discord.Interaction):
+    async def handle(self, itr: discord.Interaction):
         self.log(itr)
 
         if itr.guild is None:

@@ -34,7 +34,7 @@ class ColorSetHexCommand(SimpleCommand):
     help = "Set a custom color for yourself by providing a hex value."
 
     @describe(hex_color="A hexadecimal value representing a color (Example: #ff00ff or aa44cc).")
-    async def callback(self, itr: discord.Interaction, hex_color: str):  # pyright: ignore
+    async def handle(self, itr: discord.Interaction, hex_color: str):
         self.log(itr)
         result = save_hex_color(itr, hex_color)
         embed = ColorSetEmbed(itr, result, hex=True)
@@ -51,7 +51,7 @@ class ColorSetRGBCommand(SimpleCommand):
         g="A value from 0-255 representing the amount of green.",
         b="A value from 0-255 representing the amount of blue.",
     )
-    async def callback(  # pyright: ignore
+    async def handle(
         self,
         itr: discord.Interaction,
         r: discord.app_commands.Range[int, 0, 255],
@@ -69,7 +69,7 @@ class ColorShowCommand(SimpleCommand):
     desc = "Show off your current color!"
     help = "Shows the color that you are currently using publicly."
 
-    async def callback(self, itr: discord.Interaction):
+    async def handle(self, itr: discord.Interaction):
         self.log(itr)
         color = UserColor.get(itr)
         embed = ColorShowEmbed(itr, color)
@@ -81,7 +81,7 @@ class ColorClearCommand(SimpleCommand):
     desc = "Clear your preferred color."
     help = "Set your color back to an auto-generated one."
 
-    async def callback(self, itr: discord.Interaction):
+    async def handle(self, itr: discord.Interaction):
         self.log(itr)
         removed = UserColor.remove(itr)
         embed = SuccessEmbed(

@@ -68,7 +68,7 @@ class RerollContextMenu(SimpleContextMenu):
         await interaction.response.send_message(embed=embed)
         await VC.play_dice_roll(interaction, result, reason)
 
-    async def callback(self, interaction: discord.Interaction, message: discord.Message):
+    async def handle(self, interaction: discord.Interaction, message: discord.Message):
         self.log(interaction)
 
         if interaction.client.user is None:

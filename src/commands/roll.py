@@ -27,7 +27,7 @@ class _AbstractRollCommand(SimpleCommand):
         diceroll="The dice-expression of the roll you want to make (Example: 1d20+3, 1d8ro1, ...)",
         reason="An optional reason for rolling, for additional clarity. (Example: Attack, Damage, ...)",
     )
-    async def callback(  # pyright: ignore
+    async def handle(
         self,
         itr: discord.Interaction,
         diceroll: str,
@@ -72,7 +72,7 @@ class D20Command(SimpleCommand):
     desc = "Just roll a clean d20!"
     help = "Rolls a basic 1d20 with no modifiers."
 
-    async def callback(self, itr: discord.Interaction):
+    async def handle(self, itr: discord.Interaction):
         self.log(itr)
         result = roll("1d20", Advantage.Normal)
         embed = RollEmbed(itr, result, None)
@@ -96,7 +96,7 @@ class MultiRollCommand(SimpleCommand):
         advantage="Roll with or without advantage, rolls normal by default.",
         reason="An optional reason for rolling, for additional clarity. (Example: Attack, Damage, ...)",
     )
-    async def callback(  # pyright: ignore
+    async def handle(
         self,
         itr: discord.Interaction,
         diceroll: str,

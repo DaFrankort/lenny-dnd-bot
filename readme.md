@@ -1,4 +1,4 @@
-# DnD Discord Bot - Lenny
+# Lenny D&D Bot
 
 A Discord bot for Dungeons & Dragons players which aims to provide commands using modern Discord features.
 

@@ -16,7 +16,7 @@ class RerollContextMenu(SimpleContextMenu):
 
     def _get_reason(self, embed: discord.Embed):
         reason = None
-        field = embed.fields[0].value or ""
+        field = embed.fields[-1].value or ""
         if "Result" not in field:
             lines = field.strip().splitlines()
             for line in lines:
@@ -27,6 +27,16 @@ class RerollContextMenu(SimpleContextMenu):
         return reason
 
     async def _handle_multiroll(self, interaction: discord.Interaction, dice_notation: str, embed: discord.Embed):
+        if "disadvantage" in dice_notation:
+            # Check 'disadvantage' before 'advantage', may give a false positive otherwise.
+            advantage = Advantage.Disadvantage
+            dice_notation = dice_notation.replace("with disadvantage", "")
+        elif "advantage" in dice_notation:
+            advantage = Advantage.Advantage
+            dice_notation = dice_notation.replace("with advantage", "")
+        else:
+            advantage = Advantage.Normal
+
         dice_notation = dice_notation.replace("multiple times", "").strip()
         reason = self._get_reason(embed)
 
@@ -35,10 +45,10 @@ class RerollContextMenu(SimpleContextMenu):
 
         amount = 0
         for line in embed.fields[0].value.split("\n"):
-            if "- `" in line:
+            if "`" in line:
                 amount += 1
 
-        result = multi_roll(dice_notation, amount)
+        result = multi_roll(dice_notation, amount, advantage)
         embed = MultiRollEmbed(interaction, result, reason, reroll=True)
         DiceCache.store_expression(interaction, dice_notation)
 

@@ -13,6 +13,11 @@ class Advantage(str, ChoicedEnum):
     Advantage = "advantage"
     Disadvantage = "disadvantage"
 
+    @property
+    def title_suffix(self) -> str:
+        suffixes = {self.Advantage: " with advantage", self.Disadvantage: " with disadvantage"}
+        return suffixes.get(self, "")
+
 
 class DiceSpecial(str, Enum):
     Natural20 = "nat20"
@@ -198,7 +203,9 @@ class RollResult(object):
 @dataclasses.dataclass
 class MultiRollResult(object):
     expression: str
+    advantage: Advantage
     rolls: list[SingleRollResult]
+    rolls_lose: list[SingleRollResult]
 
     @property
     def total(self) -> int:
@@ -248,8 +255,26 @@ def roll(expression: str, advantage: Advantage = Advantage.Normal) -> RollResult
     return RollResult(expression, advantage, rolls)
 
 
-def multi_roll(expression: str, amount: int) -> MultiRollResult:
+def multi_roll(expression: str, amount: int, advantage: Advantage) -> MultiRollResult:
     _validate_expression(expression)
     expression = str(d20.parse(expression, allow_comments=False))
     rolls = [_roll_single(expression) for _ in range(amount)]
-    return MultiRollResult(expression, rolls)
+
+    if advantage == Advantage.Normal:
+        return MultiRollResult(expression, advantage, rolls, rolls_lose=[])
+
+    extra_rolls = [_roll_single(expression) for _ in range(amount)]
+    lower_rolls: list[SingleRollResult] = []
+    higher_rolls: list[SingleRollResult] = []
+
+    for i in range(amount):
+        if rolls[i].total > extra_rolls[i].total:
+            higher_rolls.append(rolls[i])
+            lower_rolls.append(extra_rolls[i])
+        else:
+            higher_rolls.append(extra_rolls[i])
+            lower_rolls.append(rolls[i])
+
+    if advantage == Advantage.Advantage:
+        return MultiRollResult(expression, advantage, higher_rolls, rolls_lose=lower_rolls)
+    return MultiRollResult(expression, advantage, lower_rolls, rolls_lose=higher_rolls)

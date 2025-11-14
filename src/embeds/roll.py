@@ -1,7 +1,7 @@
 import discord
 
 from embeds.embed import UserActionEmbed
-from logic.roll import Advantage, MultiRollResult, RollResult
+from logic.roll import MultiRollResult, RollResult, SingleRollResult
 
 
 class RollEmbed(UserActionEmbed):
@@ -12,16 +12,10 @@ class RollEmbed(UserActionEmbed):
         reason: str | None,
         reroll: bool = False,
     ):
-        title_suffix = ""
-        if result.advantage == Advantage.Advantage:
-            title_suffix = " with advantage"
-        elif result.advantage == Advantage.Disadvantage:
-            title_suffix = " with disadvantage"
-
         if reroll:
-            title = f"Re-rolling {result.expression}{title_suffix}!"
+            title = f"Re-rolling {result.expression}{result.advantage.title_suffix}!"
         else:
-            title = f"Rolling {result.expression}{title_suffix}!"
+            title = f"Rolling {result.expression}{result.advantage.title_suffix}!"
 
         if reason is None:
             reason = "Result"
@@ -61,32 +55,42 @@ class MultiRollEmbed(UserActionEmbed):
         reroll: bool = False,
     ):
         if reroll:
-            title = f"Re-rolling {result.expression} multiple times!"
+            title = f"Re-rolling {result.expression} multiple times{result.advantage.title_suffix}!"
         else:
-            title = f"Rolling {result.expression} multiple times!"
+            title = f"Rolling {result.expression} multiple times{result.advantage.title_suffix}!"
 
         if reason is None:
             reason = "Total"
 
-        descriptions: list[str] = []
-        if not result.rolls[0].contains_dice:
-            descriptions.append("⚠️ Expression contains no dice. ⚠️")
+        winning_result = self._get_roll_list(result.rolls, False)
+        losing_result = self._get_roll_list(result.rolls_lose, True)
+        footer = f"\n🎲 **{reason}: {result.total}**"
 
-        for roll in result.rolls:
-            roll_message = f"- `{roll.expression} -> {roll.total}`"
+        if len(winning_result) > 1024:
+            super().__init__(itr, title, "⚠️ Message too long, try sending a shorter expression!")
+            return
+
+        super().__init__(itr, title, "")
+        if not result.rolls[0].contains_dice:
+            self.description = "⚠️ Expression contains no dice. ⚠️"
+
+        if losing_result:
+            self.add_field(name="", value=losing_result, inline=True)
+        self.add_field(name="", value=winning_result, inline=True)
+        self.add_field(name="", value=footer, inline=False)
+
+    def _get_roll_list(self, rolls: list[SingleRollResult], strike_through: bool = False) -> str:
+        results: list[str] = []
+        for roll in rolls:
+            roll_message = f"`{roll.expression} -> {roll.total}`"
+            if strike_through:
+                roll_message = f"~~{roll_message}~~"
+
             if roll.is_natural_twenty:
                 roll_message += " 🎯"
             elif roll.is_natural_one:
                 roll_message += " 💀"
             elif roll.is_dirty_twenty:
                 roll_message += " ⚔️"
-            descriptions.append(roll_message)
-
-        descriptions.append("")
-        descriptions.append(f"🎲 **{reason}: {result.total}**")
-
-        description = "\n".join(descriptions)
-        if len(descriptions) > 1024:
-            description = "⚠️ Message too long, try sending a shorter expression!"
-
-        super().__init__(itr, title, description)
+            results.append(roll_message)
+        return "\n".join(results)

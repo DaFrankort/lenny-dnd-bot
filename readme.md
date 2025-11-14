@@ -68,7 +68,7 @@ You can follow [this tutorial](https://www.hostinger.com/tutorials/how-to-instal
 To start the bot, simply run the following command:
 
 ```bash
-python src/main.py
+python lenny
 ```
 
 You can add the following arguments if you wish:

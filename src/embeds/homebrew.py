@@ -63,7 +63,7 @@ class HomebrewEntryAddModal(SimpleModal):
             self.name.input.placeholder = self.format_placeholder(md_file.title)
             self.description.input.default = md_file.content
             self.description.input.placeholder = self.format_placeholder(md_file.content)
-        super().__init__(itr=itr, title=f"Add new homebrew entry")
+        super().__init__(itr=itr, title="Add new homebrew entry")
 
     async def on_submit(self, itr: discord.Interaction):
         self.log_inputs(itr)

@@ -18,8 +18,12 @@ class CharacterGenCommand(SimpleCommand):
         species="The race your random character should have. Random by default.",
         char_class="The class your random character should have. Random by default.",
     )
-    async def callback(
-        self, itr: discord.Interaction, gender: str | None = None, species: str | None = None, char_class: str | None = None
+    async def handle(
+        self,
+        itr: discord.Interaction,
+        gender: str | None = None,
+        species: str | None = None,
+        char_class: str | None = None,
     ):
         self.log(itr)
         result = generate_dnd_character(gender, species, char_class)

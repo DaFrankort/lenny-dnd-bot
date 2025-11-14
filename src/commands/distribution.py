@@ -19,7 +19,7 @@ class DistributionCommand(SimpleCommand):
         advantage="Whether to simulate a normal roll or the roll with advantage or disadvantage.",
         min_to_beat="Visualize the odds to roll above this value.",
     )
-    async def callback(  # pyright: ignore
+    async def handle(
         self,
         itr: Interaction,
         expression: str,

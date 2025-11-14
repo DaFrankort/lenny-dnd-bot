@@ -16,7 +16,7 @@ class PlaySoundCommand(SimpleCommand):
         self.guild_only = True
 
     @describe(sound="The sound file you want to play in voice-chat.")
-    async def callback(self, itr: discord.Interaction, sound: discord.Attachment):  # pyright: ignore
+    async def handle(self, itr: discord.Interaction, sound: discord.Attachment):  # pyright: ignore
         self.log(itr)
         await VC.play_attachment(itr, sound)
 

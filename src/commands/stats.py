@@ -24,7 +24,7 @@ class StatsRollCommand(SimpleCommand):
     desc = "Roll stats for a new character, using the 4d6 drop lowest method."
     help = "Performs six dice rolls using the 4d6 drop lowest method, providing you with six values to use for your new character's stats."
 
-    async def callback(self, itr: discord.Interaction):
+    async def handle(self, itr: discord.Interaction):
         self.log(itr)
         stats = Stats()
         embed = StatsEmbed(itr, stats)
@@ -47,7 +47,7 @@ class StatsVisualizeCommand(SimpleCommand):
         wis="A value from 0-48 representing your Wisdom score.",
         cha="A value from 0-48 representing your Charisma score.",
     )
-    async def callback(  # pyright:ignore
+    async def handle(  # pyright:ignore
         self,
         itr: discord.Interaction,
         str: discord.app_commands.Range[int, 0, 48],

@@ -26,7 +26,7 @@ class NameGenCommand(SimpleCommand):
         species="Request a name from a specific species, selects random species by default.",
         gender="Request name from a specific gender, selects random gender by default.",
     )
-    async def callback(
+    async def handle(
         self,
         itr: discord.Interaction,
         species: str | None = None,

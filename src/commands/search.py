@@ -45,7 +45,7 @@ class SearchSpellCommand(SimpleCommand):
 
     @autocomplete(name=spell_name_autocomplete)
     @describe(name="Name of the spell to look up.")
-    async def callback(self, itr: discord.Interaction, name: str):  # pyright: ignore
+    async def handle(self, itr: discord.Interaction, name: str):  # pyright: ignore
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         found = Data.spells.get(name, sources)
@@ -64,7 +64,7 @@ class SearchItemCommand(SimpleCommand):
 
     @autocomplete(name=item_name_autocomplete)
     @describe(name="Name of the item to look up.")
-    async def callback(self, itr: discord.Interaction, name: str):  # pyright: ignore
+    async def handle(self, itr: discord.Interaction, name: str):  # pyright: ignore
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         found = Data.items.get(name, sources)
@@ -83,7 +83,7 @@ class SearchConditionCommand(SimpleCommand):
 
     @autocomplete(name=condition_name_autocomplete)
     @describe(name="Name of the condition to look up.")
-    async def callback(self, itr: discord.Interaction, name: str):  # pyright: ignore
+    async def handle(self, itr: discord.Interaction, name: str):  # pyright: ignore
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         found = Data.conditions.get(name, sources)
@@ -102,7 +102,7 @@ class SearchCreatureCommand(SimpleCommand):
 
     @autocomplete(name=creature_name_autocomplete)
     @describe(name="Name of the creature to look up.")
-    async def callback(self, itr: discord.Interaction, name: str):  # pyright: ignore
+    async def handle(self, itr: discord.Interaction, name: str):  # pyright: ignore
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         found = Data.creatures.get(name, sources)
@@ -121,7 +121,7 @@ class SearchClassCommand(SimpleCommand):
 
     @autocomplete(name=class_name_autocomplete)
     @describe(name="Name of the class to look up.")
-    async def callback(self, itr: discord.Interaction, name: str):  # pyright: ignore
+    async def handle(self, itr: discord.Interaction, name: str):  # pyright: ignore
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         found = Data.classes.get(name, sources)
@@ -140,7 +140,7 @@ class SearchRuleCommand(SimpleCommand):
 
     @autocomplete(name=rule_name_autocomplete)
     @describe(name="Name of the rule to look up.")
-    async def callback(self, itr: discord.Interaction, name: str):  # pyright: ignore
+    async def handle(self, itr: discord.Interaction, name: str):  # pyright: ignore
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         found = Data.rules.get(name, sources)
@@ -159,7 +159,7 @@ class SearchActionCommand(SimpleCommand):
 
     @autocomplete(name=action_name_autocomplete)
     @describe(name="Name of the action to look up.")
-    async def callback(self, itr: discord.Interaction, name: str):  # pyright: ignore
+    async def handle(self, itr: discord.Interaction, name: str):  # pyright: ignore
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         found = Data.actions.get(name, sources)
@@ -178,7 +178,7 @@ class SearchFeatCommand(SimpleCommand):
 
     @autocomplete(name=feat_name_autocomplete)
     @describe(name="Name of the feat to look up.")
-    async def callback(self, itr: discord.Interaction, name: str):  # pyright: ignore
+    async def handle(self, itr: discord.Interaction, name: str):  # pyright: ignore
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         found = Data.feats.get(name, sources)
@@ -197,7 +197,7 @@ class SearchLanguageCommand(SimpleCommand):
 
     @autocomplete(name=language_name_autocomplete)
     @describe(name="Name of the language to look up.")
-    async def callback(self, itr: discord.Interaction, name: str):  # pyright: ignore
+    async def handle(self, itr: discord.Interaction, name: str):  # pyright: ignore
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         found = Data.languages.get(name, sources)
@@ -216,7 +216,7 @@ class SearchBackgroundCommand(SimpleCommand):
 
     @autocomplete(name=background_name_autocomplete)
     @describe(name="Name of the background to look up.")
-    async def callback(self, itr: discord.Interaction, name: str):  # pyright: ignore
+    async def handle(self, itr: discord.Interaction, name: str):  # pyright: ignore
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         found = Data.backgrounds.get(name, sources)
@@ -235,7 +235,7 @@ class SearchTableCommand(SimpleCommand):
 
     @autocomplete(name=table_name_autocomplete)
     @describe(name="Name of the table to look up.")
-    async def callback(self, itr: discord.Interaction, name: str):  # pyright: ignore
+    async def handle(self, itr: discord.Interaction, name: str):  # pyright: ignore
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         found = Data.tables.get(name, sources)
@@ -254,7 +254,7 @@ class SearchSpeciesCommand(SimpleCommand):
 
     @autocomplete(name=species_name_autocomplete)
     @describe(name="Name of the species to look up.")
-    async def callback(self, itr: discord.Interaction, name: str):  # pyright: ignore
+    async def handle(self, itr: discord.Interaction, name: str):  # pyright: ignore
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         found = Data.species.get(name, sources)
@@ -273,7 +273,7 @@ class SearchVehicleCommand(SimpleCommand):
 
     @autocomplete(name=vehicle_name_autocomplete)
     @describe(name="Name of the vehicle to look up.")
-    async def callback(self, itr: discord.Interaction, name: str):  # pyright: ignore
+    async def handle(self, itr: discord.Interaction, name: str):  # pyright: ignore
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         found = Data.vehicles.get(name, sources)
@@ -292,7 +292,7 @@ class SearchObjectCommand(SimpleCommand):
 
     @autocomplete(name=object_name_autocomplete)
     @describe(name="Name of the object to look up.")
-    async def callback(self, itr: discord.Interaction, name: str):  # pyright: ignore
+    async def handle(self, itr: discord.Interaction, name: str):  # pyright: ignore
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         found = Data.objects.get(name, sources)
@@ -311,7 +311,7 @@ class SearchHazardCommand(SimpleCommand):
 
     @autocomplete(name=hazard_name_autocomplete)
     @describe(name="Name of the trap or hazard to look up.")
-    async def callback(self, itr: discord.Interaction, name: str):  # pyright: ignore
+    async def handle(self, itr: discord.Interaction, name: str):  # pyright: ignore
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         found = Data.hazards.get(name, sources)
@@ -324,7 +324,7 @@ class SearchAnyCommand(SimpleCommand):
     help = "Looks up all possible D&D entries for a query."
 
     @describe(query="Search for results matching this query.")
-    async def callback(self, itr: discord.Interaction, query: str):  # pyright: ignore
+    async def handle(self, itr: discord.Interaction, query: str):  # pyright: ignore
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         results = Data.search(query, sources)

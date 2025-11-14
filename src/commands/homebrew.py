@@ -33,7 +33,7 @@ class HomebrewAddCommand(SimpleCommand):
 
     @choices(type=HomebrewEntryType.choices())
     @describe(type="The type of entry you are adding.")
-    async def callback(  # pyright: ignore[reportIncompatibleMethodOverride]
+    async def handle(  
         self, itr: discord.Interaction, type: HomebrewEntryType, md_file: discord.Attachment | None = None
     ):
         self.log(itr)
@@ -55,7 +55,7 @@ class HomebrewSearchCommand(SimpleCommand):
 
     @autocomplete(name=homebrew_name_autocomplete)
     @describe(name="The name of the entry you want to find.")
-    async def callback(self, itr: discord.Interaction, name: str):  # pyright: ignore[reportIncompatibleMethodOverride]
+    async def handle(self, itr: discord.Interaction, name: str):  # pyright: ignore[reportIncompatibleMethodOverride]
         self.log(itr)
         entry = HomebrewData.get(itr).get(name)
         embed = HomebrewEmbed(itr, entry)
@@ -69,7 +69,7 @@ class HomebrewListCommand(SimpleCommand):
 
     @choices(filter=HomebrewEntryType.choices())
     @describe(filter="Show only homebrew entries of a certain type. Shows all by default.")
-    async def callback(self, itr: discord.Interaction, filter: str | None = None):
+    async def handle(self, itr: discord.Interaction, filter: str | None = None):
         self.log(itr)
         view = HomebrewListView(itr, filter)
         await itr.response.send_message(view=view, ephemeral=True)
@@ -82,7 +82,7 @@ class HomebrewEditCommand(SimpleCommand):
 
     @autocomplete(name=homebrew_name_autocomplete)
     @describe(name="The name of the entry you want to edit.")
-    async def callback(self, itr: discord.Interaction, name: str):  # pyright: ignore[reportIncompatibleMethodOverride]
+    async def handle(self, itr: discord.Interaction, name: str):  # pyright: ignore[reportIncompatibleMethodOverride]
         self.log(itr)
         entry = HomebrewData.get(itr).get(name)
         modal = HomebrewEditModal(itr, entry)
@@ -96,7 +96,7 @@ class HomebrewRemoveCommand(SimpleCommand):
 
     @autocomplete(name=homebrew_name_autocomplete)
     @describe(name="The name of the entry you want to remove.")
-    async def callback(self, itr: discord.Interaction, name: str):  # pyright: ignore[reportIncompatibleMethodOverride]
+    async def handle(self, itr: discord.Interaction, name: str):  # pyright: ignore[reportIncompatibleMethodOverride]
         self.log(itr)
         entry = HomebrewData.get(itr).delete(itr, name)
         embed = HomebrewEmbed(itr, entry)

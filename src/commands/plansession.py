@@ -18,7 +18,7 @@ class PlanSessionCommand(SimpleCommand):
         in_weeks="How many weeks from now? (0 = this week, 1 = next week, ...)",
         poll_duration="How long until the poll closes? (Defaults to 24h)",
     )
-    async def callback(  # pyright: ignore
+    async def handle(  # pyright: ignore
         self,
         itr: discord.Interaction,
         in_weeks: discord.app_commands.Range[int, 0, 48],

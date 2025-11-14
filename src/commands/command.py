@@ -57,7 +57,7 @@ class SimpleCommand(discord.app_commands.Command[SimpleCommandGroup, Any, None])
         if not self.help:
             raise NotImplementedError(f"'help' not defined in {type(self)}")
 
-        super().__init__(name=self.name, description=self.desc, callback=self.callback)  # type: ignore
+        super().__init__(name=self.name, description=self.desc, callback=self.handle)  # type: ignore
         self.on_error = self.error_handler
 
     @property
@@ -83,7 +83,7 @@ class SimpleCommand(discord.app_commands.Command[SimpleCommandGroup, Any, None])
         logging.info(f"{itr.user.name} => /{self.qualified_name} {criteria_text}")
 
     @abstractmethod
-    async def callback(self, itr: discord.Interaction):  # pyright: ignore
+    async def handle(self, itr: discord.Interaction, *args: Any, **kwargs: Any) -> None:
         raise NotImplementedError
 
     async def error_handler(
@@ -119,12 +119,12 @@ class SimpleContextMenu(discord.app_commands.ContextMenu):
 
         super().__init__(
             name=self.name,
-            callback=self.callback,
+            callback=self.handle,
         )
 
     def log(self, itr: discord.Interaction):
         logging.info(f"{itr.user.name} => {self.name}")
 
     @abstractmethod
-    async def callback(self, interaction: discord.Interaction, message: discord.Message):  # pyright: ignore
+    async def handle(self, interaction: discord.Interaction, message: discord.Message) -> None:
         raise NotImplementedError

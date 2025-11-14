@@ -93,6 +93,7 @@ class MultiRollCommand(SimpleCommand):
     @describe(
         diceroll="The dice-expression of the roll you want to make (Example: 1d20+3, 1d8ro1, ...)",
         amount="How many times to roll the expression.",
+        advantage="Roll with or without advantage, rolls normal by default.",
         reason="An optional reason for rolling, for additional clarity. (Example: Attack, Damage, ...)",
     )
     async def callback(  # pyright: ignore

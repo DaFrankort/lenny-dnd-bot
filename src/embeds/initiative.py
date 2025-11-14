@@ -108,9 +108,7 @@ class InitiativeSetModal(_InitiativeModal):
 
 
 class InitiativeDeleteModal(_InitiativeModal):
-    name = ModalSelectComponent(
-        label="Roll to delete (Removes user by default)", options=[], placeholder="Goblin", required=False
-    )
+    name = ModalSelectComponent(label="Roll to delete", options=[], placeholder="Goblin", required=True)
 
     def __init__(self, itr: Interaction, tracker: InitiativeTracker):
         self.name.input.placeholder = itr.user.display_name.title().strip()
@@ -127,16 +125,14 @@ class InitiativeDeleteModal(_InitiativeModal):
         self.log_inputs(itr)
 
         name = self.get_choice(self.name, type=str)
-        print(name)
         initiative = self.tracker.remove(itr, name)
         view = InitiativeContainerView(itr, self.tracker)
 
         await VC.play(itr, SoundType.DELETE)
         await itr.response.edit_message(view=view)
-        await itr.followup.send(
-            embed=SimpleEmbed(title="Removed initiative", description=f"Initiative removed for {initiative.name}!"),
-            ephemeral=True,
-        )
+
+        embed = SimpleEmbed(title="Removed initiative", description=f"Initiative removed for {initiative.name}!")
+        await itr.followup.send(embed=embed, ephemeral=True)
 
 
 class InitiativeBulkModal(_InitiativeModal):

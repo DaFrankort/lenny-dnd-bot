@@ -5,7 +5,7 @@ import re
 import discord
 from PIL import Image, ImageDraw
 
-from jsonhandler import JsonHandler
+from logic.jsonhandler import JsonHandler
 from methods import FontType, get_font, when
 
 

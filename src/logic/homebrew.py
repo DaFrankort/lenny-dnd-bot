@@ -7,8 +7,8 @@ import discord
 from discord.app_commands import Choice
 from rapidfuzz import fuzz
 
-from jsonhandler import JsonHandler
 from logic.config import user_is_admin_or_has_config_permissions
+from logic.jsonhandler import JsonHandler
 from methods import ChoicedEnum
 
 HOMEBREW_PATH: str = "./temp/homebrew/"

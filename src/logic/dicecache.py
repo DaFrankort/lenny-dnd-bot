@@ -5,7 +5,7 @@ import discord
 from discord import Interaction
 from discord.app_commands import Choice
 
-from jsonhandler import JsonHandler
+from logic.jsonhandler import JsonHandler
 
 
 @dataclass

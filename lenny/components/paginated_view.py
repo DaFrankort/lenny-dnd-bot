@@ -110,9 +110,7 @@ class PaginatedLayoutView(discord.ui.LayoutView):
         page = self.modal.get_int(self.modal.page)
 
         if page is None:
-            error_message = "❌ Page must be a positive numerical value! ❌"
-            await itr.response.send_message(error_message, ephemeral=True)
-            return
+            raise ValueError("Page must be a positive numerical value!")
 
         page -= 1  # First page === 0
         page = min(max(page, 0), self.max_pages - 1)

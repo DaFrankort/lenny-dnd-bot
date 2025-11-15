@@ -1,5 +1,6 @@
 import abc
 import math
+from typing import Optional
 
 import discord
 
@@ -38,9 +39,11 @@ class PaginatedLayoutView(discord.ui.LayoutView):
 
     page: int
     per_page: int = 10
+    modal: Optional[PaginatedJumpModal]
 
     def __init__(self):
         self.page = 0
+        self.modal = None
         super().__init__(timeout=None)
 
     @abc.abstractmethod
@@ -103,21 +106,26 @@ class PaginatedLayoutView(discord.ui.LayoutView):
 
     async def jump_to_page_sendmodal(self, interaction: discord.Interaction):
         self.modal = PaginatedJumpModal(interaction, self)
-        self.modal.on_submit = lambda i: self.jump_to_page(i)
+        self.modal.on_submit = self.jump_to_page
         await interaction.response.send_modal(self.modal)
 
-    async def jump_to_page(self, itr: discord.Interaction):
+    async def jump_to_page(self, interaction: discord.Interaction):
+        if not self.modal:
+            # This situation should never occur, as this function can only be called
+            # after a modal was set in jump_to_page_sendmodal.
+            raise ValueError("Cannot edit PaginatedJumpModal!")
+
         page = self.modal.get_int(self.modal.page)
 
         if page is None:
             error_message = "❌ Page must be a positive numerical value! ❌"
-            await itr.response.send_message(error_message, ephemeral=True)
+            await interaction.response.send_message(error_message, ephemeral=True)
             return
 
         page -= 1  # First page === 0
         page = min(max(page, 0), self.max_pages - 1)
         self.page = page
-        return await self.rebuild(itr)
+        return await self.rebuild(interaction)
 
     async def go_to_next_page(self, interaction: discord.Interaction):
         self.page = min(self.page + 1, self.max_pages - 1)

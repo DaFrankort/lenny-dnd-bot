@@ -70,7 +70,7 @@ class DNDEntry(abc.ABC):
     select_description: str | None = None  # Description in dropdown menus
 
     @abc.abstractmethod
-    def __init__(self, json: dict[str, Any]) -> None:
+    def __init__(self, obj: dict[str, Any]) -> None:
         pass
 
     @property

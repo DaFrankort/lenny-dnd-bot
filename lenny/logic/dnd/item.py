@@ -10,18 +10,18 @@ class Item(DNDEntry):
     properties: list[str]
     description: list[Description]
 
-    def __init__(self, json: dict[str, Any]):
+    def __init__(self, obj: dict[str, Any]):
         self.entry_type = "item"
         self.emoji = "🗡️"
 
-        self.name = json["name"]
-        self.source = json["source"]
-        self.url = json["url"]
-        self.value = json["value"]
-        self.weight = json["weight"]
-        self.type = json["type"]
-        self.properties = json["properties"]
-        self.description = json["description"]
+        self.name = obj["name"]
+        self.source = obj["source"]
+        self.url = obj["url"]
+        self.value = obj["value"]
+        self.weight = obj["weight"]
+        self.type = obj["type"]
+        self.properties = obj["properties"]
+        self.description = obj["description"]
 
     @property
     def formatted_value_weight(self) -> str | None:

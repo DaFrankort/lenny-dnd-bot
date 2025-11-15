@@ -27,7 +27,7 @@ class RerollContextMenu(SimpleContextMenu):
         if "disadvantage" in dice_notation:
             # Check 'disadvantage' before 'advantage', may give a false positive otherwise.
             return Advantage.Disadvantage
-        elif "advantage" in dice_notation:
+        if "advantage" in dice_notation:
             return Advantage.Advantage
         return Advantage.Normal
 

@@ -81,7 +81,7 @@ class SimpleCommand(discord.app_commands.Command[SimpleCommandGroup, Any, None])
             criteria = []
         criteria_text = " ".join(criteria)
 
-        logging.info(f"%s => /%s %s", itr.user.name, self.qualified_name, criteria_text)
+        logging.info("%s => /%s %s", itr.user.name, self.qualified_name, criteria_text)
 
     @abstractmethod
     async def handle(self, itr: discord.Interaction, *args: Any, **kwargs: Any) -> None:
@@ -124,7 +124,7 @@ class SimpleContextMenu(discord.app_commands.ContextMenu):
         )
 
     def log(self, itr: discord.Interaction):
-        logging.info(f"%s => %s", itr.user.name, self.name)
+        logging.info("%s => %s", itr.user.name, self.name)
 
     @abstractmethod
     async def handle(self, interaction: discord.Interaction, message: discord.Message) -> None:

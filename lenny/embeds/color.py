@@ -19,8 +19,8 @@ class ColorSetEmbed(UserActionEmbed):
     hex: bool
     file: discord.File
 
-    def __init__(self, itr: discord.Interaction, result: UserColorSaveResult, hex: bool):
-        self.hex = hex
+    def __init__(self, itr: discord.Interaction, result: UserColorSaveResult, is_hex: bool):
+        self.hex = is_hex
         self.file = get_palette_image(result.color)
 
         descriptions: list[str] = []

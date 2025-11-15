@@ -24,7 +24,7 @@ class SimpleModal(Modal):
         }
 
         username = itr.user.name
-        logging.info(f"{username} submitted modal => {input_values}")
+        logging.info(f"%s submitted modal => %s", username, input_values)
 
     async def on_error(self, itr: Interaction, error: Exception):
         self.log_inputs(itr)
@@ -46,11 +46,11 @@ class SimpleModal(Modal):
         except ValueError:
             return None
 
-    def get_choice(self, component: ModalSelectComponent, type: type) -> Any | None:
+    def get_choice(self, component: ModalSelectComponent, result_type: type) -> Any | None:
         """Get the selected choice of a ModalSelectComponent, or None if no choice is selected."""
         if not component.input.values:
             return None
-        return type(component.input.values[0])
+        return result_type(component.input.values[0])
 
     def format_placeholder(self, text: str, length: int = 100) -> str:
         """Cuts off a string to stay within a modal's 100 character-limit for placeholders."""

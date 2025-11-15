@@ -124,7 +124,7 @@ class InitiativeDeleteModal(_InitiativeModal):
     async def on_submit(self, itr: Interaction):
         self.log_inputs(itr)
 
-        name = self.get_choice(self.name, type=str)
+        name = self.get_choice(self.name, result_type=str)
         initiative = self.tracker.remove(itr, name)
         view = InitiativeContainerView(itr, self.tracker)
 

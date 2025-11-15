@@ -13,14 +13,10 @@ class DeleteContextMenu(SimpleContextMenu):
     async def handle(self, interaction: discord.Interaction, message: discord.Message):
         self.log(interaction)
         if not interaction.client.user:
-            error = "The bot is not associated with a user account!"
-            await interaction.response.send_message(f"❌ {error} ❌", ephemeral=True)
-            return
+            raise ValueError("The bot is not associated with a user account!")
 
         if message.author.id != interaction.client.user.id:
-            error = f"{interaction.client.user.name} can only delete their own messages!"
-            await interaction.response.send_message(f"❌ {error} ❌", ephemeral=True)
-            return
+            raise PermissionError(f"{interaction.client.user.name} can only delete their own messages!")
 
         await message.delete()
         await interaction.response.send_message("Message deleted!", ephemeral=True)

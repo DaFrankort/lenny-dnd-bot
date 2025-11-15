@@ -78,7 +78,7 @@ class DNDEntry(abc.ABC):
         return f"{self.name} ({self.source})"
 
 
-TDND = TypeVar("TDND", bound=DNDEntry)
+TDND = TypeVar("TDND", bound=DNDEntry)  # pylint: disable=invalid-name
 
 
 class DNDEntryList(abc.ABC, Generic[TDND]):
@@ -178,14 +178,13 @@ def build_table(value: str | DescriptionTable, width: int | None = 56, show_line
     def format_cell_value(value: int | str | dict[str, Any]) -> str:
         if isinstance(value, int):
             return str(value)
-        elif isinstance(value, str):
+        if isinstance(value, str):
             return value
-        elif value["type"] == "range":
+        if value["type"] == "range":
             if value["min"] == value["max"]:
                 return str(value["min"])
-            else:
-                return f"{value['min']}-{value['max']}"
-        raise Exception("Unsupported cell type")
+            return f"{value['min']}-{value['max']}"
+        raise ValueError("Unsupported cell type")
 
     headers = value["headers"]
     rows = value["rows"]

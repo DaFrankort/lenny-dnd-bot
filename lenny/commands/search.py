@@ -1,5 +1,5 @@
+import collections.abc
 import logging
-from typing import Sequence
 
 import discord
 from discord.app_commands import autocomplete, describe
@@ -15,7 +15,7 @@ from logic.dnd.data import Data
 async def send_dnd_entry_lookup_result(
     itr: discord.Interaction,
     label: str,
-    found: Sequence[DNDEntry],
+    found: collections.abc.Sequence[DNDEntry],
     name: str,
 ):
     """Helper function to send generic D&D lookup embeds and views."""

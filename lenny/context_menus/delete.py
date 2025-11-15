@@ -7,9 +7,6 @@ class DeleteContextMenu(SimpleContextMenu):
     name = "Delete message"
     help = "Deletes the bot's message, useful for cleaning up accidental searches, spoilers or general bot-clutter."
 
-    def __init__(self):
-        super().__init__()
-
     async def handle(self, interaction: discord.Interaction, message: discord.Message):
         self.log(interaction)
         if not interaction.client.user:

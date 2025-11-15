@@ -61,14 +61,13 @@ class HelpEmbed(discord.Embed):
             return f"``{command_comm}``\n{command_help}\n"
 
         # SimpleCommandGroup
-        else:
-            group_desc: list[str] = []
-            commands = self._get_commands(cmd)
-            for group_cmd in commands:
-                desc = self._get_command_desc_line(group_cmd)
-                group_desc.append(desc)
+        group_desc: list[str] = []
+        commands = self._get_commands(cmd)
+        for group_cmd in commands:
+            desc = self._get_command_desc_line(group_cmd)
+            group_desc.append(desc)
 
-            return "\n".join(group_desc)
+        return "\n".join(group_desc)
 
     def _iterate_commands(self, cmd: SimpleCommand | SimpleCommandGroup) -> list[str]:
         commands: list[str] = []
@@ -83,19 +82,25 @@ class HelpEmbed(discord.Embed):
 
     def load_tab(self, tab: HelpTab):
         self.clear_fields()
+        self.title = f"Help - {tab.name}"
 
-        name = tab.name
-        self.title = f"Help - {name}"
+        self._load_tab_commands(tab)
 
-        # List all commands
-        commands = tab.commands
+        if tab.tab == "overview":
+            self._load_overview_tab()
+
+        if tab.tab == "context":
+            self._load_context_tab()
+
+    def _load_tab_commands(self, tab: HelpTab) -> None:
+        command_names = tab.commands
         commands_desc: list[str] = []
 
         if tab.text is not None:
             commands_desc.append(tab.text + "\n")
 
-        for com in commands:
-            command = self.tree.get_command(com)
+        for command_name in command_names:
+            command = self.tree.get_command(command_name)
             if isinstance(command, (SimpleCommand, SimpleCommandGroup)):
                 command_desc = self._get_command_desc_line(command)
                 commands_desc.append(command_desc)
@@ -117,55 +122,58 @@ class HelpEmbed(discord.Embed):
 
             self.add_field(name=info_name, value=info_fields, inline=False)
 
-        # If on overview tab, list all commands, grouped by category
-        if tab.tab == "overview":
-            tabs = [tab for tab in HelpTabs.tabs if tab.tab not in ["overview", "context"]]
-            tabs_commands: list[tuple[str, list[str]]] = []
-            for tab in tabs:
-                tab_commands: list[str] = []
-                for cmd in tab.commands:
-                    cmd = self.tree.get_command(cmd)
-                    # Only handle SimpleCommand and SimpleCommandGroup, any other commands are ill-formed
-                    if cmd is not None and isinstance(cmd, (SimpleCommand, SimpleCommandGroup)):
-                        tab_commands.extend(self._iterate_commands(cmd))
+    def _load_overview_tab(self) -> None:
+        tabs_to_ignore = ["overview", "context"]
+        tabs = [tab for tab in HelpTabs.tabs if tab.tab not in tabs_to_ignore]
+        tabs_commands: list[tuple[str, list[str]]] = []
+        for tab in tabs:
+            tab_commands: list[str] = []
+            for cmd in tab.commands:
+                cmd = self.tree.get_command(cmd)
+                # Only handle SimpleCommand and SimpleCommandGroup, any other commands are ill-formed
+                if cmd is not None and isinstance(cmd, (SimpleCommand, SimpleCommandGroup)):
+                    tab_commands.extend(self._iterate_commands(cmd))
 
-                cmds = [f"- ``/{command}``" for command in tab_commands]
-                tabs_commands.append((tab.name, cmds))
+            cmds = [f"- ``/{command}``" for command in tab_commands]
+            tabs_commands.append((tab.name, cmds))
 
-            # Add context menu overview
-            context_cmds = [
-                f"- ``{ctx.name}``"
-                for ctx_type in (discord.AppCommandType.message, discord.AppCommandType.user)
-                for ctx in self.tree.walk_commands(type=ctx_type)
-                if isinstance(ctx, SimpleContextMenu)
-            ]
-            if context_cmds:
-                tabs_commands.append((HelpTabs.ContextMenus.name, context_cmds))
+        # Add context menu overview
+        context_cmds = [
+            f"- ``{ctx.name}``"
+            for ctx_type in (discord.AppCommandType.message, discord.AppCommandType.user)
+            for ctx in self.tree.walk_commands(type=ctx_type)
+            if isinstance(ctx, SimpleContextMenu)
+        ]
+        if context_cmds:
+            tabs_commands.append((HelpTabs.ContextMenus.name, context_cmds))
 
-            tabs_commands.sort(key=lambda t: (-len(t[1]), t[0]))
+        tabs_commands.sort(key=lambda t: (-len(t[1]), t[0]))
 
-            for name, commands in tabs_commands:
-                self.add_field(name=name, value="\n".join(commands), inline=True)
+        for name, commands in tabs_commands:
+            self.add_field(name=name, value="\n".join(commands), inline=True)
 
-        elif tab.tab == "context":
-            msg_contexts: list[str] = []
-            user_contexts: list[str] = []
-            for context in self.tree.walk_commands(type=discord.AppCommandType.message):
-                if isinstance(context, SimpleContextMenu):
-                    name = f"``MESSAGE > APPS > {context.name}``"
-                    desc = context.help
-                    msg_contexts.append(f"{name}\n{desc}\n")
+    def _load_context_tab(self) -> None:
+        msg_contexts: list[str] = []
+        user_contexts: list[str] = []
 
-            for context in self.tree.walk_commands(type=discord.AppCommandType.user):
-                if isinstance(context, SimpleContextMenu):
-                    name = f"``USER > APPS > {context.name}``"
-                    desc = context.help
-                    user_contexts.append(f"{name}\n{desc}\n")
+        # load message contexts
+        for context in self.tree.walk_commands(type=discord.AppCommandType.message):
+            if isinstance(context, SimpleContextMenu):
+                name = f"``MESSAGE > APPS > {context.name}``"
+                desc = context.help
+                msg_contexts.append(f"{name}\n{desc}\n")
 
-            if len(msg_contexts) > 0:
-                self.add_field(name="Message contexts", value="\n".join(msg_contexts))
-            if len(user_contexts) > 0:
-                self.add_field(name="User contexts", value="\n".join(user_contexts))
+        # load user contexts
+        for context in self.tree.walk_commands(type=discord.AppCommandType.user):
+            if isinstance(context, SimpleContextMenu):
+                name = f"``USER > APPS > {context.name}``"
+                desc = context.help
+                user_contexts.append(f"{name}\n{desc}\n")
+
+        if len(msg_contexts) > 0:
+            self.add_field(name="Message contexts", value="\n".join(msg_contexts))
+        if len(user_contexts) > 0:
+            self.add_field(name="User contexts", value="\n".join(user_contexts))
 
     @staticmethod
     def get_tab_choices() -> list[Choice[str]]:

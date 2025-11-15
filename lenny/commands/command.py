@@ -99,7 +99,8 @@ class SimpleCommand(discord.app_commands.Command[SimpleCommandGroup, Any, None])
     async def handle(self, itr: discord.Interaction, *args: Any, **kwargs: Any) -> None:
         raise NotImplementedError
 
-    async def error_handler(self, _: Any, itr: discord.Interaction, error: discord.app_commands.AppCommandError):
+    @staticmethod
+    async def error_handler(_: Any, itr: discord.Interaction, error: discord.app_commands.AppCommandError):
         await handle_command_error(itr, error)
 
     @property
@@ -130,5 +131,6 @@ class SimpleContextMenu(discord.app_commands.ContextMenu):
     async def handle(self, interaction: discord.Interaction, message: discord.Message) -> None:
         raise NotImplementedError
 
-    async def error_handler(self, itr: discord.Interaction, error: discord.app_commands.AppCommandError):
+    @staticmethod
+    async def error_handler(itr: discord.Interaction, error: discord.app_commands.AppCommandError):
         await handle_command_error(itr, error)

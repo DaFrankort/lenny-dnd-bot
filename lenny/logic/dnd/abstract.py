@@ -1,17 +1,47 @@
 import abc
+import dataclasses
 import io
 import json
 import os
-from typing import Any, Generic, Iterable, Literal, TypedDict, TypeVar, Union
+from typing import Any, Generic, Iterable, Literal, Optional, TypedDict, TypeVar, Union
 
 import discord
 import rich
 import rich.box
+from discord.app_commands import Choice
 from rapidfuzz import fuzz
 from rich.console import Console
 from rich.table import Table
 
 BASE_DATA_PATH = "./submodules/lenny-dnd-data/generated/"
+
+
+@dataclasses.dataclass
+class FuzzyMatchResult:
+    starts_with: bool  # Did the value start with the query
+    score: float  # The score of the fuzzy match
+    choice: Choice[str]  # The Choice object, as result to be used for discord
+
+
+def fuzzy_matches(query: str, value: str, fuzzy_threshold: float = 75) -> Optional[FuzzyMatchResult]:
+    """Perform a fuzzy check between  a query and a value, e.g. searching for 'fire' in 'Fireball'.
+
+    Args:
+        query (str): The query to search for. In the example above this would be 'fire'.
+        value (str): The value to search in. In the example above this would be 'Fireball'.
+        fuzzy_threshold (float): A fuzziness threshold to determine how similar two words need to be.
+
+    Returns:
+        Optional[FuzzyMatchResult]: A fuzzy match result with the internals, or None if the threshold was not met.
+    """
+    query_clean = query.strip().lower().replace(" ", "")
+    value_clean = value.strip().lower().replace(" ", "")
+    score = fuzz.partial_ratio(query_clean, query_clean)
+    starts_with = value_clean.startswith(query_clean)
+
+    if score < fuzzy_threshold:
+        return None
+    return FuzzyMatchResult(starts_with=starts_with, score=score, choice=Choice(name=value, value=value))
 
 
 class DescriptionRowRange(TypedDict):
@@ -108,7 +138,7 @@ class DNDEntryList(abc.ABC, Generic[TDND]):
         if query == "":
             return []
 
-        choices: list[tuple[bool, float, discord.app_commands.Choice[str]]] = []
+        choices: list[FuzzyMatchResult] = []
         seen_names: set[str] = set()  # Required to avoid duplicate suggestions
         for e in self.entries:
             if e.source not in allowed_sources:
@@ -116,21 +146,14 @@ class DNDEntryList(abc.ABC, Generic[TDND]):
             if e.name in seen_names:
                 continue
 
-            name_clean = e.name.strip().lower().replace(" ", "")
-            score = fuzz.partial_ratio(query, name_clean)
-            if score > fuzzy_threshold:
-                starts_with_query = name_clean.startswith(query)
-                choices.append(
-                    (
-                        starts_with_query,
-                        score,
-                        discord.app_commands.Choice(name=e.name, value=e.name),
-                    )
-                )
+            choice = fuzzy_matches(query, e.name, fuzzy_threshold)
+            if choice is not None:
+                choices.append(choice)
                 seen_names.add(e.name)
 
-        choices.sort(key=lambda x: (-x[0], -x[1], x[2].name))  # Sort by query match => fuzzy score => alphabetically
-        return [choice for _, _, choice in choices[:limit]]
+        # Sort by query match => fuzzy score => alphabetically
+        choices.sort(key=lambda x: (-x.starts_with, -x.score, x.choice.name))
+        return [choice.choice for choice in choices[:limit]]
 
     def search(self, query: str, allowed_sources: set[str], fuzzy_threshold: float = 75) -> list[DNDEntry]:
         query = query.strip().lower()

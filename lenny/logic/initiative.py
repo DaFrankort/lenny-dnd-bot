@@ -1,6 +1,5 @@
 import logging
 import random
-import time
 
 import discord
 from discord import Interaction, Message, NotFound
@@ -10,20 +9,12 @@ from rapidfuzz import fuzz
 from logic.roll import Advantage
 
 
-async def clean_up_old_message(message: Message, MAX_AGE: int = 600):
-    """Cleans up old discord.Message objects, removing any that are younger than MAX_AGE (default = 10min) and removing the view of those that are older."""
-    now = time.time()
-    timestamp = message.created_at.timestamp()
-    age = int(now - timestamp)
-
-    if age > MAX_AGE:
-        await message.edit(view=None)
-        return
-
+async def clean_up_old_message(message: Message):
+    """Cleans up old discord.Message objects."""
     try:
         await message.delete()
     except NotFound:
-        logging.debug("Previous message was already been deleted!")
+        logging.error("Previous message was already been deleted!")
 
 
 class Initiative:

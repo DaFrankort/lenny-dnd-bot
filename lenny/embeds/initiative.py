@@ -222,26 +222,26 @@ class InitiativePlayerRow(ui.ActionRow["InitiativeContainerView"]):
         self.tracker = tracker
 
         roll_btn = ui.Button["InitiativeContainerView"](style=discord.ButtonStyle.success, label="Roll")
-        roll_btn.callback = lambda interaction: self.roll_initiative(interaction)
+        roll_btn.callback = self.roll_initiative
         self.add_item(roll_btn)
 
         set_btn = ui.Button["InitiativeContainerView"](style=discord.ButtonStyle.success, label="Set")
-        set_btn.callback = lambda interaction: self.set_initiative(interaction)
+        set_btn.callback = self.set_initiative
         self.add_item(set_btn)
 
         delete_btn = ui.Button["InitiativeContainerView"](style=discord.ButtonStyle.danger, label="Delete Roll")
-        delete_btn.callback = lambda interaction: self.remove_initiative(interaction)
+        delete_btn.callback = self.remove_initiative
         delete_btn.disabled = len(tracker.get(itr)) <= 0
         self.add_item(delete_btn)
 
-    async def roll_initiative(self, itr: Interaction):
-        await itr.response.send_modal(InitiativeRollModal(itr, self.tracker))
+    async def roll_initiative(self, interaction: Interaction):
+        await interaction.response.send_modal(InitiativeRollModal(interaction, self.tracker))
 
-    async def set_initiative(self, itr: Interaction):
-        await itr.response.send_modal(InitiativeSetModal(itr, self.tracker))
+    async def set_initiative(self, interaction: Interaction):
+        await interaction.response.send_modal(InitiativeSetModal(interaction, self.tracker))
 
-    async def remove_initiative(self, itr: Interaction):
-        await itr.response.send_modal(InitiativeDeleteModal(itr, self.tracker))
+    async def remove_initiative(self, interaction: Interaction):
+        await interaction.response.send_modal(InitiativeDeleteModal(interaction, self.tracker))
 
 
 class InitiativeDMRow(ui.ActionRow["InitiativeContainerView"]):
@@ -250,7 +250,7 @@ class InitiativeDMRow(ui.ActionRow["InitiativeContainerView"]):
         self.tracker = tracker
 
     @ui.button(label="Bulk", style=discord.ButtonStyle.primary, custom_id="bulk_btn", row=1)
-    async def bulk_roll_initiative(self, itr: Interaction, button: ui.Button["InitiativeContainerView"]):
+    async def bulk_roll_initiative(self, itr: Interaction, _: ui.Button["InitiativeContainerView"]):
         await itr.response.send_modal(InitiativeBulkModal(itr, self.tracker))
 
     @ui.button(label="Lock", style=discord.ButtonStyle.primary, custom_id="lock_btn", row=1)
@@ -265,7 +265,7 @@ class InitiativeDMRow(ui.ActionRow["InitiativeContainerView"]):
         custom_id="clear_btn",
         row=1,
     )
-    async def clear_initiative(self, itr: Interaction, button: ui.Button["InitiativeContainerView"]):
+    async def clear_initiative(self, itr: Interaction, _: ui.Button["InitiativeContainerView"]):
         await itr.response.send_modal(InitiativeClearConfirmModal(itr, self.tracker))
 
 

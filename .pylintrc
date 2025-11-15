@@ -463,6 +463,7 @@ disable=raw-checker-failed,
         use-symbolic-message-instead,
         use-implicit-booleaness-not-comparison-to-string,
         use-implicit-booleaness-not-comparison-to-zero,
+        consider-using-assignment-expr, # Decided we were not a fan of it
         # Ignore specific errors used for discord.py's functionality of overwriting callbacks
         too-many-arguments,
         too-many-positional-arguments,

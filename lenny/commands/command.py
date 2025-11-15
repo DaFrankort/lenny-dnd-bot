@@ -76,11 +76,12 @@ class SimpleCommand(discord.app_commands.Command[SimpleCommandGroup, Any, None])
 
         try:
             criteria = [f"[{k}={v}]" for k, v in vars(itr.namespace).items()]
-        except Exception:
+        except Exception as e:  # pylint: disable=broad-except
+            logging.error(e)
             criteria = []
         criteria_text = " ".join(criteria)
 
-        logging.info(f"{itr.user.name} => /{self.qualified_name} {criteria_text}")
+        logging.info(f"%s => /%s %s", itr.user.name, self.qualified_name, criteria_text)
 
     @abstractmethod
     async def handle(self, itr: discord.Interaction, *args: Any, **kwargs: Any) -> None:

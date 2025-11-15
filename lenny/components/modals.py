@@ -24,7 +24,7 @@ class SimpleModal(Modal):
         }
 
         username = itr.user.name
-        logging.info(f"%s submitted modal => %s", username, input_values)
+        logging.info("%s submitted modal => %s", username, input_values)
 
     async def on_error(self, itr: Interaction, error: Exception):
         self.log_inputs(itr)

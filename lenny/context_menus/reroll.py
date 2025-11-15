@@ -69,24 +69,18 @@ class RerollContextMenu(SimpleContextMenu):
         self.log(interaction)
 
         if interaction.client.user is None:
-            error = "The bot is not associated with a user account!"
-            await interaction.response.send_message(f"❌ {error} ❌", ephemeral=True)
-            return
+            raise ValueError("The bot is not associated with a user account!")
 
         if message.author.id != interaction.client.user.id:
-            error = f"Only works on dice-roll messages sent by {interaction.client.user.name}"
-            await interaction.response.send_message(f"❌ {error} ❌", ephemeral=True)
-            return
+            raise PermissionError(f"Only works on dice-roll messages sent by {interaction.client.user.name}")
 
         if not message.embeds or len(message.embeds) == 0:
-            await interaction.response.send_message("❌ Reroll doesn't work on this message type!", ephemeral=True)
-            return
+            raise ValueError("Reroll doesn't work on this message type!")
 
         embed = message.embeds[0]
         title = embed.author.name or ""
         if not ("Rolling" in title or "Re-rolling" in title):
-            await interaction.response.send_message("❌ Message does not contain a dice-roll!", ephemeral=True)
-            return
+            raise ValueError("Message does not contain a dice-roll!")
 
         dice_notation = title.replace("Rolling ", "").replace("Re-rolling", "").replace("!", "")
         if "multiple times" in dice_notation:

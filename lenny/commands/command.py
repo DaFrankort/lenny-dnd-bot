@@ -31,6 +31,18 @@ def get_error_embed(error: discord.app_commands.AppCommandError | Exception) -> 
     return embed
 
 
+async def handle_command_error(itr: discord.Interaction, error: discord.app_commands.AppCommandError):
+    embed = get_error_embed(error)
+
+    if not itr.response.is_done():
+        await itr.response.send_message(embed=embed, ephemeral=True)
+        return
+
+    await itr.followup.send(embed=embed, ephemeral=True)
+    message = await itr.original_response()
+    await message.delete(delay=10)
+
+
 class SimpleCommandGroup(discord.app_commands.Group):
     name: str = ""
     desc: str = ""
@@ -87,21 +99,8 @@ class SimpleCommand(discord.app_commands.Command[SimpleCommandGroup, Any, None])
     async def handle(self, itr: discord.Interaction, *args: Any, **kwargs: Any) -> None:
         raise NotImplementedError
 
-    async def error_handler(
-        self,
-        _: Any,
-        itr: discord.Interaction,
-        error: discord.app_commands.AppCommandError,
-    ):
-        embed = get_error_embed(error)
-
-        if not itr.response.is_done():
-            await itr.response.send_message(embed=embed, ephemeral=True)
-            return
-
-        await itr.followup.send(embed=embed, ephemeral=True)
-        message = await itr.original_response()
-        await message.delete(delay=10)
+    async def error_handler(self, _: Any, itr: discord.Interaction, error: discord.app_commands.AppCommandError):
+        await handle_command_error(itr, error)
 
     @property
     def params(self):
@@ -122,6 +121,7 @@ class SimpleContextMenu(discord.app_commands.ContextMenu):
             name=self.name,
             callback=self.handle,
         )
+        self.on_error = self.error_handler
 
     def log(self, itr: discord.Interaction):
         logging.info("%s => %s", itr.user.name, self.name)
@@ -129,3 +129,6 @@ class SimpleContextMenu(discord.app_commands.ContextMenu):
     @abstractmethod
     async def handle(self, interaction: discord.Interaction, message: discord.Message) -> None:
         raise NotImplementedError
+
+    async def error_handler(self, itr: discord.Interaction, error: discord.app_commands.AppCommandError):
+        await handle_command_error(itr, error)

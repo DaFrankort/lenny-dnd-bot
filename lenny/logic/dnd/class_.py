@@ -12,21 +12,21 @@ class Class(DNDEntry):
     level_features: dict[str, list[Description]]
     subclass_level_features: dict[str, dict[str, list[Description]]]
 
-    def __init__(self, json: dict[str, Any]):
+    def __init__(self, obj: dict[str, Any]):
         self.entry_type = "class"
         self.emoji = "🧙‍♂️"
 
-        self.name = json["name"]
-        self.source = json["source"]
-        self.url = json["url"]
+        self.name = obj["name"]
+        self.source = obj["source"]
+        self.url = obj["url"]
 
-        self.subclass_unlock_level = json["subclassUnlockLevel"]
-        self.primary_ability = json["primaryAbility"]
-        self.spellcast_ability = json["spellcastAbility"]
-        self.base_info = json["baseInfo"]
-        self.level_resources = json["levelResources"]
-        self.level_features = json["levelFeatures"]
-        self.subclass_level_features = json["subclassLevelFeatures"]
+        self.subclass_unlock_level = obj["subclassUnlockLevel"]
+        self.primary_ability = obj["primaryAbility"]
+        self.spellcast_ability = obj["spellcastAbility"]
+        self.base_info = obj["baseInfo"]
+        self.level_resources = obj["levelResources"]
+        self.level_features = obj["levelFeatures"]
+        self.subclass_level_features = obj["subclassLevelFeatures"]
 
     def __repr__(self):
         return str(self)

@@ -46,11 +46,11 @@ class DNDEntryEmbed(discord.Embed):
 
         return char_count
 
-    def build_table(self, value: str | DescriptionTable, CHAR_FIELD_LIMIT: int = 1024):
+    def build_table(self, value: str | DescriptionTable, char_field_limit: int = 1024):
         """Turns a Description with headers & rows into a clean table using rich."""
         table_string = build_table(value)
 
-        if len(table_string) > CHAR_FIELD_LIMIT:
+        if len(table_string) > char_field_limit:
             return f"The table for [{self._entry.name} can be found here]({self._entry.url})."
         return table_string
 
@@ -82,16 +82,17 @@ class DNDEntryEmbed(discord.Embed):
         max_fields = min(max_fields, 25)
 
         char_count = self.char_count
+        entry_type = self._entry.entry_type
         for description in descriptions:
             if (len(self.fields)) >= max_fields:
-                logging.debug(f"{self._entry.entry_type.upper()} - Max field count reached! {len(self.fields)} >= {max_fields}")
+                logging.debug("%s - Max field count reached! %d >= %d", entry_type.upper(), len(self.fields), max_fields)
                 break
 
             name = description["name"]
             value = description["value"]
-            type = description["type"]
+            description_type = description["type"]
 
-            if type == "table":
+            if description_type == "table":
                 if ignore_tables:
                     continue
                 value = self.build_table(value, char_field_limit)
@@ -99,15 +100,13 @@ class DNDEntryEmbed(discord.Embed):
             field_length = len(name) + len(value)
             if field_length >= char_field_limit:
                 logging.debug(
-                    f"{self._entry.entry_type.upper()} - Field character limit reached! {field_length} >= {char_field_limit}"
+                    "%s - Field character limit reached! %d >= %d", entry_type.upper(), field_length, char_field_limit
                 )
                 continue  # TODO split field to fit, possibly concatenate descriptions to make optimal use of field-limits
 
             char_count += field_length
             if char_count >= char_embed_limit:
-                logging.debug(
-                    f"{self._entry.entry_type.upper()} - Embed character limit reached! {char_count} >= {char_embed_limit}"
-                )
+                logging.debug("%s - Embed character limit reached! %d >= %d", entry_type.upper(), char_count, char_embed_limit)
                 break  # TODO Cut description short and add a message
 
             self.add_field(name=name, value=value, inline=False)

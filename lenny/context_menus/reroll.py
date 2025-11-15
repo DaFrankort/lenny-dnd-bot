@@ -11,9 +11,6 @@ class RerollContextMenu(SimpleContextMenu):
     name = "Re-roll"
     help = "Will repeat a roll done with the __/roll__, __/advantage__, __/disadvantage__, or __/multiroll__ commands."
 
-    def __init__(self):
-        super().__init__()
-
     def _get_reason(self, embed: discord.Embed):
         reason = None
         field = embed.fields[-1].value or ""
@@ -30,7 +27,7 @@ class RerollContextMenu(SimpleContextMenu):
         if "disadvantage" in dice_notation:
             # Check 'disadvantage' before 'advantage', may give a false positive otherwise.
             return Advantage.Disadvantage
-        elif "advantage" in dice_notation:
+        if "advantage" in dice_notation:
             return Advantage.Advantage
         return Advantage.Normal
 

@@ -15,22 +15,22 @@ class Spell(DNDEntry):
     description: list[Description]
     classes: list[Any]
 
-    def __init__(self, json: dict[str, Any]):
+    def __init__(self, obj: dict[str, Any]):
         self.entry_type = "spell"
         self.emoji = "🔥"
 
-        self.name = json["name"]
-        self.source = json["source"]
-        self.url = json["url"]
+        self.name = obj["name"]
+        self.source = obj["source"]
+        self.url = obj["url"]
 
-        self.level = json["level"]
-        self.school = json["school"]
-        self.casting_time = json["casting_time"]
-        self.spell_range = json["range"]
-        self.components = json["components"]
-        self.duration = json["duration"]
-        self.description = json["description"]
-        self.classes = json["classes"]
+        self.level = obj["level"]
+        self.school = obj["school"]
+        self.casting_time = obj["casting_time"]
+        self.spell_range = obj["range"]
+        self.components = obj["components"]
+        self.duration = obj["duration"]
+        self.description = obj["description"]
+        self.classes = obj["classes"]
 
         self.select_description = f"{self.level} {self.school}"
 

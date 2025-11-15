@@ -50,10 +50,10 @@ class StatsVisualizeCommand(SimpleCommand):
     async def handle(  # pyright:ignore
         self,
         itr: discord.Interaction,
-        str: discord.app_commands.Range[int, 0, 48],
+        str: discord.app_commands.Range[int, 0, 48],  # pylint: disable=redefined-builtin
         dex: discord.app_commands.Range[int, 0, 48],
         con: discord.app_commands.Range[int, 0, 48],
-        int: discord.app_commands.Range[int, 0, 48],
+        int: discord.app_commands.Range[int, 0, 48],  # pylint: disable=redefined-builtin
         wis: discord.app_commands.Range[int, 0, 48],
         cha: discord.app_commands.Range[int, 0, 48],
     ):

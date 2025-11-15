@@ -88,17 +88,19 @@ class SimpleCommand(discord.app_commands.Command[SimpleCommandGroup, Any, None])
 
         try:
             criteria = [f"[{k}={v}]" for k, v in vars(itr.namespace).items()]
-        except Exception:
+        except Exception as e:  # pylint: disable=broad-except
+            logging.error(e)
             criteria = []
         criteria_text = " ".join(criteria)
 
-        logging.info(f"{itr.user.name} => /{self.qualified_name} {criteria_text}")
+        logging.info("%s => /%s %s", itr.user.name, self.qualified_name, criteria_text)
 
     @abstractmethod
     async def handle(self, itr: discord.Interaction, *args: Any, **kwargs: Any) -> None:
         raise NotImplementedError
 
-    async def error_handler(self, _: Any, itr: discord.Interaction, error: discord.app_commands.AppCommandError):
+    @staticmethod
+    async def error_handler(_: Any, itr: discord.Interaction, error: discord.app_commands.AppCommandError):
         await handle_command_error(itr, error)
 
     @property
@@ -123,11 +125,12 @@ class SimpleContextMenu(discord.app_commands.ContextMenu):
         self.on_error = self.error_handler
 
     def log(self, itr: discord.Interaction):
-        logging.info(f"{itr.user.name} => {self.name}")
+        logging.info("%s => %s", itr.user.name, self.name)
 
     @abstractmethod
     async def handle(self, interaction: discord.Interaction, message: discord.Message) -> None:
         raise NotImplementedError
 
-    async def error_handler(self, itr: discord.Interaction, error: discord.app_commands.AppCommandError):
+    @staticmethod
+    async def error_handler(itr: discord.Interaction, error: discord.app_commands.AppCommandError):
         await handle_command_error(itr, error)

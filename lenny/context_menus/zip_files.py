@@ -10,9 +10,6 @@ class ZipAttachmentsContextMenu(SimpleContextMenu):
     name = "Zip message files"
     help = "Packs all attachments from a message into one ZIP file, making it faster to download many files."
 
-    def __init__(self):
-        super().__init__()
-
     async def handle(self, interaction: discord.Interaction, message: discord.Message):
         self.log(interaction)
         if not interaction.client.user:

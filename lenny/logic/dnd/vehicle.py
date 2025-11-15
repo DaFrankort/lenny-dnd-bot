@@ -10,21 +10,21 @@ class Vehicle(DNDEntry):
     travel_pace: str | None
     description: list[Description]
 
-    def __init__(self, json: dict[str, Any]):
+    def __init__(self, obj: dict[str, Any]):
         self.entry_type = "vehicle"
         self.emoji = "⛵"
 
-        self.name = json["name"]
-        self.source = json["source"]
-        self.url = json["url"]
+        self.name = obj["name"]
+        self.source = obj["source"]
+        self.url = obj["url"]
 
-        self.token_url = json["tokenUrl"]
-        self.creature_capacity = json["creatureCapacity"]
-        self.cargo_capacity = json["cargoCapacity"]
-        self.travel_pace = json["travelPace"]
-        self.description = json["description"]
+        self.token_url = obj["tokenUrl"]
+        self.creature_capacity = obj["creatureCapacity"]
+        self.cargo_capacity = obj["cargoCapacity"]
+        self.travel_pace = obj["travelPace"]
+        self.description = obj["description"]
 
-        self.select_description = json["subtitle"]
+        self.select_description = obj["subtitle"]
 
 
 class VehicleList(DNDEntryList[Vehicle]):

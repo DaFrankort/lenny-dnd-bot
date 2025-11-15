@@ -150,3 +150,7 @@ class DNDTableContainerView(PaginatedLayoutView):
             container.add_item(self.navigation_footer())
 
         self.add_item(container)
+
+    @property
+    def entry_count(self) -> int:
+        return len(self.tables)

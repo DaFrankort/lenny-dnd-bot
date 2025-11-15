@@ -16,13 +16,10 @@ class ZipAttachmentsContextMenu(SimpleContextMenu):
     async def handle(self, interaction: discord.Interaction, message: discord.Message):
         self.log(interaction)
         if not interaction.client.user:
-            error = "The bot is not associated with a user account!"
-            await interaction.response.send_message(f"❌ {error} ❌", ephemeral=True)
-            return
+            raise ValueError("The bot is not associated with a user account!")
 
         if not message.attachments:
-            await interaction.response.send_message("❌ This message has no attachments! ❌", ephemeral=True)
-            return
+            raise ValueError("This message has no attachments!")
 
         zip_buffer = io.BytesIO()
         with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:

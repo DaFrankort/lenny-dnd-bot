@@ -32,8 +32,8 @@ class DNDTable(DNDEntry):
         result = roll(self.dice_notation)
         rows = self.table["value"]["rows"]
         for row in rows:
-            range = row[0]
-            if range["min"] <= result.roll.total <= range["max"]:
+            row_range = row[0]
+            if row_range["min"] <= result.roll.total <= row_range["max"]:
                 return row, result
 
         return None

@@ -19,7 +19,7 @@ async def send_dnd_entry_lookup_result(
     name: str,
 ):
     """Helper function to send generic D&D lookup embeds and views."""
-    logging.debug(f"%s: Found %d for '%s'", label.upper(), len(found), len(found))
+    logging.debug("%s: Found %d for '%s'", label.upper(), len(found), len(found))
 
     if len(found) == 0:
         embed = NoResultsFoundEmbed(label, name)
@@ -328,7 +328,7 @@ class SearchAnyCommand(SimpleCommand):
         self.log(itr)
         sources = Config.allowed_sources(server=itr.guild)
         results = Data.search(query, sources)
-        logging.debug(f"Found %d results for '%s'", len(results.get_all()), query)
+        logging.debug("Found %d results for '%s'", len(results.get_all()), query)
 
         if len(results.get_all()) == 0:
             embed = NoResultsFoundEmbed("results", query)

@@ -28,10 +28,10 @@ class RerollContextMenu(SimpleContextMenu):
     def _parse_advantage(dice_notation: str) -> Advantage:
         if "disadvantage" in dice_notation:
             # Check 'disadvantage' before 'advantage', may give a false positive otherwise.
-            return Advantage.Disadvantage
+            return Advantage.DISADVANTAGE
         if "advantage" in dice_notation:
-            return Advantage.Advantage
-        return Advantage.Normal
+            return Advantage.ADVANTAGE
+        return Advantage.NORMAL
 
     async def _handle_multiroll(self, interaction: discord.Interaction, dice_notation: str, embed: discord.Embed):
         advantage = self._parse_advantage(dice_notation)

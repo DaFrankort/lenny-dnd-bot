@@ -9,13 +9,13 @@ from methods import ChoicedEnum
 
 
 class Advantage(str, ChoicedEnum):
-    Normal = "normal"
-    Advantage = "advantage"
-    Disadvantage = "disadvantage"
+    NORMAL = "normal"
+    ADVANTAGE = "advantage"
+    DISADVANTAGE = "disadvantage"
 
     @property
     def title_suffix(self) -> str:
-        suffixes = {self.Advantage: " with advantage", self.Disadvantage: " with disadvantage"}
+        suffixes = {self.ADVANTAGE: " with advantage", self.DISADVANTAGE: " with disadvantage"}
         return suffixes.get(self, "")
 
 
@@ -185,9 +185,9 @@ class RollResult(object):
     def roll(self) -> SingleRollResult:
         totals = [roll.total for roll in self.rolls]
         match self.advantage:
-            case Advantage.Advantage:
+            case Advantage.ADVANTAGE:
                 total = max(totals)
-            case Advantage.Disadvantage:
+            case Advantage.DISADVANTAGE:
                 total = min(totals)
             case _:
                 total = sum(totals)
@@ -241,12 +241,12 @@ def _validate_expression(expression: str) -> None:
         raise exception
 
 
-def roll(expression: str, advantage: Advantage = Advantage.Normal) -> RollResult:
+def roll(expression: str, advantage: Advantage = Advantage.NORMAL) -> RollResult:
     _validate_expression(expression)
     expression = str(d20.parse(expression, allow_comments=False))
 
     rolls: list[SingleRollResult] = []
-    if advantage in [Advantage.Advantage, Advantage.Disadvantage]:
+    if advantage in [Advantage.ADVANTAGE, Advantage.DISADVANTAGE]:
         rolls.append(_roll_single(expression))
         rolls.append(_roll_single(expression))
     else:
@@ -260,7 +260,7 @@ def multi_roll(expression: str, amount: int, advantage: Advantage) -> MultiRollR
     expression = str(d20.parse(expression, allow_comments=False))
     rolls = [_roll_single(expression) for _ in range(amount)]
 
-    if advantage == Advantage.Normal:
+    if advantage == Advantage.NORMAL:
         return MultiRollResult(expression, advantage, rolls, rolls_lose=[])
 
     extra_rolls = [_roll_single(expression) for _ in range(amount)]
@@ -275,6 +275,6 @@ def multi_roll(expression: str, amount: int, advantage: Advantage) -> MultiRollR
             higher_rolls.append(extra_rolls[i])
             lower_rolls.append(rolls[i])
 
-    if advantage == Advantage.Advantage:
+    if advantage == Advantage.ADVANTAGE:
         return MultiRollResult(expression, advantage, higher_rolls, rolls_lose=lower_rolls)
     return MultiRollResult(expression, advantage, lower_rolls, rolls_lose=higher_rolls)

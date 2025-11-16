@@ -80,9 +80,9 @@ def distribution(
         dist = d20distribution.parse(expression)
         expression = str(d20.parse(expr=expression))
 
-        if advantage == Advantage.Advantage:
+        if advantage == Advantage.ADVANTAGE:
             dist = dist.advantage()
-        elif advantage == Advantage.Disadvantage:
+        elif advantage == Advantage.DISADVANTAGE:
             dist = dist.disadvantage()
 
         if min_to_beat is None:

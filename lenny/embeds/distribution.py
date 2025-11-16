@@ -13,9 +13,9 @@ class DistributionEmbed(discord.Embed):
         self.chart = result.chart or MISSING
         color = UserColor.get(itr)
 
-        if result.advantage == Advantage.Advantage:
+        if result.advantage == Advantage.ADVANTAGE:
             title_suffix = " with advantage"
-        elif result.advantage == Advantage.Disadvantage:
+        elif result.advantage == Advantage.DISADVANTAGE:
             title_suffix = " with disadvantage"
         else:
             title_suffix = ""

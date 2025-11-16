@@ -34,20 +34,20 @@ class InitiativeRollModal(SimpleModal):
             return
         DiceCache.store_initiative(itr, modifier)
 
-        advantage = self.get_choice(self.advantage, Advantage) or Advantage.Normal
+        advantage = self.get_choice(self.advantage, Advantage) or Advantage.NORMAL
         initiative = Initiative(itr, modifier, name, advantage)
         Initiatives.add(itr, initiative)
 
         title = f"{itr.user.name} rolled Initiative for {initiative.name}"
-        if advantage == Advantage.Advantage:
+        if advantage == Advantage.ADVANTAGE:
             title += " with Advantage!"
-        elif advantage == Advantage.Disadvantage:
+        elif advantage == Advantage.DISADVANTAGE:
             title += " with Disadvantage!"
         else:
             title += "!"
 
         descriptions: list[str] = []
-        roll_count = 1 if advantage == Advantage.Normal else 2
+        roll_count = 1 if advantage == Advantage.NORMAL else 2
         for i in range(roll_count):
             d20 = initiative.d20[i]
             mod = initiative.modifier
@@ -86,7 +86,7 @@ class InitiativeSetModal(SimpleModal):
             await itr.response.send_message("Value must be a positive number without decimals.", ephemeral=True)
             return
 
-        initiative = Initiative(itr, 0, name, Advantage.Normal, roll=value)
+        initiative = Initiative(itr, 0, name, Advantage.NORMAL, roll=value)
         Initiatives.add(itr, initiative)
 
         title = f"{itr.user.name} set Initiative for {initiative.name}!"
@@ -164,7 +164,7 @@ class InitiativeBulkModal(SimpleModal):
             )
             return
 
-        advantage = self.get_choice(self.advantage, Advantage) or Advantage.Normal
+        advantage = self.get_choice(self.advantage, Advantage) or Advantage.NORMAL
         shared: Boolean = self.get_choice(self.shared, Boolean) or Boolean.false
         initiatives = Initiatives.add_bulk(itr, modifier, name, amount, advantage, shared.bool)
 

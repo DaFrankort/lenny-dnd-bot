@@ -76,7 +76,7 @@ def distribution(
     color: int,
     min_to_beat: float | None = None,
 ):
-    try:  # pylint: disable=too-many-try-statements
+    try:
         dist = d20distribution.parse(expression)
         expression = str(d20.parse(expr=expression))
 

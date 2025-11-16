@@ -115,7 +115,7 @@ class DNDTableContainerView(PaginatedLayoutView):
         headers = self.table.table["value"]["headers"]
         rows = self.table.table["value"]["rows"]
         rows_end = len(rows)
-        while len(rows) > 0:  # pylint: disable=while-used
+        while len(rows) > 0:
             built = build_table_from_rows(headers, rows[:rows_end])
             if len(built) < 4000:
                 self.tables.append(built)

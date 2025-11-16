@@ -467,6 +467,7 @@ disable=raw-checker-failed,
         docstring-first-line-empty, # Disabled for styling reasons
         no-self-use, # Incompatible with several discord.py decorators
         too-many-try-statements, # Does not fit our code style
+        while-used, # While-loops should not be an issue
         # Ignore specific errors used for discord.py's functionality of overwriting callbacks
         too-many-arguments,
         too-many-positional-arguments,

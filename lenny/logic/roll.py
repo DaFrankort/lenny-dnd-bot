@@ -20,9 +20,9 @@ class Advantage(str, ChoicedEnum):
 
 
 class DiceSpecial(str, Enum):
-    Natural20 = "nat20"
-    Natural1 = "nat1"
-    Dirty20 = "dirty20"
+    NATURAL20 = "nat20"
+    NATURAL1 = "nat1"
+    DIRTY20 = "dirty20"
 
 
 class DiceStringifier(d20.Stringifier):
@@ -164,15 +164,15 @@ class SingleRollResult(object):
 
     @property
     def is_natural_twenty(self) -> bool:
-        return self.special == DiceSpecial.Natural20
+        return self.special == DiceSpecial.NATURAL20
 
     @property
     def is_natural_one(self) -> bool:
-        return self.special == DiceSpecial.Natural1
+        return self.special == DiceSpecial.NATURAL1
 
     @property
     def is_dirty_twenty(self) -> bool:
-        return self.special == DiceSpecial.Dirty20
+        return self.special == DiceSpecial.DIRTY20
 
 
 @dataclasses.dataclass
@@ -217,11 +217,11 @@ def _roll_single(expression: str) -> SingleRollResult:
 
     special = None
     if _is_natural_20(roll.expr):
-        special = DiceSpecial.Natural20
+        special = DiceSpecial.NATURAL20
     elif _is_natural_1(roll.expr):
-        special = DiceSpecial.Natural1
+        special = DiceSpecial.NATURAL1
     elif _is_dirty_20(roll.expr):
-        special = DiceSpecial.Dirty20
+        special = DiceSpecial.DIRTY20
 
     contains_dice = _contains_dice(roll.expr)
 

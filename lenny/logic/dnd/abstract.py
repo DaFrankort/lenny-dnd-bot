@@ -3,8 +3,8 @@ import dataclasses
 import io
 import json
 import os
-from typing import Any, Generic, Literal, TypedDict, TypeVar
 from collections.abc import Iterable
+from typing import Any, Generic, Literal, TypedDict, TypeVar
 
 import discord
 import rich

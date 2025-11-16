@@ -2,18 +2,19 @@ import dataclasses
 import json
 import logging
 import os
-from typing import TYPE_CHECKING, Any, Generic, Sequence, TypeVar, Union
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
+from collections.abc import Sequence
 
 if TYPE_CHECKING:
     from _typeshed import DataclassInstance
 else:
     DataclassInstance = Any
 
-SupportedBaseTypes = Union[int, float, str, bool, DataclassInstance]
-SerializedBaseTypes = Union[int, float, str, bool, dict[str, Any]]
+SupportedBaseTypes = int | float | str | bool | DataclassInstance
+SerializedBaseTypes = int | float | str | bool | dict[str, Any]
 
-SupportedTypes = Union[Sequence[SupportedBaseTypes], SupportedBaseTypes]
-SerializedTypes = Union[Sequence["SerializedBaseTypes"], SerializedBaseTypes]
+SupportedTypes = Sequence[SupportedBaseTypes] | SupportedBaseTypes
+SerializedTypes = Sequence["SerializedBaseTypes"] | SerializedBaseTypes
 
 T = TypeVar("T", bound=SupportedTypes)
 
@@ -40,7 +41,7 @@ class JsonHandler(Generic[T]):
         self._filename = filename
         self._path = os.path.join(base_dir, sub_dir) if sub_dir else base_dir
         self._allow_save = True
-        self.data = dict()
+        self.data = {}
         self.load()
 
     @property
@@ -51,20 +52,20 @@ class JsonHandler(Generic[T]):
     def load(self):
         if not os.path.exists(self._path):
             os.makedirs(self._path)
-            logging.info(f"Created new filepath at: {self._path}")
+            logging.info("Created new filepath at: %s", self._path)
 
         try:
             with open(self.file_path, "r", encoding="utf-8") as file:
                 data: dict[str, Any] = json.load(file)
                 self.data = {k: self.deserialize(v) for k, v in data.items()}
         except FileNotFoundError:
-            logging.warning(f"File not found, new file created at: '{self.file_path}'")
-            self.data = dict()
+            logging.warning("File not found, new file created at: '%s'", self.file_path)
+            self.data = {}
             self.save()
         except KeyError as e:
-            logging.error(f"Failed to read '{self.file_path}', saving will be disabled for this file!\n{e}")
+            logging.error("Failed to read '%s', saving will be disabled for this file!\n%s", self.file_path, e)
             self._allow_save = False
-            self.data = dict()
+            self.data = {}
 
     def save(self):
         if not self._allow_save:

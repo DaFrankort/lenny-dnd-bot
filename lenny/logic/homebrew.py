@@ -1,7 +1,7 @@
 import dataclasses
 import logging
 import os
-from typing import Any, Set
+from typing import Any
 
 import discord
 from discord.app_commands import Choice
@@ -54,7 +54,7 @@ class HomebrewEntryType(str, ChoicedEnum):
 
 
 @dataclasses.dataclass
-class HomebrewEntry(object):
+class HomebrewEntry:
     name: str
     author_id: int
     entry_type: HomebrewEntryType
@@ -220,7 +220,7 @@ class GlobalHomebrewData:
     def __init__(self):
         if not os.path.exists(HOMEBREW_PATH):
             os.makedirs(HOMEBREW_PATH)
-            logging.info(f"Created homebrew directory at '{HOMEBREW_PATH}'")
+            logging.info("Created homebrew directory at '%s'", HOMEBREW_PATH)
             return
 
         for filename in os.listdir(HOMEBREW_PATH):
@@ -237,7 +237,7 @@ class GlobalHomebrewData:
         return self._data[itr.guild_id]
 
     @property
-    def guilds(self) -> Set[int]:
+    def guilds(self) -> set[int]:
         return set(self._data.keys())
 
 

@@ -2,8 +2,9 @@ import argparse
 import logging
 import os
 
-from discord.utils import (
-    _ColourFormatter,  # type: ignore # Discord's private formatter has proven to be quite nice to use
+from discord.utils import (  # pylint: disable=import-private-name
+    # Discord's private formatter has proven to be quite nice to use
+    _ColourFormatter,  # type: ignore
 )
 
 from bot import Bot

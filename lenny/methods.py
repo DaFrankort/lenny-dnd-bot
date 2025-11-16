@@ -42,7 +42,7 @@ class ChoicedEnum(Enum):
 
 
 class Boolean(ChoicedEnum):
-    true = "true"
+    TRUE = "true"
     FALSE = "false"
 
     @property

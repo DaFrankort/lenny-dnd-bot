@@ -72,13 +72,20 @@ class MockMember(discord.Member):
         self.guild_permissions.administrator = admin
 
 
+class MockTextChannel(discord.TextChannel):
+    def __init__(self, guild: discord.Guild, id: int):
+        self.guild = guild
+        self.id = id
+
+
 class MockInteraction(discord.Interaction):
     """Mock interaction class to simulate Discord interactions."""
 
-    def __init__(self, user: MockUser = MockUser("user"), guild_id: int = 999):
+    def __init__(self, user: MockUser = MockUser("user"), guild_id: int = 999, channel_id: int = 100):
+        mock_guild = MockGuild(guild_id)
         self.user = user
         self.guild_id = guild_id
-        self.channel = MagicMock(spec=discord.TextChannel)
+        self.channel = MockTextChannel(mock_guild, channel_id)
         self.response = MagicMock()
         self.response.send_message = AsyncMock()
         self.response.defer = AsyncMock()
@@ -86,7 +93,7 @@ class MockInteraction(discord.Interaction):
         self._state = MagicMock()
         self._servers = MagicMock()
         self._original_response = MagicMock()
-        self._state._get_guild = MagicMock(return_value=MockGuild(guild_id))
+        self._state._get_guild = MagicMock(return_value=mock_guild)
 
 
 class MockAttachment(discord.Attachment):

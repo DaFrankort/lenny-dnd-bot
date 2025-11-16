@@ -128,13 +128,13 @@ class TestInitiativeTracker:
         tracker.clear(itr)
         assert tracker.get(itr) == [], "Expected initiatives to be cleared (empty list)"
 
-    def test_get_returns_empty_for_new_guild(self, tracker: GlobalInitiativeTracker):
-        fresh_interaction = MockInteraction(guild_id=555)
-        assert tracker.get(fresh_interaction) == [], "Expected empty list for new guild"
+    def test_get_returns_empty_for_new_channel(self, tracker: GlobalInitiativeTracker):
+        fresh_interaction = MockInteraction(channel_id=555)
+        assert tracker.get(fresh_interaction) == [], "Expected empty list for new channel."
 
-    def test_multiple_guilds(self, tracker: GlobalInitiativeTracker):
-        itr1 = MockInteraction(guild_id=1)
-        itr2 = MockInteraction(MockUser("Bar"), guild_id=2)
+    def test_multiple_channels(self, tracker: GlobalInitiativeTracker):
+        itr1 = MockInteraction(channel_id=1)
+        itr2 = MockInteraction(MockUser("Bar"), channel_id=2)
 
         initiative1 = Initiative(itr1, modifier=1, name="Goblin", advantage=Advantage.Normal)
         initiative2 = Initiative(itr2, modifier=3, name="Orc", advantage=Advantage.Normal)
@@ -142,14 +142,14 @@ class TestInitiativeTracker:
         tracker.add(itr1, initiative1)
         tracker.add(itr2, initiative2)
 
-        assert len(tracker.get(itr1)) == 1, f"Expected 1 initiative for guild 1, got {len(tracker.get(itr1))}"
-        assert len(tracker.get(itr2)) == 1, f"Expected 1 initiative for guild 2, got {len(tracker.get(itr2))}"
+        assert len(tracker.get(itr1)) == 1, f"Expected 1 initiative for channel 1, got {len(tracker.get(itr1))}"
+        assert len(tracker.get(itr2)) == 1, f"Expected 1 initiative for channel 2, got {len(tracker.get(itr2))}"
         assert (
             tracker.get(itr1)[0].name == initiative1.name
-        ), f"Expected name '{initiative1.name}in' for guild 1, got '{tracker.get(itr1)[0].name}'"
+        ), f"Expected name '{initiative1.name}in' for channel 1, got '{tracker.get(itr1)[0].name}'"
         assert (
             tracker.get(itr2)[0].name == initiative2.name
-        ), f"Expected name '{initiative2.name}' for guild 2, got '{tracker.get(itr2)[0].name}'"
+        ), f"Expected name '{initiative2.name}' for channel 2, got '{tracker.get(itr2)[0].name}'"
 
     def test_sorting_order(self, tracker: GlobalInitiativeTracker, itr: discord.Interaction):
         count = tracker.INITIATIVE_LIMIT - 1
@@ -190,8 +190,8 @@ class TestInitiativeTracker:
         tracker.remove(itr, npc_initiative.name)
         assert len(tracker.get(itr)) == 0, "Expected 0 initiatives after removal"
         assert (
-            itr.guild_id not in tracker.server_initiatives
-        ), "Expected guild entry to be removed after last initiative is removed"
+            itr.channel_id not in tracker.server_initiatives
+        ), "Expected channel entry to be removed after last initiative is removed"
 
     def test_remove_initiative_fail(
         self,

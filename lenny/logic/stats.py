@@ -22,7 +22,7 @@ class Stats:
 
     @property
     def total(self) -> int:
-        return sum([result for _, result in self.stats])
+        return sum(result for _, result in self.stats)
 
     def get_radar_chart(self, color: int = discord.Color.dark_green().value) -> discord.File:
         values = [value for _, value in self.stats]

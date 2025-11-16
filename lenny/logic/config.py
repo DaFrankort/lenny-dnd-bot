@@ -1,6 +1,6 @@
 import os
 import pathlib
-from typing import Iterable
+from collections.abc import Iterable
 
 import discord
 import toml
@@ -20,7 +20,7 @@ def is_source_phb2014(source: str) -> bool:
     return source in SOURCES_PHB2014
 
 
-class Config(object):
+class Config:
     server: discord.Guild
 
     def __init__(self, server: discord.Guild | None):
@@ -38,7 +38,8 @@ class Config(object):
         """Creates the associated config file. Does not change anything if it already exists."""
         path = pathlib.Path(self.path)
         path.parent.mkdir(exist_ok=True, parents=True)
-        open(path, "a").close()  # Ensure file exists
+        # Ensure file exists
+        open(path, "a", encoding="utf-8").close()  # pylint: disable=consider-using-with
 
     def reset(self):
         if os.path.exists(self.path):
@@ -53,8 +54,8 @@ class Config(object):
 
     @classmethod
     def get_default_allowed_sources(cls) -> set[str]:
-        sources = SourceList()
-        sources = set([source.id for source in sources.entries])
+        source_list = SourceList()
+        sources = set(source.id for source in source_list.entries)
         disallowed = cls.get_default_disallowed_sources()
         return sources - disallowed
 
@@ -67,8 +68,8 @@ class Config(object):
         return set(disallowed)
 
     def get_allowed_sources(self) -> set[str]:
-        sources = SourceList()
-        sources = set([source.id for source in sources.entries])
+        source_list = SourceList()
+        sources = set(source.id for source in source_list.entries)
         disallowed = self.get_disallowed_sources()
         return sources - disallowed
 
@@ -76,7 +77,7 @@ class Config(object):
         config = toml.load(self.path)
         config["lookup"] = config.get("lookup", {})
         config["lookup"]["disallowed_sources"] = list(set(sources))
-        with open(self.path, "w") as f:
+        with open(self.path, "w", encoding="utf-8") as f:
             toml.dump(config, f)
 
     def allow_source(self, source: str) -> None:
@@ -91,7 +92,7 @@ class Config(object):
 
     def clear(self) -> None:
         # Clear config file contents
-        open(self.path, "w").close()
+        open(self.path, "w", encoding="utf-8").close()  # pylint: disable=consider-using-with
 
     @staticmethod
     def allowed_sources(server: discord.Guild | None) -> set[str]:
@@ -107,7 +108,7 @@ class Config(object):
         config = toml.load(self.path)
         config["permissions"] = config.get("permissions", {})
         config["permissions"]["roles"] = list(set(ids))
-        with open(self.path, "w") as f:
+        with open(self.path, "w", encoding="utf-8") as f:
             toml.dump(config, f)
 
     def get_allowed_config_roles(self) -> set[int]:
@@ -166,7 +167,7 @@ def user_has_config_permissions(server: discord.Guild | None, user: discord.User
 
     config = Config(server)
 
-    user_role_ids = set([role.id for role in user.roles])
+    user_role_ids = set(role.id for role in user.roles)
     allowed_role_ids = config.get_allowed_config_roles()
     intersection = allowed_role_ids.intersection(user_role_ids)
 

@@ -11,7 +11,8 @@ class RerollContextMenu(SimpleContextMenu):
     name = "Re-roll"
     help = "Will repeat a roll done with the __/roll__, __/advantage__, __/disadvantage__, or __/multiroll__ commands."
 
-    def _get_reason(self, embed: discord.Embed):
+    @staticmethod
+    def _get_reason(embed: discord.Embed):
         reason = None
         field = embed.fields[-1].value or ""
         if "Result" not in field:
@@ -23,7 +24,8 @@ class RerollContextMenu(SimpleContextMenu):
                     break
         return reason
 
-    def _parse_advantage(self, dice_notation: str) -> Advantage:
+    @staticmethod
+    def _parse_advantage(dice_notation: str) -> Advantage:
         if "disadvantage" in dice_notation:
             # Check 'disadvantage' before 'advantage', may give a false positive otherwise.
             return Advantage.Disadvantage

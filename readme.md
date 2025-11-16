@@ -2,7 +2,7 @@
 
 A Discord bot for Dungeons & Dragons players which aims to provide commands using modern Discord features.
 
-Powered by [5e.tools](https://5e.tools/) for up-to-date 5e data.
+Powered by [5e.tools](https://5e.tools/) for up-to-date 5e data based on the [Lenny D&D data repository](https://github.com/pipieter/lenny-dnd-data).
 
 ## Features
 

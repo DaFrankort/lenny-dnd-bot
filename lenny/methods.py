@@ -42,8 +42,8 @@ class ChoicedEnum(Enum):
 
 
 class Boolean(ChoicedEnum):
-    true = "true"
-    false = "false"
+    TRUE = "true"
+    FALSE = "false"
 
     @property
     def bool(self) -> bool:

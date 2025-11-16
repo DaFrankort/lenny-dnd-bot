@@ -165,7 +165,7 @@ class InitiativeBulkModal(SimpleModal):
             return
 
         advantage = self.get_choice(self.advantage, Advantage) or Advantage.NORMAL
-        shared: Boolean = self.get_choice(self.shared, Boolean) or Boolean.false
+        shared: Boolean = self.get_choice(self.shared, Boolean) or Boolean.FALSE
         initiatives = Initiatives.add_bulk(itr, modifier, name, amount, advantage, shared.bool)
 
         title = f"{itr.user.display_name} rolled Initiative for {amount} {name.strip().title()}(s)!"

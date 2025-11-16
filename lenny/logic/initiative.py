@@ -53,7 +53,7 @@ class Initiative:
         return self.owner.id == user.id
 
 
-class InitiativeTracker:
+class GlobalInitiativeTracker:
     server_initiatives: dict[int, list[Initiative]]
     server_messages: dict[int, Message]
     INITIATIVE_LIMIT = 25  # Max options for a discord dropdown
@@ -211,3 +211,6 @@ class InitiativeTracker:
             self.add(itr, initiative)
 
         return initiatives
+
+
+Initiatives = GlobalInitiativeTracker()

@@ -30,7 +30,6 @@ from context_menus.delete import DeleteContextMenu
 from context_menus.reroll import RerollContextMenu
 from context_menus.timestamp import RequestTimestampContextMenu
 from context_menus.zip_files import ZipAttachmentsContextMenu
-from logic.initiative import InitiativeTracker
 from logic.voice_chat import VC, Sounds
 
 
@@ -38,7 +37,6 @@ class Bot(discord.Client):
     tree: app_commands.CommandTree
     token: str
     guild_id: int | None
-    initiatives: InitiativeTracker
     voice_enabled: bool
 
     def __init__(self, voice: bool = True):
@@ -63,8 +61,6 @@ class Bot(discord.Client):
         self.guild_id = int(guild_id) if guild_id is not None else None
         self.voice_enabled = voice
 
-        self.initiatives = InitiativeTracker()
-
     def register_commands(self):
         logging.info("Registering slash-commands")
 
@@ -78,7 +74,7 @@ class Bot(discord.Client):
         self.tree.add_command(D20Command())
         self.tree.add_command(MultiRollCommand())
         self.tree.add_command(TokenGenCommandGroup())
-        self.tree.add_command(InitiativeCommand(initiatives=self.initiatives))
+        self.tree.add_command(InitiativeCommand())
         self.tree.add_command(PlanSessionCommand())
         self.tree.add_command(PlaySoundCommand())
         self.tree.add_command(ColorCommandGroup())

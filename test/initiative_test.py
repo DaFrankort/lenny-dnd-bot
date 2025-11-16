@@ -2,7 +2,7 @@ import discord
 import pytest
 from utils.mocking import MockInteraction, MockUser
 
-from logic.initiative import Initiative, InitiativeTracker
+from logic.initiative import GlobalInitiativeTracker, Initiative
 from logic.roll import Advantage
 
 
@@ -82,8 +82,8 @@ class TestInitiative:
 
 class TestInitiativeTracker:
     @pytest.fixture
-    def tracker(self) -> InitiativeTracker:
-        return InitiativeTracker()
+    def tracker(self) -> GlobalInitiativeTracker:
+        return GlobalInitiativeTracker()
 
     @pytest.fixture
     def itr(self) -> discord.Interaction:
@@ -97,7 +97,7 @@ class TestInitiativeTracker:
     def pc_initiative(self, itr: discord.Interaction):
         return Initiative(itr, modifier=1, name=None, advantage=Advantage.Normal)
 
-    def test_add_npc_initiative(self, tracker: InitiativeTracker, itr: discord.Interaction, npc_initiative: Initiative):
+    def test_add_npc_initiative(self, tracker: GlobalInitiativeTracker, itr: discord.Interaction, npc_initiative: Initiative):
         tracker.add(itr, npc_initiative)
         result = tracker.get(itr)
         assert len(result) == 1, f"Expected 1 initiative, got {len(result)}"
@@ -108,7 +108,7 @@ class TestInitiativeTracker:
 
     def test_add_pc_initiative_replaces_existing(
         self,
-        tracker: InitiativeTracker,
+        tracker: GlobalInitiativeTracker,
         itr: discord.Interaction,
         pc_initiative: Initiative,
     ):
@@ -123,16 +123,16 @@ class TestInitiativeTracker:
         assert result[0].modifier == 5, f"Expected modifier 5, got {result[0].modifier}"
         assert result[0].d20[0] == 20, f"Expected d20 value 20, got {result[0].d20[0]}"
 
-    def test_clear_initiatives(self, tracker: InitiativeTracker, itr: discord.Interaction, npc_initiative: Initiative):
+    def test_clear_initiatives(self, tracker: GlobalInitiativeTracker, itr: discord.Interaction, npc_initiative: Initiative):
         tracker.add(itr, npc_initiative)
         tracker.clear(itr)
         assert tracker.get(itr) == [], "Expected initiatives to be cleared (empty list)"
 
-    def test_get_returns_empty_for_new_guild(self, tracker: InitiativeTracker):
+    def test_get_returns_empty_for_new_guild(self, tracker: GlobalInitiativeTracker):
         fresh_interaction = MockInteraction(guild_id=555)
         assert tracker.get(fresh_interaction) == [], "Expected empty list for new guild"
 
-    def test_multiple_guilds(self, tracker: InitiativeTracker):
+    def test_multiple_guilds(self, tracker: GlobalInitiativeTracker):
         itr1 = MockInteraction(guild_id=1)
         itr2 = MockInteraction(MockUser("Bar"), guild_id=2)
 
@@ -151,7 +151,7 @@ class TestInitiativeTracker:
             tracker.get(itr2)[0].name == initiative2.name
         ), f"Expected name '{initiative2.name}' for guild 2, got '{tracker.get(itr2)[0].name}'"
 
-    def test_sorting_order(self, tracker: InitiativeTracker, itr: discord.Interaction):
+    def test_sorting_order(self, tracker: GlobalInitiativeTracker, itr: discord.Interaction):
         count = tracker.INITIATIVE_LIMIT - 1
         for i in range(count):
             initiative = Initiative(itr, 3, f"Goblin {i}", advantage=Advantage.Normal)
@@ -173,7 +173,7 @@ class TestInitiativeTracker:
                 ), "Equal total initiatives are not in insertion order"
 
     @pytest.mark.parametrize("name", [None, "NPC"])
-    def test_names_are_unique(self, name: str | None, tracker: InitiativeTracker, itr: discord.Interaction):
+    def test_names_are_unique(self, name: str | None, tracker: GlobalInitiativeTracker, itr: discord.Interaction):
         def add_initiative():
             initiative = Initiative(itr, 0, name, advantage=Advantage.Normal)
             tracker.add(itr, initiative)
@@ -183,7 +183,7 @@ class TestInitiativeTracker:
         add_initiative()
         assert length == len(tracker.get(itr)), f"Initiative names should be unique, not unique for {name or 'User'}"
 
-    def test_remove_initiative(self, tracker: InitiativeTracker, itr: discord.Interaction, npc_initiative: Initiative):
+    def test_remove_initiative(self, tracker: GlobalInitiativeTracker, itr: discord.Interaction, npc_initiative: Initiative):
         tracker.add(itr, npc_initiative)
         assert len(tracker.get(itr)) == 1, "Expected 1 initiative before removal"
 
@@ -195,7 +195,7 @@ class TestInitiativeTracker:
 
     def test_remove_initiative_fail(
         self,
-        tracker: InitiativeTracker,
+        tracker: GlobalInitiativeTracker,
         itr: discord.Interaction,
         npc_initiative: Initiative,
         pc_initiative: Initiative,
@@ -208,7 +208,7 @@ class TestInitiativeTracker:
 
     def test_initiative_limit_add(
         self,
-        tracker: InitiativeTracker,
+        tracker: GlobalInitiativeTracker,
         itr: discord.Interaction,
         npc_initiative: Initiative,
         pc_initiative: Initiative,
@@ -230,7 +230,9 @@ class TestInitiativeTracker:
             pre_count == count
         ), f"InitiativeTracker add() should not be able to add to a full initiative list: is {count}, should be {pre_count}"
 
-    def test_initiative_limit_bulk_add(self, tracker: InitiativeTracker, itr: discord.Interaction, npc_initiative: Initiative):
+    def test_initiative_limit_bulk_add(
+        self, tracker: GlobalInitiativeTracker, itr: discord.Interaction, npc_initiative: Initiative
+    ):
         limit = tracker.INITIATIVE_LIMIT
         amount = limit + 1  # Exceed limit
         mod = npc_initiative.modifier

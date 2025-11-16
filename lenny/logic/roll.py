@@ -71,19 +71,14 @@ class DiceStringifier(d20.Stringifier):
 def _is_only_dice_modifiers_and_additions(node: d20.Number | None) -> bool:
     if node is None:
         return False
-    if isinstance(node, d20.Literal):
+    if isinstance(node, (d20.Literal, d20.Dice, d20.Die)):
         return True
-    if isinstance(node, d20.Dice):
-        return True
-    if isinstance(node, d20.Die):
-        return True
-    if isinstance(node, d20.Parenthetical):
-        return _is_only_dice_modifiers_and_additions(node.children[0])  # type: ignore
-    if isinstance(node, d20.UnOp):
+    if isinstance(node, (d20.Parenthetical, d20.UnOp)):
         return _is_only_dice_modifiers_and_additions(node.children[0])  # type: ignore
     if isinstance(node, d20.BinOp):
+        additions = set(["+", "-"])
         return (
-            node.op in ["+", "-"]  # type: ignore
+            node.op in additions  # type: ignore
             and _is_only_dice_modifiers_and_additions(node.left)  # type: ignore
             and _is_only_dice_modifiers_and_additions(node.right)  # type: ignore
         )
@@ -94,12 +89,10 @@ def _is_only_dice_modifiers_and_additions(node: d20.Number | None) -> bool:
 
 
 def _extract_dice(node: d20.Number | None) -> list[d20.Dice | d20.Die]:
-    if node is None:
+    if node is None or isinstance(node, d20.Literal):
         return []
-    if isinstance(node, d20.Die) or isinstance(node, d20.Dice):
+    if isinstance(node, (d20.Die, d20.Dice)):
         return node.keptset  # type: ignore
-    if isinstance(node, d20.Literal):
-        return []
     if isinstance(node, d20.Parenthetical):
         return _extract_dice(node.children[0])  # type: ignore
     if isinstance(node, d20.UnOp):
@@ -156,7 +149,7 @@ def _is_dirty_20(node: d20.Number) -> bool:
 
 
 @dataclasses.dataclass
-class SingleRollResult(object):
+class SingleRollResult:
     expression: str
     total: int
     special: DiceSpecial | None
@@ -176,7 +169,7 @@ class SingleRollResult(object):
 
 
 @dataclasses.dataclass
-class RollResult(object):
+class RollResult:
     expression: str
     advantage: Advantage
     rolls: list[SingleRollResult]
@@ -201,7 +194,7 @@ class RollResult(object):
 
 
 @dataclasses.dataclass
-class MultiRollResult(object):
+class MultiRollResult:
     expression: str
     advantage: Advantage
     rolls: list[SingleRollResult]
@@ -213,19 +206,19 @@ class MultiRollResult(object):
 
 
 def _roll_single(expression: str) -> SingleRollResult:
-    roll = d20.roll(expression, stringifier=DiceStringifier())
+    result = d20.roll(expression, stringifier=DiceStringifier())
 
     special = None
-    if _is_natural_20(roll.expr):
+    if _is_natural_20(result.expr):
         special = DiceSpecial.NATURAL20
-    elif _is_natural_1(roll.expr):
+    elif _is_natural_1(result.expr):
         special = DiceSpecial.NATURAL1
-    elif _is_dirty_20(roll.expr):
+    elif _is_dirty_20(result.expr):
         special = DiceSpecial.DIRTY20
 
-    contains_dice = _contains_dice(roll.expr)
+    contains_dice = _contains_dice(result.expr)
 
-    return SingleRollResult(str(roll), roll.total, special, contains_dice)
+    return SingleRollResult(str(result), result.total, special, contains_dice)
 
 
 def _validate_expression(expression: str) -> None:
@@ -233,10 +226,10 @@ def _validate_expression(expression: str) -> None:
     try:
         expression = str(d20.parse(expression, allow_comments=False))
         _roll_single(expression)
-    except d20.errors.RollSyntaxError:
-        raise ValueError(f"Expression '{expression}' has an invalid syntax!")
-    except d20.errors.TooManyRolls:
-        raise ValueError(f"Expression '{expression}' has too many dice rolls!")
+    except d20.errors.RollSyntaxError as exception:
+        raise ValueError(f"Expression '{expression}' has an invalid syntax!") from exception
+    except d20.errors.TooManyRolls as exception:
+        raise ValueError(f"Expression '{expression}' has too many dice rolls!") from exception
     except Exception as exception:
         raise exception
 

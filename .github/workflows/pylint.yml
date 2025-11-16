@@ -1,0 +1,30 @@
+name: PYLINT
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "**/*.py"
+      - "pyproject.toml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "**/*.py"
+      - "pyproject.toml"
+  workflow_dispatch:
+
+jobs:
+  pylint:
+    runs-on: ubuntu-latest
+    name: pylint
+    steps:
+      - name: Check out source repository
+        uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup
+
+      - name: Install PyLint
+        run: pip install pylint==3.3.8
+
+      - name: pylint
+        run: pylint lenny

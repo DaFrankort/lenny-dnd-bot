@@ -31,12 +31,14 @@ class SimpleModal(Modal):
         embed = get_error_embed(error)
         await itr.response.send_message(embed=embed, ephemeral=True)
 
-    def get_str(self, component: SimpleLabelTextInput) -> str | None:
+    @staticmethod
+    def get_str(component: SimpleLabelTextInput) -> str | None:
         """Safely parse string from LabeledTextComponent. Returns None if input is empty or only spaces."""
         text = str(component.input).strip()
         return text if text else None
 
-    def get_int(self, component: SimpleLabelTextInput) -> int | None:
+    @staticmethod
+    def get_int(component: SimpleLabelTextInput) -> int | None:
         """Safely parse integer from LabeledTextComponent. Returns None on failure, defaults to 0 if input is ''"""
         text = str(component.input).strip()
         if text == "":
@@ -46,13 +48,15 @@ class SimpleModal(Modal):
         except ValueError:
             return None
 
-    def get_choice(self, component: ModalSelectComponent, result_type: type) -> Any | None:
+    @staticmethod
+    def get_choice(component: ModalSelectComponent, result_type: type) -> Any | None:
         """Get the selected choice of a ModalSelectComponent, or None if no choice is selected."""
         if not component.input.values:
             return None
         return result_type(component.input.values[0])
 
-    def format_placeholder(self, text: str, length: int = 100) -> str:
+    @staticmethod
+    def format_placeholder(text: str, length: int = 100) -> str:
         """Cuts off a string to stay within a modal's 100 character-limit for placeholders."""
         cutoff_str: str = "..."
         length = length - len(cutoff_str)

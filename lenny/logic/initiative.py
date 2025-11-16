@@ -95,7 +95,9 @@ class GlobalInitiativeTracker:
             self.server_initiatives[channel_id] = [initiative]
             return initiative
 
-        existing = [s_initiative for s_initiative in self.server_initiatives[channel_id] if s_initiative.name == initiative.name]
+        existing = [
+            s_initiative for s_initiative in self.server_initiatives[channel_id] if s_initiative.name == initiative.name
+        ]
         self.server_initiatives[channel_id] = [  # Enforce unique names
             s_initiative for s_initiative in self.server_initiatives[channel_id] if not (s_initiative.name == initiative.name)
         ]

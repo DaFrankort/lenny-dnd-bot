@@ -190,7 +190,7 @@ class TestInitiativeTracker:
         tracker.remove(itr, npc_initiative.name)
         assert len(tracker.get(itr)) == 0, "Expected 0 initiatives after removal"
         assert (
-            itr.channel_id not in tracker.server_initiatives
+            itr.channel_id not in tracker.channel_initiatives
         ), "Expected channel entry to be removed after last initiative is removed"
 
     def test_remove_initiative_fail(

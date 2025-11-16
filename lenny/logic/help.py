@@ -2,13 +2,13 @@ import dataclasses
 
 
 @dataclasses.dataclass
-class HelpSelectOption(object):
+class HelpSelectOption:
     value: str
     label: str
 
 
 @dataclasses.dataclass
-class HelpTab(object):
+class HelpTab:
     tab: str
     name: str
     commands: list[str]
@@ -16,7 +16,7 @@ class HelpTab(object):
     info: list[tuple[str, list[str] | str]]
 
 
-class HelpTabList(object):
+class HelpTabList:
     Overview = HelpTab(
         tab="overview",
         name="Overview",
@@ -234,7 +234,7 @@ class HelpTabList(object):
         for t in self.tabs:
             if t.tab == tab:
                 return t
-        raise Exception(f"help: tab '{tab}' not found.")
+        raise ValueError(f"help: tab '{tab}' not found.")
 
 
 HelpTabs = HelpTabList()

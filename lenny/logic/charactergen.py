@@ -25,7 +25,7 @@ def class_choices(xphb_only: bool = True) -> list[discord.app_commands.Choice[st
 
 
 @dataclasses.dataclass
-class CharacterGenResult(object):
+class CharacterGenResult:
     name: str
     gender: Gender
     species: Species
@@ -36,7 +36,7 @@ class CharacterGenResult(object):
     boosted_stats: list[tuple[int, str]]
 
 
-TDND = TypeVar("TDND", bound=DNDEntry)
+TDND = TypeVar("TDND", bound=DNDEntry)  # pylint: disable=invalid-name
 
 
 def _get_random_xphb_entry(entries: list[TDND]) -> TDND:
@@ -70,8 +70,8 @@ def _get_optimal_background(char_class: Class) -> Background:
         backgrounds = Data.backgrounds.entries
     else:
         recommended: set[str] = set()
-        for ability, backgrounds in background_table.table["value"]["rows"]:
-            backgrounds = backgrounds.split(",")
+        for ability, background_string in background_table.table["value"]["rows"]:
+            backgrounds = background_string.split(",")
             if ability.lower() in char_class.primary_ability.lower():
                 recommended.update(bg.strip().lower() for bg in backgrounds)
         backgrounds = [entry for entry in Data.backgrounds.entries if entry.name.lower() in recommended]
@@ -151,8 +151,8 @@ def _apply_background_boosts(stats: list[tuple[int, str]], background: Backgroun
     return new_stats
 
 
-def _get_backstory(table_name: str, object: DNDEntry) -> str:
-    table_name = f"{table_name} [{object.name}]"
+def _get_backstory(table_name: str, entry: DNDEntry) -> str:
+    table_name = f"{table_name} [{entry.name}]"
     table = _get_dnd_table(table_name, "XGE")
     if table is None:
         return ""

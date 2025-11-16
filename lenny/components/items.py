@@ -1,5 +1,3 @@
-from typing import Optional
-
 import discord
 import discord.ui
 
@@ -30,10 +28,10 @@ class SimpleLabelTextInput(discord.ui.Label[discord.ui.LayoutView]):
         *,
         label: str,
         style: discord.TextStyle = discord.TextStyle.short,
-        placeholder: Optional[str] = None,
+        placeholder: str | None = None,
         required: bool = True,
-        min_length: Optional[int] = None,
-        max_length: Optional[int] = None,
+        min_length: int | None = None,
+        max_length: int | None = None,
     ) -> None:
         super().__init__(
             text=label,
@@ -61,7 +59,7 @@ class ModalSelectComponent(discord.ui.Label[discord.ui.LayoutView]):
         options: list[discord.SelectOption],
         required: bool = True,
         disabled: bool = False,
-        placeholder: Optional[str] = None,
+        placeholder: str | None = None,
     ) -> None:
         super().__init__(
             text=label,

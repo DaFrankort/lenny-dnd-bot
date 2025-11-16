@@ -1,6 +1,5 @@
 import abc
 import math
-from typing import Optional
 
 import discord
 
@@ -39,7 +38,7 @@ class PaginatedLayoutView(discord.ui.LayoutView):
 
     page: int
     per_page: int = 10
-    modal: Optional[PaginatedJumpModal]
+    modal: PaginatedJumpModal | None
 
     def __init__(self):
         self.page = 0

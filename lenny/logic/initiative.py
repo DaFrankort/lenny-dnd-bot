@@ -67,65 +67,65 @@ class GlobalInitiativeTracker:
         return name.strip().lower()
 
     async def set_message(self, itr: Interaction, message: Message) -> None:
-        if not itr.guild_id:
+        if not itr.channel_id:
             return
 
-        prev_message = self.server_messages.get(itr.guild_id, None)
+        prev_message = self.server_messages.get(itr.channel_id, None)
         if prev_message is None:
-            self.server_messages[itr.guild_id] = message
+            self.server_messages[itr.channel_id] = message
             return
 
         is_new_message = prev_message != message
         if is_new_message:
             await clean_up_old_message(prev_message)
-            self.server_messages[itr.guild_id] = message
+            self.server_messages[itr.channel_id] = message
 
     def get(self, itr: Interaction) -> list[Initiative]:
-        if not itr.guild_id:
+        if not itr.channel_id:
             return []
-        return self.server_initiatives.get(itr.guild_id, [])
+        return self.server_initiatives.get(itr.channel_id, [])
 
     def add(self, itr: Interaction, initiative: Initiative) -> Initiative:
         """Adds an initiative to the tracker."""
-        if not itr.guild_id:
+        if not itr.channel_id:
             raise RuntimeError("Initiatives can only be tracked in a server!")
 
-        guild_id = int(itr.guild_id)
-        if guild_id not in self.server_initiatives:
-            self.server_initiatives[guild_id] = [initiative]
+        channel_id = int(itr.channel_id)
+        if channel_id not in self.server_initiatives:
+            self.server_initiatives[channel_id] = [initiative]
             return initiative
 
-        existing = [s_initiative for s_initiative in self.server_initiatives[guild_id] if s_initiative.name == initiative.name]
-        self.server_initiatives[guild_id] = [  # Enforce unique names
-            s_initiative for s_initiative in self.server_initiatives[guild_id] if not (s_initiative.name == initiative.name)
+        existing = [s_initiative for s_initiative in self.server_initiatives[channel_id] if s_initiative.name == initiative.name]
+        self.server_initiatives[channel_id] = [  # Enforce unique names
+            s_initiative for s_initiative in self.server_initiatives[channel_id] if not (s_initiative.name == initiative.name)
         ]
 
         # Limit protection (only if initiative is a new creature)
         is_new_entry = not existing
-        exceeds_limit = len(self.server_initiatives[guild_id]) >= self.INITIATIVE_LIMIT
+        exceeds_limit = len(self.server_initiatives[channel_id]) >= self.INITIATIVE_LIMIT
         if is_new_entry and exceeds_limit:
             raise RuntimeError("Maximum number of initiatives exceeded!")
 
         insert_index = -1
-        for i, s_initiative in enumerate(self.server_initiatives[guild_id]):
+        for i, s_initiative in enumerate(self.server_initiatives[channel_id]):
             if initiative.get_total() > s_initiative.get_total():
                 insert_index = i
                 break  # Insert user in correct place
 
         if insert_index == -1:
-            self.server_initiatives[guild_id].append(initiative)
+            self.server_initiatives[channel_id].append(initiative)
         else:
-            self.server_initiatives[guild_id].insert(insert_index, initiative)
+            self.server_initiatives[channel_id].insert(insert_index, initiative)
 
         return initiative
 
     def clear(self, itr: Interaction) -> None:
-        if not itr.guild_id:
+        if not itr.channel_id:
             return
 
-        guild_id = int(itr.guild_id)
-        if guild_id in self.server_initiatives:
-            del self.server_initiatives[guild_id]
+        channel_id = int(itr.channel_id)
+        if channel_id in self.server_initiatives:
+            del self.server_initiatives[channel_id]
 
     def get_autocomplete_suggestions(
         self,
@@ -152,11 +152,11 @@ class GlobalInitiativeTracker:
 
     def remove(self, itr: Interaction, name: str | None) -> Initiative:
         """Remove an initiative from the list."""
-        if not itr.guild or not itr.guild_id:
+        if not itr.channel or not itr.channel_id:
             raise RuntimeError("Initiatives can only be tracked in a server!")
 
-        guild_id = int(itr.guild_id)
-        if guild_id not in self.server_initiatives:
+        channel_id = int(itr.channel_id)
+        if channel_id not in self.server_initiatives:
             raise RuntimeError("No initiatives to remove in this server.")
 
         name = name or itr.user.display_name
@@ -171,11 +171,11 @@ class GlobalInitiativeTracker:
         if removal_index == -1:
             raise RuntimeError(f"No initiatives found matching ``{name}``.\n Make sure targets are exact name-matches.")
 
-        initiative = self.server_initiatives[guild_id][removal_index]
-        del self.server_initiatives[guild_id][removal_index]
+        initiative = self.server_initiatives[channel_id][removal_index]
+        del self.server_initiatives[channel_id][removal_index]
 
-        if len(self.server_initiatives[guild_id]) == 0:
-            del self.server_initiatives[guild_id]
+        if len(self.server_initiatives[channel_id]) == 0:
+            del self.server_initiatives[channel_id]
 
         return initiative
 
@@ -189,11 +189,11 @@ class GlobalInitiativeTracker:
         shared: bool,
     ) -> list[Initiative]:
         """Adds many initiatives to a server."""
-        if not itr.guild_id:
+        if not itr.channel_id:
             raise RuntimeError("Initiatives can only be tracked in a server!")
 
-        guild_id = itr.guild_id
-        server_initiatives = self.server_initiatives.get(guild_id, None) or []
+        channel_id = itr.channel_id
+        server_initiatives = self.server_initiatives.get(channel_id, None) or []
         initiative_count = amount + len(server_initiatives)
         if initiative_count > self.INITIATIVE_LIMIT:
             raise RuntimeError(f"You attempted to add too many initiatives, the max limit is {self.INITIATIVE_LIMIT}!")

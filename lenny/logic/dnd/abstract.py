@@ -3,7 +3,8 @@ import dataclasses
 import io
 import json
 import os
-from typing import Any, Generic, Iterable, Literal, Optional, TypedDict, TypeVar, Union
+from typing import Any, Generic, Literal, TypedDict, TypeVar
+from collections.abc import Iterable
 
 import discord
 import rich
@@ -23,7 +24,7 @@ class FuzzyMatchResult:
     choice: Choice[str]  # The Choice object, as result to be used for discord
 
 
-def fuzzy_matches(query: str, value: str, fuzzy_threshold: float = 75) -> Optional[FuzzyMatchResult]:
+def fuzzy_matches(query: str, value: str, fuzzy_threshold: float = 75) -> FuzzyMatchResult | None:
     """Perform a fuzzy check between  a query and a value, e.g. searching for 'fire' in 'Fireball'.
 
     Args:
@@ -58,7 +59,7 @@ class DescriptionTable(TypedDict):
 class Description(TypedDict):
     name: str
     type: Literal["text", "table"]
-    value: Union[str, DescriptionTable]
+    value: str | DescriptionTable
 
 
 class DNDEntry(abc.ABC):
@@ -94,8 +95,8 @@ class DNDEntryList(abc.ABC, Generic[TDND]):
 
         self.entries = []
         for path in self.paths:
-            path = BASE_DATA_PATH + path
-            for data in self.read_dnd_data_contents(path):
+            full_path = BASE_DATA_PATH + path
+            for data in self.read_dnd_data_contents(full_path):
                 entry: TDND = self.type(data)
                 self.entries.append(entry)
 

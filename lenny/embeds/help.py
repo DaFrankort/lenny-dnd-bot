@@ -118,9 +118,9 @@ class HelpEmbed(discord.Embed):
         # Add extra info
         for info_name, info_fields in tab.info:
             if isinstance(info_fields, list):
-                info_fields = "\n".join(info_fields)
-
-            self.add_field(name=info_name, value=info_fields, inline=False)
+                self.add_field(name=info_name, value="\n".join(info_fields), inline=False)
+            else:
+                self.add_field(name=info_name, value=info_fields, inline=False)
 
     def _load_overview_tab(self) -> None:
         tabs_to_ignore = ["overview", "context"]
@@ -128,14 +128,14 @@ class HelpEmbed(discord.Embed):
         tabs_commands: list[tuple[str, list[str]]] = []
         for tab in tabs:
             tab_commands: list[str] = []
-            for cmd in tab.commands:
-                cmd = self.tree.get_command(cmd)
+            for command_name in tab.commands:
+                command = self.tree.get_command(command_name)
                 # Only handle SimpleCommand and SimpleCommandGroup, any other commands are ill-formed
-                if cmd is not None and isinstance(cmd, (SimpleCommand, SimpleCommandGroup)):
-                    tab_commands.extend(self._iterate_commands(cmd))
+                if command is not None and isinstance(command, (SimpleCommand, SimpleCommandGroup)):
+                    tab_commands.extend(self._iterate_commands(command))
 
-            cmds = [f"- ``/{command}``" for command in tab_commands]
-            tabs_commands.append((tab.name, cmds))
+            commands = [f"- ``/{command}``" for command in tab_commands]
+            tabs_commands.append((tab.name, commands))
 
         # Add context menu overview
         context_cmds = [

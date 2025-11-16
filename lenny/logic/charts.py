@@ -8,12 +8,12 @@ from matplotlib import pyplot as plt
 T = TypeVar("T")
 
 
-def _shift_list(list: list[T]) -> list[T]:
-    return list[-1:] + list[:-1]
+def _shift_list(values: list[T]) -> list[T]:
+    return values[-1:] + values[:-1]
 
 
-def _repeat_first(list: list[T]) -> list[T]:
-    return list + list[:1]
+def _repeat_first(values: list[T]) -> list[T]:
+    return values + values[:1]
 
 
 class RadarChart:
@@ -39,8 +39,7 @@ class RadarChart:
     def label(self, index: int) -> str:
         if self.labels is None:
             return str(self.total_value(index))
-        else:
-            return f"{self.labels[index]}\n{self.total_value(index)}"
+        return f"{self.labels[index]}\n{self.total_value(index)}"
 
     def build(self) -> io.BytesIO:
         values = _shift_list(self.values)
@@ -51,12 +50,12 @@ class RadarChart:
         values = _repeat_first(values)  # Repeat to close polygon
         angles = _repeat_first(angles)
 
-        y_limit = max(18, max(values))
+        y_limit = max(18, *values)
         if boosts is not None:
-            y_limit = max(y_limit, max(boosts))
+            y_limit = max(y_limit, *boosts)
             boosts = _repeat_first(boosts)
 
-        fig, ax = plt.subplots(subplot_kw=dict(polar=True))  # type: ignore
+        fig, ax = plt.subplots(subplot_kw={"polar": True})  # type: ignore
         ax.set_theta_offset(np.pi)  # Start on the left        # type: ignore
         ax.set_theta_direction(-1)  # Shift one to the right   # type: ignore
         ax.set_ylim(0, y_limit)
@@ -95,5 +94,5 @@ def get_radar_chart(
     color: int = discord.Color.dark_green().value,
 ) -> discord.File:
     chart = RadarChart(values, labels, boosts, color)
-    bytes = chart.build()
-    return discord.File(fp=bytes, filename="stats.png")
+    data = chart.build()
+    return discord.File(fp=data, filename="stats.png")

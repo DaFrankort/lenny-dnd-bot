@@ -198,7 +198,7 @@ class InitiativeClearConfirmModal(_InitiativeModal):
     async def on_submit(self, itr: Interaction):
         self.log_inputs(itr)
 
-        confirm = str(self.confirm)
+        confirm = str(self.confirm.input)
         if confirm != "CLEAR":
             await itr.response.send_message(
                 embed=SimpleEmbed("Clearing cancelled!", "Type 'CLEAR' in all caps to confirm."),

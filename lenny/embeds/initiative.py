@@ -38,13 +38,7 @@ class InitiativeRollModal(SimpleModal):
         initiative = Initiative(itr, modifier, name, advantage)
         Initiatives.add(itr, initiative)
 
-        title = f"{itr.user.name} rolled Initiative for {initiative.name}"
-        if advantage == Advantage.ADVANTAGE:
-            title += " with Advantage!"
-        elif advantage == Advantage.DISADVANTAGE:
-            title += " with Disadvantage!"
-        else:
-            title += "!"
+        title = f"{itr.user.name} rolled Initiative for {initiative.name}{advantage.title_suffix}!"
 
         descriptions: list[str] = []
         roll_count = 1 if advantage == Advantage.NORMAL else 2

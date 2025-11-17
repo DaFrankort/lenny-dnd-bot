@@ -1,6 +1,7 @@
-from discord import Interaction
 import discord
+from discord import Interaction
 from embed import SimpleEmbed
+
 from logic.color import UserColor
 from logic.profile import ProfileEntry
 

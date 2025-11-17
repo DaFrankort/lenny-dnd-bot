@@ -15,6 +15,7 @@ from commands.initiative import InitiativeCommand
 from commands.namegen import NameGenCommand
 from commands.plansession import PlanSessionCommand
 from commands.playsound import PlaySoundCommand
+from commands.profile import ProfileCommandGroup
 from commands.roll import (
     AdvantageRollCommand,
     D20Command,
@@ -84,6 +85,7 @@ class Bot(discord.Client):
         self.tree.add_command(SearchCommandGroup())
         self.tree.add_command(TimestampCommandGroup())
         self.tree.add_command(HomebrewCommandGroup())
+        self.tree.add_command(ProfileCommandGroup())
 
         # Context menus
         self.tree.add_command(DeleteContextMenu())

@@ -19,7 +19,7 @@ class ProfileCreateCommand(SimpleCommand):
     desc = "Create a new character profile!"
     help = "Creates a new character profile with the given name."
 
-    async def callback(self, itr: discord.Interaction, name: str):
+    async def handle(self, itr: discord.Interaction, name: str):
         self.log(itr)
         # result = UserProfilesCache.get(itr).create(name)
         # embed = ProfileEmbed(itr, result)
@@ -32,7 +32,7 @@ class ProfileSelectCommand(SimpleCommand):
     help = "Selects an existing character profile to be the active profile."
 
     # @discord.app_commands.autocomplete(profile=UserProfilesCache.get_profile_choices)
-    async def callback(self, itr: discord.Interaction, profile: str):
+    async def handle(self, itr: discord.Interaction, profile: str):
         self.log(itr)
         # result = UserProfilesCache.get(itr).set_active(profile)
         # embed = ProfileEmbed(itr, result)
@@ -45,7 +45,7 @@ class ProfileRemoveCommand(SimpleCommand):
     help = "Removes the character profile at the given index."
 
     # @discord.app_commands.autocomplete(profile=UserProfilesCache.get_profile_choices)
-    async def callback(self, itr: discord.Interaction, profile: str):
+    async def handle(self, itr: discord.Interaction, profile: str):
         self.log(itr)
         # result = UserProfilesCache.get(itr).remove(profile)
         # embed = SimpleEmbed(title="Profile Removed", description=f"Removed profile '{result.name}'.", color=discord.Color.red())
@@ -67,7 +67,7 @@ class ProfileNameCommand(SimpleCommand):
     desc = "Edit your character's name!"
     help = "Edits the name to use for your character."
 
-    async def callback(self, itr: discord.Interaction, name: str):
+    async def handle(self, itr: discord.Interaction, name: str):
         self.log(itr)
         # result = UserProfilesCache.get(itr).active_profile.set_name(name)
         # embed = ProfileEmbed(itr, result)
@@ -82,7 +82,7 @@ class ProfileImageCommand(SimpleCommand):
     def __init__(self):
         super().__init__()
 
-    async def callback(self, itr: discord.Interaction, image: discord.Attachment):
+    async def handle(self, itr: discord.Interaction, image: discord.Attachment):
         self.log(itr)
         # result = UserProfilesCache.get(itr).active_profile.set_image(image)
         # embed = ProfileEmbed(itr, result)

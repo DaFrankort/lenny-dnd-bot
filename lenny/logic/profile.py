@@ -2,10 +2,10 @@ import dataclasses
 import logging
 import os
 from typing import Any, Set
-import discord
-from jsonhandler import JsonHandler
-from discord.app_commands import Choice
 
+import discord
+from discord.app_commands import Choice
+from jsonhandler import JsonHandler
 
 PROFILE_PATH: str = "./temp/profiles/"
 
@@ -72,7 +72,7 @@ class UserProfileData(JsonHandler[list[ProfileEntry]]):
 
     def get_all(self) -> list[ProfileEntry]:
         entries: list[ProfileEntry] = []
-        for key, items in self.data.items():
+        for _, items in self.data.items():
             entries.extend(items)
         return entries
 

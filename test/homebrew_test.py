@@ -29,7 +29,7 @@ class TestHomebrew:
     def itr(self):
         return MockInteraction()
 
-    def test_add_server(self, itr: Interaction, data: GlobalHomebrewData):
+    def test_add_guild(self, itr: Interaction, data: GlobalHomebrewData):
         guild_data = data.get(itr)
         assert guild_data is not None
         assert itr.guild_id in data.guilds

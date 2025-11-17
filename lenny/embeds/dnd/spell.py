@@ -9,7 +9,7 @@ class SpellEmbed(DNDEntryEmbed):
     """A class representing a Discord embed for a Dungeons & Dragons spell."""
 
     def __init__(self, itr: discord.Interaction, spell: Spell):
-        sources = Config.allowed_sources(server=itr.guild)
+        sources = Config.allowed_sources(guild=itr.guild)
         classes = spell.get_formatted_classes(sources)
 
         super().__init__(spell)

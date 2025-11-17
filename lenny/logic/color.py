@@ -42,7 +42,7 @@ def get_palette_image(color: discord.Color | int) -> discord.File:
 
 
 @dataclasses.dataclass
-class UserColorSaveResult(object):
+class UserColorSaveResult:
     old_color: int
     color: int
 
@@ -107,7 +107,7 @@ class UserColorFileHandler(JsonHandler[int]):
         def get_alpha(char: str):
             return abs(ord(char.lower()) - 96)
 
-        while hex_place < 6:
+        for hex_place in range(0, 6, 2):
             try:
                 alpha_curr = get_alpha(seed[hex_place])
                 alpha_next = get_alpha(seed[hex_place + 1])
@@ -125,7 +125,6 @@ class UserColorFileHandler(JsonHandler[int]):
             else:
                 hex_value = hex_value + hex(alpha_value)[2:]
 
-            hex_place += 2
         return UserColor.parse(hex_value)
 
     def get(self, itr: discord.Interaction) -> int:

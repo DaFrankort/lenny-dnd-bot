@@ -1,13 +1,13 @@
 import dataclasses
 import logging
 import os
-from typing import Any, Set
+from typing import Any
 
 import discord
 from discord.app_commands import Choice
-from rapidfuzz import fuzz
 
 from logic.config import user_is_admin_or_has_config_permissions
+from logic.dnd.abstract import FuzzyMatchResult, fuzzy_matches
 from logic.jsonhandler import JsonHandler
 from methods import ChoicedEnum
 
@@ -54,7 +54,7 @@ class HomebrewEntryType(str, ChoicedEnum):
 
 
 @dataclasses.dataclass
-class HomebrewEntry(object):
+class HomebrewEntry:
     name: str
     author_id: int
     entry_type: HomebrewEntryType
@@ -199,26 +199,19 @@ class HomebrewGuildData(JsonHandler[list[HomebrewEntry]]):
         if query == "":
             return []
 
-        choices: list[tuple[bool, float, Choice[str]]] = []
-        for key in self.data.keys():
-            for e in self.data.get(key, []):
-                if not e.can_manage(itr):
+        choices: list[FuzzyMatchResult] = []
+        for entries in self.data.values():
+            for entry in entries:
+                if not entry.can_manage(itr):
                     continue
 
-                name_clean = e.name.strip().lower().replace(" ", "")
-                score = fuzz.partial_ratio(query, name_clean)
-                if score > fuzzy_threshold:
-                    starts_with_query = name_clean.startswith(query)
-                    choices.append(
-                        (
-                            starts_with_query,
-                            score,
-                            Choice(name=e.name, value=e.name),
-                        )
-                    )
+                choice = fuzzy_matches(query, entry.name, fuzzy_threshold)
+                if choice is not None:
+                    choices.append(choice)
 
-        choices.sort(key=lambda x: (-x[0], -x[1], x[2].name))  # Sort by query match => fuzzy score => alphabetically
-        return [choice for _, _, choice in choices[:limit]]
+        # Sort by query match => fuzzy score => alphabetically
+        choices.sort(key=lambda x: (-x.starts_with, -x.score, x.choice.name))
+        return [choice.choice for choice in choices[:limit]]
 
 
 class GlobalHomebrewData:
@@ -227,7 +220,7 @@ class GlobalHomebrewData:
     def __init__(self):
         if not os.path.exists(HOMEBREW_PATH):
             os.makedirs(HOMEBREW_PATH)
-            logging.info(f"Created homebrew directory at '{HOMEBREW_PATH}'")
+            logging.info("Created homebrew directory at '%s'", HOMEBREW_PATH)
             return
 
         for filename in os.listdir(HOMEBREW_PATH):
@@ -244,7 +237,7 @@ class GlobalHomebrewData:
         return self._data[itr.guild_id]
 
     @property
-    def guilds(self) -> Set[int]:
+    def guilds(self) -> set[int]:
         return set(self._data.keys())
 
 

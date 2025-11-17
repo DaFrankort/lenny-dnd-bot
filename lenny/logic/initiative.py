@@ -41,10 +41,10 @@ class Initiative:
     def get_total(self):
         roll = self.d20[0]
 
-        if self.advantage == Advantage.Advantage:
+        if self.advantage == Advantage.ADVANTAGE:
             roll = max(self.d20)
 
-        elif self.advantage == Advantage.Disadvantage:
+        elif self.advantage == Advantage.DISADVANTAGE:
             roll = min(self.d20)
 
         return roll + self.modifier

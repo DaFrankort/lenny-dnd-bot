@@ -65,7 +65,7 @@ class HomebrewListCommand(SimpleCommand):
 
     @choices(filter=HomebrewEntryType.choices())
     @describe(filter="Show only homebrew entries of a certain type. Shows all by default.")
-    async def handle(self, itr: discord.Interaction, filter: str | None = None):
+    async def handle(self, itr: discord.Interaction, filter: str | None = None):  # pylint: disable=redefined-builtin
         self.log(itr)
         view = HomebrewListView(itr, filter)
         await itr.response.send_message(view=view, ephemeral=True)

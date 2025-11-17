@@ -12,12 +12,7 @@ from logic.voice_chat import VC, SoundType
 from methods import Boolean, when
 
 
-class _InitiativeModal(SimpleModal):
-    def __init__(self, itr: Interaction, title: str):
-        super().__init__(itr, title)
-
-
-class InitiativeRollModal(_InitiativeModal):
+class InitiativeRollModal(SimpleModal):
     modifier = SimpleLabelTextInput(label="Your Initiative Modifier", max_length=2, required=False)
     name = SimpleLabelTextInput(label="Name", placeholder="Goblin", required=False, max_length=128)
     advantage = ModalSelectComponent(label="Roll Mode", placeholder="Normal", options=Advantage.options(), required=False)
@@ -39,20 +34,14 @@ class InitiativeRollModal(_InitiativeModal):
             return
         DiceCache.store_initiative(itr, modifier)
 
-        advantage = self.get_choice(self.advantage, Advantage) or Advantage.Normal
+        advantage = self.get_choice(self.advantage, Advantage) or Advantage.NORMAL
         initiative = Initiative(itr, modifier, name, advantage)
         Initiatives.add(itr, initiative)
 
-        title = f"{itr.user.name} rolled Initiative for {initiative.name}"
-        if advantage == Advantage.Advantage:
-            title += " with Advantage!"
-        elif advantage == Advantage.Disadvantage:
-            title += " with Disadvantage!"
-        else:
-            title += "!"
+        title = f"{itr.user.name} rolled Initiative for {initiative.name}{advantage.title_suffix}!"
 
         descriptions: list[str] = []
-        roll_count = 1 if advantage == Advantage.Normal else 2
+        roll_count = 1 if advantage == Advantage.NORMAL else 2
         for i in range(roll_count):
             d20 = initiative.d20[i]
             mod = initiative.modifier
@@ -74,7 +63,7 @@ class InitiativeRollModal(_InitiativeModal):
             )
 
 
-class InitiativeSetModal(_InitiativeModal):
+class InitiativeSetModal(SimpleModal):
     value = SimpleLabelTextInput(label="Initiative value", placeholder="20", max_length=3)
     name = SimpleLabelTextInput(label="Name", placeholder="Goblin", required=False, max_length=128)
 
@@ -91,7 +80,7 @@ class InitiativeSetModal(_InitiativeModal):
             await itr.response.send_message("Value must be a positive number without decimals.", ephemeral=True)
             return
 
-        initiative = Initiative(itr, 0, name, Advantage.Normal, roll=value)
+        initiative = Initiative(itr, 0, name, Advantage.NORMAL, roll=value)
         Initiatives.add(itr, initiative)
 
         title = f"{itr.user.name} set Initiative for {initiative.name}!"
@@ -106,7 +95,7 @@ class InitiativeSetModal(_InitiativeModal):
         )
 
 
-class InitiativeDeleteModal(_InitiativeModal):
+class InitiativeDeleteModal(SimpleModal):
     name = ModalSelectComponent(label="Roll to delete", options=[], placeholder="Goblin", required=True)
 
     def __init__(self, itr: Interaction):
@@ -123,7 +112,7 @@ class InitiativeDeleteModal(_InitiativeModal):
     async def on_submit(self, itr: Interaction):
         self.log_inputs(itr)
 
-        name = self.get_choice(self.name, type=str)
+        name = self.get_choice(self.name, result_type=str)
         initiative = Initiatives.remove(itr, name)
         view = InitiativeContainerView(itr)
 
@@ -134,7 +123,7 @@ class InitiativeDeleteModal(_InitiativeModal):
         await itr.followup.send(embed=embed, ephemeral=True)
 
 
-class InitiativeBulkModal(_InitiativeModal):
+class InitiativeBulkModal(SimpleModal):
     modifier = SimpleLabelTextInput(
         label="Creature's Initiative Modifier",
         placeholder="0",
@@ -169,8 +158,8 @@ class InitiativeBulkModal(_InitiativeModal):
             )
             return
 
-        advantage = self.get_choice(self.advantage, Advantage) or Advantage.Normal
-        shared: Boolean = self.get_choice(self.shared, Boolean) or Boolean.false
+        advantage = self.get_choice(self.advantage, Advantage) or Advantage.NORMAL
+        shared: Boolean = self.get_choice(self.shared, Boolean) or Boolean.FALSE
         initiatives = Initiatives.add_bulk(itr, modifier, name, amount, advantage, shared.bool)
 
         title = f"{itr.user.display_name} rolled Initiative for {amount} {name.strip().title()}(s)!"
@@ -188,7 +177,7 @@ class InitiativeBulkModal(_InitiativeModal):
         )
 
 
-class InitiativeClearConfirmModal(_InitiativeModal):
+class InitiativeClearConfirmModal(SimpleModal):
     confirm = SimpleLabelTextInput(label="Type 'CLEAR' to confirm", placeholder="CLEAR")
 
     def __init__(self, itr: Interaction):
@@ -220,31 +209,32 @@ class InitiativePlayerRow(ui.ActionRow["InitiativeContainerView"]):
         super().__init__()
 
         roll_btn = ui.Button["InitiativeContainerView"](style=discord.ButtonStyle.success, label="Roll")
-        roll_btn.callback = lambda interaction: self.roll_initiative(interaction)
+        roll_btn.callback = self.roll_initiative
         self.add_item(roll_btn)
 
         set_btn = ui.Button["InitiativeContainerView"](style=discord.ButtonStyle.success, label="Set")
-        set_btn.callback = lambda interaction: self.set_initiative(interaction)
+        set_btn.callback = self.set_initiative
         self.add_item(set_btn)
 
         delete_btn = ui.Button["InitiativeContainerView"](style=discord.ButtonStyle.danger, label="Delete Roll")
-        delete_btn.callback = lambda interaction: self.remove_initiative(interaction)
+        delete_btn.callback = self.remove_initiative
         delete_btn.disabled = len(Initiatives.get(itr)) <= 0
         self.add_item(delete_btn)
 
-    async def roll_initiative(self, itr: Interaction):
-        await itr.response.send_modal(InitiativeRollModal(itr))
+    async def roll_initiative(self, interaction: Interaction):
+        await interaction.response.send_modal(InitiativeRollModal(interaction))
 
-    async def set_initiative(self, itr: Interaction):
-        await itr.response.send_modal(InitiativeSetModal(itr))
+    async def set_initiative(self, interaction: Interaction):
+        await interaction.response.send_modal(InitiativeSetModal(interaction))
 
-    async def remove_initiative(self, itr: Interaction):
-        await itr.response.send_modal(InitiativeDeleteModal(itr))
+    async def remove_initiative(self, interaction: Interaction):
+        await interaction.response.send_modal(InitiativeDeleteModal(interaction))
 
 
 class InitiativeDMRow(ui.ActionRow["InitiativeContainerView"]):
     @ui.button(label="Bulk", style=discord.ButtonStyle.primary, custom_id="bulk_btn", row=1)
     async def bulk_roll_initiative(self, itr: Interaction, button: ui.Button["InitiativeContainerView"]):
+        log_button_press(itr, button, "InitiativeContainerView")
         await itr.response.send_modal(InitiativeBulkModal(itr))
 
     @ui.button(label="Lock", style=discord.ButtonStyle.primary, custom_id="lock_btn", row=1)
@@ -260,6 +250,7 @@ class InitiativeDMRow(ui.ActionRow["InitiativeContainerView"]):
         row=1,
     )
     async def clear_initiative(self, itr: Interaction, button: ui.Button["InitiativeContainerView"]):
+        log_button_press(itr, button, "InitiativeContainerView")
         await itr.response.send_modal(InitiativeClearConfirmModal(itr))
 
 

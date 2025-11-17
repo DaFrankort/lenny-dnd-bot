@@ -104,7 +104,7 @@ class Bot(discord.Client):
             raise RuntimeError("The bot is not associated with a user client account!")
 
         logging.info("Initializing")
-        logging.info(f"Logged in as {self.user} (ID: {self.user.id})")
+        logging.info("Logged in as %s (ID: %d)", self.user.name, self.user.id)
 
         self.register_commands()
         await self._attempt_sync_guild()
@@ -128,4 +128,4 @@ class Bot(discord.Client):
             logging.warning("Could not find guild, check .env for GUILD_ID")
         else:
             await self.tree.sync(guild=guild)
-            logging.info(f"Connected to guild: {guild.name} (ID: {guild.id})")
+            logging.info("Connected to guild: %s (ID: %d)", guild.name, guild.id)

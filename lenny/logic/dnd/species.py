@@ -12,21 +12,21 @@ class Species(DNDEntry):
     description: list[Description]
     info: list[Description]
 
-    def __init__(self, json: dict[str, Any]):
+    def __init__(self, obj: dict[str, Any]):
         self.entry_type = "species"
         self.emoji = "🧝"
 
-        self.name = json["name"]
-        self.source = json["source"]
-        self.url = json["url"]
+        self.name = obj["name"]
+        self.source = obj["source"]
+        self.url = obj["url"]
 
-        self.image = json["image"]
-        self.sizes = json["sizes"]
-        self.speed = json["speed"]
-        self.type = json["creatureType"]
+        self.image = obj["image"]
+        self.sizes = obj["sizes"]
+        self.speed = obj["speed"]
+        self.type = obj["creatureType"]
 
-        self.description = json["description"]
-        self.info = json["info"]
+        self.description = obj["description"]
+        self.info = obj["info"]
 
 
 class SpeciesList(DNDEntryList[Species]):

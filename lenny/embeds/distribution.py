@@ -3,7 +3,6 @@ from discord.utils import MISSING
 
 from logic.color import UserColor
 from logic.distribution import DistributionResult
-from logic.roll import Advantage
 
 
 class DistributionEmbed(discord.Embed):
@@ -13,16 +12,9 @@ class DistributionEmbed(discord.Embed):
         self.chart = result.chart or MISSING
         color = UserColor.get(itr)
 
-        if result.advantage == Advantage.Advantage:
-            title_suffix = " with advantage"
-        elif result.advantage == Advantage.Disadvantage:
-            title_suffix = " with disadvantage"
-        else:
-            title_suffix = ""
-
         super().__init__(
             color=color,
-            title=f"Distribution for {result.expression}{title_suffix}!",
+            title=f"Distribution for {result.expression}{result.advantage.title_suffix}!",
             type="rich",
         )
 

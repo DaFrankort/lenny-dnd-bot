@@ -48,7 +48,7 @@ class RollCommand(_AbstractRollCommand):
     desc = "Roll your d20s!"
     help = "Roll a single dice expression."
 
-    advantage = Advantage.Normal
+    advantage = Advantage.NORMAL
 
 
 class AdvantageRollCommand(_AbstractRollCommand):
@@ -56,7 +56,7 @@ class AdvantageRollCommand(_AbstractRollCommand):
     desc = "Lucky you! Roll and take the best of two!"
     help = "Roll the expression twice, use the highest result."
 
-    advantage = Advantage.Advantage
+    advantage = Advantage.ADVANTAGE
 
 
 class DisadvantageRollCommand(_AbstractRollCommand):
@@ -64,7 +64,7 @@ class DisadvantageRollCommand(_AbstractRollCommand):
     desc = "Tough luck chump... Roll twice and suck it."
     help = "Roll the expression twice, use the lowest result."
 
-    advantage = Advantage.Disadvantage
+    advantage = Advantage.DISADVANTAGE
 
 
 class D20Command(SimpleCommand):
@@ -74,7 +74,7 @@ class D20Command(SimpleCommand):
 
     async def handle(self, itr: discord.Interaction):
         self.log(itr)
-        result = roll("1d20", Advantage.Normal)
+        result = roll("1d20", Advantage.NORMAL)
         embed = RollEmbed(itr, result, None)
         await itr.response.send_message(embed=embed)
         await VC.play_dice_roll(itr, result)
@@ -101,7 +101,7 @@ class MultiRollCommand(SimpleCommand):
         itr: discord.Interaction,
         diceroll: str,
         amount: discord.app_commands.Range[int, 1, 32],
-        advantage: str = Advantage.Normal,
+        advantage: str = Advantage.NORMAL,
         reason: str | None = None,
     ):
         self.log(itr)

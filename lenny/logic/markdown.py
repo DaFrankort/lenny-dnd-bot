@@ -2,7 +2,7 @@ import csv
 import dataclasses
 import io
 import re
-from typing import Iterable
+from collections.abc import Iterable
 
 import discord
 
@@ -42,7 +42,7 @@ def wrapped_md_table_to_rich_table(text: str) -> str:
             headers, rows = _parse_md_table_csv(stripped)
             if headers:
                 rich_table = build_table_from_rows(headers=headers, rows=rows)
-                part = str(rich_table)
+                part = str(rich_table)  # pylint: disable=redefined-loop-name
         new_parts.append(part)
 
     return "".join(new_parts)

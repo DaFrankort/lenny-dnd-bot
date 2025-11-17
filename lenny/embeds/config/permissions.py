@@ -4,15 +4,15 @@ import discord
 
 from components.items import SimpleSeparator
 from components.paginated_view import PaginatedLayoutView
+from embeds.config.config import ConfigAllowButton
 from logic.config import Config
 
 
-class ConfigManagePermissionsButton(discord.ui.Button["ConfigPermissionsView"]):
+class ConfigManagePermissionsButton(ConfigAllowButton):
     role: discord.Role | Literal["admin"]
     server: discord.Guild
     config: Config
     permissions_view: "ConfigPermissionsView"
-    allowed: bool
 
     def __init__(
         self,
@@ -20,23 +20,16 @@ class ConfigManagePermissionsButton(discord.ui.Button["ConfigPermissionsView"]):
         role: discord.Role | Literal["admin"],
         server: discord.Guild,
     ):
-        super().__init__()
         self.role = role
         self.server = server
         self.config = Config(server=self.server)
         self.permissions_view = view
 
-        self.allowed = (self.role == "admin") or (self.role.id in self.config.get_allowed_config_roles())
-
-        if self.allowed:
-            self.label = "‎ Enabled ‎‎"
-            self.style = discord.ButtonStyle.green
-        else:
-            self.label = "Disabled"
-            self.style = discord.ButtonStyle.red
-
+        allowed = (self.role == "admin") or (self.role.id in self.config.get_allowed_config_roles())
         # Note: this is disallowing the pressing of the button, only the admin role can't be changed
-        self.disabled = self.role == "admin"
+        disabled = self.role == "admin"
+
+        super().__init__(allowed=allowed, disabled=disabled)
 
     async def callback(self, interaction: discord.Interaction):
         if self.role == "admin":

@@ -7,6 +7,9 @@
   ],
   "words": [
     "ABCDF",
+    "addinivalue",
+    "addoption",
+    "argparsing",
     "atempo",
     "autouse",
     "axisbelow",
@@ -16,6 +19,7 @@
     "Choiced",
     "contextmenu",
     "Cooldown",
+    "dicecache",
     "diceroll",
     "dnddatalist",
     "dotenv",
@@ -28,12 +32,15 @@
     "gamemaster",
     "Gobl",
     "HBRW",
+    "jsonhandler",
     "keptset",
     "LANCZOS",
     "linestyle",
     "listify",
     "merienda",
+    "modifyitems",
     "multidndselect",
+    "multiroll",
     "namegen",
     "NOTAHEXVALUE",
     "plansession",
@@ -63,7 +70,6 @@
     "ylim",
     "yticklabels",
     "yticks",
-    "zxcvbnm",
-    "jsonhandler"
+    "zxcvbnm"
   ]
 }

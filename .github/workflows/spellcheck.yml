@@ -1,25 +1,21 @@
-name: SPELLCHECK
+name: CSPELL
 
 on:
   push:
     branches: [main]
     paths:
       - "readme.md"
-      - "**/*.py"
-      - "cspell.json"
-      - ".github/**"
   pull_request:
     paths:
       - "readme.md"
       - "**/*.py"
       - "cspell.json"
-      - ".github/**"
   workflow_dispatch:
 
 jobs:
   spell-check:
     runs-on: ubuntu-latest
-
+    name: cspell
     steps:
       - name: Check out repo
         uses: actions/checkout@v4
@@ -28,4 +24,4 @@ jobs:
         run: npm install -g cspell
 
       - name: Run spell check
-        run: cspell --config cspell.json src/**/*.py src/*.py test/**/*.py test/*.py readme.md
+        run: cspell --config cspell.json lenny/**/*.py lenny/*.py test/**/*.py test/*.py readme.md

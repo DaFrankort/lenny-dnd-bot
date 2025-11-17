@@ -1,8 +1,8 @@
-# DnD Discord Bot - Lenny
+# Lenny D&D Bot
 
 A Discord bot for Dungeons & Dragons players which aims to provide commands using modern Discord features.
 
-Powered by [5e.tools](https://5e.tools/) for up-to-date 5e data.
+Powered by [5e.tools](https://5e.tools/) for up-to-date 5e data based on the [Lenny D&D data repository](https://github.com/pipieter/lenny-dnd-data).
 
 ## Features
 
@@ -68,7 +68,7 @@ You can follow [this tutorial](https://www.hostinger.com/tutorials/how-to-instal
 To start the bot, simply run the following command:
 
 ```bash
-python src/main.py
+python lenny
 ```
 
 You can add the following arguments if you wish:
@@ -97,6 +97,7 @@ Roll D&D dice using dice-expressions (e.g. `2d6` / `1d20+2`).
 - `/advantage <dice-expression> [reason]` – Rolls twice, highlights the highest result.
 - `/disadvantage <dice-expression> [reason]` – Rolls twice, highlights the lowest result.
 - `/d20` - Rolls a basic 1d20 without any modifiers.
+- `/multiroll <dice-expression> <amount> [advantage] [reason]` – Roll a dice expression multiple times, shows the individual results as well as the total.
 - `/distribution <expression> [advantage] [min-to-beat]` - Creates a graph showing likeliness of your dice expression's roll results.
 
 ### D&D Data lookup
@@ -118,14 +119,15 @@ Look up various D&D data from [5e.tools](https://5e.tools/).
 - `/search vehicle <vehicle-name>` - Look up a D&D Vehicle (e.g. Galley).
 - `/search object <object-name>` - Look up a D&D Object (e.g. Ballista).
 - `/search hazard <hazard-name>` - Look up a D&D Trap or Hazard (e.g. Spiked Pit).
-- `/search all <query>` - Look for many related results regarding D&D data. Example: `/search fire` would return any data with 'fire' in the name.
+- `/search all <query>` - Look for many related results regarding D&D data. Example: `/search all fire` would return any data with 'fire' in the name.
 
 ### D&D Homebrew Data
 
 Manage your server's homebrew D&D data for spells, items, creatures, and more.
 For entry deletion or editing you will need to either be the original creator of the entry, have config permissions or have the Manage Messages permission for the server.
+Entries can be added straight from a markdown file, any formatting will be converted to match Discord's formatting. Additionally this handles some formatting from [Obsidian](https://obsidian.md/) (such as tables and file-links).
 
-- `/homebrew add <dnd-type>` - Add a new homebrew entry of the specified D&D type (e.g. spell, item, creature).
+- `/homebrew add [md_file]` - Add a new homebrew entry, can be filled directly from a markdown file.
 - `/homebrew edit <entry>` - Edit an existing homebrew entry.
 - `/homebrew delete <entry>` - Delete an existing homebrew entry.
 - `/homebrew list [filter]` - List all homebrew entries in the server, can be filtered by D&D type.

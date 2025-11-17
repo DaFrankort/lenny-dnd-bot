@@ -1,8 +1,9 @@
 import pytest
+from utils.mocking import MockGuild
+
 from embeds.search import MultiDNDSelectView
 from logic.config import Config
 from logic.dnd.data import Data
-from utils.mocking import MockGuild
 
 
 class TestDndData:

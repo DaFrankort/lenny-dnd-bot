@@ -1,0 +1,29 @@
+name: STRICT
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "readme.md"
+      - "cspell.json"
+      - ".github/**"
+  pull_request:
+    branches: [main]
+    paths:
+      - "submodules/**"
+  workflow_dispatch:
+
+jobs:
+  unit-test-strict:
+    runs-on: ubuntu-latest
+    name: pytest (STRICT)
+    steps:
+      - name: Check out source repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: ./.github/actions/setup
+
+      - name: Run pytest in strict-mode
+        run: python -m pytest --run-strict

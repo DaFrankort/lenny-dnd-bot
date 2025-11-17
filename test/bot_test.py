@@ -1,19 +1,22 @@
 from itertools import product
-from typing import Any
-import pytest
+from typing import Any, TypeVar
 
-from bot import Bot
-from command import SimpleCommand, SimpleCommandGroup
-from logic.dnd.data import Data
-from logic.dnd.name import Gender
-from logic.roll import Advantage
-from logic.charactergen import class_choices, species_choices
-from utils.utils import listify
-from utils.mocking import MockImage, MockInteraction, MockSound
-from commands.tokengen import AlignH, AlignV
+import pytest
 
 # Required to mark the library as essential for testing in our workflows
 import pytest_asyncio  # noqa: F401 # type: ignore
+from utils.mocking import MockImage, MockInteraction, MockSound
+from utils.utils import listify
+
+from bot import Bot
+from commands.command import SimpleCommand, SimpleCommandGroup
+from commands.tokengen import AlignH, AlignV
+from logic.charactergen import class_choices, species_choices
+from logic.config import Config
+from logic.dnd.abstract import DNDEntry, DNDEntryList
+from logic.dnd.data import Data
+from logic.dnd.name import Gender
+from logic.roll import Advantage
 
 
 def get_cmd_from_group(group: SimpleCommandGroup, parts: list[str]) -> SimpleCommand | None:
@@ -43,6 +46,14 @@ def get_cmd(commands: dict[str, SimpleCommand | SimpleCommandGroup], name: str) 
         return get_cmd_from_group(command, rest)
     else:
         return command
+
+
+TEntry = TypeVar("TEntry", bound=DNDEntry)
+
+
+def get_strict_search_arguments(entry_list: DNDEntryList[TEntry]) -> list[str]:
+    disallowed_sources = Config.get_default_disallowed_sources()
+    return [entry.name for entry in entry_list.entries if entry.source not in disallowed_sources]
 
 
 class TestBotCommands:
@@ -92,6 +103,15 @@ class TestBotCommands:
                 {
                     "diceroll": ["1d20+6", "4d8kh3", "1d8ro1"],
                     "reason": [None, "Fire"],
+                },
+            ),
+            (
+                "multiroll",
+                {
+                    "diceroll": ["1d20+6", "4d8kh3", "1d8ro1"],
+                    "amount": [1, 3],
+                    "advantage": Advantage.values(),
+                    "reason": [None, "Attack"],
                 },
             ),
             ("search spell", {"name": ["Fire Bolt", "abcdef"]}),
@@ -203,9 +223,9 @@ class TestBotCommands:
             (
                 "charactergen",
                 {
-                    "gender": [None].extend(Gender.values()),
-                    "species": [None, *[c.value for c in species_choices()]],
-                    "char_class": [None, *[c.value for c in class_choices()]],
+                    "gender": [None, Gender.FEMALE],
+                    "species": [None, "human"],
+                    "char_class": [None, "rogue"],
                 },
             ),
             # Homebrew commands work through modals, and are thus not testable.
@@ -228,7 +248,7 @@ class TestBotCommands:
             arg_variants = self.expand_arg_variants(arg_set)
             for args in arg_variants:
                 try:
-                    await cmd.callback(itr=itr, **args)  # pyright: ignore[reportCallIssue]
+                    await cmd.handle(itr=itr, **args)
                 except Exception as e:
                     pytest.fail(f"Error while running command /{cmd_name} with args {args}: {e}")
 
@@ -305,7 +325,7 @@ class TestBotCommands:
             arg_variants = self.expand_arg_variants(arg_set)
             for args in arg_variants:
                 with pytest.raises(Exception):
-                    await cmd.callback(itr=itr, **args)  # pyright: ignore[reportCallIssue]
+                    await cmd.handle(itr=itr, **args)
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
@@ -352,3 +372,62 @@ class TestBotCommands:
                 await param.autocomplete(itr, current)
             except Exception as e:
                 pytest.fail(f"Error while autocompleting '{param_name}' for /{cmd_name} with query '{current}': {e}")
+
+    @pytest.mark.strict
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "cmd_name, arguments",
+        [
+            ("search spell", {"name": get_strict_search_arguments(Data.spells)}),
+            ("search item", {"name": get_strict_search_arguments(Data.items)}),
+            ("search condition", {"name": get_strict_search_arguments(Data.conditions)}),
+            ("search creature", {"name": get_strict_search_arguments(Data.creatures)}),
+            (
+                "search class",
+                {"name": get_strict_search_arguments(Data.classes)},
+            ),
+            ("search rule", {"name": get_strict_search_arguments(Data.rules)}),
+            ("search action", {"name": get_strict_search_arguments(Data.actions)}),
+            ("search feat", {"name": get_strict_search_arguments(Data.feats)}),
+            ("search language", {"name": get_strict_search_arguments(Data.languages)}),
+            ("search background", {"name": get_strict_search_arguments(Data.backgrounds)}),
+            ("search table", {"name": get_strict_search_arguments(Data.tables)}),
+            ("search species", {"name": get_strict_search_arguments(Data.species)}),
+            ("search vehicle", {"name": get_strict_search_arguments(Data.vehicles)}),
+            ("search object", {"name": get_strict_search_arguments(Data.objects)}),
+            ("search hazard", {"name": get_strict_search_arguments(Data.hazards)}),
+            (
+                "charactergen",
+                {
+                    "gender": Gender.values(),
+                    "species": [species.value for species in species_choices()],
+                    "char_class": [class_.value for class_ in class_choices()],
+                },
+            ),
+            ("namegen", {"species": [spec.title() for spec in Data.names.get_species()], "gender": Gender.values()}),
+        ],
+    )
+    async def test_slash_strict(
+        self,
+        commands: dict[str, SimpleCommand | SimpleCommandGroup],
+        cmd_name: str,
+        arguments: dict[str, Any] | list[dict[str, Any]],
+    ):
+        itr = MockInteraction()
+        cmd = get_cmd(commands, cmd_name)
+        assert cmd is not None, f"{cmd_name} command not found"
+
+        arguments = listify(arguments)
+        failures: list[tuple[dict[str, Any], str]] = []
+
+        for arg_set in arguments:
+            arg_variants = self.expand_arg_variants(arg_set)
+            for args in arg_variants:
+                try:
+                    await cmd.handle(itr=itr, **args)
+                except Exception as e:
+                    failures.append((args, str(e)))
+
+        if failures:
+            failure_messages = "\n".join([f"Args: {args}, Error: {error}" for args, error in failures])
+            pytest.fail(f"Errors while running command /{cmd_name}:\n{failure_messages}")

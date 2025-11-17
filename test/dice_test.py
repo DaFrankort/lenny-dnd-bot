@@ -1,10 +1,12 @@
 import math
 from unittest.mock import MagicMock
+
 import pytest
-from dice import DiceCache
-from logic.roll import Advantage, roll
-from utils.mocking import MockInteraction
 from discord import Interaction
+from utils.mocking import MockInteraction
+
+from logic.dicecache import DiceCache
+from logic.roll import Advantage, roll
 
 
 class TestDiceExpression:
@@ -28,9 +30,9 @@ class TestDiceExpression:
             roll(expression)
 
     def test_advantage_roll_count(self):
-        normal = roll("1d20", Advantage.Normal)
-        advantage = roll("1d20", Advantage.Advantage)
-        disadvantage = roll("1d20", Advantage.Disadvantage)
+        normal = roll("1d20", Advantage.NORMAL)
+        advantage = roll("1d20", Advantage.ADVANTAGE)
+        disadvantage = roll("1d20", Advantage.DISADVANTAGE)
 
         assert len(normal.rolls) == 1, "Normal rolls should only have one roll."
         assert len(advantage.rolls) == 2, "Advantage rolls should have two rolls."
@@ -40,7 +42,7 @@ class TestDiceExpression:
     def test_advantage_is_greater(self, iterations: int):
         # Monte Carlo test to see if advantage is always the greatest of the two numbers
         for _ in range(iterations):
-            dice = roll("1d20+5", Advantage.Advantage)
+            dice = roll("1d20+5", Advantage.ADVANTAGE)
             totals = [roll.total for roll in dice.rolls]
             assert dice.roll.total in totals, "Advantage value should be in rolls."
             for roll_ in dice.rolls:
@@ -50,7 +52,7 @@ class TestDiceExpression:
     def test_disadvantage_is_less(self, iterations: int):
         # Same as test_advantage_is_greater, except for disadvantage
         for _ in range(iterations):
-            dice = roll("1d20+5", Advantage.Disadvantage)
+            dice = roll("1d20+5", Advantage.DISADVANTAGE)
             totals = [roll.total for roll in dice.rolls]
             assert dice.roll.total in totals, "Disadvantage value should be in rolls."
             for roll_ in dice.rolls:

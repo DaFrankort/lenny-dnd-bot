@@ -16,15 +16,15 @@ class ColorShowEmbed(UserActionEmbed):
 
 
 class ColorSetEmbed(UserActionEmbed):
-    hex: bool
+    is_hex: bool
     file: discord.File
 
     def __init__(self, itr: discord.Interaction, result: UserColorSaveResult, is_hex: bool):
-        self.hex = is_hex
+        self.is_hex = is_hex
         self.file = get_palette_image(result.color)
 
         descriptions: list[str] = []
-        if self.hex:
+        if self.is_hex:
             descriptions.append(f"``{UserColor.to_hex(result.old_color)}`` => ``#{UserColor.to_hex(result.color)}``")
         else:
             ro, go, bo = UserColor.to_rgb(result.old_color)

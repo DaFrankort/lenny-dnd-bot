@@ -10,7 +10,7 @@ from logic.config import Config
 
 class ConfigManagePermissionsButton(ConfigAllowButton):
     role: discord.Role | Literal["admin"]
-    server: discord.Guild
+    guild: discord.Guild
     config: Config
     permissions_view: "ConfigPermissionsView"
 
@@ -18,11 +18,11 @@ class ConfigManagePermissionsButton(ConfigAllowButton):
         self,
         view: "ConfigPermissionsView",
         role: discord.Role | Literal["admin"],
-        server: discord.Guild,
+        guild: discord.Guild,
     ):
         self.role = role
-        self.server = server
-        self.config = Config(server=self.server)
+        self.guild = guild
+        self.config = Config(guild=self.guild)
         self.permissions_view = view
 
         allowed = (self.role == "admin") or (self.role.id in self.config.get_allowed_config_roles())
@@ -42,11 +42,11 @@ class ConfigManagePermissionsButton(ConfigAllowButton):
 
 
 class ConfigPermissionsView(PaginatedLayoutView):
-    server: discord.Guild
+    guild: discord.Guild
 
-    def __init__(self, server: discord.Guild):
+    def __init__(self, guild: discord.Guild):
         super().__init__()
-        self.server = server
+        self.guild = guild
         self.build()
 
     def build(self) -> None:
@@ -60,7 +60,7 @@ class ConfigPermissionsView(PaginatedLayoutView):
         roles = self.viewed_permissions
         for role in roles:
             text = "Admin (cannot be changed)" if role == "admin" else role.name
-            button = ConfigManagePermissionsButton(self, role, self.server)
+            button = ConfigManagePermissionsButton(self, role, self.guild)
             container.add_item(discord.ui.Section(text, accessory=button))
 
         # Button navigation
@@ -71,11 +71,11 @@ class ConfigPermissionsView(PaginatedLayoutView):
 
     @property
     def entry_count(self) -> int:
-        return len(self.server.roles) + 1  # Include one for admin
+        return len(self.guild.roles) + 1  # Include one for admin
 
     @property
     def viewed_permissions(self) -> list[discord.Role | Literal["admin"]]:
-        roles: list[discord.Role | Literal["admin"]] = ["admin", *reversed(self.server.roles)]  # Prioritize higher roles
+        roles: list[discord.Role | Literal["admin"]] = ["admin", *reversed(self.guild.roles)]  # Prioritize higher roles
 
         start = self.page * self.per_page
         end = (self.page + 1) * self.per_page

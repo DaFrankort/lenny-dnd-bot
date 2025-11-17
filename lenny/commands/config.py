@@ -19,10 +19,10 @@ class ConfigSourcesCommand(SimpleCommand):
             embed = ErrorEmbed("Sources can only be managed in a server!")
             await itr.response.send_message(embed=embed, ephemeral=True)
         elif user_is_admin_or_has_config_permissions(itr.guild, itr.user):
-            view = ConfigSourcesView(server=itr.guild, allow_configuration=True)
+            view = ConfigSourcesView(guild=itr.guild, allow_configuration=True)
             await itr.response.send_message(view=view, ephemeral=True)
         else:
-            view = ConfigSourcesView(server=itr.guild, allow_configuration=False)
+            view = ConfigSourcesView(guild=itr.guild, allow_configuration=False)
             await itr.response.send_message(view=view, ephemeral=True)
 
 
@@ -38,7 +38,7 @@ class ConfigPermissionsCommand(SimpleCommand):
             embed = ErrorEmbed("Permissions can only be managed in a server!")
             await itr.response.send_message(embed=embed, ephemeral=True)
         elif user_is_admin(itr.user):
-            view = ConfigPermissionsView(server=itr.guild)
+            view = ConfigPermissionsView(guild=itr.guild)
             await itr.response.send_message(view=view, ephemeral=True)
         else:
             embed = ErrorEmbed("You don't have permission to manage permissions!")

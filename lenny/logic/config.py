@@ -21,18 +21,18 @@ def is_source_phb2014(source: str) -> bool:
 
 
 class Config:
-    server: discord.Guild
+    guild: discord.Guild
 
-    def __init__(self, server: discord.Guild | None):
-        if server is None:
+    def __init__(self, guild: discord.Guild | None):
+        if guild is None:
             raise RuntimeError("You can only configure settings in a server!")
 
-        self.server = server
+        self.guild = guild
         self.create_file()
 
     @property
     def path(self) -> str:
-        return f"config/{self.server.id}.config"
+        return f"config/{self.guild.id}.config"
 
     def create_file(self):
         """Creates the associated config file. Does not change anything if it already exists."""
@@ -95,10 +95,10 @@ class Config:
         open(self.path, "w", encoding="utf-8").close()  # pylint: disable=consider-using-with
 
     @staticmethod
-    def allowed_sources(server: discord.Guild | None) -> set[str]:
-        if server is None:
+    def allowed_sources(guild: discord.Guild | None) -> set[str]:
+        if guild is None:
             return Config.get_default_allowed_sources()
-        return Config(server=server).get_allowed_sources()
+        return Config(guild=guild).get_allowed_sources()
 
     # endregion sources
 
@@ -117,7 +117,7 @@ class Config:
         roles = lookup.get("roles", None)
 
         # If config sources is none, it means they aren't configured yet.
-        # In this case, fall back on the server's default roles.
+        # In this case, fall back on the guild's default roles.
         if roles is None:
             return self.get_default_config_roles()
 
@@ -127,7 +127,7 @@ class Config:
         config_roles: list[int] = []
 
         # The default allowed roles are those matching the terms game master, dungeon master, dm...
-        for role in self.server.roles:
+        for role in self.guild.roles:
             role_name = role.name.strip().lower()
             # Check if it exactly matches a game master role
             if role_name in GAMEMASTER_ROLE_EXACT_WORDS:
@@ -158,14 +158,14 @@ def user_is_admin(user: discord.User | discord.Member) -> bool:
     return user.guild_permissions.administrator
 
 
-def user_has_config_permissions(server: discord.Guild | None, user: discord.User | discord.Member) -> bool:
-    if server is None:
+def user_has_config_permissions(guild: discord.Guild | None, user: discord.User | discord.Member) -> bool:
+    if guild is None:
         return False
 
     if not isinstance(user, discord.Member):
         return False
 
-    config = Config(server)
+    config = Config(guild)
 
     user_role_ids = set(role.id for role in user.roles)
     allowed_role_ids = config.get_allowed_config_roles()
@@ -175,5 +175,5 @@ def user_has_config_permissions(server: discord.Guild | None, user: discord.User
     return len(intersection) > 0
 
 
-def user_is_admin_or_has_config_permissions(server: discord.Guild | None, user: discord.User | discord.Member) -> bool:
-    return user_is_admin(user) or user_has_config_permissions(server, user)
+def user_is_admin_or_has_config_permissions(guild: discord.Guild | None, user: discord.User | discord.Member) -> bool:
+    return user_is_admin(user) or user_has_config_permissions(guild, user)

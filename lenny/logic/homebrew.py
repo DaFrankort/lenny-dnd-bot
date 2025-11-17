@@ -81,7 +81,7 @@ class HomebrewEntry:
         if user_is_admin_or_has_config_permissions(itr.guild, itr.user):
             return True
         if not isinstance(itr.user, discord.Member):
-            return False  # You can only manage permissions in a server
+            return False  # You can only manage permissions in a guild
         return itr.user.guild_permissions.manage_messages
 
     @classmethod
@@ -98,11 +98,11 @@ class HomebrewEntry:
 
 
 class HomebrewGuildData(JsonHandler[list[HomebrewEntry]]):
-    server_id: int
+    guild_id: int
 
-    def __init__(self, server_id: int):
-        self.server_id = server_id
-        super().__init__(filename=str(server_id), sub_dir="homebrew")
+    def __init__(self, guild_id: int):
+        self.guild_id = guild_id
+        super().__init__(filename=str(guild_id), sub_dir="homebrew")
 
     def deserialize(self, obj: Any) -> list[HomebrewEntry]:
         return [HomebrewEntry.fromdict(o) for o in obj]
@@ -226,8 +226,8 @@ class GlobalHomebrewData:
         for filename in os.listdir(HOMEBREW_PATH):
             if not filename.endswith(".json"):
                 continue
-            server_id = int(filename[:-5])
-            self._data[server_id] = HomebrewGuildData(server_id)
+            guild_id = int(filename[:-5])
+            self._data[guild_id] = HomebrewGuildData(guild_id)
 
     def get(self, itr: discord.Interaction) -> HomebrewGuildData:
         if not itr.guild_id:

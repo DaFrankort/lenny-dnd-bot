@@ -14,7 +14,6 @@ on:
   workflow_dispatch:
 
 jobs:
-
   unit-test-strict:
     runs-on: ubuntu-latest
     name: pytest (STRICT)

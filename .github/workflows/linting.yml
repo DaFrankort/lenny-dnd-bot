@@ -1,4 +1,4 @@
-name: LINTING
+name: LINT
 
 on:
   pull_request:
@@ -23,7 +23,7 @@ jobs:
           max-line-length: 999
           path: lenny test
 
-  black-lints:
+  black-lint:
     runs-on: ubuntu-latest
     name: black
     steps:
@@ -38,7 +38,7 @@ jobs:
         with:
           options: "--check --verbose lenny test"
 
-  pyright:
+  pyright-lint:
     runs-on: ubuntu-latest
     name: pyright
     steps:
@@ -52,6 +52,7 @@ jobs:
 
   isort-lint:
     runs-on: ubuntu-latest
+    name: isort
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v2

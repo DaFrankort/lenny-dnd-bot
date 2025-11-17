@@ -1,4 +1,4 @@
-name: SPELLCHECK
+name: CSPELL
 
 on:
   push:
@@ -15,7 +15,7 @@ on:
 jobs:
   spell-check:
     runs-on: ubuntu-latest
-
+    name: cspell
     steps:
       - name: Check out repo
         uses: actions/checkout@v4

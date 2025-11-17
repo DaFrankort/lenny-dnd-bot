@@ -3,6 +3,10 @@ name: STRICT
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - "readme.md"
+      - "cspell.json"
+      - ".github/**"
   pull_request:
     branches: [main]
     paths:
@@ -10,7 +14,6 @@ on:
   workflow_dispatch:
 
 jobs:
-
   unit-test-strict:
     runs-on: ubuntu-latest
     name: pytest (STRICT)

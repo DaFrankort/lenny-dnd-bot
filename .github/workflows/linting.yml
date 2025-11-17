@@ -1,11 +1,6 @@
-name: LINTING
+name: LINT
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "**/*.py"
-      - "pyproject.toml"
   pull_request:
     branches: [main]
     paths:
@@ -28,7 +23,7 @@ jobs:
           max-line-length: 999
           path: lenny test
 
-  black-lints:
+  black-lint:
     runs-on: ubuntu-latest
     name: black
     steps:
@@ -57,3 +52,27 @@ jobs:
 
       - name: pylint
         run: pylint lenny
+
+  pyright-lint:
+    runs-on: ubuntu-latest
+    name: pyright
+    steps:
+      - name: Check out source repository
+        uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup
+
+      - name: pyright
+        uses: jakebailey/pyright-action@v2
+
+  isort-lint:
+    runs-on: ubuntu-latest
+    name: isort
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.11
+      - uses: isort/isort-action@master
+        with:
+            requirementsFiles: "requirements.txt requirements-test.txt"

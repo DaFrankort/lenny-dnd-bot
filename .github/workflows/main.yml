@@ -1,14 +1,6 @@
 name: MAIN
 
 on:
-  push:
-    branches: [main]
-    paths-ignore:
-      - "*.md"
-      - "*.bat"
-      - ".env.example"
-      - "./.github/**"
-      - "cspell.json"
   pull_request:
     paths-ignore:
       - "*.md"

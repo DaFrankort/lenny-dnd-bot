@@ -5,15 +5,11 @@ on:
     branches: [main]
     paths:
       - "readme.md"
-      - "**/*.py"
-      - "cspell.json"
-      - ".github/**"
   pull_request:
     paths:
       - "readme.md"
       - "**/*.py"
       - "cspell.json"
-      - ".github/**"
   workflow_dispatch:
 
 jobs:

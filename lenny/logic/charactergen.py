@@ -1,10 +1,9 @@
 import dataclasses
 import random
-from typing import TypeVar
 
 import discord
 
-from logic.dnd.abstract import DNDEntry
+from logic.dnd.abstract import TDND, DNDEntry
 from logic.dnd.background import Background
 from logic.dnd.class_ import Class
 from logic.dnd.data import Data
@@ -34,9 +33,6 @@ class CharacterGenResult:
     backstory: str
     stats: list[tuple[int, str]]
     boosted_stats: list[tuple[int, str]]
-
-
-TDND = TypeVar("TDND", bound=DNDEntry)  # pylint: disable=invalid-name
 
 
 def _get_random_xphb_entry(entries: list[TDND]) -> TDND:

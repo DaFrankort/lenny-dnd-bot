@@ -1,11 +1,6 @@
 name: LINTING
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "**/*.py"
-      - "pyproject.toml"
   pull_request:
     branches: [main]
     paths:
@@ -42,3 +37,26 @@ jobs:
         uses: psf/black@stable
         with:
           options: "--check --verbose lenny test"
+
+  pyright:
+    runs-on: ubuntu-latest
+    name: pyright
+    steps:
+      - name: Check out source repository
+        uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup
+
+      - name: pyright
+        uses: jakebailey/pyright-action@v2
+
+  isort-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.11
+      - uses: isort/isort-action@master
+        with:
+            requirementsFiles: "requirements.txt requirements-test.txt"

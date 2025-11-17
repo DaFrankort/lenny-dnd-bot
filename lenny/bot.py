@@ -104,7 +104,7 @@ class Bot(discord.Client):
             raise RuntimeError("The bot is not associated with a user client account!")
 
         logging.info("Initializing")
-        logging.info("Logged in as %s (ID: %d)", self.user.name, self.user.name)
+        logging.info("Logged in as %s (ID: %d)", self.user.name, self.user.id)
 
         self.register_commands()
         await self._attempt_sync_guild()

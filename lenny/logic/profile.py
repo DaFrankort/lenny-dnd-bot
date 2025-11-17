@@ -5,7 +5,8 @@ from typing import Any, Set
 
 import discord
 from discord.app_commands import Choice
-from jsonhandler import JsonHandler
+
+from logic.jsonhandler import JsonHandler
 
 PROFILE_PATH: str = "./temp/profiles/"
 
@@ -39,7 +40,7 @@ class UserProfileData(JsonHandler[list[ProfileEntry]]):
                 return item
         return None
 
-    def add(self, itr: discord.Interaction, name: str) -> ProfileEntry:
+    def add(self, name: str) -> ProfileEntry:
         if self._find(name):
             raise ValueError(f"A profile with the name '{name}' already exists!")
 
@@ -48,7 +49,7 @@ class UserProfileData(JsonHandler[list[ProfileEntry]]):
         self.save()
         return new_entry
 
-    def delete(self, itr: discord.Interaction, name: str) -> ProfileEntry:
+    def delete(self, name: str) -> ProfileEntry:
         entry_to_delete = self._find(name)
         if entry_to_delete is None:
             raise ValueError(f"Could not delete profile '{name}', profile does not exist.")
@@ -57,7 +58,7 @@ class UserProfileData(JsonHandler[list[ProfileEntry]]):
         self.save()
         return entry_to_delete
 
-    def edit(self, itr: discord.Interaction, entry: ProfileEntry, name: str, img_url: str) -> ProfileEntry:
+    def edit(self, entry: ProfileEntry, name: str, img_url: str) -> ProfileEntry:
         edited_entry = ProfileEntry(name=name, img_url=img_url)
         self.data[self.KEY].remove(entry)
         self.data[self.KEY].append(edited_entry)

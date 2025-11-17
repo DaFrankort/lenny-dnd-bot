@@ -9,14 +9,14 @@ from logic.dnd.source import Source, SourceList
 
 class ConfigManageSourcesButton(ConfigAllowButton):
     source: Source
-    server: discord.Guild
+    guild: discord.Guild
     config: Config
     sources_view: "ConfigSourcesView"
 
-    def __init__(self, view: "ConfigSourcesView", source: Source, server: discord.Guild, allow_configuration: bool):
+    def __init__(self, view: "ConfigSourcesView", source: Source, guild: discord.Guild, allow_configuration: bool):
         self.source = source
-        self.server = server
-        self.config = Config(server=self.server)
+        self.guild = guild
+        self.config = Config(guild=self.guild)
         self.sources_view = view
 
         allowed_sources = self.config.get_allowed_sources()
@@ -27,7 +27,7 @@ class ConfigManageSourcesButton(ConfigAllowButton):
         super().__init__(allowed=allowed, disabled=disabled)
 
     async def callback(self, interaction: discord.Interaction):
-        if not user_is_admin_or_has_config_permissions(self.server, interaction.user):
+        if not user_is_admin_or_has_config_permissions(self.guild, interaction.user):
             raise PermissionError("You don't have permission to edit sources!")
 
         if self.allowed:
@@ -39,11 +39,11 @@ class ConfigManageSourcesButton(ConfigAllowButton):
 
 class ConfigSourcesView(PaginatedLayoutView):
     allow_configuration: bool
-    server: discord.Guild
+    guild: discord.Guild
 
-    def __init__(self, server: discord.Guild, allow_configuration: bool):
+    def __init__(self, guild: discord.Guild, allow_configuration: bool):
         super().__init__()
-        self.server = server
+        self.guild = guild
         self.allow_configuration = allow_configuration
         self.build()
 
@@ -63,7 +63,7 @@ class ConfigSourcesView(PaginatedLayoutView):
         sources = sorted(sources.entries, key=lambda s: s.name)
         for source in self.viewed_sources:
             text = discord.ui.TextDisplay[discord.ui.LayoutView](source.name)
-            button = ConfigManageSourcesButton(self, source, self.server, self.allow_configuration)
+            button = ConfigManageSourcesButton(self, source, self.guild, self.allow_configuration)
             container.add_item(discord.ui.Section[discord.ui.LayoutView](text, accessory=button))
 
         # Button navigation

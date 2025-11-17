@@ -195,8 +195,8 @@ class GlobalInitiativeTracker:
             raise RuntimeError("Initiatives can only be tracked in a server!")
 
         channel_id = itr.channel_id
-        server_initiatives = self.channel_initiatives.get(channel_id, None) or []
-        initiative_count = amount + len(server_initiatives)
+        channel_initiatives = self.channel_initiatives.get(channel_id, None) or []
+        initiative_count = amount + len(channel_initiatives)
         if initiative_count > self.INITIATIVE_LIMIT:
             raise RuntimeError(f"You attempted to add too many initiatives, the max limit is {self.INITIATIVE_LIMIT}!")
 

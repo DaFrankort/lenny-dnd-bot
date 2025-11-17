@@ -28,9 +28,9 @@ class TimestampDatesContainerView(discord.ui.LayoutView):
         title = f"Timestamps for <t:{unix_timestamp}:f>"
         container.add_item(TitleTextDisplay(name=title))
 
-        formats = ["t", "T", "d", "D", "f", "F", "R"]
-        for format in formats:
-            timestamp = f"<t:{unix_timestamp}:{format}>"
+        time_formats = ["t", "T", "d", "D", "f", "F", "R"]
+        for time_format in time_formats:
+            timestamp = f"<t:{unix_timestamp}:{time_format}>"
             button = TimestampButton(timestamp=timestamp)
             section = discord.ui.Section(f"## {timestamp}", accessory=button)
 

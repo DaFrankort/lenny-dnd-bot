@@ -23,7 +23,7 @@ def get_font(font: FontType, size: float):
     try:
         return ImageFont.truetype(font=font, size=size)
     except OSError:
-        logging.warning(f"Font '{font}' could not be loaded!")
+        logging.warning("Font '%s' could not be loaded!", font)
         return ImageFont.load_default(size=size)
 
 
@@ -42,8 +42,8 @@ class ChoicedEnum(Enum):
 
 
 class Boolean(ChoicedEnum):
-    true = "true"
-    false = "false"
+    TRUE = "true"
+    FALSE = "false"
 
     @property
     def bool(self) -> bool:

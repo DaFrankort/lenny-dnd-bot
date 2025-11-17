@@ -1,4 +1,5 @@
 import io
+import logging
 import math
 import os
 import time
@@ -6,7 +7,7 @@ import time
 import aiohttp
 import discord
 import numpy as np
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, UnidentifiedImageError
 
 from methods import ChoicedEnum, FontType, get_font
 
@@ -40,7 +41,8 @@ async def open_image_url(url: str) -> Image.Image | None:
 
     try:
         base_image = Image.open(io.BytesIO(image_bytes)).convert("RGBA")
-    except Exception:
+    except UnidentifiedImageError as exc:
+        logging.error(exc)
         return None
 
     return base_image
@@ -171,18 +173,18 @@ def generate_token_image(
     return Image.alpha_composite(inner, frame)
 
 
-def _get_filename(name: str, id: int) -> str:
-    return f"{name}_token_{int(time.time())}_{id}.png"
+def _get_filename(name: str, token_id: int) -> str:
+    return f"{name}_token_{int(time.time())}_{token_id}.png"
 
 
-def generate_token_url_filename(url: str, id: int = 0) -> str:
+def generate_token_url_filename(url: str, token_id: int = 0) -> str:
     url_hash = str(abs(hash(url)))
-    return _get_filename(url_hash, id)
+    return _get_filename(url_hash, token_id)
 
 
-def generate_token_filename(base_image: discord.Attachment, id: int = 0) -> str:
+def generate_token_filename(base_image: discord.Attachment, token_id: int = 0) -> str:
     filename = os.path.splitext(base_image.filename)[0]
-    return _get_filename(filename, id)
+    return _get_filename(filename, token_id)
 
 
 def image_to_bytesio(image: Image.Image) -> io.BytesIO:
@@ -199,12 +201,12 @@ def generate_token_variants(
 ) -> list[discord.File]:
     files: list[discord.File] = []
     for i in range(amount):
-        id = i + 1
-        labeled_image = add_number_to_tokenimage(token_image=token_image, number=id, amount=amount)
+        token_id = i + 1
+        labeled_image = add_number_to_tokenimage(token_image=token_image, number=token_id, amount=amount)
         filename = (
-            generate_token_url_filename(filename_seed, id)
+            generate_token_url_filename(filename_seed, token_id)
             if isinstance(filename_seed, str)
-            else generate_token_filename(filename_seed, id)
+            else generate_token_filename(filename_seed, token_id)
         )
         files.append(
             discord.File(
@@ -214,6 +216,25 @@ def generate_token_variants(
         )
 
     return files
+
+
+def calculate_number_position_of_token_image(
+    token_image: Image.Image,
+    label: Image.Image,
+    angle_rad: float,
+) -> tuple[int, int]:
+    # Token Center
+    cx = token_image.width // 2
+    cy = token_image.height // 2
+    # Radius Adjustment
+    rx = cx - (label.width // 2)
+    ry = cy - (label.height // 2)
+    # Rim position
+    px = cx + int(rx * math.cos(angle_rad)) - (label.width // 2)
+    py = cy + int(ry * math.sin(angle_rad)) - (label.height // 2)
+
+    # Adjust to place label so its center is on the rim
+    return (int(px), int(py))
 
 
 def add_number_to_tokenimage(token_image: Image.Image, number: int, amount: int) -> Image.Image:
@@ -242,27 +263,16 @@ def add_number_to_tokenimage(token_image: Image.Image, number: int, amount: int)
     y = (label_size[1] - text_height * 2) // 2
 
     if number == 7 and font.font.family and "merienda" in font.font.family.lower():
-        y += (
-            text_height // 6
-        )  # Merienda's '7' is shifted upwards, thus requires compensation, dividing by 6 gave nicest results.
+        # Merienda's '7' is shifted upwards, thus requires compensation, dividing by 6 gave nicest results.
+        y += text_height // 6
 
     # Draw text
     draw.text((x, y), text, font=font, fill=(255, 255, 255, 255))
-    angle_deg = 90  # 90 Is bottom, 0 is right-side
-    angle_rad = math.radians(angle_deg)
-
-    # Token Center
-    cx = token_image.width // 2
-    cy = token_image.height // 2
-    # Radius Adjustment
-    rx = cx - (label.width // 2)
-    ry = cy - (label.height // 2)
-    # Rim position
-    px = cx + int(rx * math.cos(angle_rad)) - (label.width // 2)
-    py = cy + int(ry * math.sin(angle_rad)) - (label.height // 2)
+    angle_rad = math.radians(90)  # 90 Is bottom, 0 is right-side
 
     # Adjust to place label so its center is on the rim
-    pos = (int(px), int(py))
+    pos = calculate_number_position_of_token_image(token_image, label, angle_rad)
+
     combined = token_image.copy()
     combined.alpha_composite(label, dest=pos)
 

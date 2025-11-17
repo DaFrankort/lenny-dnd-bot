@@ -1,5 +1,5 @@
 import logging
-from typing import Sequence
+from collections.abc import Sequence
 
 import discord
 from discord import ui
@@ -41,7 +41,7 @@ from logic.dnd.table import DNDTable
 from logic.dnd.vehicle import Vehicle
 
 
-def get_dnd_embed(itr: discord.Interaction, dnd_entry: DNDEntry):
+def get_dnd_embed(itr: discord.Interaction, dnd_entry: DNDEntry):  # pylint: disable=too-many-return-statements
     match dnd_entry:
         case Spell():
             return SpellEmbed(itr, dnd_entry)
@@ -173,7 +173,7 @@ class MultiDNDSelect(discord.ui.Select["MultiDNDSelectView"]):
             max_values=1,
         )
 
-        logging.debug(f"{self.name}: found {len(entries)} entries for '{query}'")
+        logging.debug("%s: found %d entries for '%s'", self.name, len(entries), query)
 
     def select_option(self, entry: DNDEntry) -> discord.SelectOption:
         index = self.entries.index(entry)
@@ -187,7 +187,7 @@ class MultiDNDSelect(discord.ui.Select["MultiDNDSelectView"]):
         index = int(self.values[0])
         entry = self.entries[index]
 
-        logging.debug(f"{self.name}: user {interaction.user.display_name} selected option {index}: '{entry.name}`")
+        logging.debug("%s: user %s selected option %d: '%s`", self.name, interaction.user.display_name, index, entry.name)
         await send_dnd_embed(interaction, entry)
 
 

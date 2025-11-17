@@ -23,7 +23,7 @@ class DistributionCommand(SimpleCommand):
         self,
         itr: Interaction,
         expression: str,
-        advantage: str = Advantage.Normal,
+        advantage: str = Advantage.NORMAL,
         min_to_beat: int | None = None,
     ):
         self.log(itr)

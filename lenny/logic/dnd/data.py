@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any
 
 from rapidfuzz import fuzz
 
@@ -21,7 +21,7 @@ from logic.dnd.table import DNDTable, DNDTableList
 from logic.dnd.vehicle import Vehicle, VehicleList
 
 
-class DNDData(object):
+class DNDData:
     spells: SpellList
     items: ItemList
     conditions: ConditionList
@@ -98,7 +98,7 @@ class DNDData(object):
         return results
 
 
-class DNDSearchResults(object):
+class DNDSearchResults:
     spells: list[Spell]
     items: list[Item]
     conditions: list[Condition]
@@ -114,7 +114,7 @@ class DNDSearchResults(object):
     vehicles: list[Vehicle]
     objects: list[DNDObject]
     hazards: list[Hazard]
-    _type_map: dict[type, List[Any]]
+    _type_map: dict[type, list[Any]]
 
     def __init__(self):
         self.spells = []

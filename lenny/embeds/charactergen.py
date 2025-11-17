@@ -1,4 +1,4 @@
-from typing import Iterable
+from collections.abc import Iterable
 
 import discord
 from discord import ui
@@ -69,7 +69,7 @@ class CharacterGenContainerView(ui.LayoutView):
         container.add_item(SimpleSeparator())
 
         ability_table = self._build_ability_table(result.background, result.stats, result.boosted_stats)
-        total = sum([val for val, _ in result.stats])
+        total = sum(val for val, _ in result.stats)
         ability_desc = ability_table + f"\n**Total**: {total} + 3"
 
         values = [stat[0] for stat in result.stats]

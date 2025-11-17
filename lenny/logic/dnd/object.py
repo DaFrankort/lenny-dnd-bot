@@ -7,17 +7,17 @@ class DNDObject(DNDEntry):
     description: list[Description]
     token_url: str
 
-    def __init__(self, json: dict[str, Any]):
+    def __init__(self, obj: dict[str, Any]):
         self.entry_type = "object"
         self.emoji = "🪨"
 
-        self.name = json["name"]
-        self.source = json["source"]
-        self.select_description = json["subtitle"]
-        self.url = json["url"]
-        self.token_url = json["tokenUrl"]
+        self.name = obj["name"]
+        self.source = obj["source"]
+        self.select_description = obj["subtitle"]
+        self.url = obj["url"]
+        self.token_url = obj["tokenUrl"]
 
-        self.description = json["description"]
+        self.description = obj["description"]
 
 
 class DNDObjectList(DNDEntryList[DNDObject]):

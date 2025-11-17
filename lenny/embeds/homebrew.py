@@ -69,7 +69,7 @@ class HomebrewEntryAddModal(SimpleModal):
         self.log_inputs(itr)
 
         name = self.get_str(self.name)
-        type: HomebrewEntryType | None = self.get_choice(self.type, HomebrewEntryType)
+        entry_type: HomebrewEntryType | None = self.get_choice(self.type, HomebrewEntryType)
         subtitle = self.get_str(self.subtitle)
         description = self.get_str(self.description)
 
@@ -77,12 +77,12 @@ class HomebrewEntryAddModal(SimpleModal):
             raise ValueError("Name is a required field.")
         if not description:
             raise ValueError("Description is a required field.")
-        if not type:
+        if not entry_type:
             raise ValueError("Type is a required field.")
 
-        entry = HomebrewData.get(itr).add(itr, type, name=name, select_description=subtitle, description=description)
+        entry = HomebrewData.get(itr).add(itr, entry_type, name=name, select_description=subtitle, description=description)
         embed = HomebrewEmbed(itr, entry)
-        await itr.response.send_message(content=f"Added {type.value}: ``{name}``!", embed=embed, ephemeral=True)
+        await itr.response.send_message(content=f"Added {entry_type.value}: ``{name}``!", embed=embed, ephemeral=True)
 
 
 class HomebrewEditModal(SimpleModal):
@@ -138,7 +138,7 @@ class HomebrewListView(PaginatedLayoutView):
     filter: HomebrewEntryType | None
     entries: list[HomebrewEntry]
 
-    def __init__(self, itr: discord.Interaction, filter: str | None):
+    def __init__(self, itr: discord.Interaction, filter: str | None):  # pylint: disable=redefined-builtin
         self.filter = None
         label = "All Entries"
         if filter is not None:

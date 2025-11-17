@@ -73,14 +73,14 @@ class VC:
 
         client = await voice_channel.connect()
         VC.clients[guild_id] = client
-        logging.info(f"Joined voice channel '{client.channel.name}' in '{client.guild.name}'")
+        logging.info("Joined voice channel '%s' in '%s'", client.channel.name, client.guild.name)
         asyncio.create_task(VC.monitor_vc(guild_id))
 
     @staticmethod
     async def leave(guild_id: int):
         client = VC.clients.get(guild_id)
         if client:
-            logging.info(f"Left voice channel '{client.channel.name}' in '{client.guild.name}'")
+            logging.info("Left voice channel '%s' in '%s'", client.channel.name, client.guild.name)
             await client.disconnect()
             del VC.clients[guild_id]
 
@@ -124,16 +124,16 @@ class VC:
     @staticmethod
     async def play_dice_roll(itr: Interaction, result: RollResult, reason: str | None = None):
         roll = result.roll
-        sound_type = SoundType.ROLL
+        sound_type: SoundType = SoundType.ROLL
 
         reason = "" if not reason else reason.lower().strip()
         match reason:
             case "attack":
-                sound_type = SoundType.ATTACK
+                sound_type: SoundType = SoundType.ATTACK
             case "damage":
-                sound_type = SoundType.DAMAGE
+                sound_type: SoundType = SoundType.DAMAGE
             case "fire":
-                sound_type = SoundType.FIRE
+                sound_type: SoundType = SoundType.FIRE
             case _:
                 ...
 
@@ -244,7 +244,7 @@ class Sounds:
             sound_files.extend(folder.glob(ext))
 
         if not sound_files:
-            logging.warning(f"No .mp3 files found in {folder}.")
+            logging.warning("No .mp3 files found in %s.", folder)
             return None
 
         src = str(random.choice(sound_files))

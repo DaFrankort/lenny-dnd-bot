@@ -3,7 +3,7 @@ from typing import Any
 from logic.dnd.abstract import DNDEntryList
 
 
-class Source(object):
+class Source:
     """Note: this object does not inherit from DNDEntry as it is meta data about DNDEntries"""
 
     id: str
@@ -22,7 +22,7 @@ class Source(object):
         self.group = source["group"]
 
 
-class SourceList(object):
+class SourceList:
     paths = ["./submodules/lenny-dnd-data/generated/sources.json"]
     entries: list[Source]
 

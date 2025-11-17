@@ -12,7 +12,7 @@ class Gender(str, ChoicedEnum):
 
 
 @dataclasses.dataclass
-class NameTableNames(object):
+class NameTableNames:
     male: list[str]
     female: list[str]
     family: list[str]
@@ -32,7 +32,7 @@ class NameTable:
     tables: dict[str, NameTableNames]
 
     def __init__(self):
-        self.tables = dict()
+        self.tables = {}
         data = DNDEntryList.read_dnd_data_contents(self.path)
 
         for datum in data:

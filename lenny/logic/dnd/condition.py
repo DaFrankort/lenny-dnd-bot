@@ -7,15 +7,15 @@ class Condition(DNDEntry):
     description: list[Description]
     image: str | None
 
-    def __init__(self, json: dict[str, Any]):
+    def __init__(self, obj: dict[str, Any]):
         self.entry_type = "condition"
         self.emoji = "💀"
 
-        self.name = json["name"]
-        self.source = json["source"]
-        self.url = json["url"]
-        self.description = json["description"]
-        self.image = json["image"]
+        self.name = obj["name"]
+        self.source = obj["source"]
+        self.url = obj["url"]
+        self.description = obj["description"]
+        self.image = obj["image"]
 
 
 class ConditionList(DNDEntryList[Condition]):

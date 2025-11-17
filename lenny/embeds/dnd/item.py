@@ -10,12 +10,12 @@ class ItemEmbed(DNDEntryEmbed):
 
         value_weight = item.formatted_value_weight
         properties = item.formatted_properties
-        type = item.formatted_type
+        item_type = item.formatted_type
         descriptions = item.description
 
-        if type is not None:
+        if item_type is not None:
             self._set_embed_color(item)
-            self.add_field(name="", value=f"*{type}*", inline=False)
+            self.add_field(name="", value=f"*{item_type}*", inline=False)
 
         if properties is not None:
             self.add_field(name="", value=properties, inline=False)
@@ -46,8 +46,8 @@ class ItemEmbed(DNDEntryEmbed):
         }
 
         color = None
-        for type in item.type:
-            cleaned_type = type.split("(")[0].strip().lower()
+        for item_type in item.type:
+            cleaned_type = item_type.split("(")[0].strip().lower()
             if cleaned_type in type_colors:
                 color = type_colors[cleaned_type]
                 break

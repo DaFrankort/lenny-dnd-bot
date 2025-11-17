@@ -2,35 +2,29 @@ import discord
 
 from components.items import SimpleSeparator
 from components.paginated_view import PaginatedLayoutView
+from embeds.config.config import ConfigAllowButton
 from logic.config import Config, user_is_admin_or_has_config_permissions
 from logic.dnd.source import Source, SourceList
 
 
-class ConfigManageSourcesButton(discord.ui.Button["ConfigSourcesView"]):
+class ConfigManageSourcesButton(ConfigAllowButton):
     source: Source
     server: discord.Guild
     config: Config
-    allowed: bool
     sources_view: "ConfigSourcesView"
 
     def __init__(self, view: "ConfigSourcesView", source: Source, server: discord.Guild, allow_configuration: bool):
-        super().__init__()
         self.source = source
         self.server = server
         self.config = Config(server=self.server)
         self.sources_view = view
 
-        disallowed = self.config.get_disallowed_sources()
-        self.allowed = self.source.id not in disallowed
+        allowed_sources = self.config.get_allowed_sources()
 
-        if self.allowed:
-            self.label = "‎ Enabled ‎‎"
-            self.style = discord.ButtonStyle.green
-        else:
-            self.label = "Disabled"
-            self.style = discord.ButtonStyle.red
+        allowed = self.source.id in allowed_sources
+        disabled = not allow_configuration
 
-        self.disabled = not allow_configuration
+        super().__init__(allowed=allowed, disabled=disabled)
 
     async def callback(self, interaction: discord.Interaction):
         if not user_is_admin_or_has_config_permissions(self.server, interaction.user):
@@ -55,7 +49,7 @@ class ConfigSourcesView(PaginatedLayoutView):
 
     def build(self) -> None:
         self.clear_items()
-        container = discord.ui.Container[ConfigSourcesView](accent_color=discord.Color.dark_green())
+        container = discord.ui.Container[discord.ui.LayoutView](accent_color=discord.Color.dark_green())
 
         if self.allow_configuration:
             title = "# Manage sources"
@@ -68,9 +62,9 @@ class ConfigSourcesView(PaginatedLayoutView):
         sources = SourceList()
         sources = sorted(sources.entries, key=lambda s: s.name)
         for source in self.viewed_sources:
-            text = discord.ui.TextDisplay["ConfigSourcesView"](source.name)
+            text = discord.ui.TextDisplay[discord.ui.LayoutView](source.name)
             button = ConfigManageSourcesButton(self, source, self.server, self.allow_configuration)
-            container.add_item(discord.ui.Section["ConfigSourcesView"](text, accessory=button))
+            container.add_item(discord.ui.Section[discord.ui.LayoutView](text, accessory=button))
 
         # Button navigation
         container.add_item(SimpleSeparator())

@@ -5,7 +5,7 @@ from logic.dnd.name import Gender
 
 
 @dataclasses.dataclass
-class NameGenResult(object):
+class NameGenResult:
     name: str
     species: str
     gender: str
@@ -17,5 +17,5 @@ def generate_name(species: str | None, gender: Gender | str) -> NameGenResult:
 
     if name and new_species and new_gender:
         return NameGenResult(name, new_species, new_gender.value)
-    else:
-        raise LookupError("Can't generate names at this time!")
+
+    raise LookupError("Can't generate names at this time!")

@@ -10,7 +10,7 @@ class TestInitiative:
     @pytest.mark.parametrize("mod", [5, -5, 0])
     def test_init_no_target(self, mod: int):
         itr = MockInteraction()
-        initiative = Initiative(itr, mod, None, Advantage.Normal)
+        initiative = Initiative(itr, mod, None, Advantage.NORMAL)
 
         assert (
             initiative.modifier == mod
@@ -30,7 +30,7 @@ class TestInitiative:
     )
     def test_init_with_target(self, mod: int, target: str):
         itr = MockInteraction()
-        initiative = Initiative(itr, mod, target, Advantage.Normal)
+        initiative = Initiative(itr, mod, target, Advantage.NORMAL)
 
         assert (
             initiative.modifier == mod
@@ -42,13 +42,13 @@ class TestInitiative:
     def test_roll(self):
         itr = MockInteraction()
         for _ in range(50):
-            initiative = Initiative(itr, 0, None, Advantage.Normal)
+            initiative = Initiative(itr, 0, None, Advantage.NORMAL)
             assert 1 <= initiative.d20[0] <= 20, f"Initiative d20 roll should be value between 1 or 20, was {initiative.d20[0]}"
             assert 1 <= initiative.d20[1] <= 20, f"Initiative d20 roll should be value between 1 or 20, was {initiative.d20[1]}"
 
     def test_roll_advantage(self):
         itr = MockInteraction()
-        initiative = Initiative(itr, 0, None, Advantage.Advantage)
+        initiative = Initiative(itr, 0, None, Advantage.ADVANTAGE)
         high = max(initiative.d20)
 
         expected = high + initiative.modifier
@@ -57,7 +57,7 @@ class TestInitiative:
 
     def test_roll_disadvantage(self):
         itr = MockInteraction()
-        initiative = Initiative(itr, 0, None, Advantage.Disadvantage)
+        initiative = Initiative(itr, 0, None, Advantage.DISADVANTAGE)
         low = min(initiative.d20)
 
         expected = low + initiative.modifier
@@ -67,14 +67,14 @@ class TestInitiative:
     @pytest.mark.parametrize("mod", [5, -5, 0])
     def test_get_total(self, mod: int):
         itr = MockInteraction()
-        initiative = Initiative(itr, mod, None, Advantage.Normal)
+        initiative = Initiative(itr, mod, None, Advantage.NORMAL)
         expected = initiative.d20[0] + mod
         assert initiative.get_total() == expected, "Initiative total should equal random d20 value + modifier."
 
     @pytest.mark.parametrize("val", [25, -3, 10])
     def test_set_initiative(self, val: int):
         itr = MockInteraction()
-        initiative = Initiative(itr, 0, None, Advantage.Normal, roll=val)
+        initiative = Initiative(itr, 0, None, Advantage.NORMAL, roll=val)
         assert (
             initiative.get_total() == val
         ), f"Expected total ({initiative.get_total()}) to equal set initiative value, got {val}."
@@ -91,11 +91,11 @@ class TestInitiativeTracker:
 
     @pytest.fixture
     def npc_initiative(self, itr: discord.Interaction):
-        return Initiative(itr, modifier=2, name="Goblin", advantage=Advantage.Normal)
+        return Initiative(itr, modifier=2, name="Goblin", advantage=Advantage.NORMAL)
 
     @pytest.fixture
     def pc_initiative(self, itr: discord.Interaction):
-        return Initiative(itr, modifier=1, name=None, advantage=Advantage.Normal)
+        return Initiative(itr, modifier=1, name=None, advantage=Advantage.NORMAL)
 
     def test_add_npc_initiative(self, tracker: GlobalInitiativeTracker, itr: discord.Interaction, npc_initiative: Initiative):
         tracker.add(itr, npc_initiative)
@@ -114,7 +114,7 @@ class TestInitiativeTracker:
     ):
         tracker.add(itr, pc_initiative)
 
-        new_pc = Initiative(itr, modifier=5, name=None, advantage=Advantage.Normal)
+        new_pc = Initiative(itr, modifier=5, name=None, advantage=Advantage.NORMAL)
         new_pc.d20 = (20, 20)
         tracker.add(itr, new_pc)
 
@@ -136,8 +136,8 @@ class TestInitiativeTracker:
         itr1 = MockInteraction(channel_id=1)
         itr2 = MockInteraction(MockUser("Bar"), channel_id=2)
 
-        initiative1 = Initiative(itr1, modifier=1, name="Goblin", advantage=Advantage.Normal)
-        initiative2 = Initiative(itr2, modifier=3, name="Orc", advantage=Advantage.Normal)
+        initiative1 = Initiative(itr1, modifier=1, name="Goblin", advantage=Advantage.NORMAL)
+        initiative2 = Initiative(itr2, modifier=3, name="Orc", advantage=Advantage.NORMAL)
 
         tracker.add(itr1, initiative1)
         tracker.add(itr2, initiative2)
@@ -154,7 +154,7 @@ class TestInitiativeTracker:
     def test_sorting_order(self, tracker: GlobalInitiativeTracker, itr: discord.Interaction):
         count = tracker.INITIATIVE_LIMIT - 1
         for i in range(count):
-            initiative = Initiative(itr, 3, f"Goblin {i}", advantage=Advantage.Normal)
+            initiative = Initiative(itr, 3, f"Goblin {i}", advantage=Advantage.NORMAL)
             tracker.add(itr, initiative)
 
         sorted_initiatives = tracker.get(itr)
@@ -175,7 +175,7 @@ class TestInitiativeTracker:
     @pytest.mark.parametrize("name", [None, "NPC"])
     def test_names_are_unique(self, name: str | None, tracker: GlobalInitiativeTracker, itr: discord.Interaction):
         def add_initiative():
-            initiative = Initiative(itr, 0, name, advantage=Advantage.Normal)
+            initiative = Initiative(itr, 0, name, advantage=Advantage.NORMAL)
             tracker.add(itr, initiative)
 
         add_initiative()
@@ -216,7 +216,7 @@ class TestInitiativeTracker:
         limit = tracker.INITIATIVE_LIMIT
         mod = npc_initiative.modifier
         name = npc_initiative.name
-        tracker.add_bulk(itr, mod, name, limit, Advantage.Normal, False)
+        tracker.add_bulk(itr, mod, name, limit, Advantage.NORMAL, False)
 
         pre_count = len(tracker.get(itr))
         assert not pre_count > limit, f"Initiatives should not exceed the initiative limit: {pre_count}/{limit}"
@@ -240,7 +240,7 @@ class TestInitiativeTracker:
 
         with pytest.raises(Exception):
             # Should raise an exception, as the limit was exceeded
-            tracker.add_bulk(itr, mod, name, amount, Advantage.Normal, False)
+            tracker.add_bulk(itr, mod, name, amount, Advantage.NORMAL, False)
 
         count = len(tracker.get(itr))
         assert count < limit, f"Bulk-add should not exceed limit: {count}/{limit}"

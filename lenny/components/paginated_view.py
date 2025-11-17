@@ -38,9 +38,11 @@ class PaginatedLayoutView(discord.ui.LayoutView):
 
     page: int
     per_page: int = 10
+    modal: PaginatedJumpModal | None
 
     def __init__(self):
         self.page = 0
+        self.modal = None
         super().__init__(timeout=None)
 
     @abc.abstractmethod
@@ -62,23 +64,23 @@ class PaginatedLayoutView(discord.ui.LayoutView):
         style = discord.ButtonStyle.primary
 
         button_first_page = discord.ui.Button["PaginatedLayoutView"](label="↞", style=style)
-        button_first_page.callback = lambda interaction: self.go_to_first_page(interaction)
+        button_first_page.callback = self.go_to_first_page
         button_first_page.disabled = disable_back
 
         button_prev_page = discord.ui.Button["PaginatedLayoutView"](label="←", style=style)
-        button_prev_page.callback = lambda interaction: self.go_to_prev_page(interaction)
+        button_prev_page.callback = self.go_to_prev_page
         button_prev_page.disabled = disable_back
 
         current_page = f"Page {self.page + 1} / {self.max_pages}"
         button_current_page = discord.ui.Button["PaginatedLayoutView"](label=current_page, style=discord.ButtonStyle.gray)
-        button_current_page.callback = lambda interaction: self.jump_to_page_sendmodal(interaction)
+        button_current_page.callback = self.jump_to_page_sendmodal
 
         button_next_page = discord.ui.Button["PaginatedLayoutView"](label="→", style=style)
-        button_next_page.callback = lambda interaction: self.go_to_next_page(interaction)
+        button_next_page.callback = self.go_to_next_page
         button_next_page.disabled = disable_next
 
         button_last_page = discord.ui.Button["PaginatedLayoutView"](label="↠", style=style)
-        button_last_page.callback = lambda interaction: self.go_to_last_page(interaction)
+        button_last_page.callback = self.go_to_last_page
         button_last_page.disabled = disable_next
 
         return discord.ui.ActionRow(
@@ -93,20 +95,25 @@ class PaginatedLayoutView(discord.ui.LayoutView):
         self.build()
         await itr.response.edit_message(view=self)
 
-    async def go_to_first_page(self, itr: discord.Interaction):
+    async def go_to_first_page(self, interaction: discord.Interaction):
         self.page = 0
-        await self.rebuild(itr)
+        await self.rebuild(interaction)
 
-    async def go_to_prev_page(self, itr: discord.Interaction):
+    async def go_to_prev_page(self, interaction: discord.Interaction):
         self.page = max(self.page - 1, 0)
-        await self.rebuild(itr)
+        await self.rebuild(interaction)
 
-    async def jump_to_page_sendmodal(self, itr: discord.Interaction):
-        self.modal = PaginatedJumpModal(itr, self)
-        self.modal.on_submit = lambda i: self.jump_to_page(i)
-        await itr.response.send_modal(self.modal)
+    async def jump_to_page_sendmodal(self, interaction: discord.Interaction):
+        self.modal = PaginatedJumpModal(interaction, self)
+        self.modal.on_submit = self.jump_to_page
+        await interaction.response.send_modal(self.modal)
 
-    async def jump_to_page(self, itr: discord.Interaction):
+    async def jump_to_page(self, interaction: discord.Interaction):
+        if not self.modal:
+            # This situation should never occur, as this function can only be called
+            # after a modal was set in jump_to_page_sendmodal.
+            raise ValueError("Cannot edit PaginatedJumpModal!")
+
         page = self.modal.get_int(self.modal.page)
 
         if page is None:
@@ -115,12 +122,12 @@ class PaginatedLayoutView(discord.ui.LayoutView):
         page -= 1  # First page === 0
         page = min(max(page, 0), self.max_pages - 1)
         self.page = page
-        return await self.rebuild(itr)
+        return await self.rebuild(interaction)
 
-    async def go_to_next_page(self, itr: discord.Interaction):
+    async def go_to_next_page(self, interaction: discord.Interaction):
         self.page = min(self.page + 1, self.max_pages - 1)
-        return await self.rebuild(itr)
+        return await self.rebuild(interaction)
 
-    async def go_to_last_page(self, itr: discord.Interaction):
+    async def go_to_last_page(self, interaction: discord.Interaction):
         self.page = self.max_pages - 1
-        return await self.rebuild(itr)
+        return await self.rebuild(interaction)

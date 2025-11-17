@@ -1,17 +1,48 @@
 import abc
+import dataclasses
 import io
 import json
 import os
-from typing import Any, Generic, Iterable, Literal, TypedDict, TypeVar, Union
+from collections.abc import Iterable
+from typing import Any, Generic, Literal, TypedDict, TypeVar
 
 import discord
 import rich
 import rich.box
+from discord.app_commands import Choice
 from rapidfuzz import fuzz
 from rich.console import Console
 from rich.table import Table
 
 BASE_DATA_PATH = "./submodules/lenny-dnd-data/generated/"
+
+
+@dataclasses.dataclass
+class FuzzyMatchResult:
+    starts_with: bool  # Did the value start with the query
+    score: float  # The score of the fuzzy match
+    choice: Choice[str]  # The Choice object, as result to be used for discord
+
+
+def fuzzy_matches(query: str, value: str, fuzzy_threshold: float = 75) -> FuzzyMatchResult | None:
+    """Perform a fuzzy check between  a query and a value, e.g. searching for 'fire' in 'Fireball'.
+
+    Args:
+        query (str): The query to search for. In the example above this would be 'fire'.
+        value (str): The value to search in. In the example above this would be 'Fireball'.
+        fuzzy_threshold (float): A fuzziness threshold to determine how similar two words need to be.
+
+    Returns:
+        Optional[FuzzyMatchResult]: A fuzzy match result with the internals, or None if the threshold was not met.
+    """
+    query_clean = query.strip().lower().replace(" ", "")
+    value_clean = value.strip().lower().replace(" ", "")
+    score = fuzz.partial_ratio(query_clean, query_clean)
+    starts_with = value_clean.startswith(query_clean)
+
+    if score < fuzzy_threshold:
+        return None
+    return FuzzyMatchResult(starts_with=starts_with, score=score, choice=Choice(name=value, value=value))
 
 
 class DescriptionRowRange(TypedDict):
@@ -28,7 +59,7 @@ class DescriptionTable(TypedDict):
 class Description(TypedDict):
     name: str
     type: Literal["text", "table"]
-    value: Union[str, DescriptionTable]
+    value: str | DescriptionTable
 
 
 class DNDEntry(abc.ABC):
@@ -40,7 +71,7 @@ class DNDEntry(abc.ABC):
     select_description: str | None = None  # Description in dropdown menus
 
     @abc.abstractmethod
-    def __init__(self, json: dict[str, Any]) -> None:
+    def __init__(self, obj: dict[str, Any]) -> None:
         pass
 
     @property
@@ -48,7 +79,7 @@ class DNDEntry(abc.ABC):
         return f"{self.name} ({self.source})"
 
 
-TDND = TypeVar("TDND", bound=DNDEntry)
+TDND = TypeVar("TDND", bound=DNDEntry)  # pylint: disable=invalid-name
 
 
 class DNDEntryList(abc.ABC, Generic[TDND]):
@@ -64,8 +95,8 @@ class DNDEntryList(abc.ABC, Generic[TDND]):
 
         self.entries = []
         for path in self.paths:
-            path = BASE_DATA_PATH + path
-            for data in self.read_dnd_data_contents(path):
+            full_path = BASE_DATA_PATH + path
+            for data in self.read_dnd_data_contents(full_path):
                 entry: TDND = self.type(data)
                 self.entries.append(entry)
 
@@ -108,7 +139,7 @@ class DNDEntryList(abc.ABC, Generic[TDND]):
         if query == "":
             return []
 
-        choices: list[tuple[bool, float, discord.app_commands.Choice[str]]] = []
+        choices: list[FuzzyMatchResult] = []
         seen_names: set[str] = set()  # Required to avoid duplicate suggestions
         for e in self.entries:
             if e.source not in allowed_sources:
@@ -116,21 +147,14 @@ class DNDEntryList(abc.ABC, Generic[TDND]):
             if e.name in seen_names:
                 continue
 
-            name_clean = e.name.strip().lower().replace(" ", "")
-            score = fuzz.partial_ratio(query, name_clean)
-            if score > fuzzy_threshold:
-                starts_with_query = name_clean.startswith(query)
-                choices.append(
-                    (
-                        starts_with_query,
-                        score,
-                        discord.app_commands.Choice(name=e.name, value=e.name),
-                    )
-                )
+            choice = fuzzy_matches(query, e.name, fuzzy_threshold)
+            if choice is not None:
+                choices.append(choice)
                 seen_names.add(e.name)
 
-        choices.sort(key=lambda x: (-x[0], -x[1], x[2].name))  # Sort by query match => fuzzy score => alphabetically
-        return [choice for _, _, choice in choices[:limit]]
+        # Sort by query match => fuzzy score => alphabetically
+        choices.sort(key=lambda x: (-x.starts_with, -x.score, x.choice.name))
+        return [choice.choice for choice in choices[:limit]]
 
     def search(self, query: str, allowed_sources: set[str], fuzzy_threshold: float = 75) -> list[DNDEntry]:
         query = query.strip().lower()
@@ -155,14 +179,13 @@ def build_table(value: str | DescriptionTable, width: int | None = 56, show_line
     def format_cell_value(value: int | str | dict[str, Any]) -> str:
         if isinstance(value, int):
             return str(value)
-        elif isinstance(value, str):
+        if isinstance(value, str):
             return value
-        elif value["type"] == "range":
+        if value["type"] == "range":
             if value["min"] == value["max"]:
                 return str(value["min"])
-            else:
-                return f"{value['min']}-{value['max']}"
-        raise Exception("Unsupported cell type")
+            return f"{value['min']}-{value['max']}"
+        raise ValueError("Unsupported cell type")
 
     headers = value["headers"]
     rows = value["rows"]

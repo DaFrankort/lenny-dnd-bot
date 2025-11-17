@@ -13,7 +13,7 @@ from logic.roll import Advantage
 
 
 @dataclasses.dataclass
-class DistributionResult(object):
+class DistributionResult:
     expression: str
     chart: discord.File
     advantage: Advantage
@@ -28,12 +28,12 @@ def to_matplotlib_color(color: int) -> tuple[float, float, float]:
 
 
 def _distribution_chart(
-    distribution: DiceDistribution,
+    dist: DiceDistribution,
     color: int,
     min_to_beat: float,
 ) -> discord.File:
-    keys = list(sorted(distribution.keys()))
-    values = [100 * distribution.get(key) for key in keys]  # In percent
+    keys = list(sorted(dist.keys()))
+    values = [100 * dist.get(key) for key in keys]  # In percent
 
     white = UserColor.parse("#FFFFFF")
 
@@ -45,12 +45,12 @@ def _distribution_chart(
             colors.append(to_matplotlib_color(white))
 
     plt.rcParams["figure.dpi"] = 600
-    fig, ax = plt.subplots(subplot_kw=dict())  # type: ignore
+    fig, ax = plt.subplots(subplot_kw={})  # type: ignore
 
-    keys = list(distribution.keys())
+    keys = list(dist.keys())
     max_ticks = 20 / len(str(max(keys)))
     steps = int(math.ceil(len(keys) / max_ticks))
-    ax.set_xticks(range(distribution.min(), distribution.max() + 1, steps))  # type: ignore
+    ax.set_xticks(range(dist.min(), dist.max() + 1, steps))  # type: ignore
     ax.yaxis.set_major_formatter("{x:.2f}%")  # Add percent on y-axis
 
     ax.tick_params(colors="white")  # type: ignore
@@ -80,9 +80,9 @@ def distribution(
         dist = d20distribution.parse(expression)
         expression = str(d20.parse(expr=expression))
 
-        if advantage == Advantage.Advantage:
+        if advantage == Advantage.ADVANTAGE:
             dist = dist.advantage()
-        elif advantage == Advantage.Disadvantage:
+        elif advantage == Advantage.DISADVANTAGE:
             dist = dist.disadvantage()
 
         if min_to_beat is None:

@@ -9,20 +9,20 @@ from methods import ChoicedEnum
 
 
 class Advantage(str, ChoicedEnum):
-    Normal = "normal"
-    Advantage = "advantage"
-    Disadvantage = "disadvantage"
+    NORMAL = "normal"
+    ADVANTAGE = "advantage"
+    DISADVANTAGE = "disadvantage"
 
     @property
     def title_suffix(self) -> str:
-        suffixes = {self.Advantage: " with advantage", self.Disadvantage: " with disadvantage"}
+        suffixes = {self.ADVANTAGE: " with advantage", self.DISADVANTAGE: " with disadvantage"}
         return suffixes.get(self, "")
 
 
 class DiceSpecial(str, Enum):
-    Natural20 = "nat20"
-    Natural1 = "nat1"
-    Dirty20 = "dirty20"
+    NATURAL20 = "nat20"
+    NATURAL1 = "nat1"
+    DIRTY20 = "dirty20"
 
 
 class DiceStringifier(d20.Stringifier):
@@ -71,19 +71,14 @@ class DiceStringifier(d20.Stringifier):
 def _is_only_dice_modifiers_and_additions(node: d20.Number | None) -> bool:
     if node is None:
         return False
-    if isinstance(node, d20.Literal):
+    if isinstance(node, (d20.Literal, d20.Dice, d20.Die)):
         return True
-    if isinstance(node, d20.Dice):
-        return True
-    if isinstance(node, d20.Die):
-        return True
-    if isinstance(node, d20.Parenthetical):
-        return _is_only_dice_modifiers_and_additions(node.children[0])  # type: ignore
-    if isinstance(node, d20.UnOp):
+    if isinstance(node, (d20.Parenthetical, d20.UnOp)):
         return _is_only_dice_modifiers_and_additions(node.children[0])  # type: ignore
     if isinstance(node, d20.BinOp):
+        additions = set(["+", "-"])
         return (
-            node.op in ["+", "-"]  # type: ignore
+            node.op in additions  # type: ignore
             and _is_only_dice_modifiers_and_additions(node.left)  # type: ignore
             and _is_only_dice_modifiers_and_additions(node.right)  # type: ignore
         )
@@ -94,12 +89,10 @@ def _is_only_dice_modifiers_and_additions(node: d20.Number | None) -> bool:
 
 
 def _extract_dice(node: d20.Number | None) -> list[d20.Dice | d20.Die]:
-    if node is None:
+    if node is None or isinstance(node, d20.Literal):
         return []
-    if isinstance(node, d20.Die) or isinstance(node, d20.Dice):
+    if isinstance(node, (d20.Die, d20.Dice)):
         return node.keptset  # type: ignore
-    if isinstance(node, d20.Literal):
-        return []
     if isinstance(node, d20.Parenthetical):
         return _extract_dice(node.children[0])  # type: ignore
     if isinstance(node, d20.UnOp):
@@ -156,7 +149,7 @@ def _is_dirty_20(node: d20.Number) -> bool:
 
 
 @dataclasses.dataclass
-class SingleRollResult(object):
+class SingleRollResult:
     expression: str
     total: int
     special: DiceSpecial | None
@@ -164,19 +157,19 @@ class SingleRollResult(object):
 
     @property
     def is_natural_twenty(self) -> bool:
-        return self.special == DiceSpecial.Natural20
+        return self.special == DiceSpecial.NATURAL20
 
     @property
     def is_natural_one(self) -> bool:
-        return self.special == DiceSpecial.Natural1
+        return self.special == DiceSpecial.NATURAL1
 
     @property
     def is_dirty_twenty(self) -> bool:
-        return self.special == DiceSpecial.Dirty20
+        return self.special == DiceSpecial.DIRTY20
 
 
 @dataclasses.dataclass
-class RollResult(object):
+class RollResult:
     expression: str
     advantage: Advantage
     rolls: list[SingleRollResult]
@@ -185,9 +178,9 @@ class RollResult(object):
     def roll(self) -> SingleRollResult:
         totals = [roll.total for roll in self.rolls]
         match self.advantage:
-            case Advantage.Advantage:
+            case Advantage.ADVANTAGE:
                 total = max(totals)
-            case Advantage.Disadvantage:
+            case Advantage.DISADVANTAGE:
                 total = min(totals)
             case _:
                 total = sum(totals)
@@ -201,7 +194,7 @@ class RollResult(object):
 
 
 @dataclasses.dataclass
-class MultiRollResult(object):
+class MultiRollResult:
     expression: str
     advantage: Advantage
     rolls: list[SingleRollResult]
@@ -213,19 +206,19 @@ class MultiRollResult(object):
 
 
 def _roll_single(expression: str) -> SingleRollResult:
-    roll = d20.roll(expression, stringifier=DiceStringifier())
+    result = d20.roll(expression, stringifier=DiceStringifier())
 
     special = None
-    if _is_natural_20(roll.expr):
-        special = DiceSpecial.Natural20
-    elif _is_natural_1(roll.expr):
-        special = DiceSpecial.Natural1
-    elif _is_dirty_20(roll.expr):
-        special = DiceSpecial.Dirty20
+    if _is_natural_20(result.expr):
+        special = DiceSpecial.NATURAL20
+    elif _is_natural_1(result.expr):
+        special = DiceSpecial.NATURAL1
+    elif _is_dirty_20(result.expr):
+        special = DiceSpecial.DIRTY20
 
-    contains_dice = _contains_dice(roll.expr)
+    contains_dice = _contains_dice(result.expr)
 
-    return SingleRollResult(str(roll), roll.total, special, contains_dice)
+    return SingleRollResult(str(result), result.total, special, contains_dice)
 
 
 def _validate_expression(expression: str) -> None:
@@ -233,20 +226,20 @@ def _validate_expression(expression: str) -> None:
     try:
         expression = str(d20.parse(expression, allow_comments=False))
         _roll_single(expression)
-    except d20.errors.RollSyntaxError:
-        raise ValueError(f"Expression '{expression}' has an invalid syntax!")
-    except d20.errors.TooManyRolls:
-        raise ValueError(f"Expression '{expression}' has too many dice rolls!")
+    except d20.errors.RollSyntaxError as exception:
+        raise ValueError(f"Expression '{expression}' has an invalid syntax!") from exception
+    except d20.errors.TooManyRolls as exception:
+        raise ValueError(f"Expression '{expression}' has too many dice rolls!") from exception
     except Exception as exception:
         raise exception
 
 
-def roll(expression: str, advantage: Advantage = Advantage.Normal) -> RollResult:
+def roll(expression: str, advantage: Advantage = Advantage.NORMAL) -> RollResult:
     _validate_expression(expression)
     expression = str(d20.parse(expression, allow_comments=False))
 
     rolls: list[SingleRollResult] = []
-    if advantage in [Advantage.Advantage, Advantage.Disadvantage]:
+    if advantage in [Advantage.ADVANTAGE, Advantage.DISADVANTAGE]:
         rolls.append(_roll_single(expression))
         rolls.append(_roll_single(expression))
     else:
@@ -260,7 +253,7 @@ def multi_roll(expression: str, amount: int, advantage: Advantage) -> MultiRollR
     expression = str(d20.parse(expression, allow_comments=False))
     rolls = [_roll_single(expression) for _ in range(amount)]
 
-    if advantage == Advantage.Normal:
+    if advantage == Advantage.NORMAL:
         return MultiRollResult(expression, advantage, rolls, rolls_lose=[])
 
     extra_rolls = [_roll_single(expression) for _ in range(amount)]
@@ -275,6 +268,6 @@ def multi_roll(expression: str, amount: int, advantage: Advantage) -> MultiRollR
             higher_rolls.append(extra_rolls[i])
             lower_rolls.append(rolls[i])
 
-    if advantage == Advantage.Advantage:
+    if advantage == Advantage.ADVANTAGE:
         return MultiRollResult(expression, advantage, higher_rolls, rolls_lose=lower_rolls)
     return MultiRollResult(expression, advantage, lower_rolls, rolls_lose=higher_rolls)

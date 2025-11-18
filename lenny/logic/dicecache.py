@@ -1,3 +1,4 @@
+import re
 from dataclasses import dataclass
 from typing import Any
 
@@ -82,9 +83,12 @@ class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
             return []
 
         query = query.strip().lower().replace(" ", "")
-        filtered = [Choice(name=roll, value=roll) for roll in reversed(last_used) if query in roll.lower()]
+        suggestions: list[str] = []
+        if query and re.compile(r"^\d+d\d+$", re.IGNORECASE).match(query):
+            suggestions.append(query)  # Suggest query if is clean dice
+        suggestions.extend([roll for roll in reversed(last_used) if query in roll.lower()])
 
-        return filtered[:25]
+        return [Choice(name=roll, value=roll) for roll in suggestions[:25]]
 
     def get_autocomplete_reason_suggestions(self, itr: Interaction, query: str) -> list[Choice[str]]:
         """

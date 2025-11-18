@@ -157,3 +157,14 @@ class TestDiceExpressionCache:
         DiceCache.data = {}
         suggestions = DiceCache.get_autocomplete_suggestions(itr, "")
         assert suggestions == [], "Suggestions should be empty when no data is present."
+
+    def test_autocompletes_clean_dice_instead_of_cache(self, itr: Interaction):
+        DiceCache.data = {}
+        expected = "1d20"
+        cached_expression = f"{expected}+5"
+        DiceCache.store_expression(itr, cached_expression)
+
+        suggestions = DiceCache.get_autocomplete_suggestions(itr, expected)
+        assert (
+            suggestions[0].value == expected
+        ), "Autocomplete should prioritize the clean NdN query over stored modified rolls."

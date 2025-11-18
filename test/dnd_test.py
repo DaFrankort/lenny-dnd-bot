@@ -1,9 +1,9 @@
 import pytest
-from logic.dnd.abstract import fuzzy_matches
 from utils.mocking import MockGuild
 
 from embeds.search import MultiDNDSelectView
 from logic.config import Config
+from logic.dnd.abstract import fuzzy_matches
 from logic.dnd.data import Data
 
 

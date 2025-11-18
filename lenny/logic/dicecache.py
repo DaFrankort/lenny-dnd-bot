@@ -5,6 +5,7 @@ import discord
 from discord import Interaction
 from discord.app_commands import Choice
 
+from logic.dnd.data import Data
 from logic.jsonhandler import JsonHandler
 
 
@@ -103,37 +104,13 @@ class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
         if query == "":
             return [Choice(name=expr, value=expr) for expr in reversed(last_used)]
 
-        reasons = [
-            "Attack",
-            "Damage",
-            "Strength",
-            "Fire",
-            "Healing",
-            "Dexterity",
-            "Constitution",
-            "Intelligence",
-            "Wisdom",
-            "Charisma",
-            "Saving Throw",
-            "Athletics",
-            "Acrobatics",
-            "Sleight of Hand",
-            "Stealth",
-            "Arcana",
-            "History",
-            "Investigation",
-            "Nature",
-            "Religion",
-            "Animal Handling",
-            "Insight",
-            "Medicine",
-            "Perception",
-            "Survival",
-            "Deception",
-            "Intimidation",
-            "Performance",
-            "Persuasion",
-        ]
+        reasons = ["Attack", "Damage", "Fire", "Healing"]
+        for ability in Data.skills.get_abilities():
+            for ability_variant in ("", "Check", "Save"):
+                reasons.append(f"{ability} {ability_variant}".strip())
+        for skill in Data.skills.get_autocomplete_suggestions(query, set(["XPHB"])):
+            reasons.append(skill.value)
+
         filtered_reasons = sorted(
             [reason for reason in reasons if query.lower() in reason.lower()],
             key=lambda x: x.lower().index(query),

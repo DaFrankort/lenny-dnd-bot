@@ -15,6 +15,7 @@ from logic.dnd.language import Language, LanguageList
 from logic.dnd.name import NameTable
 from logic.dnd.object import DNDObject, DNDObjectList
 from logic.dnd.rule import Rule, RuleList
+from logic.dnd.skills import SkillList
 from logic.dnd.species import Species, SpeciesList
 from logic.dnd.spell import Spell, SpellList
 from logic.dnd.table import DNDTable, DNDTableList
@@ -38,6 +39,7 @@ class DNDData:
     objects: DNDObjectList
     hazards: HazardList
 
+    skills: SkillList
     names: NameTable
 
     def __init__(self):
@@ -58,8 +60,9 @@ class DNDData:
         self.objects = DNDObjectList()
         self.hazards = HazardList()
 
-        # TABLES
-        self.names = NameTable()
+        # UNIQUE
+        self.skills = SkillList()  # Not searchable, but used internally for suggestions
+        self.names = NameTable()  # Is a table of values, only used for namegen
 
     def __iter__(self):
         yield self.spells

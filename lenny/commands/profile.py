@@ -15,7 +15,7 @@ class ProfileCommandGroup(SimpleCommandGroup):
         self.add_command(ProfileSelectCommand())
         self.add_command(ProfileCreateCommand())
         self.add_command(ProfileRemoveCommand())
-        self.add_command(ProfileEditCommandGroup())
+        self.add_command(ProfileEditCommand())
 
 
 class ProfileCreateCommand(SimpleCommand):
@@ -38,10 +38,9 @@ class ProfileSelectCommand(SimpleCommand):
     # @discord.app_commands.autocomplete(profile=UserProfilesCache.get_profile_choices)
     async def handle(self, itr: discord.Interaction, profile: str):
         self.log(itr)
-        await itr.response.send_message("UNDER CONSTRUCTION")
-        # result = UserProfilesCache.get(itr).set_active(profile)
-        # embed = ProfileEmbed(itr, result)
-        # await itr.response.send_message(embed=embed, ephemeral=True)
+        result = await ProfileData.get(itr).activate_profile(itr, profile)
+        embed = ProfileEmbed(itr, result)
+        await itr.response.send_message(embed=embed, ephemeral=True)
 
 
 class ProfileRemoveCommand(SimpleCommand):
@@ -53,44 +52,17 @@ class ProfileRemoveCommand(SimpleCommand):
     async def handle(self, itr: discord.Interaction, profile: str):
         self.log(itr)
         result = ProfileData.get(itr).delete(profile)
-        embed = SimpleEmbed(title="Profile Removed", description=f"Removed profile '{result.name}'.", color=discord.Color.red())
+        embed = SimpleEmbed(
+            title="Profile Removed", description=f"Removed profile ``{result.name}``.", color=discord.Color.red()
+        )
         await itr.response.send_message(embed=embed, ephemeral=True)
 
 
-class ProfileEditCommandGroup(SimpleCommandGroup):
+class ProfileEditCommand(SimpleCommand):
     name = "edit"
     desc = "Edit various aspects of your character profile!"
+    help = "Edits the name and image to use for your character."
 
-    def __init__(self):
-        super().__init__()
-        self.add_command(ProfileEditNameCommand())
-        self.add_command(ProfileEditImageCommand())
-
-
-class ProfileEditNameCommand(SimpleCommand):
-    name = "name"
-    desc = "Edit your character's name!"
-    help = "Edits the name to use for your character."
-
-    async def handle(self, itr: discord.Interaction, name: str):
+    async def handle(self, itr: discord.Interaction):
         self.log(itr)
-        await itr.response.send_message("UNDER CONSTRUCTION")
-        # result = UserProfilesCache.get(itr).active_profile.set_name(name)
-        # embed = ProfileEmbed(itr, result)
-        # await itr.response.send_message(embed=embed, ephemeral=True)
-
-
-class ProfileEditImageCommand(SimpleCommand):
-    name = "image"
-    desc = "Edit your profile's image!"
-    help = "Changes the image to use for your character via an uploaded image file."
-
-    def __init__(self):
-        super().__init__()
-
-    async def handle(self, itr: discord.Interaction, image: discord.Attachment):
-        self.log(itr)
-        await itr.response.send_message("UNDER CONSTRUCTION")
-        # result = UserProfilesCache.get(itr).active_profile.set_image(image)
-        # embed = ProfileEmbed(itr, result)
-        # await itr.response.send_message(embed=embed, ephemeral=True)
+        await itr.response.send_message("Under construction")  # TODO => Add Modal with profile select dropdown.

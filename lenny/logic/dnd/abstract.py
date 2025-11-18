@@ -37,7 +37,7 @@ def fuzzy_matches(query: str, value: str, fuzzy_threshold: float = 75) -> FuzzyM
     """
     query_clean = query.strip().lower().replace(" ", "")
     value_clean = value.strip().lower().replace(" ", "")
-    score = fuzz.partial_ratio(query_clean, query_clean)
+    score = fuzz.partial_ratio(query_clean, value_clean)
     starts_with = value_clean.startswith(query_clean)
 
     if score < fuzzy_threshold:

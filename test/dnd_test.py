@@ -1,4 +1,5 @@
 import pytest
+from logic.dnd.abstract import fuzzy_matches
 from utils.mocking import MockGuild
 
 from embeds.search import MultiDNDSelectView
@@ -48,3 +49,15 @@ class TestDndData:
             MultiDNDSelectView(name, entries)
         except Exception as e:
             pytest.fail(f"MultiDNDSelectView failed to initialize: {e}")
+
+    @pytest.mark.parametrize(
+        "query, value, result",
+        [
+            ("fire bolt", "fireball", True),
+            ("fire bolt", "ray of sickness", False),
+            ("ray", "aura", True),
+        ],
+    )
+    def test_fuzzy(self, query: str, value: str, result: bool):
+        fuzzy = fuzzy_matches(query, value, fuzzy_threshold=75)
+        assert (fuzzy is not None) == result

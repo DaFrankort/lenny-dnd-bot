@@ -106,7 +106,7 @@ class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
 
         reasons = ["Attack", "Damage", "Fire", "Healing"]
         for ability in Data.skills.get_abilities():
-            for ability_variant in ["", "Check", "Save"]:
+            for ability_variant in ("", "Check", "Save"):
                 reasons.append(f"{ability} {ability_variant}".strip())
         for skill in Data.skills.get_autocomplete_suggestions(query, set(["XPHB"])):
             reasons.append(skill.value)

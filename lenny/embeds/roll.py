@@ -2,6 +2,7 @@ import discord
 
 from embeds.embed import UserActionEmbed
 from logic.roll import MultiRollResult, RollResult, SingleRollResult
+from methods import when
 
 
 class RollEmbed(UserActionEmbed):
@@ -30,7 +31,11 @@ class RollEmbed(UserActionEmbed):
 
         roll = result.roll
         descriptions.append("")
-        descriptions.append(f"🎲 **{reason}: {roll.total}**")
+        if roll.is_comparison_result:
+            success_status = when(roll.total == 0, "Fail", "Success")
+            descriptions.append(f"🎲 **{reason}: {success_status}**")
+        else:
+            descriptions.append(f"🎲 **{reason}: {roll.total}**")
 
         if roll.is_natural_twenty:
             descriptions.append("🎯 **Critical Hit!**")

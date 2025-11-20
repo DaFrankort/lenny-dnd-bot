@@ -1,4 +1,5 @@
 import dataclasses
+import re
 from enum import Enum
 from typing import Any
 
@@ -166,6 +167,36 @@ class SingleRollResult:
     @property
     def is_dirty_twenty(self) -> bool:
         return self.special == DiceSpecial.DIRTY20
+
+    @property
+    def is_comparison_result(self) -> bool:
+        expression_clean = self.expression.replace("[", "").replace("]", "")
+        print(expression_clean)
+        if not any(op in expression_clean for op in (">", "<", "==", "!=", ">=", "<=")):
+            return False
+        if "(" not in expression_clean or ")" not in expression_clean:
+            return True  # Simple expressions are guaranteed to be a comparison result
+        if self.total not in (0, 1):
+            return False  # Result is not binary, so cannot be a comparison result.
+
+        parts = re.findall(r"\([^()]*\)", expression_clean)
+        if len(parts) == 1 and parts[0] == expression_clean:
+            return True
+
+        print("advanced")
+        for part in parts:
+            if not any(op in part for op in (">", "<", "==", "!=", ">=", "<=")):
+                continue
+
+            result = d20.roll(expr=part)
+            if result.total == 0 and self.total == 0:
+                return True
+
+            after = expression_clean.split(part, 1)[1]
+            if any(op in after for op in "+-*/"):
+                continue  # arithmetic modifies the result → not a comparison result
+            return True
+        return False  # TODO Add check to see if total is 0 or 1 because of the comparison or not.
 
 
 @dataclasses.dataclass

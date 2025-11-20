@@ -70,6 +70,17 @@ class MultiRollEmbed(UserActionEmbed):
         winning_result = self._get_roll_list(result.rolls, False)
         losing_result = self._get_roll_list(result.rolls_lose, True)
         footer = f"\n🎲 **{reason}: {result.total}**"
+        if all(roll.has_comparison_result for roll in result.rolls):
+            length = len(result.rolls)
+            succeeded = length - sum(r.total == 0 and r.has_comparison_result for r in result.rolls)
+            if succeeded == 0:
+                reason_result = "Failure"
+            elif succeeded == length:
+                reason_result = "Success"
+            else:
+                reason_result = f"{succeeded}/{length} Succeeded!"
+
+            footer = f"\n🎲 **{reason}: {reason_result}**"
 
         if len(winning_result) > 1024:
             super().__init__(itr, title, "⚠️ Message too long, try sending a shorter expression!")

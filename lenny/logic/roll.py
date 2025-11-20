@@ -1,5 +1,4 @@
 import dataclasses
-import re
 from enum import Enum
 from typing import Any
 
@@ -110,6 +109,17 @@ def _contains_dice(node: d20.Number) -> bool:
     return len(_extract_dice(node)) > 0
 
 
+def _has_comparison_result(expr: d20.Expression) -> bool:
+    print(expr.value)  # type: ignore
+    if isinstance(expr.value, d20.BinOp):  # type: ignore
+        return True  # Is direct BinOp statement
+    if expr.total not in (0, 1):
+        return False  # Result has to be binary value
+
+    # TODO -> Iterate through the expression and determine if the BinOp is responsible for the total being 0 or 1.
+    return True
+
+
 def _is_d20(dice: d20.Die | d20.Dice | Any) -> bool:
     if isinstance(dice, d20.Die):
         return dice.size == 20  # type: ignore
@@ -155,6 +165,7 @@ class SingleRollResult:
     total: int
     special: DiceSpecial | None
     contains_dice: bool
+    has_comparison_result: bool
 
     @property
     def is_natural_twenty(self) -> bool:
@@ -167,34 +178,6 @@ class SingleRollResult:
     @property
     def is_dirty_twenty(self) -> bool:
         return self.special == DiceSpecial.DIRTY20
-
-    @property
-    def is_comparison_result(self) -> bool:
-        expression_clean = self.expression.replace("[", "").replace("]", "")
-        if not any(op in expression_clean for op in (">", "<", "==", "!=", ">=", "<=")):
-            return False
-        if "(" not in expression_clean or ")" not in expression_clean:
-            return True  # Simple expressions are guaranteed to be a comparison result
-        if self.total not in (0, 1):
-            return False  # Result is not binary, so cannot be a comparison result.
-
-        parts = re.findall(r"\([^()]*\)", expression_clean)
-        if len(parts) == 1 and parts[0] == expression_clean:
-            return True
-
-        for part in parts:
-            if not any(op in part for op in (">", "<", "==", "!=", ">=", "<=")):
-                continue
-
-            result = d20.roll(expr=part)
-            if result.total == 0 and self.total == 0:
-                return True
-
-            after = expression_clean.split(part, 1)[1]
-            if any(op in after for op in "+-*/"):
-                continue  # arithmetic modifies the result → not a comparison result
-            return True
-        return False
 
 
 @dataclasses.dataclass
@@ -246,8 +229,9 @@ def _roll_single(expression: str) -> SingleRollResult:
         special = DiceSpecial.DIRTY20
 
     contains_dice = _contains_dice(result.expr)
+    has_comparison_result = _has_comparison_result(result.expr)
 
-    return SingleRollResult(str(result), result.total, special, contains_dice)
+    return SingleRollResult(str(result), result.total, special, contains_dice, has_comparison_result)
 
 
 def _validate_expression(expression: str) -> None:

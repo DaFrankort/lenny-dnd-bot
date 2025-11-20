@@ -110,9 +110,12 @@ def _contains_dice(node: d20.Number) -> bool:
 
 
 def _has_comparison_result(expr: d20.Expression) -> bool:
-    if not isinstance(expr.roll, d20.BinOp):  # type: ignore
+    roll = expr.roll  # type: ignore
+    if isinstance(expr.roll, d20.Parenthetical):  # type: ignore
+        roll = roll.value  # type: ignore
+    if not isinstance(roll, d20.BinOp):  # type: ignore
         return False
-    return expr.roll.op in {">", "<", ">=", "<=", "==", "!="}  # type: ignore
+    return roll.op in {">", "<", ">=", "<=", "==", "!="}  # type: ignore
 
 
 def _is_d20(dice: d20.Die | d20.Dice | Any) -> bool:

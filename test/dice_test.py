@@ -117,6 +117,7 @@ class TestDiceExpression:
             ("1>=1", True),
             ("1<=1", True),
             ("(6>7)", True),
+            ("(((((6>7)))))", True),
             ("(6>7)*1", False),
             ("(6>7)*0", False),
             ("(6>7)*(1d8+7)", False),

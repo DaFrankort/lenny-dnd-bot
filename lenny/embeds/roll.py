@@ -32,7 +32,7 @@ class RollEmbed(UserActionEmbed):
         roll = result.roll
         descriptions.append("")
         if roll.has_comparison_result:
-            success_status = when(roll.total == 0, "Fail", "Success")
+            success_status = when(roll.total == 0, "Failure", "Success")
             descriptions.append(f"🎲 **{reason}: {success_status}**")
         else:
             descriptions.append(f"🎲 **{reason}: {roll.total}**")

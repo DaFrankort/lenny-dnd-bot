@@ -196,7 +196,7 @@ class SingleRollResult:
             if any(op in after for op in "+-*/"):
                 continue  # arithmetic modifies the result → not a comparison result
             return True
-        return False  # TODO Add check to see if total is 0 or 1 because of the comparison or not.
+        return False
 
 
 @dataclasses.dataclass

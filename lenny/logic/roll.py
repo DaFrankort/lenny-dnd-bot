@@ -110,14 +110,37 @@ def _contains_dice(node: d20.Number) -> bool:
 
 
 def _has_comparison_result(expr: d20.Expression) -> bool:
-    print(expr.value)  # type: ignore
-    if isinstance(expr.value, d20.BinOp):  # type: ignore
-        return True  # Is direct BinOp statement
     if expr.total not in (0, 1):
         return False  # Result has to be binary value
 
-    # TODO -> Iterate through the expression and determine if the BinOp is responsible for the total being 0 or 1.
-    return True
+    roll = expr.roll  # type: ignore
+    if not isinstance(roll, d20.BinOp):  # type: ignore
+        return False
+
+    op = expr.roll.op or ""  # type: ignore
+    left = expr.roll.left  # type: ignore
+    right = expr.roll.right  # type: ignore
+
+    def is_comparison_node(node) -> bool:  # type: ignore
+        if isinstance(node, d20.Parenthetical):
+            return is_comparison_node(node.value)  # type: ignore
+        if isinstance(node, d20.BinOp) and node.op in (">", "<", ">=", "<=", "==", "!="):  # type: ignore
+            return True
+        if isinstance(node, d20.BinOp):
+            return is_comparison_node(node.left) or is_comparison_node(node.right)  # type: ignore
+        return False
+
+    if op in ("*", "/"):  # type: ignore
+        if is_comparison_node(left):  # type: ignore
+            return left.total == 0  # type: ignore
+        if is_comparison_node(right):  # type: ignore
+            return right.total == 0  # type: ignore
+        return False
+
+    if op in ("+", "-"):
+        return False  # Addition is never a binary value. (0 + 0 = 0, not failure.)
+
+    return True  # Is direct BinOp statement
 
 
 def _is_d20(dice: d20.Die | d20.Dice | Any) -> bool:

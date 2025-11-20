@@ -107,6 +107,35 @@ class TestDiceExpression:
         assert dice1.roll.contains_dice
         assert not dice2.roll.contains_dice
 
+    @pytest.mark.parametrize(
+        "expr, expected",
+        [
+            ("1>0", True),
+            ("1<0", True),
+            ("1==1", True),
+            ("1!=1", True),
+            ("1>=1", True),
+            ("1<=1", True),
+            ("(6>7)*1", True),
+            ("(6>7)*0", True),
+            ("(6>7)*(1d8+7)", True),
+            ("1d20", False),
+            ("1d20+7", False),
+            ("1d20*7", False),
+            ("1d20-7", False),
+            ("1d20/2", False),
+            ("(6<7)*0", False),
+            ("(6<7)*1", False),
+            ("1", False),
+            ("0", False),
+            ("4d8kh3", False),
+            ("1d4ro1", False),
+        ],
+    )
+    def test_has_comparison_result(self, expr: str, expected: bool):
+        result = roll(expr).roll.has_comparison_result
+        assert result == expected, f"expression '{expr}' expected {expected} but got {result}"
+
 
 class TestDiceExpressionCache:
     @pytest.fixture

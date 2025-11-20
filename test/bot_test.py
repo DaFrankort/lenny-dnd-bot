@@ -86,7 +86,7 @@ class TestBotCommands:
             (
                 "roll",
                 {
-                    "diceroll": ["1d20+6", "4d8kh3", "1d8ro1"],
+                    "diceroll": ["1d20+6", "4d8kh3", "1d8ro1", "1>0", "1<0", "(1d20+7>14) * 1d8"],
                     "reason": [None, "Attack"],
                 },
             ),
@@ -94,21 +94,21 @@ class TestBotCommands:
             (
                 "advantage",
                 {
-                    "diceroll": ["1d20+6", "4d8kh3", "1d8ro1"],
+                    "diceroll": ["1d20+6", "4d8kh3", "1d8ro1", "1>0", "1<0", "(1d20+7>14) * 1d8"],
                     "reason": [None, "Damage"],
                 },
             ),
             (
                 "disadvantage",
                 {
-                    "diceroll": ["1d20+6", "4d8kh3", "1d8ro1"],
+                    "diceroll": ["1d20+6", "4d8kh3", "1d8ro1", "1>0", "1<0", "(1d20+7>14) * 1d8"],
                     "reason": [None, "Fire"],
                 },
             ),
             (
                 "multiroll",
                 {
-                    "diceroll": ["1d20+6", "4d8kh3", "1d8ro1"],
+                    "diceroll": ["1d20+6", "4d8kh3", "1d8ro1", "1>0", "1<0", "(1d20+7>14) * 1d8"],
                     "amount": [1, 3],
                     "advantage": Advantage.values(),
                     "reason": [None, "Attack"],

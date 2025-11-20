@@ -109,6 +109,15 @@ def _contains_dice(node: d20.Number) -> bool:
     return len(_extract_dice(node)) > 0
 
 
+def _has_comparison_result(expr: d20.Expression) -> bool:
+    r = expr.roll  # type: ignore
+    while isinstance(r, d20.Parenthetical):  # type: ignore
+        r = r.value  # type: ignore
+    if not isinstance(r, d20.BinOp):  # type: ignore
+        return False
+    return r.op in {">", "<", ">=", "<=", "==", "!="}  # type: ignore
+
+
 def _is_d20(dice: d20.Die | d20.Dice | Any) -> bool:
     if isinstance(dice, d20.Die):
         return dice.size == 20  # type: ignore
@@ -154,6 +163,7 @@ class SingleRollResult:
     total: int
     special: DiceSpecial | None
     contains_dice: bool
+    has_comparison_result: bool
 
     @property
     def is_natural_twenty(self) -> bool:
@@ -217,8 +227,9 @@ def _roll_single(expression: str) -> SingleRollResult:
         special = DiceSpecial.DIRTY20
 
     contains_dice = _contains_dice(result.expr)
+    has_comparison_result = _has_comparison_result(result.expr)
 
-    return SingleRollResult(str(result), result.total, special, contains_dice)
+    return SingleRollResult(str(result), result.total, special, contains_dice, has_comparison_result)
 
 
 def _validate_expression(expression: str) -> None:

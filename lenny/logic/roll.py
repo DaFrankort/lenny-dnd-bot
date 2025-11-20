@@ -171,7 +171,6 @@ class SingleRollResult:
     @property
     def is_comparison_result(self) -> bool:
         expression_clean = self.expression.replace("[", "").replace("]", "")
-        print(expression_clean)
         if not any(op in expression_clean for op in (">", "<", "==", "!=", ">=", "<=")):
             return False
         if "(" not in expression_clean or ")" not in expression_clean:
@@ -183,7 +182,6 @@ class SingleRollResult:
         if len(parts) == 1 and parts[0] == expression_clean:
             return True
 
-        print("advanced")
         for part in parts:
             if not any(op in part for op in (">", "<", "==", "!=", ">=", "<=")):
                 continue

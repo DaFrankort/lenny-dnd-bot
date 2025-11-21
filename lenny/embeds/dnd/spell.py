@@ -14,13 +14,21 @@ class SpellEmbed(DNDEntryEmbed):
 
         super().__init__(spell)
 
+        render_two_lines_per_field = len(spell.casting_time) > 20
+
         self._set_embed_color(spell)
         self.add_field(name="Type", value=spell.level_school, inline=True)
         self.add_field(name="Casting Time", value=spell.casting_time, inline=True)
+        if render_two_lines_per_field:
+            self.add_field(name="", value="")
         self.add_field(name="Range", value=spell.spell_range, inline=True)
         self.add_field(name="Components", value=spell.components, inline=True)
+        if render_two_lines_per_field:
+            self.add_field(name="", value="")
         self.add_field(name="Duration", value=spell.duration, inline=True)
         self.add_field(name="Classes", value=classes, inline=True)
+        if render_two_lines_per_field:
+            self.add_field(name="", value="")
 
         if len(spell.description) > 0:
             # Add horizontal line

@@ -14,7 +14,7 @@ class SpellEmbed(DNDEntryEmbed):
 
         super().__init__(spell)
 
-        two_fields_per_line = len(spell.casting_time) > 20
+        two_fields_per_line = len(spell.casting_time) > 24
 
         self._set_embed_color(spell)
         self.add_field(name="Type", value=spell.level_school, inline=True)

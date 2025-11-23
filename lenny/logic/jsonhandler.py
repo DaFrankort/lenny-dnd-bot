@@ -5,7 +5,7 @@ import os
 import time
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Any, Generic, Type, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 import discord
 
@@ -108,7 +108,7 @@ H = TypeVar("H", bound=JsonHandler)  # type: ignore
 class JsonFolderHandler(ABC, Generic[H]):
     _data: dict[int, H] = {}
     _last_accessed: dict[int, int] = {}
-    _handler_type: Type[H]
+    _handler_type: type[H]
 
     def __init__(self):
         if not self._handler_type:
@@ -128,9 +128,8 @@ class JsonFolderHandler(ABC, Generic[H]):
         self._last_accessed[key] = int(time.time())
         return self._data[key]
 
-    def clear_cache(self):
+    def clear_cache(self, max_age: int = 1800):
         now = int(time.time())
-        max_age = 30 * 60  # Seconds (30 minutes)
         threshold = now - max_age
         for key in self.keys:
             last_accessed = self._last_accessed.get(key, 0)

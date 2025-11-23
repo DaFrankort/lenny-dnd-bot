@@ -7,6 +7,7 @@ from embeds.embed import SuccessEmbed
 from logic.color import (
     UserColor,
     autocomplete_hex_color,
+    autocomplete_rgb_color,
     save_hex_color,
     save_rgb_color,
 )
@@ -56,6 +57,11 @@ class ColorSetRGBCommand(SimpleCommand):
         r="A value from 0-255 representing the amount of red.",
         g="A value from 0-255 representing the amount of green.",
         b="A value from 0-255 representing the amount of blue.",
+    )
+    @autocomplete(
+        r=autocomplete_rgb_color,
+        g=autocomplete_rgb_color,
+        b=autocomplete_rgb_color,
     )
     async def handle(
         self,

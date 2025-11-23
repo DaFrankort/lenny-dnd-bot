@@ -4,6 +4,7 @@ import logging
 import os
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
+import time
 from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 import discord
@@ -103,6 +104,7 @@ class JsonHandler(Generic[T]):
 
 class JsonFolderHandler(ABC):
     _data: dict[int, JsonHandler[Any]] = {}
+    _last_accessed: dict[int, int] = {}
 
     @abstractmethod
     def _itr_key(self, itr: discord.Interaction) -> int:
@@ -119,7 +121,18 @@ class JsonFolderHandler(ABC):
         key = self._itr_key(itr)
         if key not in self._data:
             self._data[key] = self._load(itr)
+        self._last_accessed[key] = int(time.time())
         return self._data[key]
+
+    def clear_cache(self):
+        now = int(time.time())
+        max_age = 30 * 60  # Seconds (30 minutes)
+        threshold = now - max_age
+        for key in self.keys:
+            last_accessed = self._last_accessed.get(key, 0)
+            if last_accessed < threshold:
+                self._last_accessed.pop(key, None)
+                self._data.pop(key, None)
 
     @property
     def keys(self) -> set[int]:

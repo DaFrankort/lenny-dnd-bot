@@ -5,7 +5,7 @@ import os
 import time
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Any, Generic, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, Type, TypeVar
 
 import discord
 
@@ -102,9 +102,17 @@ class JsonHandler(Generic[T]):
         )
 
 
-class JsonFolderHandler(ABC):
-    _data: dict[int, JsonHandler[Any]] = {}
+H = TypeVar("H", bound=JsonHandler)  # type: ignore
+
+
+class JsonFolderHandler(ABC, Generic[H]):
+    _data: dict[int, H] = {}
     _last_accessed: dict[int, int] = {}
+    _handler_type: Type[H]
+
+    def __init__(self):
+        if not self._handler_type:
+            raise NotImplementedError("_handler_type not implemented!")
 
     @abstractmethod
     def _itr_key(self, itr: discord.Interaction) -> int:
@@ -113,14 +121,10 @@ class JsonFolderHandler(ABC):
         Additionally raise any interaction-checks in case Interaction is not allowed.
         """
 
-    @abstractmethod
-    def _load(self, itr: discord.Interaction) -> JsonHandler[Any]:
-        """Load a new JsonHandler instance."""
-
-    def get(self, itr: discord.Interaction) -> JsonHandler[Any]:
+    def get(self, itr: discord.Interaction) -> H:
         key = self._itr_key(itr)
         if key not in self._data:
-            self._data[key] = self._load(itr)
+            self._data[key] = self._handler_type(str(key))
         self._last_accessed[key] = int(time.time())
         return self._data[key]
 

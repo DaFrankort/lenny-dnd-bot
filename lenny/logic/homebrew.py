@@ -212,14 +212,13 @@ class HomebrewGuildData(JsonHandler[list[HomebrewEntry]]):
         return [choice.choice for choice in choices[:limit]]
 
 
-class GlobalHomebrewData(JsonFolderHandler):
+class GlobalHomebrewData(JsonFolderHandler[HomebrewGuildData]):
+    _handler_type = HomebrewGuildData
+
     def _itr_key(self, itr: discord.Interaction) -> int:
         if not itr.guild_id:
             raise ValueError("Can only get homebrew content in a server!")
         return itr.guild_id
-
-    def _load(self, itr: discord.Interaction) -> HomebrewGuildData:
-        return HomebrewGuildData(self._itr_key(itr))
 
 
 HomebrewData = GlobalHomebrewData()

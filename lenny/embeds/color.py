@@ -25,7 +25,7 @@ class ColorSetEmbed(UserActionEmbed):
 
         descriptions: list[str] = []
         if self.is_hex:
-            descriptions.append(f"``{UserColor.to_hex(result.old_color)}`` => ``#{UserColor.to_hex(result.color)}``")
+            descriptions.append(f"``{UserColor.to_hex(result.old_color)}`` => ``{UserColor.to_hex(result.color)}``")
         else:
             ro, go, bo = UserColor.to_rgb(result.old_color)
             rn, gn, bn = UserColor.to_rgb(result.color)

@@ -32,7 +32,7 @@ class TestHomebrew:
     def test_add_guild(self, itr: Interaction, data: GlobalHomebrewData):
         guild_data = data.get(itr)
         assert guild_data is not None
-        assert itr.guild_id in data.guilds
+        assert itr.guild_id in data.keys
 
     def test_add_homebrew_entry(self, itr: Interaction, data: GlobalHomebrewData):
         guild_data = data.get(itr)

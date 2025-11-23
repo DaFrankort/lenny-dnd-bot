@@ -2,8 +2,11 @@ import dataclasses
 import json
 import logging
 import os
+from abc import ABC, abstractmethod
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any, Generic, TypeVar
+
+import discord
 
 if TYPE_CHECKING:
     from _typeshed import DataclassInstance
@@ -96,3 +99,28 @@ class JsonHandler(Generic[T]):
         raise NotImplementedError(
             f"Json handler deserialization is not implemented for {type(obj)} in {self.__class__.__name__}"
         )
+
+
+class JsonFolderHandler(ABC):
+    _data: dict[int, JsonHandler[Any]] = {}
+
+    @abstractmethod
+    def _itr_key(self, itr: discord.Interaction) -> int:
+        """
+        Define which key to use from the Interaction. (guild_id, user_id, ...)
+        Additionally raise any interaction-checks in case Interaction is not allowed.
+        """
+        ...
+
+    @abstractmethod
+    def _load(self, itr: discord.Interaction) -> JsonHandler[Any]: ...
+
+    def get(self, itr: discord.Interaction) -> JsonHandler[Any]:
+        key = self._itr_key(itr)
+        if key not in self._data:
+            self._data[key] = self._load(itr)
+        return self._data[key]
+
+    @property
+    def keys(self) -> set[int]:
+        return set(self._data.keys())

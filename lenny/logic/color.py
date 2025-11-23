@@ -3,6 +3,7 @@ import io
 import re
 
 import discord
+from discord.app_commands import Choice
 from PIL import Image, ImageDraw
 
 from logic.jsonhandler import JsonHandler
@@ -58,6 +59,20 @@ def save_hex_color(itr: discord.Interaction, hex_color: str) -> UserColorSaveRes
     UserColor.add(itr, color)
 
     return UserColorSaveResult(old_color, color)
+
+
+async def autocomplete_hex_color(itr: discord.Interaction, current: str) -> list[Choice[str]]:
+    current_clean: str = current.replace("#", "").replace(" ", "").strip()
+
+    if not current_clean:  # Show current color if no input
+        color = UserColor.get(itr)
+        hex_color = UserColor.to_hex(color)
+        return [Choice(name=hex_color, value=hex_color)]
+
+    # Enforce 6-characters
+    current_clean = (current_clean[:6]).ljust(6, "0")
+    hex_color = f"#{current_clean}"
+    return [Choice(name=hex_color, value=hex_color)]
 
 
 def save_rgb_color(itr: discord.Interaction, r: int, g: int, b: int) -> UserColorSaveResult:

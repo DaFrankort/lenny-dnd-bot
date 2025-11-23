@@ -2,9 +2,9 @@ import dataclasses
 import json
 import logging
 import os
+import time
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
-import time
 from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 import discord
@@ -112,10 +112,10 @@ class JsonFolderHandler(ABC):
         Define which key to use from the Interaction. (guild_id, user_id, ...)
         Additionally raise any interaction-checks in case Interaction is not allowed.
         """
-        ...
 
     @abstractmethod
-    def _load(self, itr: discord.Interaction) -> JsonHandler[Any]: ...
+    def _load(self, itr: discord.Interaction) -> JsonHandler[Any]:
+        """Load a new JsonHandler instance."""
 
     def get(self, itr: discord.Interaction) -> JsonHandler[Any]:
         key = self._itr_key(itr)

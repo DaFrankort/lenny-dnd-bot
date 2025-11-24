@@ -3,6 +3,7 @@ import os
 
 import discord
 from discord import app_commands
+from discord.ext import tasks
 from dotenv import load_dotenv
 
 from commands.charactergen import CharacterGenCommand
@@ -30,6 +31,7 @@ from context_menus.delete import DeleteContextMenu
 from context_menus.reroll import RerollContextMenu
 from context_menus.timestamp import RequestTimestampContextMenu
 from context_menus.zip_files import ZipAttachmentsContextMenu
+from logic.homebrew import HomebrewData
 from logic.voice_chat import VC, Sounds
 
 
@@ -121,6 +123,7 @@ class Bot(discord.Client):
             status=discord.Status.online,
         )
         logging.info("Finished initialization")
+        self._cache_cleaner.start()
 
     async def _attempt_sync_guild(self):
         guild = discord.utils.get(self.guilds, id=self.guild_id)
@@ -129,3 +132,8 @@ class Bot(discord.Client):
         else:
             await self.tree.sync(guild=guild)
             logging.info("Connected to guild: %s (ID: %d)", guild.name, guild.id)
+
+    @tasks.loop(hours=1)
+    async def _cache_cleaner(self):
+        logging.debug("Cleaning cache...")
+        HomebrewData.clear_cache()

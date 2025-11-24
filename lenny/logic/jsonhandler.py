@@ -2,8 +2,12 @@ import dataclasses
 import json
 import logging
 import os
+import time
+from abc import ABC, abstractmethod
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any, Generic, TypeVar
+
+import discord
 
 if TYPE_CHECKING:
     from _typeshed import DataclassInstance
@@ -96,3 +100,43 @@ class JsonHandler(Generic[T]):
         raise NotImplementedError(
             f"Json handler deserialization is not implemented for {type(obj)} in {self.__class__.__name__}"
         )
+
+
+THandler = TypeVar("THandler", bound=JsonHandler[Any])  # pylint: disable=invalid-name
+
+
+class JsonFolderHandler(ABC, Generic[THandler]):
+    _data: dict[int, THandler] = {}
+    _last_accessed: dict[int, int] = {}
+    _handler_type: type[THandler]
+
+    def __init__(self):
+        if not self._handler_type:
+            raise NotImplementedError("_handler_type not implemented!")
+
+    @abstractmethod
+    def _itr_key(self, itr: discord.Interaction) -> int:
+        """
+        Define which key to use from the Interaction. (guild_id, user_id, ...)
+        Additionally raise any interaction-checks in case Interaction is not allowed.
+        """
+
+    def get(self, itr: discord.Interaction) -> THandler:
+        key = self._itr_key(itr)
+        if key not in self._data:
+            self._data[key] = self._handler_type(str(key))
+        self._last_accessed[key] = int(time.time())
+        return self._data[key]
+
+    def clear_cache(self, max_age: int = 1800):
+        now = int(time.time())
+        threshold = now - max_age
+        for key in self.keys:
+            last_accessed = self._last_accessed.get(key, 0)
+            if last_accessed < threshold:
+                self._last_accessed.pop(key, None)
+                self._data.pop(key, None)
+
+    @property
+    def keys(self) -> set[int]:
+        return set(self._data.keys())

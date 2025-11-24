@@ -1,6 +1,4 @@
 import dataclasses
-import logging
-import os
 from typing import Any
 
 import discord
@@ -8,7 +6,7 @@ from discord.app_commands import Choice
 
 from logic.config import user_is_admin_or_has_config_permissions
 from logic.dnd.abstract import FuzzyMatchResult, fuzzy_matches
-from logic.jsonhandler import JsonHandler
+from logic.jsonhandler import JsonFolderHandler, JsonHandler
 from methods import ChoicedEnum
 
 HOMEBREW_PATH: str = "./temp/homebrew/"
@@ -214,31 +212,13 @@ class HomebrewGuildData(JsonHandler[list[HomebrewEntry]]):
         return [choice.choice for choice in choices[:limit]]
 
 
-class GlobalHomebrewData:
-    _data: dict[int, HomebrewGuildData] = {}
+class GlobalHomebrewData(JsonFolderHandler[HomebrewGuildData]):
+    _handler_type = HomebrewGuildData
 
-    def __init__(self):
-        if not os.path.exists(HOMEBREW_PATH):
-            os.makedirs(HOMEBREW_PATH)
-            logging.info("Created homebrew directory at '%s'", HOMEBREW_PATH)
-            return
-
-        for filename in os.listdir(HOMEBREW_PATH):
-            if not filename.endswith(".json"):
-                continue
-            guild_id = int(filename[:-5])
-            self._data[guild_id] = HomebrewGuildData(guild_id)
-
-    def get(self, itr: discord.Interaction) -> HomebrewGuildData:
+    def _itr_key(self, itr: discord.Interaction) -> int:
         if not itr.guild_id:
             raise ValueError("Can only get homebrew content in a server!")
-        if itr.guild_id not in self._data:
-            self._data[itr.guild_id] = HomebrewGuildData(itr.guild_id)
-        return self._data[itr.guild_id]
-
-    @property
-    def guilds(self) -> set[int]:
-        return set(self._data.keys())
+        return itr.guild_id
 
 
 HomebrewData = GlobalHomebrewData()

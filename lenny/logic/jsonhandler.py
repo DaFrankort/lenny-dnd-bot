@@ -102,7 +102,7 @@ class JsonHandler(Generic[T]):
         )
 
 
-THandler = TypeVar("THandler", bound=JsonHandler)  # type: ignore
+THandler = TypeVar("THandler", bound=JsonHandler[Any])  # pylint: disable=invalid-name
 
 
 class JsonFolderHandler(ABC, Generic[THandler]):

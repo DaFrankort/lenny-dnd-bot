@@ -102,13 +102,13 @@ class JsonHandler(Generic[T]):
         )
 
 
-H = TypeVar("H", bound=JsonHandler)  # type: ignore
+THandler = TypeVar("THandler", bound=JsonHandler)  # type: ignore
 
 
-class JsonFolderHandler(ABC, Generic[H]):
-    _data: dict[int, H] = {}
+class JsonFolderHandler(ABC, Generic[THandler]):
+    _data: dict[int, THandler] = {}
     _last_accessed: dict[int, int] = {}
-    _handler_type: type[H]
+    _handler_type: type[THandler]
 
     def __init__(self):
         if not self._handler_type:
@@ -121,7 +121,7 @@ class JsonFolderHandler(ABC, Generic[H]):
         Additionally raise any interaction-checks in case Interaction is not allowed.
         """
 
-    def get(self, itr: discord.Interaction) -> H:
+    def get(self, itr: discord.Interaction) -> THandler:
         key = self._itr_key(itr)
         if key not in self._data:
             self._data[key] = self._handler_type(str(key))

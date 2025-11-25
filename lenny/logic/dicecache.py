@@ -128,4 +128,11 @@ class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
         return self.data[user_id].last_initiative
 
 
+# class GlobalDiceCache(JsonFolderHandler[DiceCacheHandler]):
+#     _handler_type = DiceCacheHandler
+
+#     def _itr_key(self, itr: discord.Interaction) -> int:
+#         return itr.user.id
+
+
 DiceCache = DiceCacheHandler()

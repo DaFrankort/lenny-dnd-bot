@@ -31,6 +31,7 @@ from context_menus.delete import DeleteContextMenu
 from context_menus.reroll import RerollContextMenu
 from context_menus.timestamp import RequestTimestampContextMenu
 from context_menus.zip_files import ZipAttachmentsContextMenu
+from logic.dicecache import DiceCache
 from logic.homebrew import HomebrewData
 from logic.voice_chat import VC, Sounds
 
@@ -137,3 +138,4 @@ class Bot(discord.Client):
     async def _cache_cleaner(self):
         logging.debug("Cleaning cache...")
         HomebrewData.clear_cache()
+        DiceCache.clear_cache(max_age=900)

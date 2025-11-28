@@ -9,7 +9,7 @@ class Language(DNDEntry):
     description: list[Description]
 
     def __init__(self, obj: dict[str, Any]):
-        self.entry_type = "dict"
+        self.entry_type = "language"
         self.emoji = "🗣️"
 
         self.name = obj["name"]

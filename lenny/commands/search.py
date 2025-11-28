@@ -10,6 +10,7 @@ from embeds.search import MultiDNDSelectView, SearchLayoutView, send_dnd_embed
 from logic.config import Config
 from logic.dnd.abstract import DNDEntry
 from logic.dnd.data import Data
+from logic.searchcache import SearchCache
 
 
 async def send_dnd_entry_lookup_result(
@@ -30,11 +31,14 @@ async def send_dnd_entry_lookup_result(
         await itr.response.send_message(view=view, ephemeral=True)
 
     else:
+        SearchCache.get(itr).store(found[0])
         await send_dnd_embed(itr, found[0])
 
 
 async def spell_name_autocomplete(itr: discord.Interaction, current: str):
     sources = Config.allowed_sources(guild=itr.guild)
+    if not current.strip():
+        return SearchCache.get(itr).get_choices("spell")
     return Data.spells.get_autocomplete_suggestions(current, sources)
 
 

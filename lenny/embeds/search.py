@@ -39,6 +39,7 @@ from logic.dnd.species import Species
 from logic.dnd.spell import Spell
 from logic.dnd.table import DNDTable
 from logic.dnd.vehicle import Vehicle
+from logic.searchcache import SearchCache
 
 
 def get_dnd_embed(itr: discord.Interaction, dnd_entry: DNDEntry):  # pylint: disable=too-many-return-statements
@@ -188,6 +189,7 @@ class MultiDNDSelect(discord.ui.Select["MultiDNDSelectView"]):
         entry = self.entries[index]
 
         logging.debug("%s: user %s selected option %d: '%s`", self.name, interaction.user.display_name, index, entry.name)
+        SearchCache.get(interaction).store(entry)
         await send_dnd_embed(interaction, entry)
 
 

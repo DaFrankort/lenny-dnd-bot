@@ -5,15 +5,14 @@ from logic.jsonhandler import JsonFolderHandler, JsonHandler
 
 
 class SearchCacheHandler(JsonHandler[list[str]]):
-    def __init__(self, user_id: int):
-        super().__init__(str(user_id), "user_search")
+    def __init__(self, user_id: str):
+        super().__init__(user_id, "user_search")
 
     def store(self, entry: DNDEntry):
         value = entry.name.strip()
         key = entry.entry_type
         if key not in self.data:
-            self.data[key] = [value]
-            return
+            self.data[key] = []
 
         if value in self.data[key]:
             self.data[key].remove(value)

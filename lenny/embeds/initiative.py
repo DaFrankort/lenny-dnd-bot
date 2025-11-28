@@ -19,7 +19,7 @@ class InitiativeRollModal(SimpleModal):
 
     def __init__(self, itr: Interaction):
         self.name.input.placeholder = itr.user.display_name.title().strip()
-        prev_initiative = str(DiceCache.get_last_initiative(itr))
+        prev_initiative = str(DiceCache.get(itr).get_last_initiative())
         self.modifier.input.default = prev_initiative
         self.modifier.input.placeholder = prev_initiative
         super().__init__(itr, title="Rolling for Initiative")
@@ -32,7 +32,7 @@ class InitiativeRollModal(SimpleModal):
         if modifier is None:
             await itr.response.send_message("Initiative Modifier must be a number without decimals.", ephemeral=True)
             return
-        DiceCache.store_initiative(itr, modifier)
+        DiceCache.get(itr).store_initiative(modifier)
 
         advantage = self.get_choice(self.advantage, Advantage) or Advantage.NORMAL
         initiative = Initiative(itr, modifier, name, advantage)

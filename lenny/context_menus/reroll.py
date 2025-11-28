@@ -49,7 +49,7 @@ class RerollContextMenu(SimpleContextMenu):
 
         result = multi_roll(dice_notation, amount, advantage)
         embed = MultiRollEmbed(interaction, result, reason, reroll=True)
-        DiceCache.store_expression(interaction, dice_notation)
+        DiceCache.get(interaction).store_expression(dice_notation)
 
         await interaction.response.send_message(embed=embed)
         await VC.play(interaction, SoundType.ROLL)
@@ -62,7 +62,7 @@ class RerollContextMenu(SimpleContextMenu):
         reason = self._get_reason(embed)
         result = roll(dice_notation, advantage)
         embed = RollEmbed(interaction, result, reason, reroll=True)
-        DiceCache.store_expression(interaction, dice_notation)
+        DiceCache.get(interaction).store_expression(dice_notation)
 
         await interaction.response.send_message(embed=embed)
         await VC.play_dice_roll(interaction, result, reason)

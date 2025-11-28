@@ -9,11 +9,11 @@ from logic.voice_chat import VC, SoundType
 
 
 async def diceroll_autocomplete(itr: discord.Interaction, current: str):
-    return DiceCache.get_autocomplete_suggestions(itr, current)
+    return DiceCache.get(itr).get_autocomplete_suggestions(current)
 
 
 async def reason_autocomplete(itr: discord.Interaction, current: str):
-    return DiceCache.get_autocomplete_reason_suggestions(itr, current)
+    return DiceCache.get(itr).get_autocomplete_reason_suggestions(current)
 
 
 class _AbstractRollCommand(SimpleCommand):
@@ -35,8 +35,8 @@ class _AbstractRollCommand(SimpleCommand):
     ):
         self.log(itr)
         result = roll(diceroll, self.advantage)
-        DiceCache.store_expression(itr, result.expression)
-        DiceCache.store_reason(itr, reason)
+        DiceCache.get(itr).store_expression(result.expression)
+        DiceCache.get(itr).store_reason(reason)
         embed = RollEmbed(itr, result, reason)
 
         await itr.response.send_message(embed=embed)
@@ -106,8 +106,8 @@ class MultiRollCommand(SimpleCommand):
     ):
         self.log(itr)
         result = multi_roll(diceroll, amount, Advantage(advantage))
-        DiceCache.store_expression(itr, result.expression)
-        DiceCache.store_reason(itr, reason)
+        DiceCache.get(itr).store_expression(result.expression)
+        DiceCache.get(itr).store_reason(reason)
         embed = MultiRollEmbed(itr, result, reason)
 
         await itr.response.send_message(embed=embed)

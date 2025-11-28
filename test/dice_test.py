@@ -5,7 +5,7 @@ import pytest
 from discord import Interaction
 from utils.mocking import MockInteraction
 
-from logic.dicecache import DiceCache
+from logic.dicecache import DiceCache, DiceCacheInfo
 from logic.roll import Advantage, roll
 
 
@@ -166,37 +166,37 @@ class TestDiceExpressionCache:
         ["1d20+5", "123+456", "6"],
     )
     def test_store_expression_adds_to_cache(self, itr: Interaction, expression: str):
-        DiceCache.store_expression(itr, expression)
-        user_id = str(itr.user.id)
-        data = DiceCache.data
+        DiceCache.get(itr).store_expression(expression)
+        key = DiceCache.get(itr).dice_key
+        data = DiceCache.get(itr).data
 
-        assert user_id in data, f"User ID {user_id} should be in cache data."
-        assert expression in data[user_id].last_used, f"'{expression}' should be in last_used for user."
+        assert expression in data[key].rolls, f"'{expression}' should be in 'rolls'."
 
     @pytest.mark.parametrize(
         "reason",
         ["reason", "attack", "1d20"],
     )
     def test_store_reason(self, itr: Interaction, reason: str):
-        DiceCache.store_reason(itr, reason)
-        user_id = str(itr.user.id)
-        data = DiceCache.data
+        DiceCache.get(itr).store_reason(reason)
+        key = DiceCache.get(itr).dice_key
+        data = DiceCache.get(itr).data
 
-        assert user_id in data, f"User ID {user_id} should not be in cache for invalid expression."
-        assert reason in data[user_id].last_used_reason, f"'{reason} should be in last_used_reason"
+        assert reason in data[key].reasons, f"'{reason} should be in 'reasons'"
 
     def test_get_autocomplete_suggestions_empty(self, itr: Interaction):
-        DiceCache.data = {}
-        suggestions = DiceCache.get_autocomplete_suggestions(itr, "")
+        key = DiceCache.get(itr).dice_key
+        DiceCache.get(itr).data[key] = DiceCacheInfo([], [], 0)
+        suggestions = DiceCache.get(itr).get_autocomplete_suggestions("")
         assert suggestions == [], "Suggestions should be empty when no data is present."
 
     def test_autocompletes_clean_dice_instead_of_cache(self, itr: Interaction):
-        DiceCache.data = {}
+        key = DiceCache.get(itr).dice_key
+        DiceCache.get(itr).data[key] = DiceCacheInfo([], [], 0)
         expected = "1d20"
         cached_expression = f"{expected}+5"
-        DiceCache.store_expression(itr, cached_expression)
+        DiceCache.get(itr).store_expression(cached_expression)
 
-        suggestions = DiceCache.get_autocomplete_suggestions(itr, expected)
+        suggestions = DiceCache.get(itr).get_autocomplete_suggestions(expected)
         assert (
             suggestions[0].value == expected
         ), "Autocomplete should prioritize the clean NdN query over stored modified rolls."

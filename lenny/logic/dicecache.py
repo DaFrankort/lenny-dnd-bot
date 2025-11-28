@@ -25,47 +25,53 @@ class DiceCacheInfo:
 
 
 class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
-    dice_key: str = "dice"
-
     def __init__(self, user_id: int):
         super().__init__(str(user_id), "user_cache")
-        if self.dice_key not in self.data:
-            self.data[self.dice_key] = DiceCacheInfo(rolls=[], reasons=[], initiative=0)
+        if not self.data:
+            self.cache = DiceCacheInfo(rolls=[], reasons=[], initiative=0)
+
+    @property
+    def cache(self) -> DiceCacheInfo:
+        return self.data["dice"]
+
+    @cache.setter
+    def cache(self, new_cache: DiceCacheInfo):
+        self.data["dice"] = new_cache
 
     def deserialize(self, obj: Any) -> DiceCacheInfo:
         return DiceCacheInfo.fromdict(obj)
 
     def store_expression(self, expression: str):
         """Stores a user's used diceroll input to the cache, if it is without errors."""
-        if expression in self.data[self.dice_key].rolls:
-            self.data[self.dice_key].rolls.remove(expression)
-        self.data[self.dice_key].rolls.append(expression)
+        if expression in self.cache.rolls:
+            self.cache.rolls.remove(expression)
+        self.cache.rolls.append(expression)
 
-        self.data[self.dice_key].rolls = self.data[self.dice_key].rolls[-5:]  # Store max 5 expressions
+        self.cache.rolls = self.cache.rolls[-5:]  # Store max 5 expressions
         self.save()
 
     def store_reason(self, reason: str | None):
         if reason is None:
             return
 
-        if reason in self.data[self.dice_key].reasons:
-            self.data[self.dice_key].reasons.remove(reason)
-        self.data[self.dice_key].reasons.append(reason)
+        if reason in self.cache.reasons:
+            self.cache.reasons.remove(reason)
+        self.cache.reasons.append(reason)
 
-        self.data[self.dice_key].reasons = self.data[self.dice_key].reasons[-5:]  # Store max 5 reasons
+        self.cache.reasons = self.cache.reasons[-5:]  # Store max 5 reasons
         self.save()
 
     def store_initiative(self, initiative: int):
-        if initiative == self.data[self.dice_key].initiative:
+        if initiative == self.cache.initiative:
             return
-        self.data[self.dice_key].initiative = initiative
+        self.cache.initiative = initiative
         self.save()
 
     def get_autocomplete_suggestions(self, query: str) -> list[Choice[str]]:
         """
         Returns auto-complete choices for the last roll expressions a user used when no query is given.
         """
-        rolls = self.data[self.dice_key].rolls
+        rolls = self.cache.rolls
         if len(rolls) == 0:
             return []
 
@@ -82,7 +88,7 @@ class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
         Returns auto-complete choices for the last reasons a user used when no query is given.
         If query is given, will suggest reasons containing the query.
         """
-        last_used = self.data[self.dice_key].reasons
+        last_used = self.cache.reasons
         if len(last_used) == 0:
             return []
 
@@ -104,7 +110,7 @@ class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
         return [discord.app_commands.Choice(name=reason, value=reason) for reason in filtered_reasons[:25]]
 
     def get_last_initiative(self) -> int:
-        return self.data[self.dice_key].initiative
+        return self.cache.initiative
 
 
 class GlobalDiceCache(JsonFolderHandler[DiceCacheHandler]):

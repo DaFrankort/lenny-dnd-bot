@@ -167,10 +167,9 @@ class TestDiceExpressionCache:
     )
     def test_store_expression_adds_to_cache(self, itr: Interaction, expression: str):
         DiceCache.get(itr).store_expression(expression)
-        key = DiceCache.get(itr).dice_key
-        data = DiceCache.get(itr).data
+        data = DiceCache.get(itr).cache
 
-        assert expression in data[key].rolls, f"'{expression}' should be in 'rolls'."
+        assert expression in data.rolls, f"'{expression}' should be in 'rolls'."
 
     @pytest.mark.parametrize(
         "reason",
@@ -178,20 +177,17 @@ class TestDiceExpressionCache:
     )
     def test_store_reason(self, itr: Interaction, reason: str):
         DiceCache.get(itr).store_reason(reason)
-        key = DiceCache.get(itr).dice_key
-        data = DiceCache.get(itr).data
+        data = DiceCache.get(itr).cache
 
-        assert reason in data[key].reasons, f"'{reason} should be in 'reasons'"
+        assert reason in data.reasons, f"'{reason} should be in 'reasons'"
 
     def test_get_autocomplete_suggestions_empty(self, itr: Interaction):
-        key = DiceCache.get(itr).dice_key
-        DiceCache.get(itr).data[key] = DiceCacheInfo([], [], 0)
+        DiceCache.get(itr).cache = DiceCacheInfo([], [], 0)
         suggestions = DiceCache.get(itr).get_autocomplete_suggestions("")
         assert suggestions == [], "Suggestions should be empty when no data is present."
 
     def test_autocompletes_clean_dice_instead_of_cache(self, itr: Interaction):
-        key = DiceCache.get(itr).dice_key
-        DiceCache.get(itr).data[key] = DiceCacheInfo([], [], 0)
+        DiceCache.get(itr).cache = DiceCacheInfo([], [], 0)
         expected = "1d20"
         cached_expression = f"{expected}+5"
         DiceCache.get(itr).store_expression(cached_expression)

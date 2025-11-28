@@ -1,4 +1,5 @@
 import discord
+
 from logic.dnd.abstract import DNDEntry
 from logic.jsonhandler import JsonFolderHandler, JsonHandler
 

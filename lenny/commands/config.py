@@ -4,7 +4,7 @@ from commands.command import SimpleCommand, SimpleCommandGroup
 from embeds.config.permissions import ConfigPermissionsView
 from embeds.config.sources import ConfigSourcesView
 from embeds.embed import ErrorEmbed
-from logic.config import user_is_admin, user_is_admin_or_has_config_permissions
+from logic.config import Config
 
 
 class ConfigSourcesCommand(SimpleCommand):
@@ -15,14 +15,15 @@ class ConfigSourcesCommand(SimpleCommand):
     async def handle(self, itr: discord.Interaction):
         self.log(itr)
 
+        config = Config.get(itr)
         if itr.guild is None:
             embed = ErrorEmbed("Sources can only be managed in a server!")
             await itr.response.send_message(embed=embed, ephemeral=True)
-        elif user_is_admin_or_has_config_permissions(itr.guild, itr.user):
-            view = ConfigSourcesView(guild=itr.guild, allow_configuration=True)
+        elif config.user_is_admin_or_has_config_permissions(itr.user):
+            view = ConfigSourcesView(itr=itr, allow_configuration=True)
             await itr.response.send_message(view=view, ephemeral=True)
         else:
-            view = ConfigSourcesView(guild=itr.guild, allow_configuration=False)
+            view = ConfigSourcesView(itr=itr, allow_configuration=False)
             await itr.response.send_message(view=view, ephemeral=True)
 
 
@@ -34,11 +35,12 @@ class ConfigPermissionsCommand(SimpleCommand):
     async def handle(self, itr: discord.Interaction):
         self.log(itr)
 
+        config = Config.get(itr)
         if itr.guild is None:
             embed = ErrorEmbed("Permissions can only be managed in a server!")
             await itr.response.send_message(embed=embed, ephemeral=True)
-        elif user_is_admin(itr.user):
-            view = ConfigPermissionsView(guild=itr.guild)
+        elif config.user_is_admin(itr.user):
+            view = ConfigPermissionsView(itr=itr)
             await itr.response.send_message(view=view, ephemeral=True)
         else:
             embed = ErrorEmbed("You don't have permission to manage permissions!")

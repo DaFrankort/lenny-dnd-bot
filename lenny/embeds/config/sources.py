@@ -3,23 +3,21 @@ import discord
 from components.items import SimpleSeparator
 from components.paginated_view import PaginatedLayoutView
 from embeds.config.config import ConfigAllowButton
-from logic.config import Config, user_is_admin_or_has_config_permissions
+from logic.config import Config
 from logic.dnd.source import Source, SourceList
 
 
 class ConfigManageSourcesButton(ConfigAllowButton):
     source: Source
     guild: discord.Guild
-    config: Config
     sources_view: "ConfigSourcesView"
 
-    def __init__(self, view: "ConfigSourcesView", source: Source, guild: discord.Guild, allow_configuration: bool):
+    def __init__(self, view: "ConfigSourcesView", itr: discord.Interaction, source: Source, allow_configuration: bool):
         self.source = source
-        self.guild = guild
-        self.config = Config(guild=self.guild)
         self.sources_view = view
 
-        allowed_sources = self.config.get_allowed_sources()
+        config = Config.get(itr)
+        allowed_sources = config.allowed_sources
 
         allowed = self.source.id in allowed_sources
         disabled = not allow_configuration
@@ -27,23 +25,24 @@ class ConfigManageSourcesButton(ConfigAllowButton):
         super().__init__(allowed=allowed, disabled=disabled)
 
     async def callback(self, interaction: discord.Interaction):
-        if not user_is_admin_or_has_config_permissions(self.guild, interaction.user):
+        config = Config.get(interaction)
+        if not config.user_is_admin_or_has_config_permissions(interaction.user):
             raise PermissionError("You don't have permission to edit sources!")
 
         if self.allowed:
-            self.config.disallow_source(self.source.id)
+            config.disallow_source(self.source.id)
         else:
-            self.config.allow_source(self.source.id)
+            config.allow_source(self.source.id)
         await self.sources_view.rebuild(interaction)
 
 
 class ConfigSourcesView(PaginatedLayoutView):
     allow_configuration: bool
-    guild: discord.Guild
+    itr: discord.Interaction
 
-    def __init__(self, guild: discord.Guild, allow_configuration: bool):
+    def __init__(self, itr: discord.Interaction, allow_configuration: bool):
         super().__init__()
-        self.guild = guild
+        self.itr = itr
         self.allow_configuration = allow_configuration
         self.build()
 
@@ -63,7 +62,7 @@ class ConfigSourcesView(PaginatedLayoutView):
         sources = sorted(sources.entries, key=lambda s: s.name)
         for source in self.viewed_sources:
             text = discord.ui.TextDisplay[discord.ui.LayoutView](source.name)
-            button = ConfigManageSourcesButton(self, source, self.guild, self.allow_configuration)
+            button = ConfigManageSourcesButton(self, self.itr, source, self.allow_configuration)
             container.add_item(discord.ui.Section[discord.ui.LayoutView](text, accessory=button))
 
         # Button navigation

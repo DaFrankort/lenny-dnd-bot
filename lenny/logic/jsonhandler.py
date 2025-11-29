@@ -106,11 +106,13 @@ THandler = TypeVar("THandler", bound=JsonHandler[Any])  # pylint: disable=invali
 
 
 class JsonFolderHandler(ABC, Generic[THandler]):
-    _data: dict[int, THandler] = {}
-    _last_accessed: dict[int, int] = {}
+    _data: dict[int, THandler]
+    _last_accessed: dict[int, int]
     _handler_type: type[THandler]
 
     def __init__(self):
+        self._data = {}
+        self._last_accessed = {}
         if not self._handler_type:
             raise NotImplementedError("_handler_type not implemented!")
 

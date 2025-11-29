@@ -34,7 +34,7 @@ async def send_dnd_entry_lookup_result(
 
 
 async def spell_name_autocomplete(itr: discord.Interaction, current: str):
-    sources = Config.allowed_sources(guild=itr.guild)
+    sources = Config.get(itr).allowed_sources
     return Data.spells.get_autocomplete_suggestions(current, sources)
 
 
@@ -47,13 +47,13 @@ class SearchSpellCommand(SimpleCommand):
     @describe(name="Name of the spell to look up.")
     async def handle(self, itr: discord.Interaction, name: str):
         self.log(itr)
-        sources = Config.allowed_sources(guild=itr.guild)
+        sources = Config.get(itr).allowed_sources
         found = Data.spells.get(name, sources)
         await send_dnd_entry_lookup_result(itr, "spells", found, name)
 
 
 async def item_name_autocomplete(itr: discord.Interaction, current: str):
-    sources = Config.allowed_sources(guild=itr.guild)
+    sources = Config.get(itr).allowed_sources
     return Data.items.get_autocomplete_suggestions(current, sources)
 
 
@@ -66,13 +66,13 @@ class SearchItemCommand(SimpleCommand):
     @describe(name="Name of the item to look up.")
     async def handle(self, itr: discord.Interaction, name: str):
         self.log(itr)
-        sources = Config.allowed_sources(guild=itr.guild)
+        sources = Config.get(itr).allowed_sources
         found = Data.items.get(name, sources)
         await send_dnd_entry_lookup_result(itr, "items", found, name)
 
 
 async def condition_name_autocomplete(itr: discord.Interaction, current: str):
-    sources = Config.allowed_sources(guild=itr.guild)
+    sources = Config.get(itr).allowed_sources
     return Data.conditions.get_autocomplete_suggestions(current, sources)
 
 
@@ -85,13 +85,13 @@ class SearchConditionCommand(SimpleCommand):
     @describe(name="Name of the condition to look up.")
     async def handle(self, itr: discord.Interaction, name: str):
         self.log(itr)
-        sources = Config.allowed_sources(guild=itr.guild)
+        sources = Config.get(itr).allowed_sources
         found = Data.conditions.get(name, sources)
         await send_dnd_entry_lookup_result(itr, "conditions", found, name)
 
 
 async def creature_name_autocomplete(itr: discord.Interaction, current: str):
-    sources = Config.allowed_sources(guild=itr.guild)
+    sources = Config.get(itr).allowed_sources
     return Data.creatures.get_autocomplete_suggestions(current, sources)
 
 
@@ -104,13 +104,13 @@ class SearchCreatureCommand(SimpleCommand):
     @describe(name="Name of the creature to look up.")
     async def handle(self, itr: discord.Interaction, name: str):
         self.log(itr)
-        sources = Config.allowed_sources(guild=itr.guild)
+        sources = Config.get(itr).allowed_sources
         found = Data.creatures.get(name, sources)
         await send_dnd_entry_lookup_result(itr, "creatures", found, name)
 
 
 async def class_name_autocomplete(itr: discord.Interaction, current: str):
-    sources = Config.allowed_sources(guild=itr.guild)
+    sources = Config.get(itr).allowed_sources
     return Data.classes.get_autocomplete_suggestions(current, sources)
 
 
@@ -123,13 +123,13 @@ class SearchClassCommand(SimpleCommand):
     @describe(name="Name of the class to look up.")
     async def handle(self, itr: discord.Interaction, name: str):
         self.log(itr)
-        sources = Config.allowed_sources(guild=itr.guild)
+        sources = Config.get(itr).allowed_sources
         found = Data.classes.get(name, sources)
         await send_dnd_entry_lookup_result(itr, "classes", found, name)
 
 
 async def rule_name_autocomplete(itr: discord.Interaction, current: str):
-    sources = Config.allowed_sources(guild=itr.guild)
+    sources = Config.get(itr).allowed_sources
     return Data.rules.get_autocomplete_suggestions(current, sources)
 
 
@@ -142,13 +142,13 @@ class SearchRuleCommand(SimpleCommand):
     @describe(name="Name of the rule to look up.")
     async def handle(self, itr: discord.Interaction, name: str):
         self.log(itr)
-        sources = Config.allowed_sources(guild=itr.guild)
+        sources = Config.get(itr).allowed_sources
         found = Data.rules.get(name, sources)
         await send_dnd_entry_lookup_result(itr, "rules", found, name)
 
 
 async def action_name_autocomplete(itr: discord.Interaction, current: str):
-    sources = Config.allowed_sources(guild=itr.guild)
+    sources = Config.get(itr).allowed_sources
     return Data.actions.get_autocomplete_suggestions(current, sources)
 
 
@@ -161,13 +161,13 @@ class SearchActionCommand(SimpleCommand):
     @describe(name="Name of the action to look up.")
     async def handle(self, itr: discord.Interaction, name: str):
         self.log(itr)
-        sources = Config.allowed_sources(guild=itr.guild)
+        sources = Config.get(itr).allowed_sources
         found = Data.actions.get(name, sources)
         await send_dnd_entry_lookup_result(itr, "actions", found, name)
 
 
 async def feat_name_autocomplete(itr: discord.Interaction, current: str):
-    sources = Config.allowed_sources(guild=itr.guild)
+    sources = Config.get(itr).allowed_sources
     return Data.feats.get_autocomplete_suggestions(current, sources)
 
 
@@ -180,13 +180,13 @@ class SearchFeatCommand(SimpleCommand):
     @describe(name="Name of the feat to look up.")
     async def handle(self, itr: discord.Interaction, name: str):
         self.log(itr)
-        sources = Config.allowed_sources(guild=itr.guild)
+        sources = Config.get(itr).allowed_sources
         found = Data.feats.get(name, sources)
         await send_dnd_entry_lookup_result(itr, "feats", found, name)
 
 
 async def language_name_autocomplete(itr: discord.Interaction, current: str):
-    sources = Config.allowed_sources(guild=itr.guild)
+    sources = Config.get(itr).allowed_sources
     return Data.languages.get_autocomplete_suggestions(current, sources)
 
 
@@ -199,13 +199,13 @@ class SearchLanguageCommand(SimpleCommand):
     @describe(name="Name of the language to look up.")
     async def handle(self, itr: discord.Interaction, name: str):
         self.log(itr)
-        sources = Config.allowed_sources(guild=itr.guild)
+        sources = Config.get(itr).allowed_sources
         found = Data.languages.get(name, sources)
         await send_dnd_entry_lookup_result(itr, "languages", found, name)
 
 
 async def background_name_autocomplete(itr: discord.Interaction, current: str):
-    sources = Config.allowed_sources(guild=itr.guild)
+    sources = Config.get(itr).allowed_sources
     return Data.backgrounds.get_autocomplete_suggestions(current, sources)
 
 
@@ -218,13 +218,13 @@ class SearchBackgroundCommand(SimpleCommand):
     @describe(name="Name of the background to look up.")
     async def handle(self, itr: discord.Interaction, name: str):
         self.log(itr)
-        sources = Config.allowed_sources(guild=itr.guild)
+        sources = Config.get(itr).allowed_sources
         found = Data.backgrounds.get(name, sources)
         await send_dnd_entry_lookup_result(itr, "background", found, name)
 
 
 async def table_name_autocomplete(itr: discord.Interaction, current: str):
-    sources = Config.allowed_sources(guild=itr.guild)
+    sources = Config.get(itr).allowed_sources
     return Data.tables.get_autocomplete_suggestions(current, sources)
 
 
@@ -237,13 +237,13 @@ class SearchTableCommand(SimpleCommand):
     @describe(name="Name of the table to look up.")
     async def handle(self, itr: discord.Interaction, name: str):
         self.log(itr)
-        sources = Config.allowed_sources(guild=itr.guild)
+        sources = Config.get(itr).allowed_sources
         found = Data.tables.get(name, sources)
         await send_dnd_entry_lookup_result(itr, "table", found, name)
 
 
 async def species_name_autocomplete(itr: discord.Interaction, current: str):
-    sources = Config.allowed_sources(guild=itr.guild)
+    sources = Config.get(itr).allowed_sources
     return Data.species.get_autocomplete_suggestions(current, sources)
 
 
@@ -256,13 +256,13 @@ class SearchSpeciesCommand(SimpleCommand):
     @describe(name="Name of the species to look up.")
     async def handle(self, itr: discord.Interaction, name: str):
         self.log(itr)
-        sources = Config.allowed_sources(guild=itr.guild)
+        sources = Config.get(itr).allowed_sources
         found = Data.species.get(name, sources)
         await send_dnd_entry_lookup_result(itr, "species", found, name)
 
 
 async def vehicle_name_autocomplete(itr: discord.Interaction, current: str):
-    sources = Config.allowed_sources(guild=itr.guild)
+    sources = Config.get(itr).allowed_sources
     return Data.vehicles.get_autocomplete_suggestions(current, sources)
 
 
@@ -275,13 +275,13 @@ class SearchVehicleCommand(SimpleCommand):
     @describe(name="Name of the vehicle to look up.")
     async def handle(self, itr: discord.Interaction, name: str):
         self.log(itr)
-        sources = Config.allowed_sources(guild=itr.guild)
+        sources = Config.get(itr).allowed_sources
         found = Data.vehicles.get(name, sources)
         await send_dnd_entry_lookup_result(itr, "vehicle", found, name)
 
 
 async def object_name_autocomplete(itr: discord.Interaction, current: str):
-    sources = Config.allowed_sources(guild=itr.guild)
+    sources = Config.get(itr).allowed_sources
     return Data.objects.get_autocomplete_suggestions(current, sources)
 
 
@@ -294,13 +294,13 @@ class SearchObjectCommand(SimpleCommand):
     @describe(name="Name of the object to look up.")
     async def handle(self, itr: discord.Interaction, name: str):
         self.log(itr)
-        sources = Config.allowed_sources(guild=itr.guild)
+        sources = Config.get(itr).allowed_sources
         found = Data.objects.get(name, sources)
         await send_dnd_entry_lookup_result(itr, "object", found, name)
 
 
 async def hazard_name_autocomplete(itr: discord.Interaction, current: str):
-    sources = Config.allowed_sources(guild=itr.guild)
+    sources = Config.get(itr).allowed_sources
     return Data.hazards.get_autocomplete_suggestions(current, sources)
 
 
@@ -313,7 +313,7 @@ class SearchHazardCommand(SimpleCommand):
     @describe(name="Name of the trap or hazard to look up.")
     async def handle(self, itr: discord.Interaction, name: str):
         self.log(itr)
-        sources = Config.allowed_sources(guild=itr.guild)
+        sources = Config.get(itr).allowed_sources
         found = Data.hazards.get(name, sources)
         await send_dnd_entry_lookup_result(itr, "hazard", found, name)
 
@@ -326,7 +326,7 @@ class SearchAnyCommand(SimpleCommand):
     @describe(query="Search for results matching this query.")
     async def handle(self, itr: discord.Interaction, query: str):
         self.log(itr)
-        sources = Config.allowed_sources(guild=itr.guild)
+        sources = Config.get(itr).allowed_sources
         results = Data.search(query, sources)
         logging.debug("Found %d results for '%s'", len(results.get_all()), query)
 

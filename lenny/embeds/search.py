@@ -52,7 +52,7 @@ def get_dnd_embed(itr: discord.Interaction, dnd_entry: DNDEntry):  # pylint: dis
         case Creature():
             return CreatureEmbed(dnd_entry)
         case Class():
-            sources = Config.allowed_sources(guild=itr.guild)
+            sources = Config.get(itr).allowed_sources
             return ClassEmbed(dnd_entry, allowed_sources=sources)
         case Rule():
             return RuleEmbed(dnd_entry)

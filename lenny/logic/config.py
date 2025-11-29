@@ -1,13 +1,15 @@
-import os
-import pathlib
+import time
 from collections.abc import Iterable
+from dataclasses import dataclass
+from typing import Any
 
 import discord
-import toml
 
 from logic.dnd.source import SourceList
+from logic.jsonhandler import JsonFolderHandler, JsonHandler
 
-SOURCES_PHB2014 = ["PHB", "DMG", "MM"]
+# Disallow PHB 2014 sources by default
+DEFAULT_DISALLOWED_SOURCES = ["PHB", "DMG", "MM"]
 
 # Words that need to be a substring of the game master role
 GAMEMASTER_ROLE_CONTAINING_WORDS = ["game master", "gamemaster", "dungeon master"]
@@ -16,114 +18,101 @@ GAMEMASTER_ROLE_CONTAINING_WORDS = ["game master", "gamemaster", "dungeon master
 GAMEMASTER_ROLE_EXACT_WORDS = ["gm", "dm"]
 
 
-def is_source_phb2014(source: str) -> bool:
-    return source in SOURCES_PHB2014
+@dataclass
+class GuildConfig:
+    # Lookup
+    disallowed_sources: list[str]
+    # Permissions
+    roles: list[int]
+
+    @classmethod
+    def fromdict(cls, obj: Any) -> "GuildConfig":
+        return cls(
+            disallowed_sources=obj.get("disallowed_sources", DEFAULT_DISALLOWED_SOURCES),
+            roles=obj.get("roles", []),
+        )
 
 
-class Config:
+class ConfigHandler(JsonHandler[GuildConfig]):
     guild: discord.Guild
 
-    def __init__(self, guild: discord.Guild | None):
-        if guild is None:
-            raise RuntimeError("You can only configure settings in a server!")
+    def __init__(self, guild: discord.Guild):
+        super().__init__(str(guild.id), "config")
 
         self.guild = guild
-        self.create_file()
+        if not self.data:
+            self.reset()
 
     @property
-    def path(self) -> str:
-        return f"config/{self.guild.id}.config"
+    def config(self) -> GuildConfig:
+        return self.data["config"]
 
-    def create_file(self):
-        """Creates the associated config file. Does not change anything if it already exists."""
-        path = pathlib.Path(self.path)
-        path.parent.mkdir(exist_ok=True, parents=True)
-        # Ensure file exists
-        open(path, "a", encoding="utf-8").close()  # pylint: disable=consider-using-with
+    @config.setter
+    def config(self, new_config: GuildConfig):
+        self.data["config"] = new_config
 
-    def reset(self):
-        if os.path.exists(self.path):
-            os.remove(self.path)
-            self.create_file()
+    def reset(self) -> None:
+        self.config = GuildConfig(
+            disallowed_sources=self.default_disallowed_sources(),
+            roles=self.default_config_roles,
+        )
+
+    def deserialize(self, obj: Any) -> GuildConfig:
+        return GuildConfig.fromdict(obj)
 
     # region sources
-    @classmethod
-    def get_default_disallowed_sources(cls) -> set[str]:
+
+    @staticmethod
+    def default_disallowed_sources() -> list[str]:
         # 2014 sources are disabled by default
-        return set(SOURCES_PHB2014)
+        return DEFAULT_DISALLOWED_SOURCES
 
-    @classmethod
-    def get_default_allowed_sources(cls) -> set[str]:
+    @property
+    def default_allowed_sources(self) -> list[str]:
         source_list = SourceList()
         sources = set(source.id for source in source_list.entries)
-        disallowed = cls.get_default_disallowed_sources()
-        return sources - disallowed
+        disallowed = set(ConfigHandler.default_disallowed_sources())
+        return list(sources - disallowed)
 
-    def get_disallowed_sources(self) -> set[str]:
-        config = toml.load(self.path)
-        lookup = config.get("lookup", {})
-        disallowed = lookup.get("disallowed_sources", None)
-        if disallowed is None:
-            return self.get_default_disallowed_sources()
-        return set(disallowed)
+    @property
+    def disallowed_sources(self) -> set[str]:
+        return set(self.config.disallowed_sources)
 
-    def get_allowed_sources(self) -> set[str]:
+    @property
+    def allowed_sources(self) -> set[str]:
         source_list = SourceList()
         sources = set(source.id for source in source_list.entries)
-        disallowed = self.get_disallowed_sources()
+        disallowed = self.disallowed_sources
         return sources - disallowed
 
     def set_disallowed_sources(self, sources: Iterable[str]) -> None:
-        config = toml.load(self.path)
-        config["lookup"] = config.get("lookup", {})
-        config["lookup"]["disallowed_sources"] = list(set(sources))
-        with open(self.path, "w", encoding="utf-8") as f:
-            toml.dump(config, f)
+        self.config.disallowed_sources = list(set(sources))
+        self.save()
 
     def allow_source(self, source: str) -> None:
-        disallowed = self.get_disallowed_sources()
+        disallowed = self.disallowed_sources
         disallowed.discard(source)
         self.set_disallowed_sources(disallowed)
 
     def disallow_source(self, source: str) -> None:
-        disallowed = self.get_disallowed_sources()
+        disallowed = self.disallowed_sources
         disallowed.add(source)
         self.set_disallowed_sources(disallowed)
-
-    def clear(self) -> None:
-        # Clear config file contents
-        open(self.path, "w", encoding="utf-8").close()  # pylint: disable=consider-using-with
-
-    @staticmethod
-    def allowed_sources(guild: discord.Guild | None) -> set[str]:
-        if guild is None:
-            return Config.get_default_allowed_sources()
-        return Config(guild=guild).get_allowed_sources()
 
     # endregion sources
 
     # region permissions
 
-    def set_allowed_config_roles(self, ids: set[int]):
-        config = toml.load(self.path)
-        config["permissions"] = config.get("permissions", {})
-        config["permissions"]["roles"] = list(set(ids))
-        with open(self.path, "w", encoding="utf-8") as f:
-            toml.dump(config, f)
+    @property
+    def allowed_config_roles(self) -> list[int]:
+        return self.config.roles
 
-    def get_allowed_config_roles(self) -> set[int]:
-        config = toml.load(self.path)
-        lookup = config.get("permissions", {})
-        roles = lookup.get("roles", None)
+    def set_allowed_config_roles(self, ids: Iterable[int]):
+        self.config.roles = list(set(ids))
+        self.save()
 
-        # If config sources is none, it means they aren't configured yet.
-        # In this case, fall back on the guild's default roles.
-        if roles is None:
-            return self.get_default_config_roles()
-
-        return set(roles)
-
-    def get_default_config_roles(self) -> set[int]:
+    @property
+    def default_config_roles(self) -> list[int]:
         config_roles: list[int] = []
 
         # The default allowed roles are those matching the terms game master, dungeon master, dm...
@@ -137,43 +126,64 @@ class Config:
                 if allowed_name in role_name:
                     config_roles.append(role.id)
 
-        return set(config_roles)
+        return list(set(config_roles))
 
     def allow_permission(self, role: discord.Role):
-        allowed_roles = self.get_allowed_config_roles()
+        allowed_roles = set(self.allowed_config_roles)
         allowed_roles.add(role.id)
         self.set_allowed_config_roles(allowed_roles)
 
     def disallow_permission(self, role: discord.Role):
-        allowed_roles = self.get_allowed_config_roles()
+        allowed_roles = self.allowed_config_roles
         allowed_roles.remove(role.id)
         self.set_allowed_config_roles(allowed_roles)
 
     # endregion permissions
 
+    # region User permissions utilities
 
-def user_is_admin(user: discord.User | discord.Member) -> bool:
-    if not isinstance(user, discord.Member):
-        return False
-    return user.guild_permissions.administrator
+    def user_is_admin(self, user: discord.User | discord.Member) -> bool:
+        if not isinstance(user, discord.Member):
+            return False
+        return user.guild_permissions.administrator
 
+    def user_has_config_permissions(self, user: discord.User | discord.Member) -> bool:
+        if not isinstance(user, discord.Member):
+            return False
 
-def user_has_config_permissions(guild: discord.Guild | None, user: discord.User | discord.Member) -> bool:
-    if guild is None:
-        return False
+        user_role_ids = set(role.id for role in user.roles)
+        allowed_role_ids = set(self.allowed_config_roles)
+        intersection = allowed_role_ids.intersection(user_role_ids)
 
-    if not isinstance(user, discord.Member):
-        return False
+        # Allow if user has at least one allowed role
+        return len(intersection) > 0
 
-    config = Config(guild)
-
-    user_role_ids = set(role.id for role in user.roles)
-    allowed_role_ids = config.get_allowed_config_roles()
-    intersection = allowed_role_ids.intersection(user_role_ids)
-
-    # Allow if user has at least one allowed role
-    return len(intersection) > 0
+    def user_is_admin_or_has_config_permissions(self, user: discord.User | discord.Member) -> bool:
+        return self.user_is_admin(user) or self.user_has_config_permissions(user)
 
 
-def user_is_admin_or_has_config_permissions(guild: discord.Guild | None, user: discord.User | discord.Member) -> bool:
-    return user_is_admin(user) or user_has_config_permissions(guild, user)
+class GlobalConfigHandler(JsonFolderHandler[ConfigHandler]):
+    _handler_type = ConfigHandler
+
+    def _itr_key(self, itr: discord.Interaction[discord.Client]) -> int:
+        if not itr.guild_id:
+            raise RuntimeError("You can only configure settings in a server!")
+        return itr.guild_id
+
+    def get(self, itr: discord.Interaction[discord.Client]) -> ConfigHandler:
+        # Some of the functionality of ConfigHandler requires the specific guild object
+        # (e.g. for managing roles). As such, the guild object needs to be stored inside
+        # the handler object. Because `get` only works on the key, and not on the actual
+        # interaction, this method needs to be overwritten.
+
+        if not itr.guild:
+            raise RuntimeError("You can only configure settings in a server!")
+
+        key = self._itr_key(itr)
+        if key not in self._data:
+            self._data[key] = ConfigHandler(itr.guild)
+        self._last_accessed[key] = int(time.time())
+        return self._data[key]
+
+
+Config = GlobalConfigHandler()

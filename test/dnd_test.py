@@ -1,5 +1,5 @@
 import pytest
-from utils.mocking import MockGuild
+from utils.mocking import MockInteraction
 
 from embeds.search import MultiDNDSelectView
 from logic.config import Config
@@ -20,8 +20,9 @@ class TestDndData:
     ]
 
     def test_dnddatalist_search(self):
-        guild = MockGuild(1234)
-        sources = Config.allowed_sources(guild)
+        itr = MockInteraction()
+        config = Config.get(itr)
+        sources = config.allowed_sources
         for query in self.queries:
             for data in Data:
                 try:
@@ -30,8 +31,9 @@ class TestDndData:
                     assert False, f"{data.entries[0].entry_type} DNDDataList failed search()"
 
     def test_search_from_query(self):
-        guild = MockGuild(1234)
-        sources = Config.allowed_sources(guild)
+        itr = MockInteraction()
+        config = Config.get(itr)
+        sources = config.allowed_sources
         for query in self.queries:
             try:
                 Data.search(query, allowed_sources=sources)
@@ -40,8 +42,9 @@ class TestDndData:
 
     @pytest.mark.asyncio
     async def test_multidndselect(self):
-        guild = MockGuild(1234)
-        sources = Config.allowed_sources(guild)
+        itr = MockInteraction()
+        config = Config.get(itr)
+        sources = config.allowed_sources
         name = "pot of awakening"
         entries = Data.items.get(name, sources)
         assert len(entries) >= 2, "Test requires at least 2 items, please update test data."

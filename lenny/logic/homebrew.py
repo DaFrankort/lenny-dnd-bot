@@ -4,7 +4,7 @@ from typing import Any
 import discord
 from discord.app_commands import Choice
 
-from logic.config import user_is_admin_or_has_config_permissions
+from logic.config import Config
 from logic.dnd.abstract import FuzzyMatchResult, fuzzy_matches
 from logic.jsonhandler import JsonFolderHandler, JsonHandler
 from methods import ChoicedEnum
@@ -76,7 +76,9 @@ class HomebrewEntry:
         """Returns true/false depending on whether or not the user can manage this entry"""
         if itr.user.id == self.author_id:
             return True
-        if user_is_admin_or_has_config_permissions(itr.guild, itr.user):
+
+        config = Config.get(itr)
+        if config.user_is_admin_or_has_config_permissions(itr.user):
             return True
         if not isinstance(itr.user, discord.Member):
             return False  # You can only manage permissions in a guild

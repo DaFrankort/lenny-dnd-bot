@@ -12,7 +12,7 @@ from bot import Bot
 from commands.command import SimpleCommand, SimpleCommandGroup
 from commands.tokengen import AlignH, AlignV
 from logic.charactergen import class_choices, species_choices
-from logic.config import Config
+from logic.config import ConfigHandler
 from logic.dnd.abstract import DNDEntry, DNDEntryList
 from logic.dnd.data import Data
 from logic.dnd.name import Gender
@@ -52,7 +52,7 @@ TEntry = TypeVar("TEntry", bound=DNDEntry)
 
 
 def get_strict_search_arguments(entry_list: DNDEntryList[TEntry]) -> list[str]:
-    disallowed_sources = Config.get_default_disallowed_sources()
+    disallowed_sources = ConfigHandler.default_disallowed_sources()
     return [entry.name for entry in entry_list.entries if entry.source not in disallowed_sources]
 
 

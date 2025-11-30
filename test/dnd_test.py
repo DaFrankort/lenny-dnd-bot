@@ -1,6 +1,5 @@
 import pytest
 from utils.mocking import MockInteraction
-from utils.mocking import MockInteraction
 from utils.utils import AutocompleteMethod
 
 from commands.search import (

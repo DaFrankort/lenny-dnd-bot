@@ -8,8 +8,9 @@ from commands.command import SimpleCommand, SimpleCommandGroup
 from embeds.embed import NoResultsFoundEmbed
 from embeds.search import MultiDNDSelectView, SearchLayoutView, send_dnd_embed
 from logic.config import Config
-from logic.dnd.abstract import DNDEntry
+from logic.dnd.abstract import TDND, DNDEntry, DNDEntryList
 from logic.dnd.data import Data
+from logic.searchcache import SearchCache
 
 
 async def send_dnd_entry_lookup_result(
@@ -30,12 +31,21 @@ async def send_dnd_entry_lookup_result(
         await itr.response.send_message(view=view, ephemeral=True)
 
     else:
+        SearchCache.get(itr).store(found[0])
         await send_dnd_embed(itr, found[0])
 
 
-async def spell_name_autocomplete(itr: discord.Interaction, current: str):
+def _generic_name_autocomplete(
+    itr: discord.Interaction, current: str, data: DNDEntryList[TDND], name: str
+) -> list[discord.app_commands.Choice[str]]:
     sources = Config.get(itr).allowed_sources
-    return Data.spells.get_autocomplete_suggestions(current, sources)
+    if not current.strip():
+        return SearchCache.get(itr).get_choices(name)
+    return data.get_autocomplete_suggestions(current, sources)
+
+
+async def spell_name_autocomplete(itr: discord.Interaction, current: str):
+    return _generic_name_autocomplete(itr, current, Data.spells, "spell")
 
 
 class SearchSpellCommand(SimpleCommand):
@@ -53,8 +63,7 @@ class SearchSpellCommand(SimpleCommand):
 
 
 async def item_name_autocomplete(itr: discord.Interaction, current: str):
-    sources = Config.get(itr).allowed_sources
-    return Data.items.get_autocomplete_suggestions(current, sources)
+    return _generic_name_autocomplete(itr, current, Data.items, "item")
 
 
 class SearchItemCommand(SimpleCommand):
@@ -72,8 +81,7 @@ class SearchItemCommand(SimpleCommand):
 
 
 async def condition_name_autocomplete(itr: discord.Interaction, current: str):
-    sources = Config.get(itr).allowed_sources
-    return Data.conditions.get_autocomplete_suggestions(current, sources)
+    return _generic_name_autocomplete(itr, current, Data.conditions, "condition")
 
 
 class SearchConditionCommand(SimpleCommand):
@@ -91,8 +99,7 @@ class SearchConditionCommand(SimpleCommand):
 
 
 async def creature_name_autocomplete(itr: discord.Interaction, current: str):
-    sources = Config.get(itr).allowed_sources
-    return Data.creatures.get_autocomplete_suggestions(current, sources)
+    return _generic_name_autocomplete(itr, current, Data.creatures, "creature")
 
 
 class SearchCreatureCommand(SimpleCommand):
@@ -110,8 +117,7 @@ class SearchCreatureCommand(SimpleCommand):
 
 
 async def class_name_autocomplete(itr: discord.Interaction, current: str):
-    sources = Config.get(itr).allowed_sources
-    return Data.classes.get_autocomplete_suggestions(current, sources)
+    return _generic_name_autocomplete(itr, current, Data.classes, "class")
 
 
 class SearchClassCommand(SimpleCommand):
@@ -129,8 +135,7 @@ class SearchClassCommand(SimpleCommand):
 
 
 async def rule_name_autocomplete(itr: discord.Interaction, current: str):
-    sources = Config.get(itr).allowed_sources
-    return Data.rules.get_autocomplete_suggestions(current, sources)
+    return _generic_name_autocomplete(itr, current, Data.rules, "rule")
 
 
 class SearchRuleCommand(SimpleCommand):
@@ -148,8 +153,7 @@ class SearchRuleCommand(SimpleCommand):
 
 
 async def action_name_autocomplete(itr: discord.Interaction, current: str):
-    sources = Config.get(itr).allowed_sources
-    return Data.actions.get_autocomplete_suggestions(current, sources)
+    return _generic_name_autocomplete(itr, current, Data.actions, "action")
 
 
 class SearchActionCommand(SimpleCommand):
@@ -167,8 +171,7 @@ class SearchActionCommand(SimpleCommand):
 
 
 async def feat_name_autocomplete(itr: discord.Interaction, current: str):
-    sources = Config.get(itr).allowed_sources
-    return Data.feats.get_autocomplete_suggestions(current, sources)
+    return _generic_name_autocomplete(itr, current, Data.feats, "feat")
 
 
 class SearchFeatCommand(SimpleCommand):
@@ -186,8 +189,7 @@ class SearchFeatCommand(SimpleCommand):
 
 
 async def language_name_autocomplete(itr: discord.Interaction, current: str):
-    sources = Config.get(itr).allowed_sources
-    return Data.languages.get_autocomplete_suggestions(current, sources)
+    return _generic_name_autocomplete(itr, current, Data.languages, "language")
 
 
 class SearchLanguageCommand(SimpleCommand):
@@ -205,8 +207,7 @@ class SearchLanguageCommand(SimpleCommand):
 
 
 async def background_name_autocomplete(itr: discord.Interaction, current: str):
-    sources = Config.get(itr).allowed_sources
-    return Data.backgrounds.get_autocomplete_suggestions(current, sources)
+    return _generic_name_autocomplete(itr, current, Data.backgrounds, "background")
 
 
 class SearchBackgroundCommand(SimpleCommand):
@@ -224,8 +225,7 @@ class SearchBackgroundCommand(SimpleCommand):
 
 
 async def table_name_autocomplete(itr: discord.Interaction, current: str):
-    sources = Config.get(itr).allowed_sources
-    return Data.tables.get_autocomplete_suggestions(current, sources)
+    return _generic_name_autocomplete(itr, current, Data.tables, "table")
 
 
 class SearchTableCommand(SimpleCommand):
@@ -243,8 +243,7 @@ class SearchTableCommand(SimpleCommand):
 
 
 async def species_name_autocomplete(itr: discord.Interaction, current: str):
-    sources = Config.get(itr).allowed_sources
-    return Data.species.get_autocomplete_suggestions(current, sources)
+    return _generic_name_autocomplete(itr, current, Data.species, "species")
 
 
 class SearchSpeciesCommand(SimpleCommand):
@@ -262,8 +261,7 @@ class SearchSpeciesCommand(SimpleCommand):
 
 
 async def vehicle_name_autocomplete(itr: discord.Interaction, current: str):
-    sources = Config.get(itr).allowed_sources
-    return Data.vehicles.get_autocomplete_suggestions(current, sources)
+    return _generic_name_autocomplete(itr, current, Data.vehicles, "vehicle")
 
 
 class SearchVehicleCommand(SimpleCommand):
@@ -281,8 +279,7 @@ class SearchVehicleCommand(SimpleCommand):
 
 
 async def object_name_autocomplete(itr: discord.Interaction, current: str):
-    sources = Config.get(itr).allowed_sources
-    return Data.objects.get_autocomplete_suggestions(current, sources)
+    return _generic_name_autocomplete(itr, current, Data.objects, "object")
 
 
 class SearchObjectCommand(SimpleCommand):
@@ -300,8 +297,7 @@ class SearchObjectCommand(SimpleCommand):
 
 
 async def hazard_name_autocomplete(itr: discord.Interaction, current: str):
-    sources = Config.get(itr).allowed_sources
-    return Data.hazards.get_autocomplete_suggestions(current, sources)
+    return _generic_name_autocomplete(itr, current, Data.hazards, "hazard")
 
 
 class SearchHazardCommand(SimpleCommand):

@@ -34,6 +34,7 @@ from context_menus.zip_files import ZipAttachmentsContextMenu
 from logic.config import Config
 from logic.dicecache import DiceCache
 from logic.homebrew import HomebrewData
+from logic.searchcache import SearchCache
 from logic.voice_chat import VC, Sounds
 
 
@@ -141,3 +142,4 @@ class Bot(discord.Client):
         HomebrewData.clear_cache()
         DiceCache.clear_cache(max_age=900)
         Config.clear_cache(max_age=900)
+        SearchCache.clear_cache(max_age=450)

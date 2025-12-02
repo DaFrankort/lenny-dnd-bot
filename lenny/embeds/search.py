@@ -8,7 +8,7 @@ from components.items import SimpleSeparator, TitleTextDisplay
 from components.paginated_view import PaginatedLayoutView
 from embeds.dnd.action import ActionEmbed
 from embeds.dnd.background import BackgroundEmbed
-from embeds.dnd.class_ import ClassEmbed
+from embeds.dnd.class_ import DNDClassLayoutView
 from embeds.dnd.condition import ConditionEmbed
 from embeds.dnd.creature import CreatureEmbed
 from embeds.dnd.feat import FeatEmbed
@@ -54,7 +54,7 @@ def get_dnd_embed(itr: discord.Interaction, dnd_entry: DNDEntry):  # pylint: dis
             return CreatureEmbed(dnd_entry)
         case Class():
             sources = Config.get(itr).allowed_sources
-            return ClassEmbed(dnd_entry, allowed_sources=sources)
+            return DNDClassLayoutView(dnd_entry, allowed_sources=sources)
         case Rule():
             return RuleEmbed(dnd_entry)
         case Action():

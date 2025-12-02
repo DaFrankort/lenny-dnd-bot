@@ -1,5 +1,7 @@
 import discord
 
+from components.items import SimpleSeparator, TitleTextDisplay
+from components.paginated_view import PaginatedLayoutView
 from embeds.dnd.abstract import HORIZONTAL_LINE, DNDEntryEmbed
 from logic.dnd.class_ import Class
 
@@ -144,3 +146,115 @@ class ClassEmbed(DNDEntryEmbed):
 
         self.set_footer(text=f"Page {level + 1} / 21", icon_url="")
         self.view = ClassNavigationView(character_class, allowed_sources, level, subclass)
+
+
+class DNDClassSubclassSelect(discord.ui.Select["ClassNavigationView"]):
+    """Select component to provide a Subclass-dropdown under a ClassEmbed"""
+
+    def __init__(
+        self,
+        character_class: Class,
+        level: int,
+        subclass: str | None,
+        parent_view: "DNDClassLayoutView",
+    ):
+        sources = [f"({src})" for src in parent_view.sources]
+        options: list[discord.SelectOption] = []
+        for subclass_name in character_class.subclass_level_features.keys():
+            if not any(src in subclass_name for src in sources):
+                continue  # Skip disallowed source-content.
+            if character_class.source == "XPHB" and "(PHB)" in subclass_name:
+                continue  # Do not show PHB subclasses for XPHB classes, unreliable data.
+
+            label = f"Lvl. {level} {subclass_name}"
+            label = f"{label} [Current]" if subclass != subclass_name else label
+            options.append(discord.SelectOption(label=label, value=subclass_name))
+
+        super().__init__(placeholder="Select Subclass", min_values=1, max_values=1, options=options)
+
+        self.character_class = character_class
+        self.level = level
+        self.parent_view = parent_view
+
+    async def callback(self, interaction: discord.Interaction):
+        subclass = self.values[0]
+        self.parent_view.subclass = subclass
+        embed = ClassEmbed(self.character_class, self.parent_view.sources, self.level, subclass)
+        await interaction.response.edit_message(embed=embed, view=embed.view)
+
+
+class DNDClassLayoutView(PaginatedLayoutView):
+    file = None
+    character_class: Class
+    sources: set[str]
+    level: int
+    subclass: str | None
+
+    @property
+    def entry_count(self) -> int:
+        return len(self.character_class.level_features) + 1
+
+    def __init__(self, character_class: Class, allowed_sources: set[str], level: int = 0, subclass: str | None = None):
+        super().__init__()
+        self.character_class = character_class
+        self.sources = allowed_sources
+        self.level = max(0, min(20, level))
+        if subclass and subclass in self.character_class.subclass_level_features:
+            self.subclass = subclass
+        else:
+            self.subclass = None
+
+        self.build()
+
+    def build(self) -> None:
+        self.clear_items()
+        container = discord.ui.Container[discord.ui.LayoutView](accent_color=discord.Color.dark_green())
+        container.add_item(TitleTextDisplay(name=self.character_class.title, url=self.character_class.url))
+
+        if self.level == 0:  # Core Info (page 0)
+            self.description = "#- Core Info"
+
+            if self.character_class.primary_ability:
+                container.add_item(discord.ui.TextDisplay(f"**Primary Ability**\n {self.character_class.primary_ability}"))
+            if self.character_class.spellcast_ability:
+                container.add_item(discord.ui.TextDisplay(f"**Spellcast Ability**\n {self.character_class.spellcast_ability}"))
+
+            for info in self.character_class.base_info:
+                name = info["name"]
+                if info["type"] == "table":
+                    value = "UNSUPPORTED"  # TODO TABLE SUPPORT
+                else:
+                    value = info["value"]
+                container.add_item(discord.ui.TextDisplay(f"**{name}**\n{value}"))
+        else:
+            subclass_dropdown = DNDClassSubclassSelect(self.character_class, self.level, self.subclass, self)
+            container.add_item(subclass_dropdown)
+
+            level_resources = self.character_class.level_resources.get(str(self.level), [])
+            for resource in level_resources:
+                name = resource["name"]
+                if resource["type"] == "table":
+                    value = "UNSUPPORTED"  # TODO TABLE SUPPORT
+                else:
+                    value = resource["value"]
+                container.add_item(discord.ui.TextDisplay(f"**{name}**\n{value}"))
+
+            # Rest of the descriptions
+            descriptions = self.character_class.level_features.get(str(self.level), []).copy()
+            if self.subclass:
+                subclass_level_descriptions = self.character_class.subclass_level_features.get(self.subclass, {})
+                subclass_description = subclass_level_descriptions.get(str(self.level), []).copy()
+                descriptions.extend(subclass_description)
+
+            if descriptions:
+                container.add_item(SimpleSeparator())
+                for description in descriptions:
+                    name = description["name"]
+                    if description["type"] == "table":
+                        value = "UNSUPPORTED"  # TODO TABLE SUPPORT
+                    else:
+                        value = description["value"]
+                    container.add_item(discord.ui.TextDisplay(f"**{name}**\n{value}"))
+
+        container.add_item(self.navigation_footer())
+        self.add_item(container)

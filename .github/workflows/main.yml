@@ -18,7 +18,7 @@ jobs:
       - name: Check out source repository
         uses: actions/checkout@v4
         with:
-          submodules: recursive
+          submodules: true
 
       - uses: ./.github/actions/setup
 
@@ -32,7 +32,7 @@ jobs:
       - name: Check out source repository
         uses: actions/checkout@v4
         with:
-          submodules: recursive
+          submodules: true
 
       - uses: ./.github/actions/setup
 
@@ -45,7 +45,7 @@ jobs:
       - name: Check out source repository
         uses: actions/checkout@v4
         with:
-          submodules: recursive
+          submodules: true
 
       - uses: ./.github/actions/setup
 

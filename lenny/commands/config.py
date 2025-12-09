@@ -1,5 +1,6 @@
 import discord
 from discord.app_commands import choices
+
 from commands.command import SimpleCommand, SimpleCommandGroup
 from embeds.config.permissions import ConfigPermissionsView
 from embeds.config.sources import ConfigSourcesView

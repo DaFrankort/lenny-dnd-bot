@@ -14,7 +14,7 @@ from rapidfuzz import fuzz
 from rich.console import Console
 from rich.table import Table
 
-BASE_DATA_PATH = "./submodules/lenny-dnd-data/generated/"
+BASE_DATA_PATH = "./submodules/lenny-dnd-data/generated/official/"
 
 
 @dataclasses.dataclass

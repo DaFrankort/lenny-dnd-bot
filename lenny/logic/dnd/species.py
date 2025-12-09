@@ -20,7 +20,7 @@ class Species(DNDEntry):
         self.source = obj["source"]
         self.url = obj["url"]
 
-        self.image = obj["image"]
+        self.image = obj.get("image", None)
         self.sizes = obj["sizes"]
         self.speed = obj["speed"]
         self.type = obj["creatureType"]

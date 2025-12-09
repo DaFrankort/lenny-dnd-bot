@@ -14,7 +14,7 @@ from rapidfuzz import fuzz
 from rich.console import Console
 from rich.table import Table
 
-BASE_DATA_PATH = "./submodules/lenny-dnd-data/generated/official/"
+BASE_DATA_PATHS = ["./submodules/lenny-dnd-data/generated/official/", "./submodules/lenny-dnd-data/generated/partnered/"]
 
 
 @dataclasses.dataclass
@@ -95,10 +95,11 @@ class DNDEntryList(abc.ABC, Generic[TDND]):
 
         self.entries = []
         for path in self.paths:
-            full_path = BASE_DATA_PATH + path
-            for data in self.read_dnd_data_contents(full_path):
-                entry: TDND = self.type(data)
-                self.entries.append(entry)
+            for base_path in BASE_DATA_PATHS:
+                full_path = base_path + path
+                for data in self.read_dnd_data_contents(full_path):
+                    entry: TDND = self.type(data)
+                    self.entries.append(entry)
 
     @staticmethod
     def read_dnd_data_contents(path: str) -> list[dict[str, Any]]:

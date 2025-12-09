@@ -23,7 +23,7 @@ class Source:
 
 
 class SourceList:
-    paths = ["./submodules/lenny-dnd-data/generated/sources.json"]
+    paths = ["./submodules/lenny-dnd-data/generated/official/sources.json"]
     entries: list[Source]
 
     def __init__(self):

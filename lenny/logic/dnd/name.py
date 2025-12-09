@@ -28,7 +28,7 @@ class NameTableNames:
 class NameTable:
     """Names supplied by 5etools, does not adhere to normal DNDObject format!"""
 
-    path = "./submodules/lenny-dnd-data/generated/names.json"
+    path = "./submodules/lenny-dnd-data/generated/official/names.json"
     tables: dict[str, NameTableNames]
 
     def __init__(self):

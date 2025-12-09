@@ -4,7 +4,7 @@ from components.items import SimpleSeparator
 from components.paginated_view import PaginatedLayoutView
 from embeds.config.config import ConfigAllowButton
 from logic.config import Config
-from logic.dnd.source import Source, SourceList
+from logic.dnd.source import ContentChoice, Source, SourceList
 
 
 class ConfigManageSourcesButton(ConfigAllowButton):
@@ -39,11 +39,13 @@ class ConfigManageSourcesButton(ConfigAllowButton):
 class ConfigSourcesView(PaginatedLayoutView):
     allow_configuration: bool
     itr: discord.Interaction
+    content: ContentChoice
 
-    def __init__(self, itr: discord.Interaction, allow_configuration: bool):
+    def __init__(self, itr: discord.Interaction, allow_configuration: bool, content: ContentChoice):
         super().__init__()
         self.itr = itr
         self.allow_configuration = allow_configuration
+        self.content = content
         self.build()
 
     def build(self) -> None:
@@ -58,7 +60,7 @@ class ConfigSourcesView(PaginatedLayoutView):
         container.add_item(SimpleSeparator())
 
         # Source list
-        sources = SourceList()
+        sources = SourceList(self.content)
         sources = sorted(sources.entries, key=lambda s: s.name)
         for source in self.viewed_sources:
             text = discord.ui.TextDisplay[discord.ui.LayoutView](source.name)
@@ -73,12 +75,12 @@ class ConfigSourcesView(PaginatedLayoutView):
 
     @property
     def entry_count(self) -> int:
-        sources = SourceList()
+        sources = SourceList(self.content)
         return len(sources.entries)
 
     @property
     def viewed_sources(self) -> list[Source]:
-        sources = SourceList()
+        sources = SourceList(self.content)
         sources = sorted(sources.entries, key=lambda s: s.name)
 
         start = self.page * self.per_page

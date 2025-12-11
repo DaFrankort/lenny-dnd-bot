@@ -8,5 +8,5 @@ pytest-asyncio==1.3.0
 pillow==12.0.0
 numpy==2.3.5
 d20==1.1.2
-matplotlib==3.10.7
+matplotlib==3.10.8
 d20distribution @ git+https://github.com/pipieter/d20distribution@main

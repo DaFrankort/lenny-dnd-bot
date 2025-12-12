@@ -1,6 +1,13 @@
 from typing import Any
 
 from logic.dnd.abstract import DNDEntryList
+from methods import ChoicedEnum
+
+
+class ContentChoice(ChoicedEnum):
+    ALL = "all"
+    OFFICIAL = "official"
+    PARTNERED = "partnered"
 
 
 class Source:
@@ -23,11 +30,25 @@ class Source:
 
 
 class SourceList:
-    paths = ["./submodules/lenny-dnd-data/generated/official/sources.json"]
+    path_official = "./submodules/lenny-dnd-data/generated/official/sources.json"
+    path_partnered = "./submodules/lenny-dnd-data/generated/partnered/sources.json"
     entries: list[Source]
 
-    def __init__(self):
+    @property
+    def paths(self) -> list[str]:
+        return [self.path_official, self.path_partnered]
+
+    def __init__(self, content: ContentChoice = ContentChoice.ALL):
         self.entries = []
-        for path in self.paths:
+        paths: list[str] = []
+        match content:
+            case ContentChoice.ALL:
+                paths = self.paths
+            case ContentChoice.OFFICIAL:
+                paths = [self.path_official]
+            case ContentChoice.PARTNERED:
+                paths = [self.path_partnered]
+
+        for path in paths:
             data = DNDEntryList.read_dnd_data_contents(path)
             self.entries.extend([Source(e) for e in data])

@@ -9,11 +9,13 @@ class DeityEmbed(DNDEntryEmbed):
 
         # Ensure inline fields are 3 per line, for styling.
         inline_fields = deity.inline_desc
-        padding_count = len(inline_fields) % 3
-        for _ in range(padding_count):
-            inline_fields.append({"name": "", "type": "text", "value": ""})
+        render_inline = len(inline_fields) >= 3
+        if render_inline:
+            padding_count = len(inline_fields) % 3
+            for _ in range(padding_count):
+                inline_fields.append({"name": "", "type": "text", "value": ""})
         for field in inline_fields:
-            self.add_field(name=field["name"], value=field["value"], inline=True)
+            self.add_field(name=field["name"], value=field["value"], inline=render_inline)
 
         if deity.description:
             self.add_separator_field()

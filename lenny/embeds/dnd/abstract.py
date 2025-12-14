@@ -5,6 +5,7 @@ import discord
 from logic.dnd.abstract import Description, DescriptionTable, DNDEntry, build_table
 
 HORIZONTAL_LINE = "~~-------------------------------------------------------------------------------------~~"
+HORIZONTAL_LINE_SHORT = "~~------------------------------------------------------------------~~"
 
 
 class DNDEntryEmbed(discord.Embed):
@@ -121,5 +122,5 @@ class DNDEntryEmbed(discord.Embed):
         """
         line = HORIZONTAL_LINE
         if self.thumbnail.url:
-            line = "~~----------------------------------------------------------------------~~"
+            line = HORIZONTAL_LINE_SHORT
         self.add_field(name="", value=line, inline=False)

@@ -5,6 +5,7 @@ import discord
 from logic.dnd.abstract import Description, DescriptionTable, DNDEntry, build_table
 
 HORIZONTAL_LINE = "~~-------------------------------------------------------------------------------------~~"
+HORIZONTAL_LINE_SHORT = "~~------------------------------------------------------------------~~"
 
 
 class DNDEntryEmbed(discord.Embed):
@@ -17,7 +18,7 @@ class DNDEntryEmbed(discord.Embed):
     view: discord.ui.View | None = None
     file: discord.File | None = None
 
-    def __init__(self, entry: DNDEntry):
+    def __init__(self, entry: DNDEntry, thumbnail_url: str | None = None):
         self._entry = entry
 
         super().__init__(
@@ -26,6 +27,9 @@ class DNDEntryEmbed(discord.Embed):
             color=discord.Color.dark_green(),
             url=entry.url,
         )
+
+        if thumbnail_url:
+            self.set_thumbnail(url=thumbnail_url)
 
     @property
     def char_count(self):
@@ -110,3 +114,13 @@ class DNDEntryEmbed(discord.Embed):
                 break  # TODO Cut description short and add a message
 
             self.add_field(name=name, value=value, inline=False)
+
+    def add_separator_field(self):
+        """
+        Adds a separator line with adjusted width if there is a thumbnail image present.
+        A thumbnail should be set **before** using this method.
+        """
+        line = HORIZONTAL_LINE
+        if self.thumbnail.url:
+            line = HORIZONTAL_LINE_SHORT
+        self.add_field(name="", value=line, inline=False)

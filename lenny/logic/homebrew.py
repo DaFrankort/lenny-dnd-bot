@@ -18,6 +18,7 @@ class HomebrewEntryType(str, ChoicedEnum):
     CLASS = "class"
     CONDITION = "condition"
     CREATURE = "creature"
+    DEITY = "deity"
     FEAT = "feat"
     HAZARD = "hazard"
     ITEM = "item"
@@ -37,6 +38,7 @@ class HomebrewEntryType(str, ChoicedEnum):
             self.CLASS: "🧙‍♂️",
             self.CONDITION: "🤒",
             self.CREATURE: "🐉",
+            self.DEITY: "👁️",
             self.FEAT: "🎖️",
             self.HAZARD: "🪤",
             self.ITEM: "🗡️",

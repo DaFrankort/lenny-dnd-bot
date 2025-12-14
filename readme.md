@@ -119,6 +119,7 @@ Look up various D&D data from [5e.tools](https://5e.tools/).
 - `/search vehicle <vehicle-name>` - Look up a D&D Vehicle (e.g. Galley).
 - `/search object <object-name>` - Look up a D&D Object (e.g. Ballista).
 - `/search hazard <hazard-name>` - Look up a D&D Trap or Hazard (e.g. Spiked Pit).
+- `/search deity <deity-name>` - Look up a D&D Deity (e.g. Bahamut).
 - `/search all <query>` - Look for many related results regarding D&D data. Example: `/search all fire` would return any data with 'fire' in the name.
 
 ### D&D Homebrew Data

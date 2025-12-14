@@ -314,6 +314,24 @@ class SearchHazardCommand(SimpleCommand):
         await send_dnd_entry_lookup_result(itr, "hazard", found, name)
 
 
+async def deity_name_autocomplete(itr: discord.Interaction, current: str):
+    return _generic_name_autocomplete(itr, current, Data.deities, "deity")
+
+
+class SearchDeityCommand(SimpleCommand):
+    name = "deity"
+    desc = "Get the details of a deity."
+    help = "Looks up a D&D Deity by name."
+
+    @autocomplete(name=deity_name_autocomplete)
+    @describe(name="Name of the deity to look up.")
+    async def handle(self, itr: discord.Interaction, name: str):
+        self.log(itr)
+        sources = Config.get(itr).allowed_sources
+        found = Data.deities.get(name, sources)
+        await send_dnd_entry_lookup_result(itr, "deity", found, name)
+
+
 class SearchAnyCommand(SimpleCommand):
     name = "all"
     desc = "Search for all matching D&D entries."
@@ -355,4 +373,5 @@ class SearchCommandGroup(SimpleCommandGroup):
         self.add_command(SearchVehicleCommand())
         self.add_command(SearchObjectCommand())
         self.add_command(SearchHazardCommand())
+        self.add_command(SearchDeityCommand())
         self.add_command(SearchAnyCommand())

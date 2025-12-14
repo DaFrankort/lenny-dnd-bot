@@ -11,6 +11,7 @@ from embeds.dnd.background import BackgroundEmbed
 from embeds.dnd.class_ import ClassEmbed
 from embeds.dnd.condition import ConditionEmbed
 from embeds.dnd.creature import CreatureEmbed
+from embeds.dnd.deities import DeityEmbed
 from embeds.dnd.feat import FeatEmbed
 from embeds.dnd.hazard import HazardEmbed
 from embeds.dnd.item import ItemEmbed
@@ -29,6 +30,7 @@ from logic.dnd.class_ import Class
 from logic.dnd.condition import Condition
 from logic.dnd.creature import Creature
 from logic.dnd.data import DNDSearchResults
+from logic.dnd.deities import Deity
 from logic.dnd.feat import Feat
 from logic.dnd.hazard import Hazard
 from logic.dnd.item import Item
@@ -75,6 +77,8 @@ def get_dnd_embed(itr: discord.Interaction, dnd_entry: DNDEntry):  # pylint: dis
             return DNDObjectEmbed(dnd_entry)
         case Hazard():
             return HazardEmbed(dnd_entry)
+        case Deity():
+            return DeityEmbed(dnd_entry)
         case _:
             raise LookupError(f"D&D entry '{type(DNDEntry).__name__}' not supported")
 

@@ -124,6 +124,7 @@ class TestBotCommands:
             ),  # Search spellcaster & non spellcaster classes, since they render differently
             ("search rule", {"name": ["Action", "abcdef"]}),
             ("search action", {"name": ["Attack", "abcdef"]}),
+            ("search deity", {"name": ["Arawai", "Anubis", "abcdef"]}),
             ("search feat", {"name": ["Tough", "abcdef"]}),
             ("search language", {"name": ["Common", "abcdef"]}),
             ("search background", {"name": ["Soldier", "abcdef"]}),
@@ -342,6 +343,7 @@ class TestBotCommands:
             ("search condition", "name", ["", "Poi"]),
             ("search creature", "name", ["", "Gobl"]),
             ("search class", "name", ["", "Bar"]),
+            ("search deity", "name", ["", "Anu"]),
             ("search rule", "name", ["", "Adv"]),
             ("search action", "name", ["", "Att"]),
             ("search feat", "name", ["", "Tou"]),
@@ -388,6 +390,7 @@ class TestBotCommands:
             ),
             ("search rule", {"name": get_strict_search_arguments(Data.rules)}),
             ("search action", {"name": get_strict_search_arguments(Data.actions)}),
+            ("search deity", {"name": get_strict_search_arguments(Data.deities)}),
             ("search feat", {"name": get_strict_search_arguments(Data.feats)}),
             ("search language", {"name": get_strict_search_arguments(Data.languages)}),
             ("search background", {"name": get_strict_search_arguments(Data.backgrounds)}),

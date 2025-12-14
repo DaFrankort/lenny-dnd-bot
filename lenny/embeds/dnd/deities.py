@@ -15,5 +15,6 @@ class DeityEmbed(DNDEntryEmbed):
         for field in inline_fields:
             self.add_field(name=field["name"], value=field["value"], inline=True)
 
-        self.add_separator_field()
-        self.add_description_fields(deity.description)
+        if deity.description:
+            self.add_separator_field()
+            self.add_description_fields(deity.description)

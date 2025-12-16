@@ -13,6 +13,7 @@ from commands.distribution import DistributionCommand
 from commands.help import HelpCommand
 from commands.homebrew import HomebrewCommandGroup
 from commands.initiative import InitiativeCommand
+from commands.late import LateCommand
 from commands.namegen import NameGenCommand
 from commands.plansession import PlanSessionCommand
 from commands.playsound import PlaySoundCommand
@@ -89,6 +90,7 @@ class Bot(discord.Client):
         self.tree.add_command(SearchCommandGroup())
         self.tree.add_command(TimestampCommandGroup())
         self.tree.add_command(HomebrewCommandGroup())
+        self.tree.add_command(LateCommand())
 
         # Context menus
         self.tree.add_command(DeleteContextMenu())

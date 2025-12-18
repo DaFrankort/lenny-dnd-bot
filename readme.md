@@ -22,10 +22,12 @@ To get the bot running and usable for your own Discord servers, follow these ste
 
 ### 1. Clone the Repository
 
-Clone the repository using the following command:
+Clone the repository and its submodules using the following command:
 
 ```bash
-git clone --recursive https://github.com/DaFrankort/lenny-dnd-bot.git
+git clone https://github.com/DaFrankort/lenny-dnd-bot.git
+cd lenny-dnd-bot
+git submodule update --init
 ```
 
 ### 2. Install Dependencies
@@ -33,8 +35,6 @@ git clone --recursive https://github.com/DaFrankort/lenny-dnd-bot.git
 Once cloned, navigate to the repository directory and install the required dependencies:
 
 ```bash
-cd lenny-dnd-bot
-
 python -m venv venv
 source venv/bin/activate
 

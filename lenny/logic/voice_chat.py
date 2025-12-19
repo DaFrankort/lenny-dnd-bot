@@ -17,14 +17,33 @@ class SoundType(str, Enum):
     NAT_20 = "dice/nat_20"
     NAT_1 = "dice/nat_1"
     ATTACK = "combat/attack"
+    MAGIC = "combat/magic"
+    RANGED = "combat/ranged"
     DAMAGE = "combat/damage"
     FIRE = "combat/fire"
+    HEAL = "combat/heal"
+    SNEAK = "combat/sneak"
     INITIATIVE = "initiative/initiative"
     PLAYER = "initiative/player"
     CREATURE = "initiative/creature"
     WRITE = "initiative/write"
     DELETE = "initiative/delete"
     LOCK = "initiative/lock"
+
+
+SPECIAL_ROLL_REASONS: dict[str, SoundType] = {
+    # SoundType priority is determined by order of keys. (high to low)
+    "heal": SoundType.HEAL,
+    "fire": SoundType.FIRE,
+    "magic": SoundType.MAGIC,
+    "spell": SoundType.MAGIC,
+    "archery": SoundType.RANGED,
+    "ranged": SoundType.RANGED,
+    "attack": SoundType.ATTACK,
+    "damage": SoundType.DAMAGE,
+    "stealth": SoundType.SNEAK,
+    "sneak": SoundType.SNEAK,
+}
 
 
 class VC:
@@ -127,15 +146,12 @@ class VC:
         sound_type: SoundType = SoundType.ROLL
 
         reason = "" if not reason else reason.lower().strip()
-        match reason:
-            case "attack":
-                sound_type: SoundType = SoundType.ATTACK
-            case "damage":
-                sound_type: SoundType = SoundType.DAMAGE
-            case "fire":
-                sound_type: SoundType = SoundType.FIRE
-            case _:
-                ...
+        if reason:
+            for key in SPECIAL_ROLL_REASONS:
+                if key.lower() not in reason:
+                    continue
+                sound_type = SPECIAL_ROLL_REASONS.get(key, SoundType.ROLL)
+                break
 
         if roll.is_natural_twenty:
             sound_type = SoundType.NAT_20
@@ -221,6 +237,10 @@ class Sounds:
             SoundType.ATTACK: option(speed_deviation=0.3),
             SoundType.DAMAGE: option(speed_deviation=0.4),
             SoundType.FIRE: option(speed_deviation=0.2),
+            SoundType.MAGIC: option(speed_deviation=0.2),
+            SoundType.HEAL: option(speed_deviation=0.2),
+            SoundType.RANGED: option(speed_deviation=0.1),
+            SoundType.SNEAK: option(speed_deviation=0),
             SoundType.PLAYER: option(speed_deviation=0.1),
             SoundType.CREATURE: option(speed_deviation=0.1),
             SoundType.WRITE: option(speed_deviation=0.3),

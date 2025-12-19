@@ -7,6 +7,7 @@ from discord.app_commands import Choice
 
 from logic.dnd.data import Data
 from logic.jsonhandler import JsonFolderHandler, JsonHandler
+from logic.voice_chat import SPECIAL_ROLL_REASONS
 
 
 @dataclass
@@ -96,11 +97,13 @@ class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
         if query == "":
             return [Choice(name=expr, value=expr) for expr in reversed(last_used)]
 
-        reasons = ["Attack", "Damage", "Fire", "Healing"]
+        reasons = [key.title() for key in SPECIAL_ROLL_REASONS]
         for ability in Data.skills.get_abilities():
             for ability_variant in ("", "Check", "Save"):
                 reasons.append(f"{ability} {ability_variant}".strip())
         for skill in Data.skills.get_autocomplete_suggestions(query, set(["XPHB"])):
+            if skill.value.lower() in SPECIAL_ROLL_REASONS:
+                continue
             reasons.append(skill.value)
 
         filtered_reasons = sorted(

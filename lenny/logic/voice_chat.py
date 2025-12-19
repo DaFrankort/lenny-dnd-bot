@@ -30,7 +30,7 @@ class SoundType(str, Enum):
     LOCK = "initiative/lock"
 
 
-SPECIAL_ROLLS: dict[str, SoundType] = {
+SPECIAL_ROLL_REASONS: dict[str, SoundType] = {
     # SoundType priority is determined by order of keys. (high to low)
     "heal": SoundType.HEAL,
     "fire": SoundType.FIRE,
@@ -144,10 +144,10 @@ class VC:
 
         reason = "" if not reason else reason.lower().strip()
         if reason:
-            for key in SPECIAL_ROLLS.keys():
-                if key.lower() in reason:
+            for key in SPECIAL_ROLL_REASONS.keys():
+                if key.lower() not in reason:
                     continue
-                sound_type = SPECIAL_ROLLS.get(key, SoundType.ROLL)
+                sound_type = SPECIAL_ROLL_REASONS.get(key, SoundType.ROLL)
                 break
 
         if roll.is_natural_twenty:

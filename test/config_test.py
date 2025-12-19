@@ -126,7 +126,7 @@ class TestConfig:
             allowed_official_sources_2 = sorted(config.config.allowed_official_sources)
             disallowed_official_sources_2 = sorted(config.config.disallowed_official_sources)
 
-            #config.allow_source(source)
+            config.allow_source(source)
 
             allowed_official_sources_3 = sorted(config.config.allowed_official_sources)
             disallowed_official_sources_3 = sorted(config.config.disallowed_official_sources)

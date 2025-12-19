@@ -30,6 +30,19 @@ class SoundType(str, Enum):
     LOCK = "initiative/lock"
 
 
+SPECIAL_ROLLS: dict[str, SoundType] = {
+    # SoundType priority is determined by order of keys. (high to low)
+    "heal": SoundType.HEAL,
+    "fire": SoundType.FIRE,
+    "magic": SoundType.MAGIC,
+    "spell": SoundType.MAGIC,
+    "archery": SoundType.RANGED,
+    "ranged": SoundType.RANGED,
+    "attack": SoundType.ATTACK,
+    "damage": SoundType.DAMAGE,
+}
+
+
 class VC:
     clients: dict[int, discord.VoiceClient] = {}
     voice_available: bool = False
@@ -130,21 +143,12 @@ class VC:
         sound_type: SoundType = SoundType.ROLL
 
         reason = "" if not reason else reason.lower().strip()
-        match reason:
-            case "attack":
-                sound_type: SoundType = SoundType.ATTACK
-            case "damage":
-                sound_type: SoundType = SoundType.DAMAGE
-            case "fire":
-                sound_type: SoundType = SoundType.FIRE
-            case "heal":
-                sound_type: SoundType = SoundType.HEAL
-            case "magic" | "spell":
-                sound_type: SoundType = SoundType.MAGIC
-            case "archery" | "ranged":
-                sound_type: SoundType = SoundType.RANGED
-            case _:
-                ...
+        if reason:
+            for key in SPECIAL_ROLLS.keys():
+                if key.lower() in reason:
+                    continue
+                sound_type = SPECIAL_ROLLS.get(key, SoundType.ROLL)
+                break
 
         if roll.is_natural_twenty:
             sound_type = SoundType.NAT_20

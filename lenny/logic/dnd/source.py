@@ -54,7 +54,7 @@ class SourceList:
             self.entries.extend([Source(e) for e in data])
 
     def contains(self, source: str) -> bool:
-        return any([entry.id == source for entry in self.entries])
+        return source in self.source_ids
 
     @property
     def source_ids(self) -> set[str]:

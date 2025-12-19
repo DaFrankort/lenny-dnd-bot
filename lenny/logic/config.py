@@ -29,11 +29,11 @@ GAMEMASTER_ROLE_EXACT_WORDS = ["gm", "dm"]
 
 
 def is_official_source(source: str) -> bool:
-    return source in OFFICIAL_SOURCES.source_ids
+    return OFFICIAL_SOURCES.contains(source)
 
 
 def is_partnered_source(source: str) -> bool:
-    return source in PARTNERED_SOURCES.source_ids
+    return PARTNERED_SOURCES.contains(source)
 
 
 @dataclass

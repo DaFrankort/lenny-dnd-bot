@@ -22,6 +22,7 @@ class SoundType(str, Enum):
     DAMAGE = "combat/damage"
     FIRE = "combat/fire"
     HEAL = "combat/heal"
+    SNEAK = "combat/sneak"
     INITIATIVE = "initiative/initiative"
     PLAYER = "initiative/player"
     CREATURE = "initiative/creature"
@@ -40,6 +41,8 @@ SPECIAL_ROLL_REASONS: dict[str, SoundType] = {
     "ranged": SoundType.RANGED,
     "attack": SoundType.ATTACK,
     "damage": SoundType.DAMAGE,
+    "stealth": SoundType.SNEAK,
+    "sneak": SoundType.SNEAK,
 }
 
 

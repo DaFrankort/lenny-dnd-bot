@@ -102,6 +102,8 @@ class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
             for ability_variant in ("", "Check", "Save"):
                 reasons.append(f"{ability} {ability_variant}".strip())
         for skill in Data.skills.get_autocomplete_suggestions(query, set(["XPHB"])):
+            if skill.value.lower() in SPECIAL_ROLL_REASONS.keys():
+                continue
             reasons.append(skill.value)
 
         filtered_reasons = sorted(

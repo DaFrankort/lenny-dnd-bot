@@ -147,7 +147,7 @@ class VC:
 
         reason = "" if not reason else reason.lower().strip()
         if reason:
-            for key in SPECIAL_ROLL_REASONS.keys():
+            for key in SPECIAL_ROLL_REASONS:
                 if key.lower() not in reason:
                     continue
                 sound_type = SPECIAL_ROLL_REASONS.get(key, SoundType.ROLL)

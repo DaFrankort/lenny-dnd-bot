@@ -8,13 +8,10 @@ import discord
 from logic.dnd.source import ContentChoice, SourceList
 from logic.jsonhandler import JsonFolderHandler, JsonHandler
 
-"""
-It is important to note that all official sources (excluding the 2014 sources) are
-allowed by default and that all partnered sources are disallowed by default. The
-code is written in such a way that these two are always handled separately when
-modifying the config.
-"""
-
+# It is important to note that all official sources (excluding the 2014 sources) are
+# allowed by default and that all partnered sources are disallowed by default. The
+# code is written in such a way that these two are always handled separately when
+# modifying the config.
 OFFICIAL_SOURCES = SourceList(content=ContentChoice.OFFICIAL)
 PARTNERED_SOURCES = SourceList(content=ContentChoice.PARTNERED)
 
@@ -76,8 +73,7 @@ class GuildConfig:
     def is_source_allowed(self, source: str) -> bool:
         if is_official_source(source):
             return source in self.allowed_official_sources
-        else:
-            return source in self.allowed_partnered_sources
+        return source in self.allowed_partnered_sources
 
 
 class ConfigHandler(JsonHandler[GuildConfig]):

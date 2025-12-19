@@ -58,4 +58,4 @@ class SourceList:
 
     @property
     def source_ids(self) -> set[str]:
-        return set([entry.id for entry in self.entries])
+        return set(entry.id for entry in self.entries)

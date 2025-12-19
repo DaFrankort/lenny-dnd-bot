@@ -52,3 +52,10 @@ class SourceList:
         for path in paths:
             data = DNDEntryList.read_dnd_data_contents(path)
             self.entries.extend([Source(e) for e in data])
+
+    def contains(self, source: str) -> bool:
+        return any([entry.id == source for entry in self.entries])
+
+    @property
+    def source_ids(self) -> set[str]:
+        return set([entry.id for entry in self.entries])

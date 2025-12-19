@@ -5,11 +5,18 @@ from typing import Any
 
 import discord
 
-from logic.dnd.source import SourceList
+from logic.dnd.source import ContentChoice, SourceList
 from logic.jsonhandler import JsonFolderHandler, JsonHandler
 
+# It is important to note that all official sources (excluding the 2014 sources) are
+# allowed by default and that all partnered sources are disallowed by default. The
+# code is written in such a way that these two are always handled separately when
+# modifying the config.
+OFFICIAL_SOURCES = SourceList(content=ContentChoice.OFFICIAL)
+PARTNERED_SOURCES = SourceList(content=ContentChoice.PARTNERED)
+
 # Disallow PHB 2014 sources by default
-DEFAULT_DISALLOWED_SOURCES = ["PHB", "DMG", "MM"]
+DEFAULT_DISALLOWED_OFFICIAL_SOURCES = ["PHB", "DMG", "MM"]
 
 # Words that need to be a substring of the game master role
 GAMEMASTER_ROLE_CONTAINING_WORDS = ["game master", "gamemaster", "dungeon master"]
@@ -18,19 +25,55 @@ GAMEMASTER_ROLE_CONTAINING_WORDS = ["game master", "gamemaster", "dungeon master
 GAMEMASTER_ROLE_EXACT_WORDS = ["gm", "dm"]
 
 
+def is_official_source(source: str) -> bool:
+    return OFFICIAL_SOURCES.contains(source)
+
+
+def is_partnered_source(source: str) -> bool:
+    return PARTNERED_SOURCES.contains(source)
+
+
 @dataclass
 class GuildConfig:
     # Lookup
-    disallowed_sources: list[str]
+    disallowed_official_sources: list[str]
+    allowed_partnered_sources: list[str]
+
     # Permissions
     roles: list[int]
 
     @classmethod
     def fromdict(cls, obj: Any) -> "GuildConfig":
         return cls(
-            disallowed_sources=obj.get("disallowed_sources", DEFAULT_DISALLOWED_SOURCES),
+            disallowed_official_sources=obj.get("disallowed_official_sources", DEFAULT_DISALLOWED_OFFICIAL_SOURCES),
+            allowed_partnered_sources=obj.get("allowed_partnered_sources", []),
             roles=obj.get("roles", []),
         )
+
+    @property
+    def allowed_official_sources(self) -> list[str]:
+        all_official_sources = set(OFFICIAL_SOURCES.source_ids)
+        disallowed_official_sources = set(self.disallowed_official_sources)
+        return list(all_official_sources - disallowed_official_sources)
+
+    @property
+    def disallowed_partnered_sources(self) -> list[str]:
+        all_partnered_sources = set(PARTNERED_SOURCES.source_ids)
+        allowed_partnered_sources = set(self.allowed_partnered_sources)
+        return list(all_partnered_sources - allowed_partnered_sources)
+
+    @property
+    def allowed_sources(self) -> list[str]:
+        return [*self.allowed_official_sources, *self.allowed_partnered_sources]
+
+    @property
+    def disallowed_sources(self) -> list[str]:
+        return [*self.disallowed_official_sources, *self.disallowed_partnered_sources]
+
+    def is_source_allowed(self, source: str) -> bool:
+        if is_official_source(source):
+            return source in self.allowed_official_sources
+        return source in self.allowed_partnered_sources
 
 
 class ConfigHandler(JsonHandler[GuildConfig]):
@@ -53,7 +96,8 @@ class ConfigHandler(JsonHandler[GuildConfig]):
 
     def reset(self) -> None:
         self.config = GuildConfig(
-            disallowed_sources=self.default_disallowed_sources(),
+            disallowed_official_sources=[*DEFAULT_DISALLOWED_OFFICIAL_SOURCES],
+            allowed_partnered_sources=[],
             roles=self.default_config_roles,
         )
 
@@ -65,14 +109,10 @@ class ConfigHandler(JsonHandler[GuildConfig]):
     @staticmethod
     def default_disallowed_sources() -> list[str]:
         # 2014 sources are disabled by default
-        return DEFAULT_DISALLOWED_SOURCES
-
-    @property
-    def default_allowed_sources(self) -> list[str]:
-        source_list = SourceList()
-        sources = set(source.id for source in source_list.entries)
-        disallowed = set(ConfigHandler.default_disallowed_sources())
-        return list(sources - disallowed)
+        official_disallowed = DEFAULT_DISALLOWED_OFFICIAL_SOURCES
+        # Partnered sources are disallowed by default
+        partnered_disallowed = list(PARTNERED_SOURCES.source_ids)
+        return [*official_disallowed, *partnered_disallowed]
 
     @property
     def disallowed_sources(self) -> set[str]:
@@ -80,13 +120,18 @@ class ConfigHandler(JsonHandler[GuildConfig]):
 
     @property
     def allowed_sources(self) -> set[str]:
-        source_list = SourceList()
-        sources = set(source.id for source in source_list.entries)
-        disallowed = self.disallowed_sources
-        return sources - disallowed
+        return set(self.config.allowed_sources)
 
     def set_disallowed_sources(self, sources: Iterable[str]) -> None:
-        self.config.disallowed_sources = list(set(sources))
+        official_sources = [source for source in sources if is_official_source(source)]
+        partnered_sources = [source for source in sources if is_partnered_source(source)]
+
+        disallowed_official_sources = set(self.config.disallowed_official_sources + official_sources)
+        allowed_partnered_sources = set(self.config.allowed_partnered_sources) - set(partnered_sources)
+
+        self.config.disallowed_official_sources = list(disallowed_official_sources)
+        self.config.allowed_partnered_sources = list(allowed_partnered_sources)
+
         self.save()
 
     def allow_source(self, source: str) -> None:

@@ -17,8 +17,11 @@ class SoundType(str, Enum):
     NAT_20 = "dice/nat_20"
     NAT_1 = "dice/nat_1"
     ATTACK = "combat/attack"
+    MAGIC = "combat/magic"
+    RANGED = "combat/ranged"
     DAMAGE = "combat/damage"
     FIRE = "combat/fire"
+    HEAL = "combat/heal"
     INITIATIVE = "initiative/initiative"
     PLAYER = "initiative/player"
     CREATURE = "initiative/creature"
@@ -134,6 +137,12 @@ class VC:
                 sound_type: SoundType = SoundType.DAMAGE
             case "fire":
                 sound_type: SoundType = SoundType.FIRE
+            case "heal":
+                sound_type: SoundType = SoundType.HEAL
+            case "magic" | "spell":
+                sound_type: SoundType = SoundType.MAGIC
+            case "archery" | "ranged":
+                sound_type: SoundType = SoundType.RANGED
             case _:
                 ...
 

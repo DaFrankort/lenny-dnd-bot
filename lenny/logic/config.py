@@ -122,27 +122,41 @@ class ConfigHandler(JsonHandler[GuildConfig]):
     def allowed_sources(self) -> set[str]:
         return set(self.config.allowed_sources)
 
-    def set_disallowed_sources(self, sources: Iterable[str]) -> None:
-        official_sources = [source for source in sources if is_official_source(source)]
-        partnered_sources = [source for source in sources if is_partnered_source(source)]
+    def set_allowed_partnered_sources(self, sources: Iterable[str]) -> None:
+        self.config.allowed_partnered_sources = list(sources)
+        self.save()
 
-        disallowed_official_sources = set(self.config.disallowed_official_sources + official_sources)
-        allowed_partnered_sources = set(self.config.allowed_partnered_sources) - set(partnered_sources)
-
-        self.config.disallowed_official_sources = list(disallowed_official_sources)
-        self.config.allowed_partnered_sources = list(allowed_partnered_sources)
-
+    def set_disallowed_official_sources(self, sources: Iterable[str]) -> None:
+        self.config.disallowed_official_sources = list(sources)
         self.save()
 
     def allow_source(self, source: str) -> None:
-        disallowed = self.disallowed_sources
-        disallowed.discard(source)
-        self.set_disallowed_sources(disallowed)
+        if is_partnered_source(source):
+            allowed_partnered_sources = set(self.config.allowed_partnered_sources)
+            allowed_partnered_sources.add(source)
+            self.set_allowed_partnered_sources(allowed_partnered_sources)
+
+        elif is_official_source(source):
+            disallowed_official_sources = set(self.config.disallowed_official_sources)
+            disallowed_official_sources.discard(source)
+            self.set_disallowed_official_sources(disallowed_official_sources)
+
+        else:
+            raise ValueError(f"Unknown source type: {source}")
 
     def disallow_source(self, source: str) -> None:
-        disallowed = self.disallowed_sources
-        disallowed.add(source)
-        self.set_disallowed_sources(disallowed)
+        if is_partnered_source(source):
+            allowed_partnered_sources = set(self.config.allowed_partnered_sources)
+            allowed_partnered_sources.discard(source)
+            self.set_allowed_partnered_sources(allowed_partnered_sources)
+
+        elif is_official_source(source):
+            disallowed_official_sources = set(self.config.disallowed_official_sources)
+            disallowed_official_sources.add(source)
+            self.set_disallowed_official_sources(disallowed_official_sources)
+
+        else:
+            raise ValueError(f"Unknown source type: {source}")
 
     # endregion sources
 

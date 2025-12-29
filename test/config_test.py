@@ -144,3 +144,61 @@ class TestConfig:
             assert disallowed_official_sources_1 == disallowed_official_sources_2
             assert disallowed_official_sources_1 == disallowed_official_sources_3
             assert disallowed_official_sources_2 == disallowed_official_sources_3
+
+    def test_allowing_official_source_allows_source(self, itr: discord.Interaction):
+        assert itr.guild is not None
+        config = Config.get(itr)
+        config.reset()
+
+        source = config.config.disallowed_official_sources[0]
+        assert source in config.disallowed_sources
+        assert source not in config.allowed_sources
+
+        config.allow_source(source)
+        assert source not in config.disallowed_sources
+        assert source in config.allowed_sources
+
+    def test_allowing_partnered_source_allows_source(self, itr: discord.Interaction):
+        assert itr.guild is not None
+        config = Config.get(itr)
+        config.reset()
+
+        source = config.config.disallowed_partnered_sources[0]
+        assert source in config.disallowed_sources
+        assert source not in config.allowed_sources
+
+        config.allow_source(source)
+        assert source not in config.disallowed_sources
+        assert source in config.allowed_sources
+
+    def test_disallowing_official_source_disallows_source(self, itr: discord.Interaction):
+        assert itr.guild is not None
+        config = Config.get(itr)
+        config.reset()
+
+        source = config.config.allowed_official_sources[0]
+        assert source in config.allowed_sources
+        assert source not in config.disallowed_sources
+
+        config.disallow_source(source)
+        assert source not in config.allowed_sources
+        assert source in config.disallowed_sources
+
+    def test_disallowing_partnered_source_disallows_source(self, itr: discord.Interaction):
+        assert itr.guild is not None
+        config = Config.get(itr)
+        config.reset()
+
+        # Note, all partnered sources are disallowed by default, and thus one needs
+        # to be manually added first.
+        source = config.config.disallowed_partnered_sources[0]
+        config.allow_source(source)
+
+        source = config.config.allowed_partnered_sources[0]
+        assert source in config.allowed_sources
+        assert source not in config.disallowed_sources
+
+        config.disallow_source(source)
+
+        assert source not in config.allowed_sources
+        assert source in config.disallowed_sources

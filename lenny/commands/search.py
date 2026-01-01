@@ -129,13 +129,7 @@ async def class_name_autocomplete(itr: discord.Interaction, current: str):
     return _generic_name_autocomplete(itr, current, Data.classes, "class")
 
 
-async def subclass_name_autocomplete(itr: discord.Interaction, current: str) -> list[discord.app_commands.Choice[str]]:
-    class_name = get_command_option(itr, "name")
-
-    if not isinstance(class_name, str):
-        raise ValueError(f"Subclass' parent class needs to be a string, received '{class_name}' ({type(class_name)}) instead.")
-
-    sources = Config.get(itr).allowed_sources
+def subclass_name_lookup(class_name: str, query: str, sources: set[str]) -> list[discord.app_commands.Choice[str]]:
     classes = Data.classes.get(class_name, sources, 100)  # require exact match
 
     # Need exactly one class to match, otherwise things might get confusing
@@ -143,8 +137,18 @@ async def subclass_name_autocomplete(itr: discord.Interaction, current: str) -> 
         return []
 
     subclasses = classes[0].subclasses
-    filtered = fuzzy_matches_list(current, subclasses)
+    filtered = fuzzy_matches_list(query, subclasses)
     return [subclass.choice for subclass in filtered]
+
+
+async def subclass_name_autocomplete(itr: discord.Interaction, current: str) -> list[discord.app_commands.Choice[str]]:
+    class_name = get_command_option(itr, "name")
+
+    if not isinstance(class_name, str):
+        raise ValueError(f"Subclass' parent class needs to be a string, received '{class_name}' ({type(class_name)}) instead.")
+
+    sources = Config.get(itr).allowed_sources
+    return subclass_name_lookup(class_name, current, sources)
 
 
 class SearchClassCommand(SimpleCommand):

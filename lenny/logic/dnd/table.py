@@ -10,8 +10,7 @@ class DNDTable(DNDEntry):
     footnotes: list[str] | None
 
     def __init__(self, obj: dict[str, Any]):
-        self.entry_type = "table"
-        self.emoji = DNDEntryType.TABLE
+        self.entry_type = DNDEntryType.TABLE
 
         self.name = obj["name"]
         self.source = obj["source"]

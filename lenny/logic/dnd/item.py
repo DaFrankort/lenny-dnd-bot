@@ -11,8 +11,7 @@ class Item(DNDEntry):
     description: list[Description]
 
     def __init__(self, obj: dict[str, Any]):
-        self.entry_type = "item"
-        self.emoji = DNDEntryType.ITEM
+        self.entry_type = DNDEntryType.ITEM
 
         self.name = obj["name"]
         self.source = obj["source"]

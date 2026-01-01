@@ -7,8 +7,7 @@ class Action(DNDEntry):
     description: list[Description]
 
     def __init__(self, obj: dict[str, Any]):
-        self.entry_type = "action"
-        self.emoji = DNDEntryType.ACTION
+        self.entry_type = DNDEntryType.ACTION
 
         self.name = obj["name"]
         self.source = obj["source"]

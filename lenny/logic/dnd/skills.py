@@ -8,8 +8,7 @@ class Skill(DNDEntry):
     description: list[Description]
 
     def __init__(self, obj: dict[str, Any]):
-        self.entry_type = "skill"
-        self.emoji = DNDEntryType.SKILL
+        self.entry_type = DNDEntryType.SKILL
 
         self.name = obj["name"]
         self.source = obj["source"]

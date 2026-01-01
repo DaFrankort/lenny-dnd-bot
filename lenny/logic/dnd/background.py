@@ -8,8 +8,7 @@ class Background(DNDEntry):
     description: list[Description]
 
     def __init__(self, obj: dict[str, Any]):
-        self.entry_type = "background"
-        self.emoji = DNDEntryType.BACKGROUND
+        self.entry_type = DNDEntryType.BACKGROUND
 
         self.name = obj["name"]
         self.source = obj["source"]

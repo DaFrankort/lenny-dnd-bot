@@ -10,8 +10,7 @@ class Creature(DNDEntry):
     description: list[Description]
 
     def __init__(self, obj: dict[str, Any]):
-        self.entry_type = "creature"
-        self.emoji = DNDEntryType.CREATURE
+        self.entry_type = DNDEntryType.CREATURE
 
         self.name = obj["name"]
         self.source = obj["source"]

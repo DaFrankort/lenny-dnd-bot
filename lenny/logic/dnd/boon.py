@@ -9,8 +9,7 @@ class Boon(DNDEntry):
     description: list[Description]
 
     def __init__(self, obj: dict[str, Any]) -> None:
-        self.entry_type = "boon"
-        self.emoji = DNDEntryType.BOON
+        self.entry_type = DNDEntryType.BOON
 
         self.name = obj["name"]
         self.source = obj["source"]

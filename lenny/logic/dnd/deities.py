@@ -9,8 +9,7 @@ class Deity(DNDEntry):
     description: list[Description]
 
     def __init__(self, obj: dict[str, Any]):
-        self.entry_type = "deity"
-        self.emoji = DNDEntryType.DEITY
+        self.entry_type = DNDEntryType.DEITY
 
         self.name = obj["name"]
         self.source = obj["source"]

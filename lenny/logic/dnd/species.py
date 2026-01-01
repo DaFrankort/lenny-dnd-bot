@@ -13,8 +13,7 @@ class Species(DNDEntry):
     info: list[Description]
 
     def __init__(self, obj: dict[str, Any]):
-        self.entry_type = "species"
-        self.emoji = DNDEntryType.SPECIES
+        self.entry_type = DNDEntryType.SPECIES
 
         self.name = obj["name"]
         self.source = obj["source"]

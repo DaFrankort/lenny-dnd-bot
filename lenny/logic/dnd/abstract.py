@@ -112,11 +112,10 @@ class Description(TypedDict):
 
 
 class DNDEntry(abc.ABC):
-    entry_type: str
+    entry_type: DNDEntryType
     name: str
     source: str
     url: str | None
-    emoji: DNDEntryType
     select_description: str | None = None  # Description in dropdown menus
 
     @abc.abstractmethod

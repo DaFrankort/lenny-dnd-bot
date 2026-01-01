@@ -11,8 +11,7 @@ class Cult(DNDEntry):
     description: list[Description]
 
     def __init__(self, obj: dict[str, Any]) -> None:
-        self.entry_type = "cult"
-        self.emoji = DNDEntryType.CULT
+        self.entry_type = DNDEntryType.CULT
 
         self.name = obj["name"]
         self.source = obj["source"]

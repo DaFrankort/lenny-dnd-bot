@@ -13,8 +13,7 @@ class Class(DNDEntry):
     subclass_level_features: dict[str, dict[str, list[Description]]]
 
     def __init__(self, obj: dict[str, Any]):
-        self.entry_type = "class"
-        self.emoji = DNDEntryType.CLASS
+        self.entry_type = DNDEntryType.CLASS
 
         self.name = obj["name"]
         self.source = obj["source"]

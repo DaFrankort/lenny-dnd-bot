@@ -83,9 +83,7 @@ class TestHomebrew:
         guild_data.add(itr, DNDEntryType.ITEM, "Item1", "d2", "desc2")
 
         all_entries = guild_data.get_all(None)
-        expected_count = len(guild_data.data.get(DNDEntryType.SPELL, [])) + len(
-            guild_data.data.get(DNDEntryType.ITEM, [])
-        )
+        expected_count = len(guild_data.data.get(DNDEntryType.SPELL, [])) + len(guild_data.data.get(DNDEntryType.ITEM, []))
         assert len(all_entries) == expected_count
 
         spell_entries = guild_data.get_all(DNDEntryType.SPELL)

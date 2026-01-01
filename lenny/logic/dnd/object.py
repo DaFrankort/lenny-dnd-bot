@@ -1,6 +1,6 @@
 from typing import Any
 
-from logic.dnd.abstract import Description, DNDEntry, DNDEntryList
+from logic.dnd.abstract import Description, DNDEntry, DNDEntryList, DNDEntryType
 
 
 class DNDObject(DNDEntry):
@@ -8,8 +8,7 @@ class DNDObject(DNDEntry):
     token_url: str
 
     def __init__(self, obj: dict[str, Any]):
-        self.entry_type = "object"
-        self.emoji = "🪨"
+        self.entry_type = DNDEntryType.OBJECT
 
         self.name = obj["name"]
         self.source = obj["source"]

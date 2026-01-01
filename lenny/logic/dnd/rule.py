@@ -1,14 +1,13 @@
 from typing import Any
 
-from logic.dnd.abstract import Description, DNDEntry, DNDEntryList
+from logic.dnd.abstract import Description, DNDEntry, DNDEntryList, DNDEntryType
 
 
 class Rule(DNDEntry):
     description: list[Description]
 
     def __init__(self, obj: dict[str, Any]):
-        self.entry_type = "rule"
-        self.emoji = "📜"
+        self.entry_type = DNDEntryType.RULE
 
         self.name = obj["name"]
         self.source = obj["source"]

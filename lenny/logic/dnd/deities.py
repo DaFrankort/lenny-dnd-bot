@@ -1,6 +1,6 @@
 from typing import Any
 
-from logic.dnd.abstract import Description, DNDEntry, DNDEntryList
+from logic.dnd.abstract import Description, DNDEntry, DNDEntryList, DNDEntryType
 
 
 class Deity(DNDEntry):
@@ -9,8 +9,7 @@ class Deity(DNDEntry):
     description: list[Description]
 
     def __init__(self, obj: dict[str, Any]):
-        self.entry_type = "deity"
-        self.emoji = "👁️"
+        self.entry_type = DNDEntryType.DEITY
 
         self.name = obj["name"]
         self.source = obj["source"]

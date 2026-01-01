@@ -1,14 +1,13 @@
 from typing import Any
 
-from logic.dnd.abstract import Description, DNDEntry, DNDEntryList
+from logic.dnd.abstract import Description, DNDEntry, DNDEntryList, DNDEntryType
 
 
 class Action(DNDEntry):
     description: list[Description]
 
     def __init__(self, obj: dict[str, Any]):
-        self.entry_type = "action"
-        self.emoji = "🏃"
+        self.entry_type = DNDEntryType.ACTION
 
         self.name = obj["name"]
         self.source = obj["source"]

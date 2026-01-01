@@ -1,6 +1,6 @@
 from typing import Any
 
-from logic.dnd.abstract import Description, DNDEntry, DNDEntryList
+from logic.dnd.abstract import Description, DNDEntry, DNDEntryList, DNDEntryType
 
 
 class Condition(DNDEntry):
@@ -8,8 +8,7 @@ class Condition(DNDEntry):
     image: str | None
 
     def __init__(self, obj: dict[str, Any]):
-        self.entry_type = "condition"
-        self.emoji = "💀"
+        self.entry_type = DNDEntryType.CONDITION
 
         self.name = obj["name"]
         self.source = obj["source"]

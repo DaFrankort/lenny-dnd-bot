@@ -31,10 +31,13 @@ class Class(DNDEntry):
         return str(self)
 
     def has_subclass(self, subclass: str) -> bool:
-        subclasses = self.subclass_level_features.keys()
-        subclasses = set(sub.lower().strip() for sub in subclasses)
+        subclasses = set(sub.lower().strip() for sub in self.subclasses)
         subclass = subclass.lower().strip()
         return subclass in subclasses
+
+    @property
+    def subclasses(self) -> set[str]:
+        return set(self.subclass_level_features.keys())
 
 
 class ClassList(DNDEntryList[Class]):

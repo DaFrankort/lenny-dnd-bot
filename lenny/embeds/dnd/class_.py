@@ -16,7 +16,7 @@ class MultiClassSubclassSelect(discord.ui.Select["ClassNavigationView"]):
     ):
         sources = [f"({src})" for src in parent_view.allowed_sources]
         options: list[discord.SelectOption] = []
-        for subclass_name in character_class.subclass_level_features.keys():
+        for subclass_name in character_class.subclasses:
             if not any(src in subclass_name for src in sources):
                 continue  # Skip disallowed source-content.
             if character_class.source == "XPHB" and "(PHB)" in subclass_name:

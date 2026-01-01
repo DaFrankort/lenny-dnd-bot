@@ -158,7 +158,7 @@ async def subclass_name_autocomplete(itr: discord.Interaction, current: str) -> 
     if len(classes) != 1:
         return []
 
-    subclasses = classes[0].subclass_level_features.keys()
+    subclasses = classes[0].subclasses
     filtered = fuzzy_matches_list(current, subclasses)
     return [subclass.choice for subclass in filtered]
 

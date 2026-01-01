@@ -88,13 +88,13 @@ class TestDndData:
         assert (fuzzy is not None) == result
 
     @pytest.mark.parametrize(
-            "class_name, query, contains",
-            [
-                ("Wizard", "Illusion", True),
-                ("Wizard", "DoesNotExist", False),
-                ("Barbarian", "Wild Heart", True),
-                ("DoesNotExist", "Evoker", False)
-            ]
+        "class_name, query, contains",
+        [
+            ("Wizard", "Illusion", True),
+            ("Wizard", "DoesNotExist", False),
+            ("Barbarian", "Wild Heart", True),
+            ("DoesNotExist", "Evoker", False),
+        ],
     )
     def test_subclass_lookup(self, class_name: str, query: str, contains: bool):
         itr = MockInteraction()
@@ -105,6 +105,7 @@ class TestDndData:
             assert len(subclasses) > 0, f"Class {class_name} expected to have '{query}' as a subclass."
         else:
             assert len(subclasses) == 0, f"Class {class_name} did not expect '{query}' as a subclass."
+
 
 class TestSearchCache:
     @pytest.mark.asyncio

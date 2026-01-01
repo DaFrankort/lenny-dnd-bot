@@ -134,6 +134,7 @@ class TestBotCommands:
             ("search object", {"name": ["Ballista", "abcdef"]}),
             ("search hazard", {"name": ["Spiked Pit", "abcdef"]}),
             ("search cult", {"name": ["Cult of Dispater", "abcdef"]}),
+            ("search boon", {"name": ["Demonic Boon of Balor", "abcdef"]}),
             (
                 "search all",
                 [
@@ -350,6 +351,7 @@ class TestBotCommands:
             ("search feat", "name", ["", "Tou"]),
             ("search language", "name", ["", "Comm"]),
             ("search cult", "name", ["", "Cult of Dispa"]),
+            ("search boon", "name", ["", "Demonic Boon of Bal"]),
             # ('', '', ''),
         ],
     )
@@ -401,6 +403,7 @@ class TestBotCommands:
             ("search vehicle", {"name": get_strict_search_arguments(Data.vehicles)}),
             ("search object", {"name": get_strict_search_arguments(Data.objects)}),
             ("search hazard", {"name": get_strict_search_arguments(Data.hazards)}),
+            ("search boon", {"name": get_strict_search_arguments(Data.boons)}),
             (
                 "charactergen",
                 {

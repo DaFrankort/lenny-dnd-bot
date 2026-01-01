@@ -5,6 +5,7 @@ from utils.utils import AutocompleteMethod
 from commands.search import (
     action_name_autocomplete,
     background_name_autocomplete,
+    boon_name_autocomplete,
     class_name_autocomplete,
     condition_name_autocomplete,
     creature_name_autocomplete,
@@ -107,6 +108,7 @@ class TestSearchCache:
             (Data.objects.entries[0], object_name_autocomplete),
             (Data.hazards.entries[0], hazard_name_autocomplete),
             (Data.cults.entries[0], cult_name_autocomplete),
+            (Data.boons.entries[0], boon_name_autocomplete),
         ],
     )
     async def test_autocompletes(self, entry: DNDEntry, autocomplete_method: AutocompleteMethod):

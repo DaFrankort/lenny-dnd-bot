@@ -8,6 +8,7 @@ from components.items import SimpleSeparator, TitleTextDisplay
 from components.paginated_view import PaginatedLayoutView
 from embeds.dnd.action import ActionEmbed
 from embeds.dnd.background import BackgroundEmbed
+from embeds.dnd.boons import BoonEmbed
 from embeds.dnd.class_ import ClassEmbed
 from embeds.dnd.condition import ConditionEmbed
 from embeds.dnd.creature import CreatureEmbed
@@ -27,6 +28,7 @@ from logic.config import Config
 from logic.dnd.abstract import DNDEntry
 from logic.dnd.action import Action
 from logic.dnd.background import Background
+from logic.dnd.boon import Boon
 from logic.dnd.class_ import Class
 from logic.dnd.condition import Condition
 from logic.dnd.creature import Creature
@@ -83,6 +85,8 @@ def get_dnd_embed(itr: discord.Interaction, dnd_entry: DNDEntry):  # pylint: dis
             return DeityEmbed(dnd_entry)
         case Cult():
             return CultEmbed(dnd_entry)
+        case Boon():
+            return BoonEmbed(dnd_entry)
         case _:
             raise LookupError(f"D&D entry '{type(DNDEntry).__name__}' not supported")
 

@@ -30,6 +30,7 @@ class HomebrewEntryType(str, ChoicedEnum):
     TABLE = "table"
     VEHICLE = "vehicle"
     CULT = "cult"
+    BOON = "boon"
 
     @property
     def emoji(self) -> str:
@@ -51,6 +52,7 @@ class HomebrewEntryType(str, ChoicedEnum):
             self.TABLE: "📊",
             self.VEHICLE: "⛵",
             self.CULT: "🕯️",
+            self.BOON: "🎁",
         }
         return emojis.get(self, "❓")
 

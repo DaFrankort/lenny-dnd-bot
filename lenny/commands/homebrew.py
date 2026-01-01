@@ -8,7 +8,8 @@ from embeds.homebrew import (
     HomebrewEntryAddModal,
     HomebrewListView,
 )
-from logic.homebrew import HomebrewData, HomebrewEntryType
+from logic.dnd.abstract import DNDEntryType
+from logic.homebrew import HomebrewData
 from logic.markdown import MDFile
 
 
@@ -63,7 +64,7 @@ class HomebrewListCommand(SimpleCommand):
     desc = "View all entries in your server's tome of homebrew!"
     help = "Shows all homebrew content in your server and filter by entry type."
 
-    @choices(filter=HomebrewEntryType.choices())
+    @choices(filter=DNDEntryType.choices())
     @describe(filter="Show only homebrew entries of a certain type. Shows all by default.")
     async def handle(self, itr: discord.Interaction, filter: str | None = None):  # pylint: disable=redefined-builtin
         self.log(itr)

@@ -1,6 +1,6 @@
 from typing import Any
 
-from logic.dnd.abstract import Description, DNDEntry, DNDEntryList
+from logic.dnd.abstract import DNDEntryType, Description, DNDEntry, DNDEntryList
 
 
 class Cult(DNDEntry):
@@ -12,7 +12,7 @@ class Cult(DNDEntry):
 
     def __init__(self, obj: dict[str, Any]) -> None:
         self.entry_type = "cult"
-        self.emoji = "🕯️"
+        self.emoji = DNDEntryType.CULT
 
         self.name = obj["name"]
         self.source = obj["source"]

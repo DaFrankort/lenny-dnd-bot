@@ -9,7 +9,8 @@ from components.items import (
 )
 from components.modals import SimpleModal
 from components.paginated_view import PaginatedLayoutView
-from logic.homebrew import HomebrewData, HomebrewEntry, HomebrewEntryType
+from logic.dnd.abstract import DNDEntryType
+from logic.homebrew import HomebrewData, HomebrewEntry
 from logic.markdown import MDFile, wrapped_md_table_to_rich_table
 
 
@@ -39,7 +40,7 @@ class HomebrewEmbed(discord.Embed):
 
 class HomebrewEntryAddModal(SimpleModal):
     name = SimpleLabelTextInput(label="Name", placeholder="Peanut")
-    type = ModalSelectComponent(label="Type", options=HomebrewEntryType.options(), required=True)
+    type = ModalSelectComponent(label="Type", options=DNDEntryType.options(), required=True)
     subtitle = SimpleLabelTextInput(
         label="Subtitle",
         placeholder="A small legume",
@@ -69,7 +70,7 @@ class HomebrewEntryAddModal(SimpleModal):
         self.log_inputs(itr)
 
         name = self.get_str(self.name)
-        entry_type: HomebrewEntryType | None = self.get_choice(self.type, HomebrewEntryType)
+        entry_type: DNDEntryType | None = self.get_choice(self.type, DNDEntryType)
         subtitle = self.get_str(self.subtitle)
         description = self.get_str(self.description)
 
@@ -135,14 +136,14 @@ class HomebrewListButton(ui.Button["HomebrewListView"]):
 
 
 class HomebrewListView(PaginatedLayoutView):
-    filter: HomebrewEntryType | None
+    filter: DNDEntryType | None
     entries: list[HomebrewEntry]
 
     def __init__(self, itr: discord.Interaction, filter: str | None):  # pylint: disable=redefined-builtin
         self.filter = None
         label = "All Entries"
         if filter is not None:
-            self.filter = HomebrewEntryType(filter)
+            self.filter = DNDEntryType(filter)
             label = filter.title()
 
         self.entries = HomebrewData.get(itr).get_all(self.filter)

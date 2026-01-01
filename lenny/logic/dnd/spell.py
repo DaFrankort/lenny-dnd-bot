@@ -1,6 +1,6 @@
 from typing import Any
 
-from logic.dnd.abstract import Description, DNDEntry, DNDEntryList
+from logic.dnd.abstract import DNDEntryType, Description, DNDEntry, DNDEntryList
 
 
 class Spell(DNDEntry):
@@ -17,7 +17,7 @@ class Spell(DNDEntry):
 
     def __init__(self, obj: dict[str, Any]):
         self.entry_type = "spell"
-        self.emoji = "🔥"
+        self.emoji = DNDEntryType.SPELL
 
         self.name = obj["name"]
         self.source = obj["source"]

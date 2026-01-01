@@ -5,63 +5,17 @@ import discord
 from discord.app_commands import Choice
 
 from logic.config import Config
-from logic.dnd.abstract import FuzzyMatchResult, fuzzy_matches
+from logic.dnd.abstract import DNDEntryType, FuzzyMatchResult, fuzzy_matches
 from logic.jsonhandler import JsonFolderHandler, JsonHandler
-from methods import ChoicedEnum
 
 HOMEBREW_PATH: str = "./temp/homebrew/"
-
-
-class HomebrewEntryType(str, ChoicedEnum):
-    ACTION = "action"
-    BACKGROUND = "background"
-    CLASS = "class"
-    CONDITION = "condition"
-    CREATURE = "creature"
-    DEITY = "deity"
-    FEAT = "feat"
-    HAZARD = "hazard"
-    ITEM = "item"
-    LANGUAGE = "language"
-    OBJECT = "object"
-    RULE = "rule"
-    SPECIES = "species"
-    SPELL = "spell"
-    TABLE = "table"
-    VEHICLE = "vehicle"
-    CULT = "cult"
-    BOON = "boon"
-
-    @property
-    def emoji(self) -> str:
-        emojis = {
-            self.ACTION: "🏃",
-            self.BACKGROUND: "📕",
-            self.CLASS: "🧙‍♂️",
-            self.CONDITION: "🤒",
-            self.CREATURE: "🐉",
-            self.DEITY: "👁️",
-            self.FEAT: "🎖️",
-            self.HAZARD: "🪤",
-            self.ITEM: "🗡️",
-            self.LANGUAGE: "💬",
-            self.OBJECT: "🪨",
-            self.RULE: "📜",
-            self.SPECIES: "🧝",
-            self.SPELL: "🔥",
-            self.TABLE: "📊",
-            self.VEHICLE: "⛵",
-            self.CULT: "🕯️",
-            self.BOON: "🎁",
-        }
-        return emojis.get(self, "❓")
 
 
 @dataclasses.dataclass
 class HomebrewEntry:
     name: str
     author_id: int
-    entry_type: HomebrewEntryType
+    entry_type: DNDEntryType
     description: str
     select_description: str | None = None  # Description in dropdown menus
 
@@ -95,7 +49,7 @@ class HomebrewEntry:
         return cls(
             name=data["name"],
             author_id=data["author_id"],
-            entry_type=HomebrewEntryType(
+            entry_type=DNDEntryType(
                 data.get("entry_type", None) or data["object_type"]
             ),  # Name conversion requires support for old format.
             description=data["description"],
@@ -124,7 +78,7 @@ class HomebrewGuildData(JsonHandler[list[HomebrewEntry]]):
     def add(
         self,
         itr: discord.Interaction,
-        entry_type: HomebrewEntryType,
+        entry_type: DNDEntryType,
         name: str,
         select_description: str | None,
         description: str,
@@ -185,7 +139,7 @@ class HomebrewGuildData(JsonHandler[list[HomebrewEntry]]):
             raise ValueError(f"No homebrew entry with the name '{entry_name}' found!")
         return entry
 
-    def get_all(self, type_filter: HomebrewEntryType | None) -> list[HomebrewEntry]:
+    def get_all(self, type_filter: DNDEntryType | None) -> list[HomebrewEntry]:
         entries: list[HomebrewEntry] = []
         for key, items in self.data.items():
             if type_filter and type_filter != key:

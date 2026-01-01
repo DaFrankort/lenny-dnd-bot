@@ -14,7 +14,56 @@ from rapidfuzz import fuzz
 from rich.console import Console
 from rich.table import Table
 
+from methods import ChoicedEnum
+
 BASE_DATA_PATHS = ["./submodules/lenny-dnd-data/generated/official/", "./submodules/lenny-dnd-data/generated/partnered/"]
+
+
+class DNDEntryType(str, ChoicedEnum):
+    ACTION = "action"
+    BACKGROUND = "background"
+    CLASS = "class"
+    CONDITION = "condition"
+    CREATURE = "creature"
+    DEITY = "deity"
+    FEAT = "feat"
+    HAZARD = "hazard"
+    ITEM = "item"
+    LANGUAGE = "language"
+    OBJECT = "object"
+    RULE = "rule"
+    SPECIES = "species"
+    SPELL = "spell"
+    TABLE = "table"
+    VEHICLE = "vehicle"
+    CULT = "cult"
+    BOON = "boon"
+    SKILL = "skill"
+
+    @property
+    def emoji(self) -> str:
+        emojis = {
+            self.ACTION: "🏃",
+            self.BACKGROUND: "📕",
+            self.CLASS: "🧙‍♂️",
+            self.CONDITION: "🤒",
+            self.CREATURE: "🐉",
+            self.DEITY: "👁️",
+            self.FEAT: "🎖️",
+            self.HAZARD: "🪤",
+            self.ITEM: "🗡️",
+            self.LANGUAGE: "💬",
+            self.OBJECT: "🪨",
+            self.RULE: "📜",
+            self.SPECIES: "🧝",
+            self.SPELL: "🔥",
+            self.TABLE: "📊",
+            self.VEHICLE: "⛵",
+            self.CULT: "🕯️",
+            self.BOON: "🎁",
+            self.SKILL: "🎯",
+        }
+        return emojis.get(self, "❓")
 
 
 @dataclasses.dataclass
@@ -67,7 +116,7 @@ class DNDEntry(abc.ABC):
     name: str
     source: str
     url: str | None
-    emoji: str = "❓"
+    emoji: DNDEntryType
     select_description: str | None = None  # Description in dropdown menus
 
     @abc.abstractmethod

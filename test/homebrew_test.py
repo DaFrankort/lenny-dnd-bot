@@ -2,9 +2,10 @@ import os
 
 import pytest
 from discord import Interaction
+from logic.dnd.abstract import DNDEntryType
 from utils.mocking import MockInteraction
 
-from logic.homebrew import HOMEBREW_PATH, GlobalHomebrewData, HomebrewEntryType
+from logic.homebrew import HOMEBREW_PATH, GlobalHomebrewData
 
 
 class TestHomebrew:
@@ -36,13 +37,13 @@ class TestHomebrew:
 
     def test_add_homebrew_entry(self, itr: Interaction, data: GlobalHomebrewData):
         guild_data = data.get(itr)
-        entry = guild_data.add(itr, HomebrewEntryType.SPELL, "Fireball", "A powerful fire spell", "Deals 8d6 fire damage")
+        entry = guild_data.add(itr, DNDEntryType.SPELL, "Fireball", "A powerful fire spell", "Deals 8d6 fire damage")
         assert entry.name == "Fireball"
-        assert entry.entry_type == HomebrewEntryType.SPELL
+        assert entry.entry_type == DNDEntryType.SPELL
 
     def test_get_homebrew_entry(self, itr: Interaction, data: GlobalHomebrewData):
         guild_data = data.get(itr)
-        guild_data.add(itr, HomebrewEntryType.SPELL, "Ice Bolt", "A cold spell", "Deals 4d6 cold damage")
+        guild_data.add(itr, DNDEntryType.SPELL, "Ice Bolt", "A cold spell", "Deals 4d6 cold damage")
 
         entry = guild_data.get("Ice Bolt")
         assert entry.name == "Ice Bolt"
@@ -50,7 +51,7 @@ class TestHomebrew:
 
     def test_delete_homebrew_entry(self, itr: Interaction, data: GlobalHomebrewData):
         guild_data = data.get(itr)
-        guild_data.add(itr, HomebrewEntryType.SPELL, "Lightning", "An electric spell", "Deals 6d6 lightning damage")
+        guild_data.add(itr, DNDEntryType.SPELL, "Lightning", "An electric spell", "Deals 6d6 lightning damage")
 
         deleted_entry = guild_data.delete(itr, "Lightning")
         assert deleted_entry.name == "Lightning"
@@ -60,7 +61,7 @@ class TestHomebrew:
 
     def test_edit_homebrew_entry(self, itr: Interaction, data: GlobalHomebrewData):
         guild_data = data.get(itr)
-        original = guild_data.add(itr, HomebrewEntryType.SPELL, "Magic", "Old description", "Old details")
+        original = guild_data.add(itr, DNDEntryType.SPELL, "Magic", "Old description", "Old details")
 
         edited = guild_data.edit(itr, original, "Updated Magic", "New description", "New details")
 
@@ -70,23 +71,23 @@ class TestHomebrew:
 
     def test_duplicate_name_raises_error(self, itr: Interaction, data: GlobalHomebrewData):
         guild_data = data.get(itr)
-        guild_data.add(itr, HomebrewEntryType.SPELL, "Duplicate", "desc", "details")
+        guild_data.add(itr, DNDEntryType.SPELL, "Duplicate", "desc", "details")
 
         with pytest.raises(ValueError):
-            guild_data.add(itr, HomebrewEntryType.SPELL, "Duplicate", "desc", "details")
+            guild_data.add(itr, DNDEntryType.SPELL, "Duplicate", "desc", "details")
 
     def test_get_all_entries(self, itr: Interaction, data: GlobalHomebrewData):
         guild_data = data.get(itr)
-        guild_data.data = {HomebrewEntryType.SPELL: [], HomebrewEntryType.ITEM: []}  # Reset entries
-        guild_data.add(itr, HomebrewEntryType.SPELL, "Spell1", "d1", "desc1")
-        guild_data.add(itr, HomebrewEntryType.ITEM, "Item1", "d2", "desc2")
+        guild_data.data = {DNDEntryType.SPELL: [], DNDEntryType.ITEM: []}  # Reset entries
+        guild_data.add(itr, DNDEntryType.SPELL, "Spell1", "d1", "desc1")
+        guild_data.add(itr, DNDEntryType.ITEM, "Item1", "d2", "desc2")
 
         all_entries = guild_data.get_all(None)
-        expected_count = len(guild_data.data.get(HomebrewEntryType.SPELL, [])) + len(
-            guild_data.data.get(HomebrewEntryType.ITEM, [])
+        expected_count = len(guild_data.data.get(DNDEntryType.SPELL, [])) + len(
+            guild_data.data.get(DNDEntryType.ITEM, [])
         )
         assert len(all_entries) == expected_count
 
-        spell_entries = guild_data.get_all(HomebrewEntryType.SPELL)
+        spell_entries = guild_data.get_all(DNDEntryType.SPELL)
         assert len(spell_entries) == 1
         assert spell_entries[0].name == "Spell1"

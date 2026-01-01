@@ -1,6 +1,6 @@
 from typing import Any
 
-from logic.dnd.abstract import Description, DNDEntry, DNDEntryList
+from logic.dnd.abstract import DNDEntryType, Description, DNDEntry, DNDEntryList
 
 
 class Boon(DNDEntry):
@@ -10,7 +10,7 @@ class Boon(DNDEntry):
 
     def __init__(self, obj: dict[str, Any]) -> None:
         self.entry_type = "boon"
-        self.emoji = "🎁"
+        self.emoji = DNDEntryType.BOON
 
         self.name = obj["name"]
         self.source = obj["source"]

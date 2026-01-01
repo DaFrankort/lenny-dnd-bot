@@ -112,7 +112,7 @@ class SearchSelectButton(ui.Button["SearchLayoutView"]):
         label = f"{entry.name} ({entry.source})"
         if len(label) > 80:
             label = label[:77] + "..."
-        super().__init__(label=label, emoji=entry.emoji, style=discord.ButtonStyle.gray)
+        super().__init__(label=label, emoji=entry.emoji.value, style=discord.ButtonStyle.gray)
 
     async def callback(self, interaction: discord.Interaction):
         await send_dnd_embed(interaction, self.entry)

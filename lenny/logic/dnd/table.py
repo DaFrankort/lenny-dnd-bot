@@ -1,6 +1,6 @@
 from typing import Any
 
-from logic.dnd.abstract import DNDEntry, DNDEntryList
+from logic.dnd.abstract import DNDEntry, DNDEntryType, DNDEntryList
 from logic.roll import RollResult, roll
 
 
@@ -11,7 +11,7 @@ class DNDTable(DNDEntry):
 
     def __init__(self, obj: dict[str, Any]):
         self.entry_type = "table"
-        self.emoji = "📊"
+        self.emoji = DNDEntryType.TABLE
 
         self.name = obj["name"]
         self.source = obj["source"]

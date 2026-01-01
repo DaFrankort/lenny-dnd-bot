@@ -1,13 +1,13 @@
 from typing import Any
 
-from logic.dnd.abstract import DNDEntry, DNDEntryList, Description
+from logic.dnd.abstract import Description, DNDEntry, DNDEntryList
 
 
 class Cult(DNDEntry):
     type: str
     goal: str | None
     cultists: str | None
-    signatureSpells: str | None
+    signature_spells: str | None
     description: list[Description]
 
     def __init__(self, obj: dict[str, Any]) -> None:
@@ -21,7 +21,7 @@ class Cult(DNDEntry):
 
         self.goal = obj.get("goal")
         self.cultists = obj.get("goal")
-        self.signatureSpells = obj.get("signatureSpells")
+        self.signature_spells = obj.get("signatureSpells")
         self.description = obj["description"]
 
 

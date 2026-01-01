@@ -15,5 +15,5 @@ class CultEmbed(DNDEntryEmbed):
             self.add_field(name="Goal", value=cult.goal, inline=False)
         if cult.cultists:
             self.add_field(name="Cultists", value=cult.cultists, inline=False)
-        if cult.signatureSpells:
-            self.add_field(name="Spells", value=cult.signatureSpells, inline=False)
+        if cult.signature_spells:
+            self.add_field(name="Spells", value=cult.signature_spells, inline=False)

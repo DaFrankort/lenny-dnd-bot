@@ -9,7 +9,13 @@ from embeds.dnd.class_ import ClassEmbed
 from embeds.embed import NoResultsFoundEmbed
 from embeds.search import MultiDNDSelectView, SearchLayoutView, send_dnd_embed
 from logic.config import Config
-from logic.dnd.abstract import TDND, DNDEntry, DNDEntryList, fuzzy_matches_list, get_command_option
+from logic.dnd.abstract import (
+    TDND,
+    DNDEntry,
+    DNDEntryList,
+    fuzzy_matches_list,
+    get_command_option,
+)
 from logic.dnd.data import Data
 from logic.searchcache import SearchCache
 

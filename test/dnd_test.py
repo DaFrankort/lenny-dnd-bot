@@ -8,6 +8,7 @@ from commands.search import (
     class_name_autocomplete,
     condition_name_autocomplete,
     creature_name_autocomplete,
+    cult_name_autocomplete,
     feat_name_autocomplete,
     hazard_name_autocomplete,
     item_name_autocomplete,
@@ -105,6 +106,7 @@ class TestSearchCache:
             (Data.vehicles.entries[0], vehicle_name_autocomplete),
             (Data.objects.entries[0], object_name_autocomplete),
             (Data.hazards.entries[0], hazard_name_autocomplete),
+            (Data.cults.entries[0], cult_name_autocomplete),
         ],
     )
     async def test_autocompletes(self, entry: DNDEntry, autocomplete_method: AutocompleteMethod):

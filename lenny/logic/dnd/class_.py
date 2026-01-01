@@ -30,6 +30,12 @@ class Class(DNDEntry):
     def __repr__(self):
         return str(self)
 
+    def has_subclass(self, subclass: str) -> bool:
+        subclasses = self.subclass_level_features.keys()
+        subclasses = set(sub.lower().strip() for sub in subclasses)
+        subclass = subclass.lower().strip()
+        return subclass in subclasses
+
 
 class ClassList(DNDEntryList[Class]):
     type = Class

@@ -1,6 +1,6 @@
 from typing import Any
 
-from logic.dnd.abstract import DNDEntry, DNDEntryType, DNDEntryList
+from logic.dnd.abstract import DNDEntry, DNDEntryList, DNDEntryType
 from logic.roll import RollResult, roll
 
 

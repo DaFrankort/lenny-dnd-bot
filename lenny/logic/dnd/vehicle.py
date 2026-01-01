@@ -1,6 +1,6 @@
 from typing import Any
 
-from logic.dnd.abstract import DNDEntryType, Description, DNDEntry, DNDEntryList
+from logic.dnd.abstract import Description, DNDEntry, DNDEntryList, DNDEntryType
 
 
 class Vehicle(DNDEntry):

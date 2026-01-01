@@ -8,6 +8,7 @@ from logic.dnd.background import Background, BackgroundList
 from logic.dnd.class_ import Class, ClassList
 from logic.dnd.condition import Condition, ConditionList
 from logic.dnd.creature import Creature, CreatureList
+from logic.dnd.cults import Cult, CultList
 from logic.dnd.deities import Deity, DeityList
 from logic.dnd.feat import Feat, FeatList
 from logic.dnd.hazard import Hazard, HazardList
@@ -40,6 +41,7 @@ class DNDData:
     objects: DNDObjectList
     hazards: HazardList
     deities: DeityList
+    cults: CultList
 
     skills: SkillList
     names: NameTable
@@ -62,6 +64,7 @@ class DNDData:
         self.objects = DNDObjectList()
         self.hazards = HazardList()
         self.deities = DeityList()
+        self.cults = CultList()
 
         # UNIQUE
         self.skills = SkillList()  # Not searchable, but used internally for suggestions
@@ -84,6 +87,7 @@ class DNDData:
         yield self.objects
         yield self.hazards
         yield self.deities
+        yield self.cults
 
     def search(
         self,
@@ -122,6 +126,7 @@ class DNDSearchResults:
     objects: list[DNDObject]
     hazards: list[Hazard]
     deities: list[Deity]
+    cults: list[Cult]
     _type_map: dict[type, list[Any]]
 
     def __init__(self):
@@ -141,6 +146,7 @@ class DNDSearchResults:
         self.objects = []
         self.hazards = []
         self.deities = []
+        self.cults = []
 
         self._type_map = {
             Spell: self.spells,
@@ -159,6 +165,7 @@ class DNDSearchResults:
             DNDObject: self.objects,
             Hazard: self.hazards,
             Deity: self.deities,
+            Cult: self.cults,
         }
 
     def add(self, entry: DNDEntry) -> None:

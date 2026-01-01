@@ -133,6 +133,7 @@ class TestBotCommands:
             ("search vehicle", {"name": ["Galley", "abcdef"]}),
             ("search object", {"name": ["Ballista", "abcdef"]}),
             ("search hazard", {"name": ["Spiked Pit", "abcdef"]}),
+            ("search cult", {"name": ["Cult of Dispater", "abcdef"]}),
             (
                 "search all",
                 [
@@ -348,6 +349,7 @@ class TestBotCommands:
             ("search action", "name", ["", "Att"]),
             ("search feat", "name", ["", "Tou"]),
             ("search language", "name", ["", "Comm"]),
+            ("search cult", "name", ["", "Cult of Dispa"]),
             # ('', '', ''),
         ],
     )

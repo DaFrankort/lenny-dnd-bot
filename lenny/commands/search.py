@@ -4,7 +4,6 @@ import logging
 import discord
 from discord.app_commands import autocomplete, describe
 
-
 from commands.command import SimpleCommand, SimpleCommandGroup
 from embeds.dnd.class_ import ClassEmbed
 from embeds.embed import NoResultsFoundEmbed

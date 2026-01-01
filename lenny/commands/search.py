@@ -4,13 +4,25 @@ import logging
 import discord
 from discord.app_commands import autocomplete, describe
 
+
 from commands.command import SimpleCommand, SimpleCommandGroup
+from embeds.dnd.class_ import ClassEmbed
 from embeds.embed import NoResultsFoundEmbed
 from embeds.search import MultiDNDSelectView, SearchLayoutView, send_dnd_embed
 from logic.config import Config
-from logic.dnd.abstract import TDND, DNDEntry, DNDEntryList
+from logic.dnd.abstract import TDND, DNDEntry, DNDEntryList, fuzzy_matches_list
 from logic.dnd.data import Data
 from logic.searchcache import SearchCache
+
+
+async def send_no_results_found_embed(itr: discord.Interaction, label: str, name: str):
+    embed = NoResultsFoundEmbed(label, name)
+    await itr.response.send_message(embed=embed, ephemeral=True)
+
+
+async def send_multi_results_found_embed(itr: discord.Interaction, found: collections.abc.Sequence[DNDEntry], name: str):
+    view = MultiDNDSelectView(name, found)
+    await itr.response.send_message(view=view, ephemeral=True)
 
 
 async def send_dnd_entry_lookup_result(
@@ -23,12 +35,10 @@ async def send_dnd_entry_lookup_result(
     logging.debug("%s: Found %d for '%s'", label.upper(), len(found), len(found))
 
     if len(found) == 0:
-        embed = NoResultsFoundEmbed(label, name)
-        await itr.response.send_message(embed=embed, ephemeral=True)
+        await send_no_results_found_embed(itr, label, name)
 
     elif len(found) > 1:
-        view = MultiDNDSelectView(name, found)
-        await itr.response.send_message(view=view, ephemeral=True)
+        await send_multi_results_found_embed(itr, found, name)
 
     else:
         SearchCache.get(itr).store(found[0])
@@ -120,18 +130,77 @@ async def class_name_autocomplete(itr: discord.Interaction, current: str):
     return _generic_name_autocomplete(itr, current, Data.classes, "class")
 
 
+async def subclass_name_autocomplete(itr: discord.Interaction, current: str) -> list[discord.app_commands.Choice[str]]:
+    # The subclass choices depend on the class choices (so we don't show barbarian subclasses for
+    # a wizard, for example). We thus need to first extract the current class name value from the
+    # interaction. To do this, we need to work with the raw interaction data.
+    if not itr.data:
+        return []
+
+    options = itr.data.get("options", [])
+    class_name: str | None = None
+
+    for option in options:
+        sub_options = option.get("options", [])
+        for sub_option in sub_options:
+            if sub_option["name"] == "name":
+                value = sub_option.get("value", None)
+                if isinstance(value, str):
+                    class_name = value
+
+    if not class_name:
+        return []
+
+    sources = Config.get(itr).allowed_sources
+    classes = Data.classes.get(class_name, sources, 100)  # require exact match
+
+    # Need exactly one class to match, otherwise things might get confusing
+    if len(classes) != 1:
+        return []
+
+    subclasses = classes[0].subclass_level_features.keys()
+    filtered = fuzzy_matches_list(current, subclasses)
+    return [subclass.choice for subclass in filtered]
+
+
 class SearchClassCommand(SimpleCommand):
     name = "class"
     desc = "Get the details for a character class."
     help = "Looks up a D&D class by name."
 
-    @autocomplete(name=class_name_autocomplete)
-    @describe(name="Name of the class to look up.")
-    async def handle(self, itr: discord.Interaction, name: str):
+    @autocomplete(
+        name=class_name_autocomplete,
+        subclass=subclass_name_autocomplete,
+    )
+    @describe(
+        name="Name of the class to look up.",
+        subclass="The subclass of the class.",
+        level="The level of the class.",
+    )
+    async def handle(
+        self,
+        itr: discord.Interaction,
+        name: str,
+        subclass: str | None = None,
+        level: discord.app_commands.Range[int, 0, 20] = 0,
+    ):
         self.log(itr)
         sources = Config.get(itr).allowed_sources
         found = Data.classes.get(name, sources)
-        await send_dnd_entry_lookup_result(itr, "classes", found, name)
+
+        # Code based on send_dnd_entry_lookup_result
+        if len(found) == 0:
+            await send_no_results_found_embed(itr, "classes", name)
+
+        elif len(found) > 1:
+            await send_multi_results_found_embed(itr, found, name)
+
+        else:
+            await itr.response.defer(thinking=False)
+            SearchCache.get(itr).store(found[0])
+            embed = ClassEmbed(found[0], sources, level, subclass)
+            view = embed.view or discord.interactions.MISSING
+            await itr.followup.send(embed=embed, view=view)
 
 
 async def rule_name_autocomplete(itr: discord.Interaction, current: str):

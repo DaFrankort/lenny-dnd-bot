@@ -5,6 +5,7 @@ from rapidfuzz import fuzz
 from logic.dnd.abstract import DNDEntry
 from logic.dnd.action import Action, ActionList
 from logic.dnd.background import Background, BackgroundList
+from logic.dnd.boon import Boon, BoonList
 from logic.dnd.class_ import Class, ClassList
 from logic.dnd.condition import Condition, ConditionList
 from logic.dnd.creature import Creature, CreatureList
@@ -42,6 +43,7 @@ class DNDData:
     hazards: HazardList
     deities: DeityList
     cults: CultList
+    boons: BoonList
 
     skills: SkillList
     names: NameTable
@@ -65,6 +67,7 @@ class DNDData:
         self.hazards = HazardList()
         self.deities = DeityList()
         self.cults = CultList()
+        self.boons = BoonList()
 
         # UNIQUE
         self.skills = SkillList()  # Not searchable, but used internally for suggestions
@@ -88,6 +91,7 @@ class DNDData:
         yield self.hazards
         yield self.deities
         yield self.cults
+        yield self.boons
 
     def search(
         self,
@@ -127,6 +131,7 @@ class DNDSearchResults:
     hazards: list[Hazard]
     deities: list[Deity]
     cults: list[Cult]
+    boons: list[Boon]
     _type_map: dict[type, list[Any]]
 
     def __init__(self):
@@ -147,6 +152,7 @@ class DNDSearchResults:
         self.hazards = []
         self.deities = []
         self.cults = []
+        self.boons = []
 
         self._type_map = {
             Spell: self.spells,
@@ -166,6 +172,7 @@ class DNDSearchResults:
             Hazard: self.hazards,
             Deity: self.deities,
             Cult: self.cults,
+            Boon: self.boons,
         }
 
     def add(self, entry: DNDEntry) -> None:

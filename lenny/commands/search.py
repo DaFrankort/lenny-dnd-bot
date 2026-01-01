@@ -350,6 +350,24 @@ class SearchCultCommand(SimpleCommand):
         await send_dnd_entry_lookup_result(itr, "cult", found, name)
 
 
+async def boon_name_autocomplete(itr: discord.Interaction, current: str):
+    return _generic_name_autocomplete(itr, current, Data.boons, "boon")
+
+
+class SearchBoonCommand(SimpleCommand):
+    name = "boon"
+    desc = "Get the details of a boon."
+    help = "Looks up a D&D boon by name."
+
+    @autocomplete(name=boon_name_autocomplete)
+    @describe(name="Name of the boon to look up.")
+    async def handle(self, itr: discord.Interaction, name: str):
+        self.log(itr)
+        sources = Config.get(itr).allowed_sources
+        found = Data.boons.get(name, sources)
+        await send_dnd_entry_lookup_result(itr, "boon", found, name)
+
+
 class SearchAnyCommand(SimpleCommand):
     name = "all"
     desc = "Search for all matching D&D entries."
@@ -393,4 +411,5 @@ class SearchCommandGroup(SimpleCommandGroup):
         self.add_command(SearchHazardCommand())
         self.add_command(SearchDeityCommand())
         self.add_command(SearchCultCommand())
+        self.add_command(SearchBoonCommand())
         self.add_command(SearchAnyCommand())

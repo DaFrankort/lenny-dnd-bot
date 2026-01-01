@@ -94,6 +94,17 @@ def fuzzy_matches(query: str, value: str, fuzzy_threshold: float = 75) -> FuzzyM
     return FuzzyMatchResult(starts_with=starts_with, score=score, choice=Choice(name=value, value=value))
 
 
+def fuzzy_matches_list(query: str, values: Iterable[str], fuzzy_threshold: float = 75) -> list[FuzzyMatchResult]:
+    """Perform a fuzzy check on multiple values, based on fuzzy_matches. Matches are sorted based on score."""
+    results: list[FuzzyMatchResult] = []
+    for value in values:
+        result = fuzzy_matches(query, value, fuzzy_threshold)
+        if result is not None:
+            results.append(result)
+    results.sort(key=lambda x: (-x.starts_with, -x.score, x.choice.name))
+    return results
+
+
 class DescriptionRowRange(TypedDict):
     type: Literal["range"]
     min: int

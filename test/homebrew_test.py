@@ -2,9 +2,9 @@ import os
 
 import pytest
 from discord import Interaction
-from logic.dnd.abstract import DNDEntryType
 from utils.mocking import MockInteraction
 
+from logic.dnd.abstract import DNDEntryType
 from logic.homebrew import HOMEBREW_PATH, GlobalHomebrewData
 
 

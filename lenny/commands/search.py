@@ -9,7 +9,7 @@ from embeds.dnd.class_ import ClassEmbed
 from embeds.embed import NoResultsFoundEmbed
 from embeds.search import MultiDNDSelectView, SearchLayoutView, send_dnd_embed
 from logic.config import Config
-from logic.dnd.abstract import TDND, DNDEntry, DNDEntryList, fuzzy_matches_list
+from logic.dnd.abstract import TDND, DNDEntry, DNDEntryList, fuzzy_matches_list, get_command_option
 from logic.dnd.data import Data
 from logic.searchcache import SearchCache
 
@@ -130,25 +130,10 @@ async def class_name_autocomplete(itr: discord.Interaction, current: str):
 
 
 async def subclass_name_autocomplete(itr: discord.Interaction, current: str) -> list[discord.app_commands.Choice[str]]:
-    # The subclass choices depend on the class choices (so we don't show barbarian subclasses for
-    # a wizard, for example). We thus need to first extract the current class name value from the
-    # interaction. To do this, we need to work with the raw interaction data.
-    if not itr.data:
-        return []
+    class_name = get_command_option(itr, "name")
 
-    options = itr.data.get("options", [])
-    class_name: str | None = None
-
-    for option in options:
-        sub_options = option.get("options", [])
-        for sub_option in sub_options:
-            if sub_option["name"] == "name":
-                value = sub_option.get("value", None)
-                if isinstance(value, str):
-                    class_name = value
-
-    if not class_name:
-        return []
+    if not isinstance(class_name, str):
+        raise ValueError(f"Subclass' parent class needs to be a string, received '{class_name}' ({type(class_name)}) instead.")
 
     sources = Config.get(itr).allowed_sources
     classes = Data.classes.get(class_name, sources, 100)  # require exact match

@@ -278,3 +278,25 @@ def build_table_from_rows(
     show_lines: bool = False,
 ) -> str:
     return build_table({"headers": headers, "rows": rows}, width, show_lines)
+
+
+def get_command_option(itr: discord.Interaction, name: str):
+    """Extract a filled-in option value from a discord command interaction.
+
+    Args:
+        itr (discord.Interaction): The interaction of the command.
+        name (str): The name of the option.
+    """
+
+    if not itr.data:
+        return None
+
+    options = itr.data.get("options", [])
+
+    for option in options:
+        sub_options = option.get("options", [])
+        for sub_option in sub_options:
+            if sub_option["name"] == name:
+                return sub_option.get("value", None)
+
+    return None

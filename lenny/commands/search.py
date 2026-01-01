@@ -143,7 +143,7 @@ def subclass_name_lookup(class_name: str, query: str, sources: set[str]) -> list
         return []
 
     subclasses = classes[0].subclasses
-    filtered = fuzzy_matches_list(query, subclasses)
+    filtered = fuzzy_matches_list(query, subclasses, match_if_empty=True)
     return [subclass.choice for subclass in filtered]
 
 

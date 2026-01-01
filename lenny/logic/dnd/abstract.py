@@ -73,14 +73,19 @@ class FuzzyMatchResult:
     choice: Choice[str]  # The Choice object, as result to be used for discord
 
 
-def fuzzy_matches(query: str, value: str, fuzzy_threshold: float = 75) -> FuzzyMatchResult | None:
+def fuzzy_matches(
+    query: str,
+    value: str,
+    fuzzy_threshold: float = 75,
+    match_if_empty: bool = False,
+) -> FuzzyMatchResult | None:
     """Perform a fuzzy check between  a query and a value, e.g. searching for 'fire' in 'Fireball'.
 
     Args:
         query (str): The query to search for. In the example above this would be 'fire'.
         value (str): The value to search in. In the example above this would be 'Fireball'.
         fuzzy_threshold (float): A fuzziness threshold to determine how similar two words need to be.
-
+        match_if_empty (bool): Return the value if the query is empty.
     Returns:
         Optional[FuzzyMatchResult]: A fuzzy match result with the internals, or None if the threshold was not met.
     """
@@ -89,16 +94,24 @@ def fuzzy_matches(query: str, value: str, fuzzy_threshold: float = 75) -> FuzzyM
     score = fuzz.partial_ratio(query_clean, value_clean)
     starts_with = value_clean.startswith(query_clean)
 
+    if len(query_clean) == 0 and match_if_empty:
+        score = 100
+
     if score < fuzzy_threshold:
         return None
     return FuzzyMatchResult(starts_with=starts_with, score=score, choice=Choice(name=value, value=value))
 
 
-def fuzzy_matches_list(query: str, values: Iterable[str], fuzzy_threshold: float = 75) -> list[FuzzyMatchResult]:
+def fuzzy_matches_list(
+    query: str,
+    values: Iterable[str],
+    fuzzy_threshold: float = 75,
+    match_if_empty: bool = False,
+) -> list[FuzzyMatchResult]:
     """Perform a fuzzy check on multiple values, based on fuzzy_matches. Matches are sorted based on score."""
     results: list[FuzzyMatchResult] = []
     for value in values:
-        result = fuzzy_matches(query, value, fuzzy_threshold)
+        result = fuzzy_matches(query, value, fuzzy_threshold, match_if_empty)
         if result is not None:
             results.append(result)
     results.sort(key=lambda x: (-x.starts_with, -x.score, x.choice.name))

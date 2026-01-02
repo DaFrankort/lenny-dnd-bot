@@ -16,7 +16,7 @@ class MultiClassSubclassSelect(discord.ui.Select["ClassNavigationView"]):
     ):
         sources = [f"({src})" for src in parent_view.allowed_sources]
         options: list[discord.SelectOption] = []
-        for subclass_name in character_class.subclass_level_features.keys():
+        for subclass_name in character_class.subclasses:
             if not any(src in subclass_name for src in sources):
                 continue  # Skip disallowed source-content.
             if character_class.source == "XPHB" and "(PHB)" in subclass_name:
@@ -90,6 +90,12 @@ class ClassNavigationView(discord.ui.View):
 
 class ClassEmbed(DNDEntryEmbed):
     def __init__(self, character_class: Class, allowed_sources: set[str], level: int = 0, subclass: str | None = None):
+        # Check if given subclass is valid
+        if subclass and not character_class.has_subclass(subclass):
+            raise ValueError(
+                f"Class {character_class.name} ({character_class.source}) does not have '{subclass}' as a subclass!"
+            )
+
         level = max(0, min(20, level))
 
         super().__init__(character_class)

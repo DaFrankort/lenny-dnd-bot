@@ -18,6 +18,7 @@ from commands.search import (
     rule_name_autocomplete,
     species_name_autocomplete,
     spell_name_autocomplete,
+    subclass_name_lookup,
     table_name_autocomplete,
     vehicle_name_autocomplete,
 )
@@ -85,6 +86,25 @@ class TestDndData:
     def test_fuzzy(self, query: str, value: str, result: bool):
         fuzzy = fuzzy_matches(query, value, fuzzy_threshold=75)
         assert (fuzzy is not None) == result
+
+    @pytest.mark.parametrize(
+        "class_name, query, contains",
+        [
+            ("Wizard", "Illusion", True),
+            ("Wizard", "DoesNotExist", False),
+            ("Barbarian", "Wild Heart", True),
+            ("DoesNotExist", "Evoker", False),
+        ],
+    )
+    def test_subclass_lookup(self, class_name: str, query: str, contains: bool):
+        itr = MockInteraction()
+        sources = Config.get(itr).allowed_sources
+
+        subclasses = subclass_name_lookup(class_name, query, sources)
+        if contains:
+            assert len(subclasses) > 0, f"Class {class_name} expected to have '{query}' as a subclass."
+        else:
+            assert len(subclasses) == 0, f"Class {class_name} did not expect '{query}' as a subclass."
 
 
 class TestSearchCache:

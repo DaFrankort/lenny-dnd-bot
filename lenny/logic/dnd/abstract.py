@@ -73,14 +73,19 @@ class FuzzyMatchResult:
     choice: Choice[str]  # The Choice object, as result to be used for discord
 
 
-def fuzzy_matches(query: str, value: str, fuzzy_threshold: float = 75) -> FuzzyMatchResult | None:
+def fuzzy_matches(
+    query: str,
+    value: str,
+    fuzzy_threshold: float = 75,
+    match_if_empty: bool = False,
+) -> FuzzyMatchResult | None:
     """Perform a fuzzy check between  a query and a value, e.g. searching for 'fire' in 'Fireball'.
 
     Args:
         query (str): The query to search for. In the example above this would be 'fire'.
         value (str): The value to search in. In the example above this would be 'Fireball'.
         fuzzy_threshold (float): A fuzziness threshold to determine how similar two words need to be.
-
+        match_if_empty (bool): Return the value if the query is empty.
     Returns:
         Optional[FuzzyMatchResult]: A fuzzy match result with the internals, or None if the threshold was not met.
     """
@@ -89,9 +94,28 @@ def fuzzy_matches(query: str, value: str, fuzzy_threshold: float = 75) -> FuzzyM
     score = fuzz.partial_ratio(query_clean, value_clean)
     starts_with = value_clean.startswith(query_clean)
 
+    if len(query_clean) == 0 and match_if_empty:
+        score = 100
+
     if score < fuzzy_threshold:
         return None
     return FuzzyMatchResult(starts_with=starts_with, score=score, choice=Choice(name=value, value=value))
+
+
+def fuzzy_matches_list(
+    query: str,
+    values: Iterable[str],
+    fuzzy_threshold: float = 75,
+    match_if_empty: bool = False,
+) -> list[FuzzyMatchResult]:
+    """Perform a fuzzy check on multiple values, based on fuzzy_matches. Matches are sorted based on score."""
+    results: list[FuzzyMatchResult] = []
+    for value in values:
+        result = fuzzy_matches(query, value, fuzzy_threshold, match_if_empty)
+        if result is not None:
+            results.append(result)
+    results.sort(key=lambda x: (-x.starts_with, -x.score, x.choice.name))
+    return results
 
 
 class DescriptionRowRange(TypedDict):
@@ -267,3 +291,25 @@ def build_table_from_rows(
     show_lines: bool = False,
 ) -> str:
     return build_table({"headers": headers, "rows": rows}, width, show_lines)
+
+
+def get_command_option(itr: discord.Interaction, name: str):
+    """Extract a filled-in option value from a discord command interaction.
+
+    Args:
+        itr (discord.Interaction): The interaction of the command.
+        name (str): The name of the option.
+    """
+
+    if not itr.data:
+        return None
+
+    options = itr.data.get("options", [])
+
+    for option in options:
+        sub_options = option.get("options", [])
+        for sub_option in sub_options:
+            if sub_option["name"] == name:
+                return sub_option.get("value", None)
+
+    return None

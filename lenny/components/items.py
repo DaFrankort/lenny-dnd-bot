@@ -14,7 +14,7 @@ class TitleTextDisplay(discord.ui.TextDisplay[discord.ui.LayoutView]):
         super().__init__(content=title)
 
 
-class SimpleSeparator(discord.ui.Separator[discord.ui.LayoutView]):
+class BaseSeparator(discord.ui.Separator[discord.ui.LayoutView]):
     def __init__(self, is_large: bool = False):
         if is_large:
             super().__init__(spacing=discord.SeparatorSpacing.large)
@@ -22,7 +22,7 @@ class SimpleSeparator(discord.ui.Separator[discord.ui.LayoutView]):
             super().__init__(spacing=discord.SeparatorSpacing.small)
 
 
-class SimpleLabelTextInput(discord.ui.Label[discord.ui.LayoutView]):
+class BaseLabelTextInput(discord.ui.Label[discord.ui.LayoutView]):
     def __init__(
         self,
         *,
@@ -48,7 +48,7 @@ class SimpleLabelTextInput(discord.ui.Label[discord.ui.LayoutView]):
     def input(self) -> discord.ui.TextInput[discord.ui.LayoutView]:
         if isinstance(self.component, discord.ui.TextInput):
             return self.component
-        raise ValueError("SimpleTextInput component is not a discord.ui.TextInput!")
+        raise ValueError("BaseTextInput component is not a discord.ui.TextInput!")
 
 
 class ModalSelectComponent(discord.ui.Label[discord.ui.LayoutView]):

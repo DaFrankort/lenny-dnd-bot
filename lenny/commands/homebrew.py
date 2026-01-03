@@ -1,7 +1,7 @@
 import discord
 from discord.app_commands import autocomplete, choices, describe
 
-from commands.command import SimpleCommand, SimpleCommandGroup
+from commands.command import BaseCommand, BaseCommandGroup
 from embeds.homebrew import (
     HomebrewEditModal,
     HomebrewEmbed,
@@ -13,7 +13,7 @@ from logic.homebrew import HomebrewData
 from logic.markdown import MDFile
 
 
-class HomebrewCommandGroup(SimpleCommandGroup):
+class HomebrewCommandGroup(BaseCommandGroup):
     name = "homebrew"
     desc = "Manage your custom secrets for your tome of homebrew."
 
@@ -27,7 +27,7 @@ class HomebrewCommandGroup(SimpleCommandGroup):
         self.guild_only = True
 
 
-class HomebrewAddCommand(SimpleCommand):
+class HomebrewAddCommand(BaseCommand):
     name = "add"
     desc = "Add custom content to your tome of homebrew."
     help = "Add new homebrew content to your server."
@@ -45,7 +45,7 @@ async def homebrew_name_autocomplete(itr: discord.Interaction, current: str):
     return HomebrewData.get(itr).get_autocomplete_suggestions(itr, current)
 
 
-class HomebrewSearchCommand(SimpleCommand):
+class HomebrewSearchCommand(BaseCommand):
     name = "search"
     desc = "Search for secrets in your tome of homebrew."
     help = "Search for existing homebrew content from your server."
@@ -59,7 +59,7 @@ class HomebrewSearchCommand(SimpleCommand):
         await itr.response.send_message(embed=embed)
 
 
-class HomebrewListCommand(SimpleCommand):
+class HomebrewListCommand(BaseCommand):
     name = "list"
     desc = "View all entries in your server's tome of homebrew!"
     help = "Shows all homebrew content in your server and filter by entry type."
@@ -72,7 +72,7 @@ class HomebrewListCommand(SimpleCommand):
         await itr.response.send_message(view=view, ephemeral=True)
 
 
-class HomebrewEditCommand(SimpleCommand):
+class HomebrewEditCommand(BaseCommand):
     name = "edit"
     desc = "Edit entries in your tome of homebrew!"
     help = "Edit a homebrew entry you created. Can edit all entries if you have permissions to manage messages."
@@ -86,7 +86,7 @@ class HomebrewEditCommand(SimpleCommand):
         await itr.response.send_modal(modal)
 
 
-class HomebrewRemoveCommand(SimpleCommand):
+class HomebrewRemoveCommand(BaseCommand):
     name = "remove"
     desc = "Remove entries in your tome of homebrew!"
     help = "Remove a homebrew entry you created. Can remove all entries if you have permissions to manage messages."

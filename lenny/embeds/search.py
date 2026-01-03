@@ -4,7 +4,7 @@ from collections.abc import Sequence
 import discord
 from discord import ui
 
-from components.items import SimpleSeparator, TitleTextDisplay
+from components.items import BaseSeparator, TitleTextDisplay
 from components.paginated_view import PaginatedLayoutView
 from embeds.dnd.action import ActionEmbed
 from embeds.dnd.background import BackgroundEmbed
@@ -151,7 +151,7 @@ class SearchLayoutView(PaginatedLayoutView):
 
         # HEADER
         container.add_item(self.title_item)
-        container.add_item(SimpleSeparator())
+        container.add_item(BaseSeparator())
 
         # CONTENT
         options = self.get_current_options()
@@ -159,7 +159,7 @@ class SearchLayoutView(PaginatedLayoutView):
             container.add_item(ui.ActionRow(SearchSelectButton(option)))
 
         # FOOTER
-        container.add_item(SimpleSeparator())
+        container.add_item(BaseSeparator())
         container.add_item(self.navigation_footer())
 
         self.add_item(container)

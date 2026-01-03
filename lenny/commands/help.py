@@ -1,11 +1,11 @@
 import discord
 from discord.app_commands import choices, describe
 
-from commands.command import SimpleCommand
+from commands.command import BaseCommand
 from embeds.help import HelpEmbed
 
 
-class HelpCommand(SimpleCommand):
+class HelpCommand(BaseCommand):
     name = "help"
     desc = "Get an overview of all commands."
     help = "Show the help tab for the given section. If no section is provided, this overview is given."

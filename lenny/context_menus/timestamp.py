@@ -1,11 +1,11 @@
 import discord
 
-from commands.command import SimpleContextMenu
+from commands.command import BaseContextMenu
 from embeds.timestamp import RelativeTimestampEmbed
 from logic.timestamp import get_relative_timestamp_from_message
 
 
-class RequestTimestampContextMenu(SimpleContextMenu):
+class RequestTimestampContextMenu(BaseContextMenu):
     name = "Request timestamp from message"
     help = (
         "Generates a timestamp relative to when a message was sent.\n"

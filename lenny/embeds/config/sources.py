@@ -1,6 +1,6 @@
 import discord
 
-from components.items import SimpleSeparator
+from components.items import BaseSeparator
 from components.paginated_view import PaginatedLayoutView
 from embeds.config.config import ConfigAllowButton
 from logic.config import Config
@@ -57,7 +57,7 @@ class ConfigSourcesView(PaginatedLayoutView):
         else:
             title = "# View sources\nYou are not allowed to edit sources."
         container.add_item(discord.ui.TextDisplay(title))
-        container.add_item(SimpleSeparator())
+        container.add_item(BaseSeparator())
 
         # Source list
         sources = SourceList(self.content)
@@ -68,7 +68,7 @@ class ConfigSourcesView(PaginatedLayoutView):
             container.add_item(discord.ui.Section[discord.ui.LayoutView](text, accessory=button))
 
         # Button navigation
-        container.add_item(SimpleSeparator())
+        container.add_item(BaseSeparator())
         container.add_item(self.navigation_footer())
 
         self.add_item(container)

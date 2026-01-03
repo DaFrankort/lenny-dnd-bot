@@ -1,9 +1,9 @@
 import discord
 
-from commands.command import SimpleContextMenu
+from commands.command import BaseContextMenu
 
 
-class DeleteContextMenu(SimpleContextMenu):
+class DeleteContextMenu(BaseContextMenu):
     name = "Delete message"
     help = "Deletes the bot's message, useful for cleaning up accidental searches, spoilers or general bot-clutter."
 

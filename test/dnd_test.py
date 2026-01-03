@@ -106,6 +106,13 @@ class TestDndData:
         else:
             assert len(subclasses) == 0, f"Class {class_name} did not expect '{query}' as a subclass."
 
+    def test_name_table_species_input_gives_species_name(self):
+        species_list = Data.names.get_species()
+        for species in species_list:
+            _, new_species, _ = Data.names.get_random(species, None)
+            assert new_species, "Namegen - Returned species must not be None"
+            assert new_species.lower() == species.lower(), "Namegen - Returned Species must match input species"
+
 
 class TestSearchCache:
     @pytest.mark.asyncio

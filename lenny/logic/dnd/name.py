@@ -48,7 +48,7 @@ class NameTable:
         Species and gender are randomised if not specified.
         Returns the selected name, species and gender in a tuple.
         """
-        if species is None or species.lower() not in self.tables.keys():
+        if species is None or species.lower() not in self.get_species():
             species = random.choice(list(self.tables.keys()))
         if gender is Gender.OTHER or gender is None:
             gender = random.choice([Gender.FEMALE, Gender.MALE])

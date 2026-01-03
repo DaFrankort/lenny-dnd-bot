@@ -2,9 +2,9 @@ import discord
 from discord import ui
 
 from components.items import (
-    ModalSelectComponent,
     BaseLabelTextInput,
     BaseSeparator,
+    ModalSelectComponent,
     TitleTextDisplay,
 )
 from components.modals import BaseModal

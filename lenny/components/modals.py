@@ -5,7 +5,7 @@ from discord import Interaction
 from discord.ui import Modal
 
 from commands.command import get_error_embed
-from components.items import ModalSelectComponent, BaseLabelTextInput
+from components.items import BaseLabelTextInput, ModalSelectComponent
 
 T = TypeVar("T")
 

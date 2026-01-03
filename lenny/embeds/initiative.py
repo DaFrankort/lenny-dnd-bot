@@ -4,12 +4,11 @@ from discord import Interaction, SelectOption, ui
 from components.items import ModalSelectComponent, SimpleLabelTextInput, SimpleSeparator
 from components.modals import SimpleModal
 from embeds.embed import SimpleEmbed, UserActionEmbed
-from logger import log_button_press
 from logic.dicecache import DiceCache
 from logic.initiative import Initiative, Initiatives
 from logic.roll import Advantage
 from logic.voice_chat import VC, SoundType
-from methods import Boolean, when
+from methods import Boolean, log_button_press, when
 
 
 class InitiativeRollModal(SimpleModal):

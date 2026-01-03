@@ -1,7 +1,7 @@
 import discord
 from discord.app_commands import describe
 
-from commands.command import SimpleCommand, SimpleCommandGroup
+from commands.command import BaseCommand, BaseCommandGroup
 from embeds.embed import UserActionEmbed
 from embeds.stats import StatsEmbed
 from logic.charts import get_radar_chart
@@ -9,7 +9,7 @@ from logic.color import UserColor
 from logic.stats import Stats
 
 
-class StatsCommandGroup(SimpleCommandGroup):
+class StatsCommandGroup(BaseCommandGroup):
     name = "stats"
     desc = "Roll or visualize stats for a D&D character!"
 
@@ -19,7 +19,7 @@ class StatsCommandGroup(SimpleCommandGroup):
         self.add_command(StatsVisualizeCommand())
 
 
-class StatsRollCommand(SimpleCommand):
+class StatsRollCommand(BaseCommand):
     name = "roll"
     desc = "Roll stats for a new character, using the 4d6 drop lowest method."
     help = "Performs six dice rolls using the 4d6 drop lowest method, providing you with six values to use for your new character's stats."
@@ -34,7 +34,7 @@ class StatsRollCommand(SimpleCommand):
         await itr.response.send_message(embed=embed, file=chart)
 
 
-class StatsVisualizeCommand(SimpleCommand):
+class StatsVisualizeCommand(BaseCommand):
     name = "visualize"
     desc = "Visualize your stats onto a radar graph!"
     help = "Visualizes your character's stats inside of a radar graph."

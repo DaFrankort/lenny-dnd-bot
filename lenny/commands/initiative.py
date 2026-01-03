@@ -1,12 +1,12 @@
 import discord
 
-from commands.command import SimpleCommand
+from commands.command import BaseCommand
 from embeds.initiative import InitiativeContainerView
 from logic.initiative import Initiatives
 from logic.voice_chat import VC, SoundType
 
 
-class InitiativeCommand(SimpleCommand):
+class InitiativeCommand(BaseCommand):
     name = "initiative"
     desc = "Start tracking initiatives for combat!"
     help = "Summons an embed with buttons, to set up combat-initiatives."

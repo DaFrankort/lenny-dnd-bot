@@ -1,7 +1,7 @@
 import discord
 from discord.app_commands import Choice, CommandTree, Group
 
-from commands.command import SimpleCommand, SimpleCommandGroup, SimpleContextMenu
+from commands.command import BaseCommand, BaseCommandGroup, BaseContextMenu
 from logic.help import HelpSelectOption, HelpTab, HelpTabs
 
 
@@ -47,20 +47,20 @@ class HelpEmbed(discord.Embed):
         self.load_tab(found_tab)
 
     @classmethod
-    def _get_commands(cls, group: Group) -> list[SimpleCommand | SimpleCommandGroup]:
-        commands: list[SimpleCommand | SimpleCommandGroup] = []
+    def _get_commands(cls, group: Group) -> list[BaseCommand | BaseCommandGroup]:
+        commands: list[BaseCommand | BaseCommandGroup] = []
         for command in group.commands:
-            if isinstance(command, (SimpleCommand, SimpleCommandGroup)):
+            if isinstance(command, (BaseCommand, BaseCommandGroup)):
                 commands.append(command)
         return commands
 
-    def _get_command_desc_line(self, cmd: SimpleCommand | SimpleCommandGroup) -> str:
-        if isinstance(cmd, SimpleCommand):
+    def _get_command_desc_line(self, cmd: BaseCommand | BaseCommandGroup) -> str:
+        if isinstance(cmd, BaseCommand):
             command_comm = cmd.command
             command_help = cmd.help
             return f"``{command_comm}``\n{command_help}\n"
 
-        # SimpleCommandGroup
+        # BaseCommandGroup
         group_desc: list[str] = []
         commands = self._get_commands(cmd)
         for group_cmd in commands:
@@ -69,12 +69,12 @@ class HelpEmbed(discord.Embed):
 
         return "\n".join(group_desc)
 
-    def _iterate_commands(self, cmd: SimpleCommand | SimpleCommandGroup) -> list[str]:
+    def _iterate_commands(self, cmd: BaseCommand | BaseCommandGroup) -> list[str]:
         commands: list[str] = []
 
-        if isinstance(cmd, SimpleCommand):
+        if isinstance(cmd, BaseCommand):
             commands.append(cmd.qualified_name)
-        # SimpleCommandGroup
+        # BaseCommandGroup
         else:
             for sub_cmd in self._get_commands(cmd):
                 commands.extend(self._iterate_commands(sub_cmd))
@@ -101,7 +101,7 @@ class HelpEmbed(discord.Embed):
 
         for command_name in command_names:
             command = self.tree.get_command(command_name)
-            if isinstance(command, (SimpleCommand, SimpleCommandGroup)):
+            if isinstance(command, (BaseCommand, BaseCommandGroup)):
                 command_desc = self._get_command_desc_line(command)
                 commands_desc.append(command_desc)
 
@@ -130,8 +130,8 @@ class HelpEmbed(discord.Embed):
             tab_commands: list[str] = []
             for command_name in tab.commands:
                 command = self.tree.get_command(command_name)
-                # Only handle SimpleCommand and SimpleCommandGroup, any other commands are ill-formed
-                if command is not None and isinstance(command, (SimpleCommand, SimpleCommandGroup)):
+                # Only handle BaseCommand and BaseCommandGroup, any other commands are ill-formed
+                if command is not None and isinstance(command, (BaseCommand, BaseCommandGroup)):
                     tab_commands.extend(self._iterate_commands(command))
 
             commands = [f"- ``/{command}``" for command in tab_commands]
@@ -142,7 +142,7 @@ class HelpEmbed(discord.Embed):
             f"- ``{ctx.name}``"
             for ctx_type in (discord.AppCommandType.message, discord.AppCommandType.user)
             for ctx in self.tree.walk_commands(type=ctx_type)
-            if isinstance(ctx, SimpleContextMenu)
+            if isinstance(ctx, BaseContextMenu)
         ]
         if context_cmds:
             tabs_commands.append((HelpTabs.ContextMenus.name, context_cmds))
@@ -158,14 +158,14 @@ class HelpEmbed(discord.Embed):
 
         # load message contexts
         for context in self.tree.walk_commands(type=discord.AppCommandType.message):
-            if isinstance(context, SimpleContextMenu):
+            if isinstance(context, BaseContextMenu):
                 name = f"``MESSAGE > APPS > {context.name}``"
                 desc = context.help
                 msg_contexts.append(f"{name}\n{desc}\n")
 
         # load user contexts
         for context in self.tree.walk_commands(type=discord.AppCommandType.user):
-            if isinstance(context, SimpleContextMenu):
+            if isinstance(context, BaseContextMenu):
                 name = f"``USER > APPS > {context.name}``"
                 desc = context.help
                 user_contexts.append(f"{name}\n{desc}\n")

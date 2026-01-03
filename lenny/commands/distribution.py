@@ -1,14 +1,14 @@
 from discord import Interaction
 from discord.app_commands import choices, describe
 
-from commands.command import SimpleCommand
+from commands.command import BaseCommand
 from embeds.distribution import DistributionEmbed
 from logic.color import UserColor
 from logic.distribution import distribution
 from logic.roll import Advantage
 
 
-class DistributionCommand(SimpleCommand):
+class DistributionCommand(BaseCommand):
     name = "distribution"
     desc = "Show the probability distribution of an expression."
     help = "Generates an image of the distribution of an expression."

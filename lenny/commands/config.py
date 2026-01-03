@@ -1,7 +1,7 @@
 import discord
 from discord.app_commands import choices
 
-from commands.command import SimpleCommand, SimpleCommandGroup
+from commands.command import BaseCommand, BaseCommandGroup
 from embeds.config.permissions import ConfigPermissionsView
 from embeds.config.sources import ConfigSourcesView
 from embeds.embed import ErrorEmbed
@@ -9,7 +9,7 @@ from logic.config import Config
 from logic.dnd.source import ContentChoice
 
 
-class ConfigSourcesCommand(SimpleCommand):
+class ConfigSourcesCommand(BaseCommand):
     name = "sources"
     desc = "Manage your server's sources!"
     help = "Open up an overview you can use to configure the bot's sources in your server."
@@ -31,7 +31,7 @@ class ConfigSourcesCommand(SimpleCommand):
             await itr.response.send_message(view=view, ephemeral=True)
 
 
-class ConfigPermissionsCommand(SimpleCommand):
+class ConfigPermissionsCommand(BaseCommand):
     name = "permissions"
     desc = "Manage your server's permissions!"
     help = "Open up an overview you can use to configure the bot's permissions in your server."
@@ -51,7 +51,7 @@ class ConfigPermissionsCommand(SimpleCommand):
             await itr.response.send_message(embed=embed, ephemeral=True)
 
 
-class ConfigCommand(SimpleCommandGroup):
+class ConfigCommand(BaseCommandGroup):
     name = "config"
     desc = "Configure your server's settings!"
 

@@ -8,9 +8,9 @@ from discord import ui
 from rich.console import Console
 from rich.table import Table
 
-from components.items import SimpleSeparator, TitleTextDisplay
+from components.items import BaseSeparator, TitleTextDisplay
 from components.paginated_view import PaginatedLayoutView
-from embeds.embed import SimpleEmbed
+from embeds.embed import BaseEmbed
 from logic.color import UserColor
 from logic.dnd.abstract import build_table_from_rows
 from logic.dnd.table import DNDTable
@@ -74,7 +74,7 @@ class DNDTableRollButton(ui.Button[DNDTableEntryView]):
             # Disable button to prevent further attempts, since it will keep failing.
             self.disabled = True
             self.style = discord.ButtonStyle.gray
-            embed = SimpleEmbed(
+            embed = BaseEmbed(
                 title="Something went wrong!", description="Couldn't roll table, try again later!", color=discord.Color.red()
             )
             await interaction.response.send_message(embed=embed, ephemeral=True)
@@ -146,7 +146,7 @@ class DNDTableContainerView(PaginatedLayoutView):
                 container.add_item(ui.TextDisplay(f"-# {footnote}"))
 
         if len(self.tables) > 1:
-            container.add_item(SimpleSeparator())
+            container.add_item(BaseSeparator())
             container.add_item(self.navigation_footer())
 
         self.add_item(container)

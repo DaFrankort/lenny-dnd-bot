@@ -5,12 +5,12 @@ from discord import Interaction
 from discord.ui import Modal
 
 from commands.command import get_error_embed
-from components.items import ModalSelectComponent, SimpleLabelTextInput
+from components.items import ModalSelectComponent, BaseLabelTextInput
 
 T = TypeVar("T")
 
 
-class SimpleModal(Modal):
+class BaseModal(Modal):
     def __init__(self, itr: Interaction, title: str):
         super().__init__(title=title)
         self.itr = itr
@@ -20,7 +20,7 @@ class SimpleModal(Modal):
         input_values = {
             child.text: str(child.input)
             for child in self.children
-            if isinstance(child, SimpleLabelTextInput) and str(child.input) != ""
+            if isinstance(child, BaseLabelTextInput) and str(child.input) != ""
         }
 
         username = itr.user.name
@@ -32,13 +32,13 @@ class SimpleModal(Modal):
         await itr.response.send_message(embed=embed, ephemeral=True)
 
     @staticmethod
-    def get_str(component: SimpleLabelTextInput) -> str | None:
+    def get_str(component: BaseLabelTextInput) -> str | None:
         """Safely parse string from LabeledTextComponent. Returns None if input is empty or only spaces."""
         text = str(component.input).strip()
         return text if text else None
 
     @staticmethod
-    def get_int(component: SimpleLabelTextInput) -> int | None:
+    def get_int(component: BaseLabelTextInput) -> int | None:
         """Safely parse integer from LabeledTextComponent. Returns None on failure, defaults to 0 if input is ''"""
         text = str(component.input).strip()
         if text == "":

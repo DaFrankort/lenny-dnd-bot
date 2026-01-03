@@ -3,7 +3,7 @@ from collections.abc import Iterable
 import discord
 from discord import ui
 
-from components.items import SimpleSeparator, TitleTextDisplay
+from components.items import BaseSeparator, TitleTextDisplay
 from logic.charactergen import CharacterGenResult
 from logic.charts import get_radar_chart
 from logic.color import UserColor
@@ -64,9 +64,9 @@ class CharacterGenContainerView(ui.LayoutView):
         btn_row.add_item(_CharacterGenInfoButton(result.background, bg_emoji))
         container.add_item(btn_row)
 
-        container.add_item(SimpleSeparator())
+        container.add_item(BaseSeparator())
         container.add_item(ui.TextDisplay(result.backstory))
-        container.add_item(SimpleSeparator())
+        container.add_item(BaseSeparator())
 
         ability_table = self._build_ability_table(result.background, result.stats, result.boosted_stats)
         total = sum(val for val, _ in result.stats)

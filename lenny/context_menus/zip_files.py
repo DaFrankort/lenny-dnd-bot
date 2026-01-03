@@ -3,10 +3,10 @@ import zipfile
 
 import discord
 
-from commands.command import SimpleContextMenu
+from commands.command import BaseContextMenu
 
 
-class ZipAttachmentsContextMenu(SimpleContextMenu):
+class ZipAttachmentsContextMenu(BaseContextMenu):
     name = "Zip message files"
     help = "Packs all attachments from a message into one ZIP file, making it faster to download many files."
 

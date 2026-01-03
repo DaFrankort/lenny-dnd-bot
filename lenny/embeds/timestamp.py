@@ -1,10 +1,10 @@
 import discord
 
 from components.items import TitleTextDisplay
-from embeds.embed import SimpleEmbed
+from embeds.embed import BaseEmbed
 
 
-class RelativeTimestampEmbed(SimpleEmbed):
+class RelativeTimestampEmbed(BaseEmbed):
     def __init__(self, timestamp: str):
         super().__init__(title=timestamp, description=f"```{timestamp}```")
 

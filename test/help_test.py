@@ -1,12 +1,12 @@
 from bot import Bot
-from commands.command import SimpleCommand
+from commands.command import BaseCommand
 
 
 class TestHelp:
     def test_all_commands_have_help(self):
         bot = Bot()
 
-        commands = [cmd for cmd in bot.tree.get_commands() if isinstance(cmd, SimpleCommand)]
+        commands = [cmd for cmd in bot.tree.get_commands() if isinstance(cmd, BaseCommand)]
 
         for cmd in commands:
             # Assert that every command has a name, desc, help, and command

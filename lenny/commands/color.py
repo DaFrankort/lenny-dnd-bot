@@ -1,7 +1,7 @@
 import discord
 from discord.app_commands import autocomplete, describe
 
-from commands.command import SimpleCommand, SimpleCommandGroup
+from commands.command import BaseCommand, BaseCommandGroup
 from embeds.color import ColorSetEmbed, ColorShowEmbed
 from embeds.embed import SuccessEmbed
 from logic.color import (
@@ -13,7 +13,7 @@ from logic.color import (
 )
 
 
-class ColorCommandGroup(SimpleCommandGroup):
+class ColorCommandGroup(BaseCommandGroup):
     name = "color"
     desc = "Set a preferred color to easily identify your actions!"
 
@@ -24,7 +24,7 @@ class ColorCommandGroup(SimpleCommandGroup):
         self.add_command(ColorClearCommand())
 
 
-class ColorSetCommandGroup(SimpleCommandGroup):
+class ColorSetCommandGroup(BaseCommandGroup):
     name = "set"
     desc = "Set a preferred color."
 
@@ -34,7 +34,7 @@ class ColorSetCommandGroup(SimpleCommandGroup):
         self.add_command(ColorSetRGBCommand())
 
 
-class ColorSetHexCommand(SimpleCommand):
+class ColorSetHexCommand(BaseCommand):
     name = "hex"
     desc = "Set a preferred color using a hex-value."
     help = "Set a custom color for yourself by providing a hex value."
@@ -48,7 +48,7 @@ class ColorSetHexCommand(SimpleCommand):
         await itr.response.send_message(embed=embed, file=embed.file, ephemeral=True)
 
 
-class ColorSetRGBCommand(SimpleCommand):
+class ColorSetRGBCommand(BaseCommand):
     name = "rgb"
     desc = "Set a preferred color using rgb values."
     help = "Set a custom color for yourself by providing a RGB value."
@@ -76,7 +76,7 @@ class ColorSetRGBCommand(SimpleCommand):
         await itr.response.send_message(embed=embed, file=embed.file, ephemeral=True)
 
 
-class ColorShowCommand(SimpleCommand):
+class ColorShowCommand(BaseCommand):
     name = "show"
     desc = "Show off your current color!"
     help = "Shows the color that you are currently using publicly."
@@ -88,7 +88,7 @@ class ColorShowCommand(SimpleCommand):
         await itr.response.send_message(embed=embed, file=embed.file)
 
 
-class ColorClearCommand(SimpleCommand):
+class ColorClearCommand(BaseCommand):
     name = "clear"
     desc = "Clear your preferred color."
     help = "Set your color back to an auto-generated one."

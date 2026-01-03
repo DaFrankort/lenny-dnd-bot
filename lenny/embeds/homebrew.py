@@ -3,11 +3,11 @@ from discord import ui
 
 from components.items import (
     ModalSelectComponent,
-    SimpleLabelTextInput,
-    SimpleSeparator,
+    BaseLabelTextInput,
+    BaseSeparator,
     TitleTextDisplay,
 )
-from components.modals import SimpleModal
+from components.modals import BaseModal
 from components.paginated_view import PaginatedLayoutView
 from logic.dnd.abstract import DNDEntryType
 from logic.homebrew import HomebrewData, HomebrewEntry
@@ -38,16 +38,16 @@ class HomebrewEmbed(discord.Embed):
             self.set_footer(text="Created by Unknown User", icon_url=icon_url)
 
 
-class HomebrewEntryAddModal(SimpleModal):
-    name = SimpleLabelTextInput(label="Name", placeholder="Peanut")
+class HomebrewEntryAddModal(BaseModal):
+    name = BaseLabelTextInput(label="Name", placeholder="Peanut")
     type = ModalSelectComponent(label="Type", options=DNDEntryType.options(), required=True)
-    subtitle = SimpleLabelTextInput(
+    subtitle = BaseLabelTextInput(
         label="Subtitle",
         placeholder="A small legume",
         required=False,
         max_length=80,
     )
-    description = SimpleLabelTextInput(
+    description = BaseLabelTextInput(
         label="Description",
         placeholder="A peanut is a legume that is often mistaken for a nut.",
         max_length=4000,
@@ -86,11 +86,11 @@ class HomebrewEntryAddModal(SimpleModal):
         await itr.response.send_message(content=f"Added {entry_type.value}: ``{name}``!", embed=embed, ephemeral=True)
 
 
-class HomebrewEditModal(SimpleModal):
+class HomebrewEditModal(BaseModal):
     entry: HomebrewEntry
-    name = SimpleLabelTextInput(label="Name")
-    subtitle = SimpleLabelTextInput(label="Subtitle", required=False, max_length=80)
-    description = SimpleLabelTextInput(label="Description", max_length=4000, style=discord.TextStyle.paragraph)
+    name = BaseLabelTextInput(label="Name")
+    subtitle = BaseLabelTextInput(label="Subtitle", required=False, max_length=80)
+    description = BaseLabelTextInput(label="Description", max_length=4000, style=discord.TextStyle.paragraph)
 
     def __init__(self, itr: discord.Interaction, entry: HomebrewEntry):
         self.entry = entry
@@ -173,7 +173,7 @@ class HomebrewListView(PaginatedLayoutView):
 
         # HEADER
         container.add_item(self.title_item)
-        container.add_item(SimpleSeparator())
+        container.add_item(BaseSeparator())
 
         # CONTENT
         options = self.get_current_options()
@@ -182,7 +182,7 @@ class HomebrewListView(PaginatedLayoutView):
             container.add_item(row)
 
         # FOOTER
-        container.add_item(SimpleSeparator())
+        container.add_item(BaseSeparator())
         container.add_item(self.navigation_footer())
 
         self.add_item(container)

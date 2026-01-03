@@ -1,12 +1,12 @@
 import discord
 from discord.app_commands import describe
 
-from commands.command import SimpleCommand
-from embeds.embed import SimpleEmbed
+from commands.command import BaseCommand
+from embeds.embed import BaseEmbed
 from logic.voice_chat import VC
 
 
-class PlaySoundCommand(SimpleCommand):
+class PlaySoundCommand(BaseCommand):
     name = "playsound"
     desc = "Play a sound effect from a file in voice chat!"
     help = "Allows users to play sound effects from files in voice chat without requiring any soundboard setup."
@@ -21,7 +21,7 @@ class PlaySoundCommand(SimpleCommand):
         await VC.play_attachment(itr, sound)
 
         mention: str = itr.user.voice.channel.mention  # type: ignore At this point, VC.play_attachment should have done all the proper checks
-        embed = SimpleEmbed(
+        embed = BaseEmbed(
             title="Playing sound!",
             description=f"▶️ Playing ``{sound.filename}`` in {mention}!",
         )

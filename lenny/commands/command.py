@@ -4,12 +4,12 @@ from typing import Any
 
 import discord
 
-from embeds.embed import SimpleEmbed
+from embeds.embed import BaseEmbed
 
 
 def get_error_embed(error: discord.app_commands.AppCommandError | Exception) -> discord.Embed:
     if isinstance(error, discord.app_commands.CheckFailure):
-        return SimpleEmbed(
+        return BaseEmbed(
             title="You don't meet the requirements to do that!",
             description=str(error),
             color=discord.Color.red(),
@@ -26,7 +26,7 @@ def get_error_embed(error: discord.app_commands.AppCommandError | Exception) -> 
     else:
         error_title = titles.get(parts[1], "Something went wrong!")
         error_msg = ": ".join(parts[2:]) if len(parts) > 2 else ""
-    embed = SimpleEmbed(title=error_title, description=error_msg, color=discord.Color.red())
+    embed = BaseEmbed(title=error_title, description=error_msg, color=discord.Color.red())
 
     return embed
 
@@ -43,7 +43,7 @@ async def handle_command_error(itr: discord.Interaction, error: discord.app_comm
     await message.delete(delay=10)
 
 
-class SimpleCommandGroup(discord.app_commands.Group):
+class BaseCommandGroup(discord.app_commands.Group):
     name: str = ""
     desc: str = ""
 
@@ -56,7 +56,7 @@ class SimpleCommandGroup(discord.app_commands.Group):
         super().__init__(name=self.name, description=self.desc)
 
 
-class SimpleCommand(discord.app_commands.Command[SimpleCommandGroup, Any, None]):
+class BaseCommand(discord.app_commands.Command[BaseCommandGroup, Any, None]):
     name: str = ""
     desc: str = ""
     help: str = ""
@@ -108,7 +108,7 @@ class SimpleCommand(discord.app_commands.Command[SimpleCommandGroup, Any, None])
         return self._params
 
 
-class SimpleContextMenu(discord.app_commands.ContextMenu):
+class BaseContextMenu(discord.app_commands.ContextMenu):
     name: str = ""
     help: str = ""
 

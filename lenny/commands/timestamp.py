@@ -1,12 +1,12 @@
 import discord
 from discord.app_commands import Range, describe
 
-from commands.command import SimpleCommand, SimpleCommandGroup
+from commands.command import BaseCommand, BaseCommandGroup
 from embeds.timestamp import RelativeTimestampEmbed, TimestampDatesContainerView
 from logic.timestamp import get_date_timestamp, get_relative_timestamp_from_now
 
 
-class TimestampCommandGroup(SimpleCommandGroup):
+class TimestampCommandGroup(BaseCommandGroup):
     name = "timestamp"
     desc = "Generate timestamp tags, which update to be up-to-date or correct between timezones."
 
@@ -16,7 +16,7 @@ class TimestampCommandGroup(SimpleCommandGroup):
         self.add_command(TimestampRelativeCommand())
 
 
-class TimestampRelativeCommand(SimpleCommand):
+class TimestampRelativeCommand(BaseCommand):
     name = "relative"
     desc = "Generate a 'in x'-style timestamp, relative from when you use this command."
     help = "Generates a relative timestamp like this example: <t:2102148000:R>"
@@ -43,7 +43,7 @@ class TimestampRelativeCommand(SimpleCommand):
         await itr.response.send_message(embed=embed, ephemeral=True)
 
 
-class TimestampDateCommand(SimpleCommand):
+class TimestampDateCommand(BaseCommand):
     name = "date"
     desc = "Generate a timestamp which is synced between timezones."
     help = "Will generate all variants of timestamps to copy paste in discord."

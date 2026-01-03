@@ -3,19 +3,19 @@ import math
 
 import discord
 
-from components.items import SimpleLabelTextInput
-from components.modals import SimpleModal
+from components.items import BaseLabelTextInput
+from components.modals import BaseModal
 
 
-class PaginatedJumpModal(SimpleModal):
-    page: SimpleLabelTextInput
+class PaginatedJumpModal(BaseModal):
+    page: BaseLabelTextInput
     view: "PaginatedLayoutView"
 
     def __init__(self, itr: discord.Interaction, view: "PaginatedLayoutView"):
         super().__init__(itr=itr, title="Jump pages")
         self.view = view
         current_page = str(self.view.page + 1)
-        self.page = SimpleLabelTextInput(
+        self.page = BaseLabelTextInput(
             label=f"Jump to page (1 - {self.view.max_pages})",
             placeholder=current_page,
             min_length=1,

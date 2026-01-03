@@ -9,7 +9,7 @@ from utils.mocking import MockImage, MockInteraction, MockSound
 from utils.utils import listify
 
 from bot import Bot
-from commands.command import SimpleCommand, SimpleCommandGroup
+from commands.command import BaseCommand, BaseCommandGroup
 from commands.tokengen import AlignH, AlignV
 from logic.charactergen import class_choices, species_choices
 from logic.config import ConfigHandler
@@ -19,20 +19,20 @@ from logic.dnd.name import Gender
 from logic.roll import Advantage
 
 
-def get_cmd_from_group(group: SimpleCommandGroup, parts: list[str]) -> SimpleCommand | None:
+def get_cmd_from_group(group: BaseCommandGroup, parts: list[str]) -> BaseCommand | None:
     """Recursively looks for a command within command-groups."""
     if len(parts) == 0:
         return None
 
     cmd = group.get_command(parts[0])
-    if not isinstance(cmd, (SimpleCommand, SimpleCommandGroup)):
+    if not isinstance(cmd, (BaseCommand, BaseCommandGroup)):
         raise ValueError("All commands in a SimpleCommandGroup should either be SimpleCommandGroups or SimpleCommands")
-    if isinstance(cmd, SimpleCommandGroup):
+    if isinstance(cmd, BaseCommandGroup):
         return get_cmd_from_group(cmd, parts[1:])
     return cmd
 
 
-def get_cmd(commands: dict[str, SimpleCommand | SimpleCommandGroup], name: str) -> SimpleCommand | None:
+def get_cmd(commands: dict[str, BaseCommand | BaseCommandGroup], name: str) -> BaseCommand | None:
     name = name.strip()
     if not name:
         return None
@@ -42,7 +42,7 @@ def get_cmd(commands: dict[str, SimpleCommand | SimpleCommandGroup], name: str) 
     rest = names[1:]
 
     command = commands.get(name, None)
-    if isinstance(command, SimpleCommandGroup):
+    if isinstance(command, BaseCommandGroup):
         return get_cmd_from_group(command, rest)
     else:
         return command
@@ -67,8 +67,8 @@ class TestBotCommands:
         return bot
 
     @pytest.fixture()
-    def commands(self, bot: Bot) -> dict[str, SimpleCommand | SimpleCommandGroup]:
-        return {cmd.name: cmd for cmd in bot.tree.get_commands() if isinstance(cmd, (SimpleCommand, SimpleCommandGroup))}
+    def commands(self, bot: Bot) -> dict[str, BaseCommand | BaseCommandGroup]:
+        return {cmd.name: cmd for cmd in bot.tree.get_commands() if isinstance(cmd, (BaseCommand, BaseCommandGroup))}
 
     def expand_arg_variants(self, arg: dict[str, Any]) -> list[dict[str, Any]]:
         """
@@ -237,7 +237,7 @@ class TestBotCommands:
     )
     async def test_slash_commands(
         self,
-        commands: dict[str, SimpleCommand | SimpleCommandGroup],
+        commands: dict[str, BaseCommand | BaseCommandGroup],
         cmd_name: str,
         arguments: dict[str, Any] | list[dict[str, Any]],
     ):
@@ -312,7 +312,7 @@ class TestBotCommands:
     )
     async def test_slash_commands_expecting_failure(
         self,
-        commands: dict[str, SimpleCommand | SimpleCommandGroup],
+        commands: dict[str, BaseCommand | BaseCommandGroup],
         cmd_name: str,
         arguments: dict[str, Any] | list[dict[str, Any]],
     ):
@@ -365,7 +365,7 @@ class TestBotCommands:
     )
     async def test_autocomplete_suggestions(
         self,
-        commands: dict[str, SimpleCommand | SimpleCommandGroup],
+        commands: dict[str, BaseCommand | BaseCommandGroup],
         cmd_name: str,
         param_name: str,
         queries: str | list[str],
@@ -425,7 +425,7 @@ class TestBotCommands:
     )
     async def test_slash_strict(
         self,
-        commands: dict[str, SimpleCommand | SimpleCommandGroup],
+        commands: dict[str, BaseCommand | BaseCommandGroup],
         cmd_name: str,
         arguments: dict[str, Any] | list[dict[str, Any]],
     ):

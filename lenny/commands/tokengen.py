@@ -1,7 +1,7 @@
 import discord
 from discord.app_commands import Range, choices, describe
 
-from commands.command import SimpleCommand, SimpleCommandGroup
+from commands.command import BaseCommand, BaseCommandGroup
 from logic.tokengen import (
     AlignH,
     AlignV,
@@ -10,7 +10,7 @@ from logic.tokengen import (
 )
 
 
-class TokenGenCommandGroup(SimpleCommandGroup):
+class TokenGenCommandGroup(BaseCommandGroup):
     name = "tokengen"
     desc = "Create 5e.tools-style creature-tokens."
 
@@ -20,7 +20,7 @@ class TokenGenCommandGroup(SimpleCommandGroup):
         self.add_command(TokenGenUrlCommand())
 
 
-class TokenGenCommand(SimpleCommand):
+class TokenGenCommand(BaseCommand):
     name = "file"
     desc = "Turn an image into a 5e.tools-style token."
     help = "Generates a token image from an image attachment."
@@ -54,7 +54,7 @@ class TokenGenCommand(SimpleCommand):
         await itr.followup.send(files=files)
 
 
-class TokenGenUrlCommand(SimpleCommand):
+class TokenGenUrlCommand(BaseCommand):
     name = "url"
     desc = "Turn an image url into a 5e.tools-style token."
     help = "Generates a token image from an image url."

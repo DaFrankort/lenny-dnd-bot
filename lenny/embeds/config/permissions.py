@@ -2,7 +2,7 @@ from typing import Literal
 
 import discord
 
-from components.items import SimpleSeparator
+from components.items import BaseSeparator
 from components.paginated_view import PaginatedLayoutView
 from embeds.config.config import ConfigAllowButton
 from logic.config import Config
@@ -52,7 +52,7 @@ class ConfigPermissionsView(PaginatedLayoutView):
 
         title = "# Manage Permissions"
         container.add_item(discord.ui.TextDisplay(title))
-        container.add_item(SimpleSeparator())
+        container.add_item(BaseSeparator())
 
         roles = self.viewed_permissions
         for role in roles:
@@ -61,7 +61,7 @@ class ConfigPermissionsView(PaginatedLayoutView):
             container.add_item(discord.ui.Section(text, accessory=button))
 
         # Button navigation
-        container.add_item(SimpleSeparator())
+        container.add_item(BaseSeparator())
         container.add_item(self.navigation_footer())
 
         self.add_item(container)

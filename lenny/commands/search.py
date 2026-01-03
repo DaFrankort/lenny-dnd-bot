@@ -4,7 +4,7 @@ import logging
 import discord
 from discord.app_commands import autocomplete, describe
 
-from commands.command import SimpleCommand, SimpleCommandGroup
+from commands.command import BaseCommand, BaseCommandGroup
 from embeds.dnd.class_ import ClassEmbed
 from embeds.embed import NoResultsFoundEmbed
 from embeds.search import MultiDNDSelectView, SearchLayoutView, send_dnd_embed
@@ -63,7 +63,7 @@ async def spell_name_autocomplete(itr: discord.Interaction, current: str):
     return _generic_name_autocomplete(itr, current, Data.spells, "spell")
 
 
-class SearchSpellCommand(SimpleCommand):
+class SearchSpellCommand(BaseCommand):
     name = "spell"
     desc = "Get the details for a spell."
     help = "Looks up a spell by name."
@@ -81,7 +81,7 @@ async def item_name_autocomplete(itr: discord.Interaction, current: str):
     return _generic_name_autocomplete(itr, current, Data.items, "item")
 
 
-class SearchItemCommand(SimpleCommand):
+class SearchItemCommand(BaseCommand):
     name = "item"
     desc = "Get the details for an item."
     help = "Looks up an item by name."
@@ -99,7 +99,7 @@ async def condition_name_autocomplete(itr: discord.Interaction, current: str):
     return _generic_name_autocomplete(itr, current, Data.conditions, "condition")
 
 
-class SearchConditionCommand(SimpleCommand):
+class SearchConditionCommand(BaseCommand):
     name = "condition"
     desc = "Get the details of a condition or status effect."
     help = "Looks up a condition or status effect by name."
@@ -117,7 +117,7 @@ async def creature_name_autocomplete(itr: discord.Interaction, current: str):
     return _generic_name_autocomplete(itr, current, Data.creatures, "creature")
 
 
-class SearchCreatureCommand(SimpleCommand):
+class SearchCreatureCommand(BaseCommand):
     name = "creature"
     desc = "Get the details of a creature."
     help = "Looks up a creature by name."
@@ -157,7 +157,7 @@ async def subclass_name_autocomplete(itr: discord.Interaction, current: str) -> 
     return subclass_name_lookup(class_name, current, sources)
 
 
-class SearchClassCommand(SimpleCommand):
+class SearchClassCommand(BaseCommand):
     name = "class"
     desc = "Get the details for a character class."
     help = "Looks up a D&D class by name."
@@ -201,7 +201,7 @@ async def rule_name_autocomplete(itr: discord.Interaction, current: str):
     return _generic_name_autocomplete(itr, current, Data.rules, "rule")
 
 
-class SearchRuleCommand(SimpleCommand):
+class SearchRuleCommand(BaseCommand):
     name = "rule"
     desc = "Get the details of a D&D rule."
     help = "Looks up a D&D rule by name."
@@ -219,7 +219,7 @@ async def action_name_autocomplete(itr: discord.Interaction, current: str):
     return _generic_name_autocomplete(itr, current, Data.actions, "action")
 
 
-class SearchActionCommand(SimpleCommand):
+class SearchActionCommand(BaseCommand):
     name = "action"
     desc = "Get the details of a D&D action."
     help = "Looks up a D&D action by name."
@@ -237,7 +237,7 @@ async def feat_name_autocomplete(itr: discord.Interaction, current: str):
     return _generic_name_autocomplete(itr, current, Data.feats, "feat")
 
 
-class SearchFeatCommand(SimpleCommand):
+class SearchFeatCommand(BaseCommand):
     name = "feat"
     desc = "Get the details of a character feat."
     help = "Looks up a character feat by name."
@@ -255,7 +255,7 @@ async def language_name_autocomplete(itr: discord.Interaction, current: str):
     return _generic_name_autocomplete(itr, current, Data.languages, "language")
 
 
-class SearchLanguageCommand(SimpleCommand):
+class SearchLanguageCommand(BaseCommand):
     name = "language"
     desc = "Get the details of a language."
     help = "Looks up a D&D Language by name."
@@ -273,7 +273,7 @@ async def background_name_autocomplete(itr: discord.Interaction, current: str):
     return _generic_name_autocomplete(itr, current, Data.backgrounds, "background")
 
 
-class SearchBackgroundCommand(SimpleCommand):
+class SearchBackgroundCommand(BaseCommand):
     name = "background"
     desc = "Get the details of a background."
     help = "Looks up a D&D Background by name."
@@ -291,7 +291,7 @@ async def table_name_autocomplete(itr: discord.Interaction, current: str):
     return _generic_name_autocomplete(itr, current, Data.tables, "table")
 
 
-class SearchTableCommand(SimpleCommand):
+class SearchTableCommand(BaseCommand):
     name = "table"
     desc = "Get the details of a table."
     help = "Looks up a D&D Table by name."
@@ -309,7 +309,7 @@ async def species_name_autocomplete(itr: discord.Interaction, current: str):
     return _generic_name_autocomplete(itr, current, Data.species, "species")
 
 
-class SearchSpeciesCommand(SimpleCommand):
+class SearchSpeciesCommand(BaseCommand):
     name = "species"
     desc = "Get the details of a species."
     help = "Looks up a D&D Species by name."
@@ -327,7 +327,7 @@ async def vehicle_name_autocomplete(itr: discord.Interaction, current: str):
     return _generic_name_autocomplete(itr, current, Data.vehicles, "vehicle")
 
 
-class SearchVehicleCommand(SimpleCommand):
+class SearchVehicleCommand(BaseCommand):
     name = "vehicle"
     desc = "Get the details of a vehicle."
     help = "Looks up a D&D Vehicle by name."
@@ -345,7 +345,7 @@ async def object_name_autocomplete(itr: discord.Interaction, current: str):
     return _generic_name_autocomplete(itr, current, Data.objects, "object")
 
 
-class SearchObjectCommand(SimpleCommand):
+class SearchObjectCommand(BaseCommand):
     name = "object"
     desc = "Get the details of an object."
     help = "Looks up a D&D Object by name."
@@ -363,7 +363,7 @@ async def hazard_name_autocomplete(itr: discord.Interaction, current: str):
     return _generic_name_autocomplete(itr, current, Data.hazards, "hazard")
 
 
-class SearchHazardCommand(SimpleCommand):
+class SearchHazardCommand(BaseCommand):
     name = "hazard"
     desc = "Get the details of a trap or hazard."
     help = "Looks up a D&D Trap or Hazard by name."
@@ -381,7 +381,7 @@ async def deity_name_autocomplete(itr: discord.Interaction, current: str):
     return _generic_name_autocomplete(itr, current, Data.deities, "deity")
 
 
-class SearchDeityCommand(SimpleCommand):
+class SearchDeityCommand(BaseCommand):
     name = "deity"
     desc = "Get the details of a deity."
     help = "Looks up a D&D Deity by name."
@@ -399,7 +399,7 @@ async def cult_name_autocomplete(itr: discord.Interaction, current: str):
     return _generic_name_autocomplete(itr, current, Data.cults, "cult")
 
 
-class SearchCultCommand(SimpleCommand):
+class SearchCultCommand(BaseCommand):
     name = "cult"
     desc = "Get the details of a cult."
     help = "Looks up a D&D cult by name."
@@ -417,7 +417,7 @@ async def boon_name_autocomplete(itr: discord.Interaction, current: str):
     return _generic_name_autocomplete(itr, current, Data.boons, "boon")
 
 
-class SearchBoonCommand(SimpleCommand):
+class SearchBoonCommand(BaseCommand):
     name = "boon"
     desc = "Get the details of a boon."
     help = "Looks up a D&D boon by name."
@@ -431,7 +431,7 @@ class SearchBoonCommand(SimpleCommand):
         await send_dnd_entry_lookup_result(itr, "boon", found, name)
 
 
-class SearchAnyCommand(SimpleCommand):
+class SearchAnyCommand(BaseCommand):
     name = "all"
     desc = "Search for all matching D&D entries."
     help = "Looks up all possible D&D entries for a query."
@@ -451,7 +451,7 @@ class SearchAnyCommand(SimpleCommand):
             await itr.response.send_message(view=view, ephemeral=True)
 
 
-class SearchCommandGroup(SimpleCommandGroup):
+class SearchCommandGroup(BaseCommandGroup):
     name = "search"
     desc = "Search for a D&D entry."
 

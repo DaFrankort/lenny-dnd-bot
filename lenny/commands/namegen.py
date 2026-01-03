@@ -1,8 +1,8 @@
 import discord
 from discord.app_commands import autocomplete, choices, describe
 
-from commands.command import SimpleCommand
-from embeds.embed import SimpleEmbed
+from commands.command import BaseCommand
+from embeds.embed import BaseEmbed
 from logic.color import UserColor
 from logic.dnd.data import Data
 from logic.dnd.name import Gender
@@ -15,7 +15,7 @@ async def species_autocomplete(_: discord.Interaction, current: str):
     return [discord.app_commands.Choice(name=spec, value=spec) for spec in filtered_species[:25]]
 
 
-class NameGenCommand(SimpleCommand):
+class NameGenCommand(BaseCommand):
     name = "namegen"
     desc = "Generate a random name depending on species and gender!"
     help = "Get a random name for a humanoid, species and gender can be specified but will default to random values."
@@ -38,5 +38,5 @@ class NameGenCommand(SimpleCommand):
         desc = f"*{result.gender} {result.species}*".title()
         color = UserColor.generate(result.name)
 
-        embed = SimpleEmbed(title=result.name, description=desc, color=discord.Color(color))
+        embed = BaseEmbed(title=result.name, description=desc, color=discord.Color(color))
         await itr.response.send_message(embed=embed)

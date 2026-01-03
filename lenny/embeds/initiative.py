@@ -1,9 +1,9 @@
 import discord
 from discord import Interaction, SelectOption, ui
 
-from components.items import ModalSelectComponent, SimpleLabelTextInput, SimpleSeparator
-from components.modals import SimpleModal
-from embeds.embed import SimpleEmbed, UserActionEmbed
+from components.items import BaseLabelTextInput, BaseSeparator, ModalSelectComponent
+from components.modals import BaseModal
+from embeds.embed import BaseEmbed, UserActionEmbed
 from logic.dicecache import DiceCache
 from logic.initiative import Initiative, Initiatives
 from logic.roll import Advantage
@@ -11,9 +11,9 @@ from logic.voice_chat import VC, SoundType
 from methods import Boolean, log_button_press, when
 
 
-class InitiativeRollModal(SimpleModal):
-    modifier = SimpleLabelTextInput(label="Your Initiative Modifier", max_length=2, required=False)
-    name = SimpleLabelTextInput(label="Name", placeholder="Goblin", required=False, max_length=128)
+class InitiativeRollModal(BaseModal):
+    modifier = BaseLabelTextInput(label="Your Initiative Modifier", max_length=2, required=False)
+    name = BaseLabelTextInput(label="Name", placeholder="Goblin", required=False, max_length=128)
     advantage = ModalSelectComponent(label="Roll Mode", placeholder="Normal", options=Advantage.options(), required=False)
 
     def __init__(self, itr: Interaction):
@@ -62,9 +62,9 @@ class InitiativeRollModal(SimpleModal):
             )
 
 
-class InitiativeSetModal(SimpleModal):
-    value = SimpleLabelTextInput(label="Initiative value", placeholder="20", max_length=3)
-    name = SimpleLabelTextInput(label="Name", placeholder="Goblin", required=False, max_length=128)
+class InitiativeSetModal(BaseModal):
+    value = BaseLabelTextInput(label="Initiative value", placeholder="20", max_length=3)
+    name = BaseLabelTextInput(label="Name", placeholder="Goblin", required=False, max_length=128)
 
     def __init__(self, itr: Interaction):
         self.name.input.placeholder = itr.user.display_name.title().strip()
@@ -94,7 +94,7 @@ class InitiativeSetModal(SimpleModal):
         )
 
 
-class InitiativeDeleteModal(SimpleModal):
+class InitiativeDeleteModal(BaseModal):
     name = ModalSelectComponent(label="Roll to delete", options=[], placeholder="Goblin", required=True)
 
     def __init__(self, itr: Interaction):
@@ -118,19 +118,19 @@ class InitiativeDeleteModal(SimpleModal):
         await VC.play(itr, SoundType.DELETE)
         await itr.response.edit_message(view=view)
 
-        embed = SimpleEmbed(title="Removed initiative", description=f"Initiative removed for {initiative.name}!")
+        embed = BaseEmbed(title="Removed initiative", description=f"Initiative removed for {initiative.name}!")
         await itr.followup.send(embed=embed, ephemeral=True)
 
 
-class InitiativeBulkModal(SimpleModal):
-    modifier = SimpleLabelTextInput(
+class InitiativeBulkModal(BaseModal):
+    modifier = BaseLabelTextInput(
         label="Creature's Initiative Modifier",
         placeholder="0",
         max_length=3,
         required=False,
     )
-    name = SimpleLabelTextInput(label="Creature's Name", placeholder="Goblin", max_length=128)
-    amount = SimpleLabelTextInput(label="Amount of creatures to add", placeholder="1", max_length=2)
+    name = BaseLabelTextInput(label="Creature's Name", placeholder="Goblin", max_length=128)
+    amount = BaseLabelTextInput(label="Amount of creatures to add", placeholder="1", max_length=2)
     advantage = ModalSelectComponent(label="Roll Mode", placeholder="Normal", options=Advantage.options(), required=False)
     shared = ModalSelectComponent(label="Share Initiative", placeholder="False", options=Boolean.options(), required=False)
 
@@ -176,8 +176,8 @@ class InitiativeBulkModal(SimpleModal):
         )
 
 
-class InitiativeClearConfirmModal(SimpleModal):
-    confirm = SimpleLabelTextInput(label="Type 'CLEAR' to confirm", placeholder="CLEAR")
+class InitiativeClearConfirmModal(BaseModal):
+    confirm = BaseLabelTextInput(label="Type 'CLEAR' to confirm", placeholder="CLEAR")
 
     def __init__(self, itr: Interaction):
         super().__init__(itr, title="Are you sure you want to clear?")
@@ -188,7 +188,7 @@ class InitiativeClearConfirmModal(SimpleModal):
         confirm = str(self.confirm.input)
         if confirm != "CLEAR":
             await itr.response.send_message(
-                embed=SimpleEmbed("Clearing cancelled!", "Type 'CLEAR' in all caps to confirm."),
+                embed=BaseEmbed("Clearing cancelled!", "Type 'CLEAR' in all caps to confirm."),
                 ephemeral=True,
             )
             return
@@ -198,7 +198,7 @@ class InitiativeClearConfirmModal(SimpleModal):
         await VC.play(itr, SoundType.DELETE)
         await itr.response.edit_message(view=view)
         await itr.followup.send(
-            embed=SimpleEmbed("Cleared all initiatives!", f"Cleared by {itr.user.display_name}."),
+            embed=BaseEmbed("Cleared all initiatives!", f"Cleared by {itr.user.display_name}."),
             ephemeral=True,
         )
 
@@ -269,14 +269,14 @@ class InitiativeContainerView(ui.LayoutView):
 
         container = ui.Container["InitiativeContainerView"](accent_color=discord.Color.dark_green())
         container.add_item(ui.TextDisplay("# Initiatives"))
-        container.add_item(SimpleSeparator())
+        container.add_item(BaseSeparator())
 
         initiatives = Initiatives.get(itr)
         descriptions = [f"- ``{i.get_total():>2}`` - {i.name}" for i in initiatives]
         description = "\n".join(descriptions) or "*No initiatives rolled yet!*"
 
         container.add_item(ui.TextDisplay(description))
-        container.add_item(SimpleSeparator())
+        container.add_item(BaseSeparator())
 
         if locked:
             unlock_section = ui.Section["InitiativeContainerView"]("‎", accessory=InitiativeUnlockButton())

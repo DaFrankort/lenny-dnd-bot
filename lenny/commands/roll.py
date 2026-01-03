@@ -1,7 +1,7 @@
 import discord
 from discord.app_commands import autocomplete, choices, describe
 
-from commands.command import SimpleCommand
+from commands.command import BaseCommand
 from embeds.roll import MultiRollEmbed, RollEmbed
 from logic.dicecache import DiceCache
 from logic.roll import Advantage, multi_roll, roll
@@ -16,7 +16,7 @@ async def reason_autocomplete(itr: discord.Interaction, current: str):
     return DiceCache.get(itr).get_autocomplete_reason_suggestions(current)
 
 
-class _AbstractRollCommand(SimpleCommand):
+class _AbstractRollCommand(BaseCommand):
     advantage: Advantage
 
     @autocomplete(
@@ -67,7 +67,7 @@ class DisadvantageRollCommand(_AbstractRollCommand):
     advantage = Advantage.DISADVANTAGE
 
 
-class D20Command(SimpleCommand):
+class D20Command(BaseCommand):
     name = "d20"
     desc = "Just roll a clean d20!"
     help = "Rolls a basic 1d20 with no modifiers."
@@ -80,7 +80,7 @@ class D20Command(SimpleCommand):
         await VC.play_dice_roll(itr, result)
 
 
-class MultiRollCommand(SimpleCommand):
+class MultiRollCommand(BaseCommand):
     name = "multiroll"
     desc = "Roll multiple dice!"
     help = "Roll a dice expression multiple times."

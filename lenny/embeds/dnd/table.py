@@ -11,12 +11,12 @@ from rich.table import Table
 from components.items import SimpleSeparator, TitleTextDisplay
 from components.paginated_view import PaginatedLayoutView
 from embeds.embed import SimpleEmbed
-from logger import log_button_press
 from logic.color import UserColor
 from logic.dnd.abstract import build_table_from_rows
 from logic.dnd.table import DNDTable
 from logic.roll import RollResult
 from logic.voice_chat import VC, SoundType
+from methods import log_button_press
 
 
 class DNDTableEntryView(discord.ui.LayoutView):

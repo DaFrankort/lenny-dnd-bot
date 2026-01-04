@@ -28,33 +28,25 @@ class SessionPlanPoll(discord.Poll):
     def _add_date_answers(self, in_weeks: int):
         today = datetime.date.today()
         is_this_week = in_weeks == 0
-        # Remaining days of the week + 'later' option
-        answer_count_thisweek = 6 - today.weekday() + 1
-        answer_count = when(is_this_week, answer_count_thisweek, 9)  # 9 => 7 days + later/earlier options
 
-        for i in range(answer_count):
-            if i == 0 and not is_this_week:
-                day_text = "Earlier"
-                relative_text = None
-                emoji = "⬆️"
+        if not is_this_week:
+            self.add_answer(text="Earlier", emoji="⬆️")
 
-            elif i == answer_count - 1:
-                day_text = "Later"
-                relative_text = None
-                emoji = "⬇️"
+        for i in range(7):
+            shift = i - today.weekday() + (in_weeks * 7)
+            day_offset = when(is_this_week, i + 1, shift)
+            day = today + datetime.timedelta(days=day_offset)
+            day_text = day.strftime("%A %d %b")
+            emoji = "📅"
 
-            else:
-                shift = i - today.weekday() - 1 + (in_weeks * 7)
-                day_offset = when(is_this_week, i + 1, shift)
-                day = today + datetime.timedelta(days=day_offset)
-                day_text = day.strftime("%A %d %b")
-
-                day_is_tomorrow = day_offset == 1
-                relative_text = when(day_is_tomorrow, "Tomorrow", f"In {day_offset} days")
-                emoji = "📅"
-
-            if relative_text is None or in_weeks > 4:
+            # Don't show relative 'in x days' text past 2 weeks, adds no value at that point.
+            if in_weeks > 2:
                 self.add_answer(text=day_text, emoji=emoji)
                 continue
 
+            day_is_tomorrow = day_offset == 1
+            relative_text = when(day_is_tomorrow, "Tomorrow", f"In {day_offset} days")
+
             self.add_answer(text=f"{day_text} ({relative_text})", emoji=emoji)
+
+        self.add_answer(text="Later", emoji="⬇️")

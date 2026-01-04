@@ -32,6 +32,10 @@ class SessionPlanPoll(discord.Poll):
         answer_count_thisweek = 6 - today.weekday() + 1
         answer_count = when(is_this_week, answer_count_thisweek, 9)  # 9 => 7 days + later/earlier options
 
+        # Edge case: Sundays in the current week should prompt the next week.
+        if today.weekday() == 6 and is_this_week:
+            answer_count = 8
+
         for i in range(answer_count):
             if i == 0 and not is_this_week:
                 day_text = "Earlier"

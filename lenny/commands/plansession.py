@@ -8,7 +8,7 @@ from embeds.plansession import SessionPlanPoll
 class PlanSessionCommand(BaseCommand):
     name = "plansession"
     desc = "Stop squandering and poll your party's availability in x weeks!"
-    help = "Creates a poll for players to select their availability in x weeks. Generates poll-answers from Monday - Sunday, along with an 'Earlier' and 'Later' option. If 0 is specified it will poll for the remaining days in the current week."
+    help = "Creates a poll for players to select their availability in x weeks. Generates poll-answers from Monday - Sunday, along with an 'Earlier' and 'Later' option. If 0 is specified it will poll for the following 7 days."
 
     def __init__(self):
         super().__init__()

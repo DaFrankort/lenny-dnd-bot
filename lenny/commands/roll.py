@@ -16,9 +16,7 @@ async def reason_autocomplete(itr: discord.Interaction, current: str):
     return DiceCache.get(itr).get_autocomplete_reason_suggestions(current)
 
 
-class _AbstractRollCommand(BaseCommand):
-    advantage: Advantage
-
+class RollCommand(BaseCommand):
     @autocomplete(
         diceroll=diceroll_autocomplete,
         reason=reason_autocomplete,
@@ -26,45 +24,23 @@ class _AbstractRollCommand(BaseCommand):
     @describe(
         diceroll="The dice-expression of the roll you want to make (Example: 1d20+3, 1d8ro1, ...)",
         reason="An optional reason for rolling, for additional clarity. (Example: Attack, Damage, ...)",
+        advantage="Does the dice roll have advantage?",
     )
     async def handle(
         self,
         itr: discord.Interaction,
         diceroll: str,
         reason: str | None = None,
+        advantage: Advantage = Advantage.NORMAL,
     ):
         self.log(itr)
-        result = roll(diceroll, self.advantage)
+        result = roll(diceroll, advantage)
         DiceCache.get(itr).store_expression(result.expression)
         DiceCache.get(itr).store_reason(reason)
         embed = RollEmbed(itr, result, reason)
 
         await itr.response.send_message(embed=embed)
         await VC.play_dice_roll(itr, result, reason)
-
-
-class RollCommand(_AbstractRollCommand):
-    name = "roll"
-    desc = "Roll your d20s!"
-    help = "Roll a single dice expression."
-
-    advantage = Advantage.NORMAL
-
-
-class AdvantageRollCommand(_AbstractRollCommand):
-    name = "advantage"
-    desc = "Lucky you! Roll and take the best of two!"
-    help = "Roll the expression twice, use the highest result."
-
-    advantage = Advantage.ADVANTAGE
-
-
-class DisadvantageRollCommand(_AbstractRollCommand):
-    name = "disadvantage"
-    desc = "Tough luck chump... Roll twice and suck it."
-    help = "Roll the expression twice, use the lowest result."
-
-    advantage = Advantage.DISADVANTAGE
 
 
 class D20Command(BaseCommand):

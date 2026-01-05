@@ -88,7 +88,7 @@ def _detect_face_center(image: Image.Image) -> tuple[int, int]:
     ]
     faces: Sequence[tuple[int, int, int, int]] = ()
     for model in models:
-        print(model)
+        logging.debug(f"Detecting using model: {model}")
         # pylint: disable=no-member
         cascade = cv2.CascadeClassifier(filename=cv2.data.haarcascades + model)  # type: ignore
         faces = cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))  # type: ignore

@@ -2,14 +2,14 @@ import csv
 import dataclasses
 import io
 import re
-from collections.abc import Iterable
+from collections.abc import Sequence
 
 import discord
 
 from logic.dnd.abstract import build_table_from_rows
 
 
-def _parse_md_table_csv(md_table: str) -> tuple[list[str], list[Iterable[str]]]:
+def _parse_md_table_csv(md_table: str) -> tuple[list[str], Sequence[Sequence[str]]]:
     lines = [
         line.strip() for line in md_table.strip().splitlines() if line.strip().startswith("|") and line.strip().endswith("|")
     ]
@@ -17,7 +17,7 @@ def _parse_md_table_csv(md_table: str) -> tuple[list[str], list[Iterable[str]]]:
         return [], []
 
     # Use csv.reader to split on pipes
-    def split_line(line: str) -> Iterable[str]:
+    def split_line(line: str) -> Sequence[str]:
         reader = csv.reader(io.StringIO(line.strip("|")), delimiter="|")
         return [cell.strip() for row in reader for cell in row]
 

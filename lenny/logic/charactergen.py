@@ -66,7 +66,12 @@ def _get_optimal_background(char_class: Class) -> Background:
         backgrounds = Data.backgrounds.entries
     else:
         recommended: set[str] = set()
-        for ability, background_string in background_table.table["value"]["rows"]:
+        for ability, background_string in background_table.table["table"]["rows"]:
+            if not isinstance(ability, str):
+                raise ValueError(f"Background table entry is not a string, instead received {str(background_string)}.")
+            if not isinstance(background_string, str):
+                raise ValueError(f"Background table entry is not a string, instead received {str(background_string)}.")
+
             backgrounds = background_string.split(",")
             if ability.lower() in char_class.primary_ability.lower():
                 recommended.update(bg.strip().lower() for bg in backgrounds)
@@ -88,12 +93,22 @@ def _get_optimal_stats(char_class: Class) -> list[tuple[int, str]]:
     if ability_table is None:
         raise LookupError("Ability table is required for CharacterGen, but it could not be found!")
 
-    headers = ability_table.table["value"]["headers"][1:]  # skip "Class"
+    headers = ability_table.table["table"]["headers"]
+    if headers is None:
+        raise ValueError("Ability table is missing headers!")
+    headers = headers[1:]  # skip "Class"
+
     optimal_stats = None
-    for row in ability_table.table["value"]["rows"]:
-        if row[0].lower() == char_class.name.lower():
+    rows = ability_table.table["table"]["rows"]
+
+    for row in rows:
+        for cell in row:
+            if not isinstance(cell, (str, int)):
+                raise ValueError("Ability table is only allowed to have string values.")
+
+        if row[0].lower() == char_class.name.lower():  # type: ignore
             values = row[1:]
-            optimal_stats = [(int(val), stat) for stat, val in zip(headers, values)]
+            optimal_stats = [(int(val), stat) for stat, val in zip(headers, values)]  # type: ignore
             optimal_stats.sort(key=lambda x: x[0], reverse=True)
             break
 
@@ -153,6 +168,9 @@ def _get_backstory(table_name: str, entry: DNDEntry) -> str:
     if table is None:
         return ""
 
+    if table.table["table"]["headers"] is None:
+        return ""
+
     roll = table.roll()
     if roll is None:
         return ""
@@ -161,7 +179,7 @@ def _get_backstory(table_name: str, entry: DNDEntry) -> str:
     if not reason.startswith("I "):
         reason = reason[0].lower() + reason[1:]
 
-    prefix = table.table["value"]["headers"][1].replace("...", " ")
+    prefix = table.table["table"]["headers"][1].replace("...", " ")
     return prefix + reason
 
 

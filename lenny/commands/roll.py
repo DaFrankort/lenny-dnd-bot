@@ -16,10 +16,19 @@ async def reason_autocomplete(itr: discord.Interaction, current: str):
     return DiceCache.get(itr).get_autocomplete_reason_suggestions(current)
 
 
+async def advantage_autocomplete(_1: discord.Interaction, _2: str):
+    return Advantage.choices()
+
+
 class RollCommand(BaseCommand):
+    name = "roll"
+    desc = "Roll your d20s!"
+    help = "Roll a single dice expression."
+
     @autocomplete(
         diceroll=diceroll_autocomplete,
         reason=reason_autocomplete,
+        advantage=advantage_autocomplete,
     )
     @describe(
         diceroll="The dice-expression of the roll you want to make (Example: 1d20+3, 1d8ro1, ...)",

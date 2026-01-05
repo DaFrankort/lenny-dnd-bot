@@ -16,10 +16,6 @@ async def reason_autocomplete(itr: discord.Interaction, current: str):
     return DiceCache.get(itr).get_autocomplete_reason_suggestions(current)
 
 
-async def advantage_autocomplete(_1: discord.Interaction, _2: str):
-    return Advantage.choices()
-
-
 class RollCommand(BaseCommand):
     name = "roll"
     desc = "Roll your d20s!"
@@ -28,20 +24,25 @@ class RollCommand(BaseCommand):
     @autocomplete(
         diceroll=diceroll_autocomplete,
         reason=reason_autocomplete,
-        advantage=advantage_autocomplete,
     )
     @describe(
         diceroll="The dice-expression of the roll you want to make (Example: 1d20+3, 1d8ro1, ...)",
         reason="An optional reason for rolling, for additional clarity. (Example: Attack, Damage, ...)",
         advantage="Does the dice roll have advantage?",
     )
+    @choices(advantage=Advantage.choices())
     async def handle(
         self,
         itr: discord.Interaction,
         diceroll: str,
         reason: str | None = None,
-        advantage: Advantage = Advantage.NORMAL,
+        advantage: str | None = None,
     ):
+        if advantage is None:
+            advantage = Advantage.NORMAL
+        else:
+            advantage = Advantage(advantage)
+
         self.log(itr)
         result = roll(diceroll, advantage)
         DiceCache.get(itr).store_expression(result.expression)

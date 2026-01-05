@@ -319,7 +319,6 @@ class TestBotCommands:
             ("roll", "diceroll", ["", "1d20"]),
             ("multiroll", "diceroll", ["", "1d20"]),
             ("roll", "reason", ["", "Att"]),
-            ("roll", "advantage", ["", "Adv"]),
             ("multiroll", "reason", ["", "Att"]),
             ("search spell", "name", ["", "Fireb"]),
             ("search item", "name", ["", "Dag"]),

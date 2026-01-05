@@ -3,7 +3,7 @@ import logging
 import math
 import os
 import time
-from typing import Sequence
+from collections.abc import Sequence
 
 import aiohttp
 import cv2

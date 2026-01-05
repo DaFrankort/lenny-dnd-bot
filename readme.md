@@ -93,9 +93,7 @@ Configure bot-specific settings for your server.
 
 Roll D&D dice using dice-expressions (e.g. `2d6` / `1d20+2`).
 
-- `/roll <dice-expression> [reason]` – Roll a single dice expression, optionally specify a reason for the roll (e.g. Acrobatics)
-- `/advantage <dice-expression> [reason]` – Rolls twice, highlights the highest result.
-- `/disadvantage <dice-expression> [reason]` – Rolls twice, highlights the lowest result.
+- `/roll <dice-expression> [reason] [advantage]` – Roll a single dice expression, optionally specify a reason for the roll (e.g. Acrobatics) and the advantage on the roll.
 - `/d20` - Rolls a basic 1d20 without any modifiers.
 - `/multiroll <dice-expression> <amount> [advantage] [reason]` – Roll a dice expression multiple times, shows the individual results as well as the total.
 - `/distribution <expression> [advantage] [min-to-beat]` - Creates a graph showing likeliness of your dice expression's roll results.

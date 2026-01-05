@@ -1,4 +1,4 @@
-from collections.abc import Iterable
+from collections.abc import Sequence
 
 import discord
 from discord import ui
@@ -28,7 +28,7 @@ class CharacterGenContainerView(ui.LayoutView):
         boosted_stats: list[tuple[int, str]],
     ):
         headers = ["Ability", "Score", "Mod"]
-        rows: list[Iterable[str]] = []
+        rows: list[Sequence[str]] = []
         for stat, boosted in zip(stats, boosted_stats):
             base_value, name = stat
             boosted_value, _ = boosted

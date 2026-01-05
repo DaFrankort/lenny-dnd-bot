@@ -61,6 +61,7 @@ class TestBotCommands:
     def bot(self):
         try:
             bot = Bot(voice=False)
+
             bot.register_commands()
         except Exception:
             pytest.fail("Bot could not be launched!")
@@ -87,24 +88,11 @@ class TestBotCommands:
                 "roll",
                 {
                     "diceroll": ["1d20+6", "4d8kh3", "1d8ro1", "1>0", "1<0", "(1d20+7>14) * 1d8"],
-                    "reason": [None, "Attack"],
+                    "reason": [None, "Attack", "Fire"],
+                    "advantage": [None, "normal", "advantage", "disadvantage"],
                 },
             ),
             ("d20", {}),
-            (
-                "advantage",
-                {
-                    "diceroll": ["1d20+6", "4d8kh3", "1d8ro1", "1>0", "1<0", "(1d20+7>14) * 1d8"],
-                    "reason": [None, "Damage"],
-                },
-            ),
-            (
-                "disadvantage",
-                {
-                    "diceroll": ["1d20+6", "4d8kh3", "1d8ro1", "1>0", "1<0", "(1d20+7>14) * 1d8"],
-                    "reason": [None, "Fire"],
-                },
-            ),
             (
                 "multiroll",
                 {
@@ -267,17 +255,11 @@ class TestBotCommands:
                 },
             ),
             (
-                "advantage",
+                "roll",
                 {
-                    "diceroll": "DiceExpression",
+                    "diceroll": ["1d20"],
                     "reason": None,
-                },
-            ),
-            (
-                "disadvantage",
-                {
-                    "diceroll": "DiceExpression",
-                    "reason": None,
+                    "advantage": "invalid",
                 },
             ),
             (
@@ -336,12 +318,9 @@ class TestBotCommands:
         [
             ("roll", "diceroll", ["", "1d20"]),
             ("multiroll", "diceroll", ["", "1d20"]),
-            ("advantage", "diceroll", ["", "1d20"]),
-            ("disadvantage", "diceroll", ["", "1d20"]),
             ("roll", "reason", ["", "Att"]),
+            ("roll", "advantage", ["", "Adv"]),
             ("multiroll", "reason", ["", "Att"]),
-            ("advantage", "reason", ["", "Dam"]),
-            ("disadvantage", "reason", ["", "Ste"]),
             ("search spell", "name", ["", "Fireb"]),
             ("search item", "name", ["", "Dag"]),
             ("search condition", "name", ["", "Poi"]),

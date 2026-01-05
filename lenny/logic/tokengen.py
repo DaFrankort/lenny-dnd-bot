@@ -16,9 +16,7 @@ TOKEN_FRAME = Image.open("./assets/images/token_border.png").convert("RGBA")
 TOKEN_BG = Image.open("./assets/images/token_bg.jpg").convert("RGBA")
 TOKEN_NUMBER_LABEL = Image.open("./assets/images/token_number_label.png").convert("RGBA")
 TOKEN_NUMBER_OVERLAY = Image.open("./assets/images/token_number_overlay.png").convert("RGBA")
-_face_cascade = cv2.CascadeClassifier(
-    cv2.data.haarcascades + "haarcascade_frontalface_default.xml"  # type: ignore
-)
+_face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")  # type: ignore
 
 
 class AlignH(str, ChoicedEnum):
@@ -83,7 +81,7 @@ def _detect_face_center(image: Image.Image) -> tuple[int, int]:
     if len(faces) == 0:
         raise ValueError("Could not detect any faces on that image!")
 
-    # largest face
+    # use the largest face
     x, y, w, h = max(faces, key=lambda f: f[2] * f[3])
     return (x + w // 2, y + h // 2)
 

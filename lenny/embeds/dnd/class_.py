@@ -129,7 +129,7 @@ class ClassEmbed(DNDEntryEmbed):
             for resource in level_resources:
                 name = resource["name"]
                 if resource["type"] == "table":
-                    value = self.build_table(resource["value"])
+                    value = self.build_table(resource["table"])
                     inline = False
                 else:
                     value = resource["value"]

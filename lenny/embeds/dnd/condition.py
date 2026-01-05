@@ -9,11 +9,11 @@ class ConditionEmbed(DNDEntryEmbed):
         if len(condition.description) == 0:
             return
 
-        description = condition.description[0]["value"]
-        if not isinstance(description, str):
-            raise ValueError(f"Condition description should be a string, but it is a {description.__class__.__name__}!")
+        description = condition.description[0]
+        if description["type"] != "text":
+            raise ValueError(f"Condition description should be a string, but it is a {description['type']}!")
 
-        self.description = description
+        self.description = description["value"]
         self.add_description_fields(condition.description[1:])
 
         if condition.image:

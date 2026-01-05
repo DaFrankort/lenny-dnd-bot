@@ -3,7 +3,7 @@ import dataclasses
 import io
 import json
 import os
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from typing import Any, Generic, Literal, TypedDict, TypeVar
 
 import discord
@@ -124,15 +124,25 @@ class DescriptionRowRange(TypedDict):
     max: int
 
 
-class DescriptionTable(TypedDict):
-    headers: list[str] | None
-    rows: list[Iterable[str] | DescriptionRowRange]
-
-
-class Description(TypedDict):
+class DescriptionText(TypedDict):
     name: str
-    type: Literal["text", "table"]
-    value: str | DescriptionTable
+    type: Literal["text"]
+    value: str
+
+
+class DescriptionTableTable(TypedDict):
+    title: str
+    headers: list[str] | None
+    rows: Sequence[Sequence[str | DescriptionRowRange]]
+
+
+class DescriptionTable(TypedDict):
+    name: str
+    type: Literal["table"]
+    table: DescriptionTableTable
+
+
+Description = DescriptionTable | DescriptionText
 
 
 class DNDEntry(abc.ABC):
@@ -245,11 +255,11 @@ class DNDEntryList(abc.ABC, Generic[TDND]):
         return found
 
 
-def build_table(value: str | DescriptionTable, width: int | None = 56, show_lines: bool = False) -> str:
+def build_table(value: str | DescriptionTableTable, width: int | None = 56, show_lines: bool = False) -> str:
     if isinstance(value, str):
         return value
 
-    def format_cell_value(value: int | str | dict[str, Any]) -> str:
+    def format_cell_value(value: int | str | DescriptionRowRange) -> str:
         if isinstance(value, int):
             return str(value)
         if isinstance(value, str):
@@ -286,11 +296,12 @@ def build_table(value: str | DescriptionTable, width: int | None = 56, show_line
 
 def build_table_from_rows(
     headers: list[str] | None,
-    rows: list[Iterable[str]],
+    rows: Sequence[Sequence[str | DescriptionRowRange]],
     width: int | None = 56,
     show_lines: bool = False,
 ) -> str:
-    return build_table({"headers": headers, "rows": rows}, width, show_lines)
+    table = DescriptionTableTable({"title": "", "headers": headers, "rows": rows})
+    return build_table(table, width, show_lines)
 
 
 def get_command_option(itr: discord.Interaction, name: str):

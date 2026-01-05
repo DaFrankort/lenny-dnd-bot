@@ -24,7 +24,6 @@ class DNDTableEntryView(discord.ui.LayoutView):
         self,
         itr: discord.Interaction,
         table: DNDTable,
-        headers: str,
         row: Any,
         result: RollResult,
     ):
@@ -44,8 +43,10 @@ class DNDTableEntryView(discord.ui.LayoutView):
         console_table = Table(box=rich.box.ROUNDED)
 
         # Omit the first header and first row value
-        for header in headers[1:]:
-            console_table.add_column(header, justify="left", style=None)
+        headers = table.table["table"]["headers"]
+        if headers is not None:
+            for header in headers[1:]:
+                console_table.add_column(header, justify="left", style=None)
         console_table.add_row(*row[1:])
 
         buffer = io.StringIO()
@@ -86,7 +87,6 @@ class DNDTableRollButton(ui.Button[DNDTableEntryView]):
         view = DNDTableEntryView(
             interaction,
             self.table,
-            self.table.table["value"]["headers"],
             row,
             result,
         )
@@ -112,8 +112,8 @@ class DNDTableContainerView(PaginatedLayoutView):
         # Calculate the longest sub-tables for the pagination
         # Not particularly optimal, but tables have a maximum of 100 rows
         # so it should be fast enough
-        headers = self.table.table["value"]["headers"]
-        rows = self.table.table["value"]["rows"]
+        headers = self.table.table["table"]["headers"]
+        rows = self.table.table["table"]["rows"]
         rows_end = len(rows)
         while len(rows) > 0:
             built = build_table_from_rows(headers, rows[:rows_end])

@@ -16,7 +16,8 @@ TOKEN_FRAME = Image.open("./assets/images/token_border.png").convert("RGBA")
 TOKEN_BG = Image.open("./assets/images/token_bg.jpg").convert("RGBA")
 TOKEN_NUMBER_LABEL = Image.open("./assets/images/token_number_label.png").convert("RGBA")
 TOKEN_NUMBER_OVERLAY = Image.open("./assets/images/token_number_overlay.png").convert("RGBA")
-FACE_CASCADE = cv2.CascadeClassifier(filename=cv2.data.haarcascades + "haarcascade_frontalface_default.xml")  # type: ignore[attr-defined]
+# pylint: disable=no-member
+FACE_CASCADE = cv2.CascadeClassifier(filename=cv2.data.haarcascades + "haarcascade_frontalface_default.xml")  # type: ignore
 
 
 class AlignH(str, ChoicedEnum):
@@ -69,7 +70,8 @@ async def open_image(image: discord.Attachment) -> Image.Image | None:
 
 def _detect_face_center(image: Image.Image) -> tuple[int, int]:
     img = np.array(image.convert("RGB"))
-    gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)  # type: ignore[attr-defined]
+    # pylint: disable=no-member
+    gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
 
     faces = FACE_CASCADE.detectMultiScale(
         gray,

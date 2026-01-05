@@ -105,8 +105,11 @@ class MockAttachment(discord.Attachment):
 
 
 class MockImage(MockAttachment):
-    def __init__(self):
-        url = r"https://img.lovepik.com/element/40116/9419.png_1200.png"
+    def __init__(self, has_face: bool = True):
+        if has_face:
+            url = r"https://upload.wikimedia.org/wikipedia/en/a/a4/Hide_the_Pain_Harold_%28Andr%C3%A1s_Arat%C3%B3%29.jpg"
+        else:
+            url = r"https://img.lovepik.com/element/40116/9419.png_1200.png"
         super().__init__(url, "image")
 
 

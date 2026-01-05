@@ -281,12 +281,14 @@ class TestBotCommands:
                 "tokengen file",
                 [
                     {"image": MockSound()},
+                    {"image": MockImage(has_face=False), "h_alignment": AlignH.FACE, "v_alignment": AlignV.FACE},
                 ],
             ),
             (
                 "tokengen url",
                 [
                     {"url": "NotAUrl"},
+                    {"image": MockImage(has_face=False).url, "h_alignment": AlignH.FACE, "v_alignment": AlignV.FACE},
                 ],
             ),
             # ("", {"": "", "": ""}),

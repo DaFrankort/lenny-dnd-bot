@@ -17,9 +17,7 @@ from commands.namegen import NameGenCommand
 from commands.plansession import PlanSessionCommand
 from commands.playsound import PlaySoundCommand
 from commands.roll import (
-    AdvantageRollCommand,
     D20Command,
-    DisadvantageRollCommand,
     MultiRollCommand,
     RollCommand,
 )
@@ -74,8 +72,6 @@ class Bot(discord.Client):
         self.tree.add_command(HelpCommand(tree=self.tree))
         self.tree.add_command(StatsCommandGroup())
         self.tree.add_command(RollCommand())
-        self.tree.add_command(AdvantageRollCommand())
-        self.tree.add_command(DisadvantageRollCommand())
         self.tree.add_command(D20Command())
         self.tree.add_command(MultiRollCommand())
         self.tree.add_command(TokenGenCommandGroup())

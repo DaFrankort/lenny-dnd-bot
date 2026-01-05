@@ -3,6 +3,7 @@ import logging
 import math
 import os
 import time
+from typing import Sequence
 
 import aiohttp
 import cv2
@@ -16,22 +17,20 @@ TOKEN_FRAME = Image.open("./assets/images/token_border.png").convert("RGBA")
 TOKEN_BG = Image.open("./assets/images/token_bg.jpg").convert("RGBA")
 TOKEN_NUMBER_LABEL = Image.open("./assets/images/token_number_label.png").convert("RGBA")
 TOKEN_NUMBER_OVERLAY = Image.open("./assets/images/token_number_overlay.png").convert("RGBA")
-# pylint: disable=no-member
-FACE_CASCADE = cv2.CascadeClassifier(filename=cv2.data.haarcascades + "haarcascade_frontalface_default.xml")  # type: ignore
 
 
 class AlignH(str, ChoicedEnum):
     LEFT = "left"
     CENTER = "center"
     RIGHT = "right"
-    FACE = "detect face"
+    DETECT = "detect"
 
 
 class AlignV(str, ChoicedEnum):
     TOP = "top"
     CENTER = "center"
     BOTTOM = "bottom"
-    FACE = "detect face"
+    DETECT = "detect"
 
 
 async def open_image_url(url: str) -> Image.Image | None:
@@ -70,18 +69,34 @@ async def open_image(image: discord.Attachment) -> Image.Image | None:
 
 def _detect_face_center(image: Image.Image) -> tuple[int, int]:
     img = np.array(image.convert("RGB"))
+
     # pylint: disable=no-member
     gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-
-    faces = FACE_CASCADE.detectMultiScale(
-        gray,
-        scaleFactor=1.1,
-        minNeighbors=5,
-        minSize=(40, 40),
-    )
+    models = [
+        # Faces (realistic & painted)
+        "haarcascade_frontalface_default.xml",
+        "haarcascade_frontalface_alt.xml",
+        "haarcascade_frontalface_alt2.xml",
+        "haarcascade_frontalface_alt_tree.xml",
+        # Profile faces (side-view characters)
+        "haarcascade_profileface.xml",
+        # Full body (less reliable but helps for standing characters)
+        "haarcascade_fullbody.xml",
+        # Fallbacks for non-human races
+        "haarcascade_frontalcatface.xml",
+        "haarcascade_frontalcatface_extended.xml",
+    ]
+    faces: Sequence[tuple[int, int, int, int]] = ()
+    for model in models:
+        print(model)
+        # pylint: disable=no-member
+        cascade = cv2.CascadeClassifier(filename=cv2.data.haarcascades + model)  # type: ignore
+        faces = cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))  # type: ignore
+        if len(faces) != 0:
+            break
 
     if len(faces) == 0:
-        raise ValueError("Could not detect any faces on that image!")
+        raise ValueError("Failed to detect any facial features on that image, please adjust manually instead.")
 
     # largest face
     x, y, w, h = max(faces, key=lambda f: f[2] * f[3])
@@ -93,7 +108,7 @@ def _squarify_image(image: Image.Image, h_align: AlignH, v_align: AlignV) -> Ima
 
     size = min(image.size)
     face: tuple[int, int] | tuple[None, None] = (None, None)
-    if h_align == AlignH.FACE or v_align == AlignV.FACE:
+    if h_align == AlignH.DETECT or v_align == AlignV.DETECT:
         face = _detect_face_center(image)
 
     if h_align == AlignH.LEFT:
@@ -102,7 +117,7 @@ def _squarify_image(image: Image.Image, h_align: AlignH, v_align: AlignV) -> Ima
     elif h_align == AlignH.RIGHT:
         left = image.width - size
         right = image.width
-    elif h_align == AlignH.FACE and face[0]:
+    elif h_align == AlignH.DETECT and face[0]:
         left = face[0] - (size // 2)
         left = max(0, min(left, image.width - size))
         right = left + size
@@ -116,7 +131,7 @@ def _squarify_image(image: Image.Image, h_align: AlignH, v_align: AlignV) -> Ima
     elif v_align == AlignV.BOTTOM:
         top = image.height - size
         bottom = image.height
-    elif v_align == AlignV.FACE and face[1]:
+    elif v_align == AlignV.DETECT and face[1]:
         top = face[1] - (size // 2)
         top = max(0, min(top, image.height - size))
         bottom = top + size

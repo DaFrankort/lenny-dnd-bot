@@ -2,7 +2,7 @@ import logging
 
 import discord
 
-from logic.dnd.abstract import Description, DescriptionTable, DNDEntry, build_table
+from logic.dnd.abstract import Description, DescriptionTableTable, DNDEntry, build_table
 
 HORIZONTAL_LINE = "~~-------------------------------------------------------------------------------------~~"
 HORIZONTAL_LINE_SHORT = "~~------------------------------------------------------------------~~"
@@ -50,7 +50,7 @@ class DNDEntryEmbed(discord.Embed):
 
         return char_count
 
-    def build_table(self, value: str | DescriptionTable, char_field_limit: int = 1024):
+    def build_table(self, value: str | DescriptionTableTable, char_field_limit: int = 1024):
         """Turns a Description with headers & rows into a clean table using rich."""
         table_string = build_table(value)
 
@@ -93,13 +93,16 @@ class DNDEntryEmbed(discord.Embed):
                 break
 
             name = description["name"]
-            value = description["value"]
-            description_type = description["type"]
 
-            if description_type == "table":
+            if description["type"] == "text":
+                value = description["value"]
+            elif description["type"] == "table":
                 if ignore_tables:
-                    continue
-                value = self.build_table(value, char_field_limit)
+                    value = ""
+                else:
+                    value = self.build_table(description["table"], char_field_limit)
+            else:
+                value = ""
 
             field_length = len(name) + len(value)
             if field_length >= char_field_limit:

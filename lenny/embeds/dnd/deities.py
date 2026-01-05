@@ -15,6 +15,10 @@ class DeityEmbed(DNDEntryEmbed):
             for _ in range(padding_count):
                 inline_fields.append({"name": "", "type": "text", "value": ""})
         for field in inline_fields:
+            if field["type"] != "text":
+                raise ValueError(
+                    f"Expected field for deity '{deity.name} ({deity.source})' to be a text, instead received a {field['type']}"
+                )
             self.add_field(name=field["name"], value=field["value"], inline=render_inline)
 
         if deity.description:

@@ -1,11 +1,11 @@
 from typing import Any
 
-from logic.dnd.abstract import DNDEntry, DNDEntryList, DNDEntryType
+from logic.dnd.abstract import DescriptionTable, DNDEntry, DNDEntryList, DNDEntryType
 from logic.roll import RollResult, roll
 
 
 class DNDTable(DNDEntry):
-    table: dict[str, Any]
+    table: DescriptionTable
     dice_notation: str | None
     footnotes: list[str] | None
 
@@ -29,9 +29,12 @@ class DNDTable(DNDEntry):
             return None
 
         result = roll(self.dice_notation)
-        rows = self.table["value"]["rows"]
+        rows = self.table["table"]["rows"]
         for row in rows:
             row_range = row[0]
+            if isinstance(row_range, str):
+                raise ValueError(f"Unexpected string found in D&D table rolling range: '{row_range}'.")
+
             if row_range["min"] <= result.roll.total <= row_range["max"]:
                 return row, result
 

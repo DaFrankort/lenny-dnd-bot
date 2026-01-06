@@ -35,14 +35,14 @@ class AlignH(str, ChoicedEnum):
     LEFT = "left"
     CENTER = "center"
     RIGHT = "right"
-    DETECT = "detect"
+    FACE = "detect face"
 
 
 class AlignV(str, ChoicedEnum):
     TOP = "top"
     CENTER = "center"
     BOTTOM = "bottom"
-    DETECT = "detect"
+    FACE = "detect face"
 
 
 async def open_image_url(url: str) -> Image.Image | None:
@@ -103,7 +103,7 @@ def _squarify_image(image: Image.Image, h_align: AlignH, v_align: AlignV) -> Ima
 
     size = min(image.size)
     face: tuple[int, int] | tuple[None, None] = (None, None)
-    if h_align == AlignH.DETECT or v_align == AlignV.DETECT:
+    if h_align == AlignH.FACE or v_align == AlignV.FACE:
         face = _detect_face_center(image)
 
     if h_align == AlignH.LEFT:
@@ -112,7 +112,7 @@ def _squarify_image(image: Image.Image, h_align: AlignH, v_align: AlignV) -> Ima
     elif h_align == AlignH.RIGHT:
         left = image.width - size
         right = image.width
-    elif h_align == AlignH.DETECT and face[0]:
+    elif h_align == AlignH.FACE and face[0]:
         left = face[0] - (size // 2)
         left = max(0, min(left, image.width - size))
         right = left + size
@@ -126,7 +126,7 @@ def _squarify_image(image: Image.Image, h_align: AlignH, v_align: AlignV) -> Ima
     elif v_align == AlignV.BOTTOM:
         top = image.height - size
         bottom = image.height
-    elif v_align == AlignV.DETECT and face[1]:
+    elif v_align == AlignV.FACE and face[1]:
         top = face[1] - (size // 2)
         top = max(0, min(top, image.height - size))
         bottom = top + size

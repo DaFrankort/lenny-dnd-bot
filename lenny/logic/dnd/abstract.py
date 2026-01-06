@@ -131,6 +131,7 @@ class DescriptionText(TypedDict):
 
 
 class DescriptionTableTable(TypedDict):
+    type: Literal["table"]
     title: str
     headers: list[str] | None
     rows: Sequence[Sequence[str | DescriptionRowRange]]
@@ -142,7 +143,19 @@ class DescriptionTable(TypedDict):
     table: DescriptionTableTable
 
 
-Description = DescriptionTable | DescriptionText
+class DescriptionListList(TypedDict):
+    type: Literal["list"]
+    caption: str
+    entries: list["str | DescriptionListList"]
+
+
+class DescriptionList(TypedDict):
+    name: str
+    type: Literal["list"]
+    list: DescriptionListList
+
+
+Description = DescriptionTable | DescriptionText | DescriptionList
 
 
 class DNDEntry(abc.ABC):
@@ -300,7 +313,7 @@ def build_table_from_rows(
     width: int | None = 56,
     show_lines: bool = False,
 ) -> str:
-    table = DescriptionTableTable({"title": "", "headers": headers, "rows": rows})
+    table = DescriptionTableTable({"type": "table", "title": "", "headers": headers, "rows": rows})
     return build_table(table, width, show_lines)
 
 

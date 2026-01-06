@@ -182,11 +182,20 @@ class HelpTabList:
                     "There are a few options to adjust the way a token image is generated, by default it will provide a golden border and center the provided image.",
                     "However you can use the following options to adjust the way the token is generated:",
                     "- ``hue-shift`` - Allows you to shift the color of the token's border, this is a number between -360 and 360. By default a shift of 0 is used, which results in a golden border.",
-                    "- ``h_alignment`` - Adjusts the horizontal alignment of the image, this can be `left`, `center`, or `right`.",
-                    "- ``v_alignment`` - Adjusts the vertical alignment of the image, this can be `top`, `center`, or `bottom`.",
+                    "- ``h_alignment`` - Adjusts the horizontal alignment of the image, this can be `left`, `center`, `right`, or `face`.",
+                    "- ``v_alignment`` - Adjusts the vertical alignment of the image, this can be `top`, `center`, `bottom`, or `face`.",
                     "- ``variants`` - Creates up to 10 variants of the token image, to easily discern similar tokens from each other.",
                 ],
-            )
+            ),
+            (
+                "Alignment Face Detection",
+                [
+                    "You can detect and center the token on your character's facial features by using the `Face` alignment-option.",
+                    "This is experimental; results are most accurate for portraits with clear, front-facing features.",
+                    "The algorithm searches for human faces first, falling back to profile views, feline features, eyes, or full-body silhouettes if needed.",
+                    "If no features were detected at all this will return an error-message.",
+                ],
+            ),
         ],
     )
 

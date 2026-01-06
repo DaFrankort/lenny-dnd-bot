@@ -17,18 +17,18 @@ TOKEN_FRAME = Image.open("./assets/images/token_border.png").convert("RGBA")
 TOKEN_BG = Image.open("./assets/images/token_bg.jpg").convert("RGBA")
 TOKEN_NUMBER_LABEL = Image.open("./assets/images/token_number_label.png").convert("RGBA")
 TOKEN_NUMBER_OVERLAY = Image.open("./assets/images/token_number_overlay.png").convert("RGBA")
-CASCADES = [
+CASCADES = tuple(
     # pylint: disable=no-member
     cv2.CascadeClassifier(filename=cv2.data.haarcascades + model)  # type: ignore
-    for model in [
+    for model in (
         "haarcascade_frontalface_alt2.xml",  # Best balance
         "haarcascade_frontalface_default.xml",  # Backup
         "haarcascade_profileface.xml",  # For "cool guy looking away" portraits
         "haarcascade_frontalcatface_extended.xml",  # Feline-like races and animals
         "haarcascade_eye.xml",  # Fallback for less human-like faces
         "haarcascade_fullbody.xml",  # Find center of the whole person instead
-    ]
-]
+    )
+)
 
 
 class AlignH(str, ChoicedEnum):

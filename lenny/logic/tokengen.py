@@ -17,6 +17,18 @@ TOKEN_FRAME = Image.open("./assets/images/token_border.png").convert("RGBA")
 TOKEN_BG = Image.open("./assets/images/token_bg.jpg").convert("RGBA")
 TOKEN_NUMBER_LABEL = Image.open("./assets/images/token_number_label.png").convert("RGBA")
 TOKEN_NUMBER_OVERLAY = Image.open("./assets/images/token_number_overlay.png").convert("RGBA")
+CASCADES = [
+    # pylint: disable=no-member
+    cv2.CascadeClassifier(filename=cv2.data.haarcascades + model)  # type: ignore
+    for model in [
+        "haarcascade_frontalface_alt2.xml",  # Best balance
+        "haarcascade_frontalface_default.xml",  # Backup
+        "haarcascade_profileface.xml",  # For "cool guy looking away" portraits
+        "haarcascade_frontalcatface_extended.xml",  # Feline-like races and animals
+        "haarcascade_eye.xml",  # Fallback for less human-like faces
+        "haarcascade_fullbody.xml",  # Find center of the whole person instead
+    ]
+]
 
 
 class AlignH(str, ChoicedEnum):
@@ -72,25 +84,8 @@ def _detect_face_center(image: Image.Image) -> tuple[int, int]:
 
     # pylint: disable=no-member
     gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-    models = [
-        # Faces (realistic & painted)
-        "haarcascade_frontalface_default.xml",
-        "haarcascade_frontalface_alt.xml",
-        "haarcascade_frontalface_alt2.xml",
-        "haarcascade_frontalface_alt_tree.xml",
-        # Profile faces (side-view characters)
-        "haarcascade_profileface.xml",
-        # Full body (less reliable but helps for standing characters)
-        "haarcascade_fullbody.xml",
-        # Fallbacks for non-human races
-        "haarcascade_frontalcatface.xml",
-        "haarcascade_frontalcatface_extended.xml",
-    ]
     faces: Sequence[tuple[int, int, int, int]] = ()
-    for model in models:
-        logging.debug("Detecting using model: %s", model)
-        # pylint: disable=no-member
-        cascade = cv2.CascadeClassifier(filename=cv2.data.haarcascades + model)  # type: ignore
+    for cascade in CASCADES:
         faces = cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))  # type: ignore
         if len(faces) != 0:
             break

@@ -100,7 +100,7 @@ load-plugins=pylint.extensions.bad_builtin,
             pylint.extensions.dunder,
             pylint.extensions.eq_without_hash,
             # pylint.extensions.consider_ternary_expression, # Disabled because it was decided this does not look good because of the used linters
-            pylint.extensions.mccabe,
+            # pylint.extensions.mccabe,
             pylint.extensions.redefined_loop_name,
             pylint.extensions.code_style,
             pylint.extensions.docstyle,

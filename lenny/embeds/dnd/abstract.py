@@ -1,8 +1,16 @@
+import itertools
 import logging
+from typing import Any
 
 import discord
 
-from logic.dnd.abstract import Description, DescriptionTableTable, DNDEntry, build_table
+from logic.dnd.abstract import (
+    Description,
+    DescriptionListList,
+    DescriptionTableTable,
+    DNDEntry,
+    build_table,
+)
 
 HORIZONTAL_LINE = "~~-------------------------------------------------------------------------------------~~"
 HORIZONTAL_LINE_SHORT = "~~------------------------------------------------------------------~~"
@@ -58,6 +66,48 @@ class DNDEntryEmbed(discord.Embed):
             return f"The table for [{self._entry.name} can be found here]({self._entry.url})."
         return table_string
 
+    def build_list(self, value: str | DescriptionListList, char_field_limit: int = 1024) -> str:
+        """Turns a (nested) list into a flat string."""
+
+        def _nest_list(value: str | DescriptionListList) -> list[Any]:
+            if isinstance(value, str):
+                return [value]
+
+            entries: list[Any] = []
+            if value["caption"]:
+                entries.append(value["caption"])
+
+            for entry in value["entries"]:
+                entries.append(_nest_list(entry))
+
+            return entries
+
+        def _bullet_list(value: list[Any] | str, depth: int) -> list[Any]:
+            """Add bullet points to every element in the list"""
+            if isinstance(value, str):
+                bullets = "- " * (depth - 1)
+                return [bullets + value]
+
+            return [_bullet_list(entry, depth + 1) for entry in value]
+
+        def _flatten_list(value: list[Any]) -> list[Any]:
+            flattened: list[Any] = []
+            for entry in value:
+                if isinstance(entry, str):
+                    flattened.append([entry])
+                else:
+                    flattened.append(_flatten_list(entry))
+            return list(itertools.chain(*flattened))
+
+        nested = _nest_list(value)
+        bulleted = _bullet_list(nested, 0)
+        flattened = _flatten_list(bulleted)
+        joined = "\n".join(flattened)
+
+        if len(joined) > char_field_limit:
+            return f"The list for [{self._entry.name} can be found here]({self._entry.url})."
+        return joined
+
     def add_description_fields(
         self,
         descriptions: list[Description],
@@ -101,6 +151,8 @@ class DNDEntryEmbed(discord.Embed):
                     value = ""
                 else:
                     value = self.build_table(description["table"], char_field_limit)
+            elif description["type"] == "list":
+                value = self.build_list(description["list"], char_field_limit)
             else:
                 value = ""
 

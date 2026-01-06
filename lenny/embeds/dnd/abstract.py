@@ -4,7 +4,13 @@ from typing import Any
 
 import discord
 
-from logic.dnd.abstract import Description, DescriptionListList, DescriptionTableTable, DNDEntry, build_table
+from logic.dnd.abstract import (
+    Description,
+    DescriptionListList,
+    DescriptionTableTable,
+    DNDEntry,
+    build_table,
+)
 
 HORIZONTAL_LINE = "~~-------------------------------------------------------------------------------------~~"
 HORIZONTAL_LINE_SHORT = "~~------------------------------------------------------------------~~"

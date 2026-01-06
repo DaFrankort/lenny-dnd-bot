@@ -131,6 +131,9 @@ class ClassEmbed(DNDEntryEmbed):
                 if resource["type"] == "table":
                     value = self.build_table(resource["table"])
                     inline = False
+                elif resource["type"] == "list":
+                    value = self.build_list(resource["list"])
+                    inline = False
                 else:
                     value = resource["value"]
                     inline = True

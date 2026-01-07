@@ -5,13 +5,13 @@ import pytest
 
 # Required to mark the library as essential for testing in our workflows
 import pytest_asyncio  # noqa: F401 # type: ignore
-from embeds.dnd.class_ import ClassEmbed
 from utils.mocking import MockImage, MockInteraction, MockSound
 from utils.utils import listify
 
 from bot import Bot
 from commands.command import BaseCommand, BaseCommandGroup
 from commands.tokengen import AlignH, AlignV
+from embeds.dnd.class_ import ClassEmbed
 from logic.charactergen import class_choices, species_choices
 from logic.config import Config, ConfigHandler
 from logic.dnd.abstract import DNDEntry, DNDEntryList
@@ -443,10 +443,5 @@ class TestBotCommands:
             subclass = class_.subclasses
             for subclass in [None, *class_.subclasses]:
                 for level in levels:
-                    print(level)
-                    try:
-                        embed = ClassEmbed(class_, set(sources), level, subclass)
-                        assert embed.view is not None
-                    except:
-                        error = f"Invalid class combination for class {class_.name} (subclass={subclass}) at level {level}"
-                        assert False, error
+                    embed = ClassEmbed(class_, set(sources), level, subclass)
+                    assert embed.view is not None

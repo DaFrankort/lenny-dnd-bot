@@ -5,7 +5,7 @@ from typing import Any
 
 import discord
 
-from logic.dnd.source import ContentChoice, SourceList
+from logic.dnd.source import ContentChoice, Source, SourceList
 from logic.jsonhandler import JsonFolderHandler, JsonHandler
 
 # It is important to note that all official sources (excluding the 2014 sources) are
@@ -93,6 +93,10 @@ class ConfigHandler(JsonHandler[GuildConfig]):
     @config.setter
     def config(self, new_config: GuildConfig):
         self.data["config"] = new_config
+
+    @property
+    def all_sources(self) -> list[Source]:
+        return [*OFFICIAL_SOURCES.entries, *PARTNERED_SOURCES.entries]
 
     def reset(self) -> None:
         self.config = GuildConfig(

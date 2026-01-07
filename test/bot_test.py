@@ -11,8 +11,9 @@ from utils.utils import listify
 from bot import Bot
 from commands.command import BaseCommand, BaseCommandGroup
 from commands.tokengen import AlignH, AlignV
+from embeds.dnd.class_ import ClassEmbed
 from logic.charactergen import class_choices, species_choices
-from logic.config import ConfigHandler
+from logic.config import Config, ConfigHandler
 from logic.dnd.abstract import DNDEntry, DNDEntryList
 from logic.dnd.data import Data
 from logic.dnd.name import Gender
@@ -427,3 +428,20 @@ class TestBotCommands:
         if failures:
             failure_messages = "\n".join([f"Args: {args}, Error: {error}" for args, error in failures])
             pytest.fail(f"Errors while running command /{cmd_name}:\n{failure_messages}")
+
+    @pytest.mark.strict
+    async def test_class_strict(self):
+        """Tests the class embeds for all classes and subclasses at all levels"""
+        itr = MockInteraction()
+        sources = Config.get(itr).all_sources
+        sources = set(source.id for source in sources)
+
+        classes = Data.classes
+        levels = list(range(0, 21))
+
+        for class_ in classes.entries:
+            subclass = class_.subclasses
+            for subclass in [None, *class_.subclasses]:
+                for level in levels:
+                    embed = ClassEmbed(class_, set(sources), level, subclass)
+                    assert embed.view is not None

@@ -4,8 +4,8 @@ from typing import Any, TypeVar
 from urllib.parse import urlparse
 
 import discord
-from PIL import ImageFont
 import requests
+from PIL import ImageFont
 
 T = TypeVar("T")
 U = TypeVar("U")

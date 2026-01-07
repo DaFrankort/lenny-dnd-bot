@@ -117,7 +117,9 @@ class HomebrewEditModal(BaseModal):
 
         updated_entry = HomebrewData.get(itr).edit(itr, self.entry, name, url, subtitle, description)
         embed = HomebrewEmbed(itr, updated_entry)
-        await itr.response.send_message(content=f"Edited {self.entry.entry_type.value}: ``{self.entry.name}`` => ``{name}``!", embed=embed, ephemeral=True)
+        await itr.response.send_message(
+            content=f"Edited {self.entry.entry_type.value}: ``{self.entry.name}`` => ``{name}``!", embed=embed, ephemeral=True
+        )
 
 
 class HomebrewListButton(ui.Button["HomebrewListView"]):

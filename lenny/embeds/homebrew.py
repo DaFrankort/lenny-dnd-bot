@@ -26,7 +26,7 @@ class HomebrewEmbed(discord.Embed):
         else:
             description = formatted_description
 
-        super().__init__(title=entry.title, type="rich", description=description, color=discord.Color.blue())
+        super().__init__(title=entry.title, url=entry.url, type="rich", description=description, color=discord.Color.blue())
 
         author = entry.get_author(itr)
         if author:
@@ -41,12 +41,8 @@ class HomebrewEmbed(discord.Embed):
 class HomebrewEntryAddModal(BaseModal):
     name = BaseLabelTextInput(label="Name", placeholder="Peanut")
     type = ModalSelectComponent(label="Type", options=DNDEntryType.options(), required=True)
-    subtitle = BaseLabelTextInput(
-        label="Subtitle",
-        placeholder="A small legume",
-        required=False,
-        max_length=80,
-    )
+    url = BaseLabelTextInput(label="External link", placeholder="https://example.com/", required=False, min_length=10)
+    subtitle = BaseLabelTextInput(label="Subtitle", placeholder="A small legume", required=False, max_length=80)
     description = BaseLabelTextInput(
         label="Description",
         placeholder="A peanut is a legume that is often mistaken for a nut.",
@@ -71,6 +67,7 @@ class HomebrewEntryAddModal(BaseModal):
 
         name = self.get_str(self.name)
         entry_type: DNDEntryType | None = self.get_choice(self.type, DNDEntryType)
+        url = self.get_str(self.url)
         subtitle = self.get_str(self.subtitle)
         description = self.get_str(self.description)
 
@@ -81,7 +78,9 @@ class HomebrewEntryAddModal(BaseModal):
         if not entry_type:
             raise ValueError("Type is a required field.")
 
-        entry = HomebrewData.get(itr).add(itr, entry_type, name=name, select_description=subtitle, description=description)
+        entry = HomebrewData.get(itr).add(
+            itr, entry_type, name=name, url=url, select_description=subtitle, description=description
+        )
         embed = HomebrewEmbed(itr, entry)
         await itr.response.send_message(content=f"Added {entry_type.value}: ``{name}``!", embed=embed, ephemeral=True)
 
@@ -89,6 +88,7 @@ class HomebrewEntryAddModal(BaseModal):
 class HomebrewEditModal(BaseModal):
     entry: HomebrewEntry
     name = BaseLabelTextInput(label="Name")
+    url = BaseLabelTextInput(label="External link", placeholder="https://example.com/", required=False, min_length=10)
     subtitle = BaseLabelTextInput(label="Subtitle", required=False, max_length=80)
     description = BaseLabelTextInput(label="Description", max_length=4000, style=discord.TextStyle.paragraph)
 
@@ -100,12 +100,14 @@ class HomebrewEditModal(BaseModal):
         self.subtitle.input.placeholder = entry.select_description or "Subtitle"
         self.description.input.default = entry.description
         self.description.input.placeholder = self.format_placeholder(entry.description)
+        self.url.input.default = entry.url or ""
         super().__init__(itr=itr, title=f"Edit {entry.entry_type.value}: {entry.name}")
 
     async def on_submit(self, itr: discord.Interaction):
         self.log_inputs(itr)
 
         name = self.get_str(self.name)
+        url = self.get_str(self.url)
         subtitle = self.get_str(self.subtitle)
         description = self.get_str(self.description)
 
@@ -113,11 +115,9 @@ class HomebrewEditModal(BaseModal):
             await itr.response.send_message("Name and Description are required fields.", ephemeral=True)
             return
 
-        updated_entry = HomebrewData.get(itr).edit(itr, self.entry, name, subtitle, description)
+        updated_entry = HomebrewData.get(itr).edit(itr, self.entry, name, url, subtitle, description)
         embed = HomebrewEmbed(itr, updated_entry)
-        await itr.response.send_message(
-            content=f"Edited {self.entry.entry_type.value}: ``{self.entry.name}`` => ``{name}``!", embed=embed, ephemeral=True
-        )
+        await itr.response.send_message(content=f"Edited {self.entry.entry_type.value}: ``{self.entry.name}`` => ``{name}``!", embed=embed, ephemeral=True)
 
 
 class HomebrewListButton(ui.Button["HomebrewListView"]):

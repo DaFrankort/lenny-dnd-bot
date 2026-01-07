@@ -23,7 +23,7 @@ class HomebrewEntry:
 
     def __post_init__(self):
         # Prevent giving users faulty URLs
-        if self.url is not None and not is_valid_url(self.url, verify_accessible=True):
+        if self.url is not None and not is_valid_url(self.url):
             self.url = None
 
     @property
@@ -97,7 +97,7 @@ class HomebrewGuildData(JsonHandler[list[HomebrewEntry]]):
         if self._find(name):
             raise ValueError(f"A homebrew entry with the name '{name}' already exists!")
 
-        if url is not None and not is_valid_url(url, verify_accessible=True):
+        if url is not None and not is_valid_url(url):
             url = None
 
         author_id = itr.user.id
@@ -139,7 +139,7 @@ class HomebrewGuildData(JsonHandler[list[HomebrewEntry]]):
         if not entry.can_manage(itr):
             raise ValueError("You do not have permission to edit this homebrew entry.")
 
-        if url is not None and url != entry.url and not is_valid_url(url, verify_accessible=True):
+        if url is not None and url != entry.url and not is_valid_url(url):
             url = entry.url or None
 
         key = entry.entry_type

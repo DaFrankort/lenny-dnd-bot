@@ -27,16 +27,16 @@ class RollCommand(BaseCommand):
     )
     @describe(
         diceroll="The dice-expression of the roll you want to make (Example: 1d20+3, 1d8ro1, ...)",
-        advantage="Does the dice roll have advantage?",
         reason="An optional reason for rolling, for additional clarity. (Example: Attack, Damage, ...)",
+        advantage="Does the dice roll have advantage?",
     )
     @choices(advantage=Advantage.choices())
     async def handle(
         self,
         itr: discord.Interaction,
         diceroll: str,
-        advantage: str | None = None,
         reason: str | None = None,
+        advantage: str | None = None,
     ):
         if advantage is None:
             advantage = Advantage.NORMAL

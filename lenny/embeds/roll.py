@@ -68,7 +68,9 @@ class MultiRollEmbed(UserActionEmbed):
             reason = "Total"
 
         winning_result = self._get_roll_list(result.rolls, False)
-        losing_result = self._get_roll_list(result.rolls_lose, True)
+        losing_result_1 = self._get_roll_list(result.rolls_lose_1, True)
+        losing_result_2 = self._get_roll_list(result.rolls_lose_2, True)
+
         footer = f"\n🎲 **{reason}: {result.total}**"
         if all(roll.has_comparison_result for roll in result.rolls):
             length = len(result.rolls)
@@ -90,8 +92,11 @@ class MultiRollEmbed(UserActionEmbed):
         if not result.rolls[0].contains_dice:
             self.description = "⚠️ Expression contains no dice. ⚠️"
 
-        if losing_result:
-            self.add_field(name="", value=losing_result, inline=True)
+        if losing_result_1:
+            self.add_field(name="", value=losing_result_1, inline=True)
+        if losing_result_2:
+            self.add_field(name="", value=losing_result_2, inline=True)
+
         self.add_field(name="", value=winning_result, inline=True)
         self.add_field(name="", value=footer, inline=False)
 

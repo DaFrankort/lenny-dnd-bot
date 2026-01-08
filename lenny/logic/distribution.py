@@ -84,6 +84,8 @@ def distribution(
             dist = dist.advantage()
         elif advantage == Advantage.DISADVANTAGE:
             dist = dist.disadvantage()
+        elif advantage == Advantage.ELVEN_ACCURACY:
+            dist = dist.advantage().advantage()
 
         if min_to_beat is None:
             min_to_beat = 0

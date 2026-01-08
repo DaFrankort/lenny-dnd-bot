@@ -40,9 +40,11 @@ class InitiativeRollModal(BaseModal):
         title = f"{itr.user.name} rolled Initiative for {initiative.name}{advantage.title_suffix}!"
 
         descriptions: list[str] = []
-        roll_count = 1 if advantage == Advantage.NORMAL else 2
+
+        roll_counts = {Advantage.ADVANTAGE: 2, Advantage.ELVEN_ACCURACY: 3}
+        roll_count = roll_counts.get(advantage, 1)
         for i in range(roll_count):
-            d20 = initiative.d20[i]
+            d20 = initiative.rolls[i]
             mod = initiative.modifier
             total = d20 + mod
             mod_str = f"+ {mod}" if mod > 0 else f"- {-mod}"
@@ -108,7 +110,7 @@ class InitiativeDeleteModal(BaseModal):
 
         super().__init__(itr, title="Remove an Initiative")
 
-    async def on_submit(self, itr: Interaction):
+    async def on_submit(self, itr: Interaction) -> None:
         self.log_inputs(itr)
 
         name = self.get_choice(self.name, result_type=str)

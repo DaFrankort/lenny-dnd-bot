@@ -77,14 +77,29 @@ class GuildConfig:
 
 
 class ConfigHandler(JsonHandler[GuildConfig]):
-    guild: discord.Guild
+    guild: discord.Guild | None
 
-    def __init__(self, guild: discord.Guild):
-        super().__init__(str(guild.id), "config")
-
+    def __init__(self, guild: discord.Guild | None):
         self.guild = guild
+
+        if guild:
+            super().__init__(str(guild.id), "config")
+        else:
+            self.data = {}
+
         if not self.data:
             self.reset()
+
+    # Overwrites to JsonHandler functions, to ensure we don't cause issues
+    def load(self):
+        if not self.guild:
+            return
+        return super().load()
+
+    def save(self):
+        if not self.guild:
+            return
+        return super().save()
 
     @property
     def config(self) -> GuildConfig:
@@ -120,6 +135,8 @@ class ConfigHandler(JsonHandler[GuildConfig]):
 
     @property
     def disallowed_sources(self) -> set[str]:
+        if not self.config:
+            return set(self.default_disallowed_sources())
         return set(self.config.disallowed_sources)
 
     @property
@@ -127,10 +144,15 @@ class ConfigHandler(JsonHandler[GuildConfig]):
         return set(self.config.allowed_sources)
 
     def set_allowed_partnered_sources(self, sources: Iterable[str]) -> None:
+        if not self.guild:
+            return
+
         self.config.allowed_partnered_sources = list(sources)
         self.save()
 
     def set_disallowed_official_sources(self, sources: Iterable[str]) -> None:
+        if not self.guild:
+            return
         self.config.disallowed_official_sources = list(sources)
         self.save()
 
@@ -176,6 +198,9 @@ class ConfigHandler(JsonHandler[GuildConfig]):
 
     @property
     def default_config_roles(self) -> list[int]:
+        if not self.guild:
+            return []
+
         config_roles: list[int] = []
 
         # The default allowed roles are those matching the terms game master, dungeon master, dm...
@@ -230,7 +255,7 @@ class GlobalConfigHandler(JsonFolderHandler[ConfigHandler]):
 
     def _itr_key(self, itr: discord.Interaction[discord.Client]) -> int:
         if not itr.guild_id:
-            raise RuntimeError("You can only configure settings in a server!")
+            return -1
         return itr.guild_id
 
     def get(self, itr: discord.Interaction[discord.Client]) -> ConfigHandler:
@@ -238,9 +263,6 @@ class GlobalConfigHandler(JsonFolderHandler[ConfigHandler]):
         # (e.g. for managing roles). As such, the guild object needs to be stored inside
         # the handler object. Because `get` only works on the key, and not on the actual
         # interaction, this method needs to be overwritten.
-
-        if not itr.guild:
-            raise RuntimeError("You can only configure settings in a server!")
 
         key = self._itr_key(itr)
         if key not in self._data:

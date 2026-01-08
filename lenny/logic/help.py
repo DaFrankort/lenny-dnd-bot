@@ -132,6 +132,13 @@ class HelpTabList:
                     "- **Tables:** Obsidian-style tables (``| --- | --- |``) are formatted as monospace code blocks for clean display in Discord.",
                 ],
             ),
+            (
+                "External URLs",
+                [
+                    "You can add a link to an external website when creating a Homebrew entry. If a URL is provided, the title of the Homebrew entry becomes clickable.",
+                    "All URLs are checked for correct formatting. If the text you enter is not a valid URL, it may not be saved.",
+                ],
+            ),
         ],
     )
 

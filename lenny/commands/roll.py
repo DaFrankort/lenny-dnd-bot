@@ -94,9 +94,6 @@ class MultiRollCommand(BaseCommand):
         result = multi_roll(diceroll, amount, Advantage(advantage))
         DiceCache.get(itr).store_expression(result.expression)
         DiceCache.get(itr).store_reason(reason)
-        print(amount)
-        print(advantage)
-        print(result)
         embed = MultiRollEmbed(itr, result, reason)
 
         await itr.response.send_message(embed=embed)

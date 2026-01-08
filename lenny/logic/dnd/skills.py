@@ -26,4 +26,5 @@ class SkillList(DNDEntryList[Skill]):
         abilities: set[str] = set()
         for skill in self.entries:
             abilities.add(skill.ability)
+        abilities.add("Constitution")  # Constitution has no associated skills.
         return list(abilities)

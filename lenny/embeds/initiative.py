@@ -44,7 +44,7 @@ class InitiativeRollModal(BaseModal):
         roll_counts = {Advantage.ADVANTAGE: 2, Advantage.ELVEN_ACCURACY: 3}
         roll_count = roll_counts.get(advantage, 1)
         for i in range(roll_count):
-            d20 = initiative.d20[i]
+            d20 = initiative.rolls[i]
             mod = initiative.modifier
             total = d20 + mod
             mod_str = f"+ {mod}" if mod > 0 else f"- {-mod}"

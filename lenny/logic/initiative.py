@@ -19,7 +19,7 @@ async def clean_up_old_message(message: Message):
 
 class Initiative:
     name: str
-    d20: tuple[int, int, int]
+    raw_d20: tuple[int, int, int]
     modifier: int
     advantage: Advantage
     is_npc: bool
@@ -35,21 +35,25 @@ class Initiative:
 
         if roll is None:
             # Three values, for elven accuracy
-            self.d20 = (random.randint(1, 20), random.randint(1, 20), random.randint(1, 20))
+            self.raw_d20 = (random.randint(1, 20), random.randint(1, 20), random.randint(1, 20))
         else:
-            self.d20 = (roll, roll, roll)
+            self.raw_d20 = (roll, roll, roll)
+
+    @property
+    def rolls(self) -> list[int]:
+        return list(self.raw_d20)[: self.advantage.roll_count]
 
     def get_total(self):
-        roll = self.d20[0]
+        roll = self.raw_d20[0]
 
         if self.advantage == Advantage.ADVANTAGE:
-            roll = max(self.d20[:2])
+            roll = max(self.rolls)
 
         elif self.advantage == Advantage.DISADVANTAGE:
-            roll = min(self.d20[:2])
+            roll = min(self.rolls)
 
         if self.advantage == Advantage.ELVEN_ACCURACY:
-            roll = max(self.d20)
+            roll = max(self.rolls)
 
         return roll + self.modifier
 
@@ -208,7 +212,7 @@ class GlobalInitiativeTracker:
         for i in range(amount):
             initiative = Initiative(itr, modifier, f"{name}", advantage)
             if shared and i != 0:
-                initiative.d20 = initiatives[0].d20
+                initiative.raw_d20 = initiatives[0].raw_d20
             initiatives.append(initiative)
 
         initiatives.sort(key=lambda x: x.get_total(), reverse=True)

@@ -7,6 +7,7 @@ from discord.app_commands import Choice
 from logic.config import Config
 from logic.dnd.abstract import DNDEntryType, FuzzyMatchResult, fuzzy_matches
 from logic.jsonhandler import JsonFolderHandler, JsonHandler
+from methods import is_valid_url
 
 HOMEBREW_PATH: str = "./temp/homebrew/"
 
@@ -18,6 +19,12 @@ class HomebrewEntry:
     entry_type: DNDEntryType
     description: str
     select_description: str | None = None  # Description in dropdown menus
+    url: str | None = None
+
+    def __post_init__(self):
+        # Prevent giving users faulty URLs
+        if self.url is not None and not is_valid_url(self.url):
+            self.url = None
 
     @property
     def title(self) -> str:
@@ -54,6 +61,7 @@ class HomebrewEntry:
             ),  # Name conversion requires support for old format.
             description=data["description"],
             select_description=data["select_description"],
+            url=data.get("url", None),
         )
 
 
@@ -80,6 +88,7 @@ class HomebrewGuildData(JsonHandler[list[HomebrewEntry]]):
         itr: discord.Interaction,
         entry_type: DNDEntryType,
         name: str,
+        url: str | None,
         select_description: str | None,
         description: str,
     ) -> HomebrewEntry:
@@ -88,9 +97,13 @@ class HomebrewGuildData(JsonHandler[list[HomebrewEntry]]):
         if self._find(name):
             raise ValueError(f"A homebrew entry with the name '{name}' already exists!")
 
+        if url is not None and not is_valid_url(url):
+            url = None
+
         author_id = itr.user.id
         new_entry = HomebrewEntry(
             entry_type=entry_type,
+            url=url,
             name=name,
             select_description=select_description,
             description=description,
@@ -115,15 +128,25 @@ class HomebrewGuildData(JsonHandler[list[HomebrewEntry]]):
         return entry_to_delete
 
     def edit(
-        self, itr: discord.Interaction, entry: HomebrewEntry, name: str, select_description: str | None, description: str
+        self,
+        itr: discord.Interaction,
+        entry: HomebrewEntry,
+        name: str,
+        url: str | None,
+        select_description: str | None,
+        description: str,
     ) -> HomebrewEntry:
         if not entry.can_manage(itr):
             raise ValueError("You do not have permission to edit this homebrew entry.")
+
+        if url is not None and url != entry.url and not is_valid_url(url):
+            url = entry.url or None
 
         key = entry.entry_type
         edited_entry = HomebrewEntry(
             entry_type=entry.entry_type,
             name=name,
+            url=url,
             select_description=select_description,
             description=description,
             author_id=entry.author_id,

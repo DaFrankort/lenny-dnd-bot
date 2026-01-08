@@ -3,6 +3,7 @@ from enum import Enum
 from typing import Any, TypeVar
 
 import discord
+import validators
 from PIL import ImageFont
 
 T = TypeVar("T")
@@ -52,3 +53,10 @@ class Boolean(ChoicedEnum):
 
 def log_button_press(itr: discord.Interaction, button: discord.ui.Button[discord.ui.LayoutView], location: str):
     logging.info("%s pressed '%s' in %s", itr.user.name, button.label, location)
+
+
+def is_valid_url(url: str) -> bool:
+    try:
+        return bool(validators.url(url))
+    except validators.utils.ValidationError:
+        return False

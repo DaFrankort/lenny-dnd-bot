@@ -57,6 +57,6 @@ def log_button_press(itr: discord.Interaction, button: discord.ui.Button[discord
 
 def is_valid_url(url: str) -> bool:
     try:
-        return bool(validators.url(url, public=True))
+        return bool(validators.url(url))
     except validators.utils.ValidationError:
         return False

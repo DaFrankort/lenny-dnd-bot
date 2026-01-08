@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 
 import pytest
 from discord import Interaction
-from utils.mocking import MockInteraction
+from utils.mocking import MockInteraction, MockUser
 
 from logic.dicecache import DiceCache, DiceCacheInfo
 from logic.roll import Advantage, roll
@@ -196,3 +196,11 @@ class TestDiceExpressionCache:
         assert (
             suggestions[0].value == expected
         ), "Autocomplete should prioritize the clean NdN query over stored modified rolls."
+
+    def test_reason_autocomplete_for_new_user(self):
+        itr = MockInteraction(user=MockUser("ReasonTest"))
+        DiceCache.get(itr).data = {}  # Wipe cache to ensure user is "new"
+        DiceCache.get(itr).save()
+
+        reasons = DiceCache.get(itr).get_autocomplete_reason_suggestions("s")
+        assert len(reasons) > 0, "New user could not get reason autocomplete-suggestions."

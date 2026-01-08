@@ -31,6 +31,8 @@ class RerollContextMenu(BaseContextMenu):
             return Advantage.DISADVANTAGE
         if "advantage" in dice_notation:
             return Advantage.ADVANTAGE
+        if "elven accuracy" in dice_notation:
+            return Advantage.ELVEN_ACCURACY
         return Advantage.NORMAL
 
     async def _handle_multiroll(self, interaction: discord.Interaction, dice_notation: str, embed: discord.Embed):

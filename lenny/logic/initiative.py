@@ -19,7 +19,7 @@ async def clean_up_old_message(message: Message):
 
 class Initiative:
     name: str
-    d20: tuple[int, int]
+    d20: tuple[int, int, int]
     modifier: int
     advantage: Advantage
     is_npc: bool
@@ -34,18 +34,22 @@ class Initiative:
         self.modifier = modifier
 
         if roll is None:
-            self.d20 = (random.randint(1, 20), random.randint(1, 20))
+            # Three values, for elven accuracy
+            self.d20 = (random.randint(1, 20), random.randint(1, 20), random.randint(1, 20))
         else:
-            self.d20 = (roll, roll)
+            self.d20 = (roll, roll, roll)
 
     def get_total(self):
         roll = self.d20[0]
 
         if self.advantage == Advantage.ADVANTAGE:
-            roll = max(self.d20)
+            roll = max(self.d20[:2])
 
         elif self.advantage == Advantage.DISADVANTAGE:
-            roll = min(self.d20)
+            roll = min(self.d20[:2])
+
+        if self.advantage == Advantage.ELVEN_ACCURACY:
+            roll = max(self.d20)
 
         return roll + self.modifier
 

@@ -12,11 +12,26 @@ class Advantage(str, ChoicedEnum):
     NORMAL = "normal"
     ADVANTAGE = "advantage"
     DISADVANTAGE = "disadvantage"
+    ELVEN_ACCURACY = "elven accuracy"
 
     @property
     def title_suffix(self) -> str:
-        suffixes = {self.ADVANTAGE: " with advantage", self.DISADVANTAGE: " with disadvantage"}
+        suffixes = {
+            self.ADVANTAGE: " with advantage",
+            self.DISADVANTAGE: " with disadvantage",
+            self.ELVEN_ACCURACY: " with elven accuracy",
+        }
         return suffixes.get(self, "")
+
+    @property
+    def roll_count(self) -> int:
+        """How many times a dice is supposed to be rolled with the given advantage."""
+
+        if self in [Advantage.ADVANTAGE, Advantage.DISADVANTAGE]:
+            return 2
+        if self == Advantage.ELVEN_ACCURACY:
+            return 3
+        return 1
 
 
 class DiceSpecial(str, Enum):
@@ -188,7 +203,7 @@ class RollResult:
     def roll(self) -> SingleRollResult:
         totals = [roll.total for roll in self.rolls]
         match self.advantage:
-            case Advantage.ADVANTAGE:
+            case Advantage.ADVANTAGE | Advantage.ELVEN_ACCURACY:
                 total = max(totals)
             case Advantage.DISADVANTAGE:
                 total = min(totals)
@@ -208,7 +223,8 @@ class MultiRollResult:
     expression: str
     advantage: Advantage
     rolls: list[SingleRollResult]
-    rolls_lose: list[SingleRollResult]
+    rolls_lose_1: list[SingleRollResult]
+    rolls_lose_2: list[SingleRollResult]  # A second losing roll column is added to account for Elven Accuracy
 
     @property
     def total(self) -> int:
@@ -250,10 +266,7 @@ def roll(expression: str, advantage: Advantage = Advantage.NORMAL) -> RollResult
     expression = str(d20.parse(expression, allow_comments=False))
 
     rolls: list[SingleRollResult] = []
-    if advantage in [Advantage.ADVANTAGE, Advantage.DISADVANTAGE]:
-        rolls.append(_roll_single(expression))
-        rolls.append(_roll_single(expression))
-    else:
+    for _ in range(advantage.roll_count):
         rolls.append(_roll_single(expression))
 
     return RollResult(expression, advantage, rolls)
@@ -262,23 +275,26 @@ def roll(expression: str, advantage: Advantage = Advantage.NORMAL) -> RollResult
 def multi_roll(expression: str, amount: int, advantage: Advantage) -> MultiRollResult:
     _validate_expression(expression)
     expression = str(d20.parse(expression, allow_comments=False))
-    rolls = [_roll_single(expression) for _ in range(amount)]
 
-    if advantage == Advantage.NORMAL:
-        return MultiRollResult(expression, advantage, rolls, rolls_lose=[])
+    rolls_win: list[SingleRollResult] = []
+    rolls_lose_1: list[SingleRollResult] = []
+    rolls_lose_2: list[SingleRollResult] = []
 
-    extra_rolls = [_roll_single(expression) for _ in range(amount)]
-    lower_rolls: list[SingleRollResult] = []
-    higher_rolls: list[SingleRollResult] = []
+    for _ in range(amount):
+        reverse = advantage == Advantage.DISADVANTAGE
+        rolls = [_roll_single(expression) for __ in range(advantage.roll_count)]
+        rolls = list(sorted(rolls, key=lambda r: r.total, reverse=reverse))
 
-    for i in range(amount):
-        if rolls[i].total > extra_rolls[i].total:
-            higher_rolls.append(rolls[i])
-            lower_rolls.append(extra_rolls[i])
-        else:
-            higher_rolls.append(extra_rolls[i])
-            lower_rolls.append(rolls[i])
+        rolls_win.append(rolls[-1])
+        if advantage.roll_count >= 2:
+            rolls_lose_1.append(rolls[0])
+        if advantage.roll_count >= 3:
+            rolls_lose_2.append(rolls[1])
 
-    if advantage == Advantage.ADVANTAGE:
-        return MultiRollResult(expression, advantage, higher_rolls, rolls_lose=lower_rolls)
-    return MultiRollResult(expression, advantage, lower_rolls, rolls_lose=higher_rolls)
+    return MultiRollResult(
+        expression,
+        advantage,
+        rolls=rolls_win,
+        rolls_lose_1=rolls_lose_1,
+        rolls_lose_2=rolls_lose_2,
+    )

@@ -94,12 +94,12 @@ class ConfigHandler(JsonHandler[GuildConfig]):
     def load(self):
         if not self.guild:
             return
-        return super().load()
+        super().load()
 
     def save(self):
         if not self.guild:
             return
-        return super().save()
+        super().save()
 
     @property
     def config(self) -> GuildConfig:
@@ -235,7 +235,7 @@ class ConfigHandler(JsonHandler[GuildConfig]):
             return False
         return user.guild_permissions.administrator
 
-    def user_has_config_permissions(self, user: discord.User | discord.Member) -> bool:
+    def _user_has_config_permissions(self, user: discord.User | discord.Member) -> bool:
         if not isinstance(user, discord.Member):
             return False
 
@@ -247,7 +247,7 @@ class ConfigHandler(JsonHandler[GuildConfig]):
         return len(intersection) > 0
 
     def user_is_admin_or_has_config_permissions(self, user: discord.User | discord.Member) -> bool:
-        return self.user_is_admin(user) or self.user_has_config_permissions(user)
+        return self.user_is_admin(user) or self._user_has_config_permissions(user)
 
 
 class GlobalConfigHandler(JsonFolderHandler[ConfigHandler]):

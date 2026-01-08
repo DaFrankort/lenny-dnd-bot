@@ -39,16 +39,21 @@ class TestInitiative:
         assert itr.user.display_name not in initiative.name, "Initiative with target should not have the user's name."
         assert target in initiative.name, "Initiative with target should have target's name in the name."
 
-    def test_roll(self):
+    @pytest.mark.parametrize(
+        "advantage",
+        [
+            Advantage.NORMAL,
+            Advantage.ADVANTAGE,
+            Advantage.DISADVANTAGE,
+            Advantage.ELVEN_ACCURACY,
+        ],
+    )
+    def test_roll(self, advantage: Advantage):
         itr = MockInteraction()
         for _ in range(50):
-            initiative = Initiative(itr, 0, None, Advantage.NORMAL)
-            assert (
-                1 <= initiative.rolls[0] <= 20
-            ), f"Initiative d20 roll should be value between 1 or 20, was {initiative.rolls[0]}"
-            assert (
-                1 <= initiative.rolls[1] <= 20
-            ), f"Initiative d20 roll should be value between 1 or 20, was {initiative.rolls[1]}"
+            initiative = Initiative(itr, 0, None, advantage)
+            for roll in initiative.rolls:
+                assert 1 <= roll <= 20, f"Initiative d20 roll should be value between 1 or 20, was {roll}"
 
     def test_roll_advantage(self):
         itr = MockInteraction()

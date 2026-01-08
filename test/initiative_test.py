@@ -39,17 +39,26 @@ class TestInitiative:
         assert itr.user.display_name not in initiative.name, "Initiative with target should not have the user's name."
         assert target in initiative.name, "Initiative with target should have target's name in the name."
 
-    def test_roll(self):
+    @pytest.mark.parametrize(
+        "advantage",
+        [
+            Advantage.NORMAL,
+            Advantage.ADVANTAGE,
+            Advantage.DISADVANTAGE,
+            Advantage.ELVEN_ACCURACY,
+        ],
+    )
+    def test_roll(self, advantage: Advantage):
         itr = MockInteraction()
         for _ in range(50):
-            initiative = Initiative(itr, 0, None, Advantage.NORMAL)
-            assert 1 <= initiative.d20[0] <= 20, f"Initiative d20 roll should be value between 1 or 20, was {initiative.d20[0]}"
-            assert 1 <= initiative.d20[1] <= 20, f"Initiative d20 roll should be value between 1 or 20, was {initiative.d20[1]}"
+            initiative = Initiative(itr, 0, None, advantage)
+            for roll in initiative.rolls:
+                assert 1 <= roll <= 20, f"Initiative d20 roll should be value between 1 or 20, was {roll}"
 
     def test_roll_advantage(self):
         itr = MockInteraction()
         initiative = Initiative(itr, 0, None, Advantage.ADVANTAGE)
-        high = max(initiative.d20)
+        high = max(initiative.rolls)
 
         expected = high + initiative.modifier
         total = initiative.get_total()
@@ -58,7 +67,7 @@ class TestInitiative:
     def test_roll_disadvantage(self):
         itr = MockInteraction()
         initiative = Initiative(itr, 0, None, Advantage.DISADVANTAGE)
-        low = min(initiative.d20)
+        low = min(initiative.rolls)
 
         expected = low + initiative.modifier
         total = initiative.get_total()
@@ -68,7 +77,7 @@ class TestInitiative:
     def test_get_total(self, mod: int):
         itr = MockInteraction()
         initiative = Initiative(itr, mod, None, Advantage.NORMAL)
-        expected = initiative.d20[0] + mod
+        expected = initiative.rolls[0] + mod
         assert initiative.get_total() == expected, "Initiative total should equal random d20 value + modifier."
 
     @pytest.mark.parametrize("val", [25, -3, 10])
@@ -115,13 +124,13 @@ class TestInitiativeTracker:
         tracker.add(itr, pc_initiative)
 
         new_pc = Initiative(itr, modifier=5, name=None, advantage=Advantage.NORMAL)
-        new_pc.d20 = (20, 20)
+        new_pc.raw_d20 = (20, 20, 20)
         tracker.add(itr, new_pc)
 
         result = tracker.get(itr)
         assert len(result) == 1, f"Expected 1 initiative after replacement, got {len(result)}"
         assert result[0].modifier == 5, f"Expected modifier 5, got {result[0].modifier}"
-        assert result[0].d20[0] == 20, f"Expected d20 value 20, got {result[0].d20[0]}"
+        assert result[0].rolls[0] == 20, f"Expected d20 value 20, got {result[0].rolls[0]}"
 
     def test_clear_initiatives(self, tracker: GlobalInitiativeTracker, itr: discord.Interaction, npc_initiative: Initiative):
         tracker.add(itr, npc_initiative)

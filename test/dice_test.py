@@ -33,25 +33,26 @@ class TestDiceExpression:
         normal = roll("1d20", Advantage.NORMAL)
         advantage = roll("1d20", Advantage.ADVANTAGE)
         disadvantage = roll("1d20", Advantage.DISADVANTAGE)
+        elven_accuracy = roll("1d20", Advantage.ELVEN_ACCURACY)
 
         assert len(normal.rolls) == 1, "Normal rolls should only have one roll."
         assert len(advantage.rolls) == 2, "Advantage rolls should have two rolls."
         assert len(disadvantage.rolls) == 2, "Disadvantage rolls should have two rolls."
+        assert len(elven_accuracy.rolls) == 3, "Elven accuracy rolls should have three rolls."
 
-    @pytest.mark.parametrize("iterations", [1000])
-    def test_advantage_is_greater(self, iterations: int):
+    @pytest.mark.parametrize("advantage", (Advantage.ADVANTAGE, Advantage.ELVEN_ACCURACY))
+    def test_advantage_is_greater(self, advantage: Advantage):
         # Monte Carlo test to see if advantage is always the greatest of the two numbers
-        for _ in range(iterations):
-            dice = roll("1d20+5", Advantage.ADVANTAGE)
+        for _ in range(1000):
+            dice = roll("1d20+5", advantage)
             totals = [roll.total for roll in dice.rolls]
             assert dice.roll.total in totals, "Advantage value should be in rolls."
             for roll_ in dice.rolls:
                 assert dice.roll.total >= roll_.total, "Advantage result should be greater or equal to all rolls."
 
-    @pytest.mark.parametrize("iterations", [1000])
-    def test_disadvantage_is_less(self, iterations: int):
+    def test_disadvantage_is_less(self):
         # Same as test_advantage_is_greater, except for disadvantage
-        for _ in range(iterations):
+        for _ in range(1000):
             dice = roll("1d20+5", Advantage.DISADVANTAGE)
             totals = [roll.total for roll in dice.rolls]
             assert dice.roll.total in totals, "Disadvantage value should be in rolls."

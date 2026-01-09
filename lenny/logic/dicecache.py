@@ -89,12 +89,11 @@ class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
         Returns auto-complete choices for the last reasons a user used when no query is given.
         If query is given, will suggest reasons containing the query.
         """
-        last_used = self.cache.reasons
-        if len(last_used) == 0:
-            return []
-
         query = query.strip().lower().replace(" ", "")
         if query == "":
+            last_used = self.cache.reasons
+            if len(last_used) == 0:
+                return []
             return [Choice(name=expr, value=expr) for expr in reversed(last_used)]
 
         reasons = [key.title() for key in SPECIAL_ROLL_REASONS]

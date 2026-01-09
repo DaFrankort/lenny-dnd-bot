@@ -5,7 +5,7 @@ import pytest
 
 # Required to mark the library as essential for testing in our workflows
 import pytest_asyncio  # noqa: F401 # type: ignore
-from utils.mocking import MockImage, MockInteraction, MockSound
+from utils.mocking import MockDirectMessageInteraction, MockImage, MockInteraction, MockSound
 from utils.utils import listify
 
 from bot import Bot
@@ -231,6 +231,7 @@ class TestBotCommands:
         arguments: dict[str, Any] | list[dict[str, Any]],
     ):
         itr = MockInteraction()
+        itr_dm = MockDirectMessageInteraction()
         cmd = get_cmd(commands, cmd_name)
         assert cmd is not None, f"{cmd_name} command not found"
 
@@ -241,6 +242,11 @@ class TestBotCommands:
             for args in arg_variants:
                 try:
                     await cmd.handle(itr=itr, **args)
+                    if cmd.guild_only:
+                        with pytest.raises(Exception):
+                            await cmd.handle(itr=itr_dm, **args)
+                    else:
+                        await cmd.handle(itr=itr_dm, **args)
                 except Exception as e:
                     pytest.fail(f"Error while running command /{cmd_name} with args {args}: {e}")
 

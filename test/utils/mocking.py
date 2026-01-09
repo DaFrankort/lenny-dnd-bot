@@ -96,6 +96,21 @@ class MockInteraction(discord.Interaction):
         self._state._get_guild = MagicMock(return_value=mock_guild)
 
 
+class MockDirectMessageInteraction(discord.Interaction):
+    """Mock interaction class to simulate Discord interactions in direct messages."""
+
+    def __init__(self, user: MockUser = MockUser("user")):
+        self.user = user
+        self.response = MagicMock()
+        self.response.send_message = AsyncMock()
+        self.response.defer = AsyncMock()
+        self.followup = AsyncMock()
+        self._state = MagicMock()
+        self._servers = MagicMock()
+        self._original_response = MagicMock()
+        self._state._get_guild = MagicMock(return_value=None)
+
+
 class MockAttachment(discord.Attachment):
     def __init__(self, url: str, content_type: str):
         self.id = abs(hash(url))

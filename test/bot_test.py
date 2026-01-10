@@ -446,4 +446,3 @@ class TestBotCommands:
                 for level in levels:
                     embed = ClassEmbed(class_, set(sources), level, subclass)
                     assert embed.view is not None
-

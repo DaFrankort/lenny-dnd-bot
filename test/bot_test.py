@@ -153,7 +153,7 @@ class TestBotCommands:
             ),
             ("color show", {}),
             ("color clear", {}),  # Run clear last, to remove useless data from files.
-            ("stats roll", {"min_total": [20, 60]}),  # Stick to reasonable values to avoid infinite loops!
+            ("stats roll", {"min_total": [20, 60]}),  # Stick to reasonable values to avoid timeouts!
             (
                 "stats visualize",
                 {"str": 10, "dex": 10, "con": 10, "int": 10, "wis": 10, "cha": 10},
@@ -446,3 +446,4 @@ class TestBotCommands:
                 for level in levels:
                     embed = ClassEmbed(class_, set(sources), level, subclass)
                     assert embed.view is not None
+

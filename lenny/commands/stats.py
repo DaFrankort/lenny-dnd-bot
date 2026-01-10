@@ -24,14 +24,17 @@ class StatsRollCommand(BaseCommand):
     desc = "Roll stats for a new character, using the 4d6 drop lowest method."
     help = "Performs six dice rolls using the 4d6 drop lowest method, providing you with six values to use for your new character's stats."
 
-    async def handle(self, itr: discord.Interaction):
+    @describe(min_total="The minimum value your stats should total to. Higher totals may fail to generate.")
+    async def handle(self, itr: discord.Interaction, min_total: discord.app_commands.Range[int, 18, 108] = 18):
+        # Min total is between 18 (3*6) and 108 (18*6), because these are the lowest and highest stats a player can roll.
         self.log(itr)
-        stats = Stats()
+        await itr.response.defer()
+        stats = Stats(min_total)
         embed = StatsEmbed(itr, stats)
         chart = embed.chart
 
         embed.set_image(url=f"attachment://{chart.filename}")
-        await itr.response.send_message(embed=embed, file=chart)
+        await itr.followup.send(embed=embed, file=chart)
 
 
 class StatsVisualizeCommand(BaseCommand):

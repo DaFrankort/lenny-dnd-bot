@@ -1,7 +1,7 @@
 aiohttp==3.13.3
 discord.py==2.6.4
 opencv-python==4.12.0.88
-numpy==2.2.6 # Must be > 2 and < 2.3.0, for opencv-python.
+numpy==2.4.1 # Must be > 2 and < 2.3.0, for opencv-python.
 python-dotenv==1.2.1
 RapidFuzz==3.14.3
 rich==14.2.0

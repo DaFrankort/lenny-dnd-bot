@@ -1,5 +1,5 @@
 from itertools import product
-from typing import Any, TypeVar
+from typing import Any, Iterable, TypeVar
 
 import pytest
 
@@ -23,6 +23,146 @@ from logic.dnd.abstract import DNDEntry, DNDEntryList
 from logic.dnd.data import Data
 from logic.dnd.name import Gender
 from logic.roll import Advantage
+
+SLASH_COMMAND_TESTS: Iterable[Iterable[Any]] = [
+    (
+        "roll",
+        {
+            "diceroll": ["1d20+6", "4d8kh3", "1d8ro1", "1>0", "1<0", "(1d20+7>14) * 1d8"],
+            "reason": [None, "Attack", "Fire"],
+            "advantage": [None, "normal", "advantage", "disadvantage"],
+        },
+    ),
+    ("d20", {}),
+    (
+        "multiroll",
+        {
+            "diceroll": ["1d20+6", "4d8kh3", "1d8ro1", "1>0", "1<0", "(1d20+7>14) * 1d8"],
+            "amount": [1, 3],
+            "advantage": Advantage.values(),
+            "reason": [None, "Attack"],
+        },
+    ),
+    ("search spell", {"name": ["Fire Bolt", "abcdef"]}),
+    ("search item", {"name": ["Sword", "abcdef"]}),
+    ("search condition", {"name": ["Poisoned", "abcdef"]}),
+    ("search creature", {"name": ["Goblin", "abcdef"]}),
+    (
+        "search class",
+        {"name": ["Wizard", "Fighter", "abcdef"]},
+    ),  # Search spellcaster & non spellcaster classes, since they render differently
+    ("search rule", {"name": ["Action", "abcdef"]}),
+    ("search action", {"name": ["Attack", "abcdef"]}),
+    ("search deity", {"name": ["Arawai", "Anubis", "abcdef"]}),
+    ("search feat", {"name": ["Tough", "abcdef"]}),
+    ("search language", {"name": ["Common", "abcdef"]}),
+    ("search background", {"name": ["Soldier", "abcdef"]}),
+    ("search table", {"name": ["Wild Magic", "abcdef"]}),
+    ("search species", {"name": ["Human", "abcdef"]}),
+    ("search vehicle", {"name": ["Galley", "abcdef"]}),
+    ("search object", {"name": ["Ballista", "abcdef"]}),
+    ("search hazard", {"name": ["Spiked Pit", "abcdef"]}),
+    ("search cult", {"name": ["Cult of Dispater", "abcdef"]}),
+    ("search boon", {"name": ["Demonic Boon of Balor", "abcdef"]}),
+    (
+        "search all",
+        [
+            {
+                "query": [
+                    "Barb",
+                    "Sailor",
+                    "qwertyuiopasdfghjkl;zxcvbnm,./1234567890",
+                ]
+            },  # Sailor can give problematic results, ensure this does not re-occur.
+        ],
+    ),
+    (
+        "namegen",
+        {
+            "species": [None, "foobar"].extend([spec.title() for spec in Data.names.get_species()]),
+            "gender": Gender.values(),
+        },
+    ),
+    (
+        "color set hex",
+        {"hex_color": ["#ff00ff", "ff00ff"]},
+    ),
+    (
+        "color set rgb",
+        {"r": [255, 0], "g": [255, 0], "b": [255, 0]},
+    ),
+    ("color show", {}),
+    ("color clear", {}),  # Run clear last, to remove useless data from files.
+    ("stats roll", {}),
+    (
+        "stats visualize",
+        {"str": 10, "dex": 10, "con": 10, "int": 10, "wis": 10, "cha": 10},
+    ),
+    (
+        "tokengen file",
+        [
+            {"image": MockImage()},
+            {"image": MockImage(), "frame_hue": [-180, 0, 180]},
+            {"image": MockImage(), "h_alignment": AlignH.values()},
+            {"image": MockImage(), "v_alignment": AlignV.values()},
+            {"image": MockImage(), "variants": [0, 3, 10]},
+        ],
+    ),
+    (
+        "tokengen url",
+        [
+            {"url": MockImage().url},
+            {"url": MockImage().url, "frame_hue": [-180, 0, 180]},
+            {"url": MockImage().url, "h_alignment": AlignH.values()},
+            {"url": MockImage().url, "v_alignment": AlignV.values()},
+            {"url": MockImage().url, "variants": [0, 3, 10]},
+        ],
+    ),
+    ("initiative", {}),
+    (
+        "plansession",
+        {"in_weeks": [0, 1, 4], "poll_duration": [1, 24, 168]},
+    ),
+    ("help", {}),
+    (
+        "timestamp relative",
+        {
+            "seconds": [0, 30],
+            "minutes": [0, 30],
+            "hours": [0, 12],
+            "days": [0, 5],
+            "weeks": [0, 4],
+        },
+    ),
+    (
+        "timestamp date",
+        [
+            {
+                "time": ["1838", "7:40", "5", "18"],
+                "timezone": [2, -6],
+                "date": [
+                    None,
+                    "05/03/2025",
+                    "05/03",
+                    "05.03.2025",
+                    "05.03",
+                    "5",
+                ],
+            },
+        ],
+    ),
+    ("distribution", {"expression": ["1d20", "1d8ro1"], "advantage": Advantage.values(), "min_to_beat": [None, "5"]}),
+    (
+        "charactergen",
+        {
+            "gender": [None, Gender.FEMALE],
+            "species": [None, "human"],
+            "char_class": [None, "rogue"],
+        },
+    ),
+    # Homebrew commands work through modals, and are thus not testable.
+    # ("", {"": "", "": ""}),
+]
 
 
 def get_cmd_from_group(group: BaseCommandGroup, parts: list[str]) -> BaseCommand | None:
@@ -87,156 +227,14 @@ class TestBotCommands:
         return [dict(zip(keys, combo)) for combo in combinations]
 
     @pytest.mark.asyncio
-    @pytest.mark.parametrize(
-        "cmd_name, arguments",
-        [
-            (
-                "roll",
-                {
-                    "diceroll": ["1d20+6", "4d8kh3", "1d8ro1", "1>0", "1<0", "(1d20+7>14) * 1d8"],
-                    "reason": [None, "Attack", "Fire"],
-                    "advantage": [None, "normal", "advantage", "disadvantage"],
-                },
-            ),
-            ("d20", {}),
-            (
-                "multiroll",
-                {
-                    "diceroll": ["1d20+6", "4d8kh3", "1d8ro1", "1>0", "1<0", "(1d20+7>14) * 1d8"],
-                    "amount": [1, 3],
-                    "advantage": Advantage.values(),
-                    "reason": [None, "Attack"],
-                },
-            ),
-            ("search spell", {"name": ["Fire Bolt", "abcdef"]}),
-            ("search item", {"name": ["Sword", "abcdef"]}),
-            ("search condition", {"name": ["Poisoned", "abcdef"]}),
-            ("search creature", {"name": ["Goblin", "abcdef"]}),
-            (
-                "search class",
-                {"name": ["Wizard", "Fighter", "abcdef"]},
-            ),  # Search spellcaster & non spellcaster classes, since they render differently
-            ("search rule", {"name": ["Action", "abcdef"]}),
-            ("search action", {"name": ["Attack", "abcdef"]}),
-            ("search deity", {"name": ["Arawai", "Anubis", "abcdef"]}),
-            ("search feat", {"name": ["Tough", "abcdef"]}),
-            ("search language", {"name": ["Common", "abcdef"]}),
-            ("search background", {"name": ["Soldier", "abcdef"]}),
-            ("search table", {"name": ["Wild Magic", "abcdef"]}),
-            ("search species", {"name": ["Human", "abcdef"]}),
-            ("search vehicle", {"name": ["Galley", "abcdef"]}),
-            ("search object", {"name": ["Ballista", "abcdef"]}),
-            ("search hazard", {"name": ["Spiked Pit", "abcdef"]}),
-            ("search cult", {"name": ["Cult of Dispater", "abcdef"]}),
-            ("search boon", {"name": ["Demonic Boon of Balor", "abcdef"]}),
-            (
-                "search all",
-                [
-                    {
-                        "query": [
-                            "Barb",
-                            "Sailor",
-                            "qwertyuiopasdfghjkl;zxcvbnm,./1234567890",
-                        ]
-                    },  # Sailor can give problematic results, ensure this does not re-occur.
-                ],
-            ),
-            (
-                "namegen",
-                {
-                    "species": [None, "foobar"].extend([spec.title() for spec in Data.names.get_species()]),
-                    "gender": Gender.values(),
-                },
-            ),
-            (
-                "color set hex",
-                {"hex_color": ["#ff00ff", "ff00ff"]},
-            ),
-            (
-                "color set rgb",
-                {"r": [255, 0], "g": [255, 0], "b": [255, 0]},
-            ),
-            ("color show", {}),
-            ("color clear", {}),  # Run clear last, to remove useless data from files.
-            ("stats roll", {}),
-            (
-                "stats visualize",
-                {"str": 10, "dex": 10, "con": 10, "int": 10, "wis": 10, "cha": 10},
-            ),
-            (
-                "tokengen file",
-                [
-                    {"image": MockImage()},
-                    {"image": MockImage(), "frame_hue": [-180, 0, 180]},
-                    {"image": MockImage(), "h_alignment": AlignH.values()},
-                    {"image": MockImage(), "v_alignment": AlignV.values()},
-                    {"image": MockImage(), "variants": [0, 3, 10]},
-                ],
-            ),
-            (
-                "tokengen url",
-                [
-                    {"url": MockImage().url},
-                    {"url": MockImage().url, "frame_hue": [-180, 0, 180]},
-                    {"url": MockImage().url, "h_alignment": AlignH.values()},
-                    {"url": MockImage().url, "v_alignment": AlignV.values()},
-                    {"url": MockImage().url, "variants": [0, 3, 10]},
-                ],
-            ),
-            ("initiative", {}),
-            (
-                "plansession",
-                {"in_weeks": [0, 1, 4], "poll_duration": [1, 24, 168]},
-            ),
-            ("help", {}),
-            (
-                "timestamp relative",
-                {
-                    "seconds": [0, 30],
-                    "minutes": [0, 30],
-                    "hours": [0, 12],
-                    "days": [0, 5],
-                    "weeks": [0, 4],
-                },
-            ),
-            (
-                "timestamp date",
-                [
-                    {
-                        "time": ["1838", "7:40", "5", "18"],
-                        "timezone": [2, -6],
-                        "date": [
-                            None,
-                            "05/03/2025",
-                            "05/03",
-                            "05.03.2025",
-                            "05.03",
-                            "5",
-                        ],
-                    },
-                ],
-            ),
-            ("distribution", {"expression": ["1d20", "1d8ro1"], "advantage": Advantage.values(), "min_to_beat": [None, "5"]}),
-            (
-                "charactergen",
-                {
-                    "gender": [None, Gender.FEMALE],
-                    "species": [None, "human"],
-                    "char_class": [None, "rogue"],
-                },
-            ),
-            # Homebrew commands work through modals, and are thus not testable.
-            # ("", {"": "", "": ""}),
-        ],
-    )
-    async def test_slash_commands(
+    @pytest.mark.parametrize("cmd_name, arguments", SLASH_COMMAND_TESTS)
+    async def test_slash_commands_guild(
         self,
         commands: dict[str, BaseCommand | BaseCommandGroup],
         cmd_name: str,
         arguments: dict[str, Any] | list[dict[str, Any]],
     ):
         itr = MockInteraction()
-        itr_dm = MockDirectMessageInteraction()
         cmd = get_cmd(commands, cmd_name)
         assert cmd is not None, f"{cmd_name} command not found"
 
@@ -247,9 +245,31 @@ class TestBotCommands:
             for args in arg_variants:
                 try:
                     await cmd.handle(itr=itr, **args)
-                    if cmd.guild_only:
-                        continue
-                    await cmd.handle(itr=itr_dm, **args)
+                except Exception as e:
+                    pytest.fail(f"Error while running command /{cmd_name} with args {args}: {e}")
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("cmd_name, arguments", SLASH_COMMAND_TESTS)
+    async def test_slash_commands_private_message(
+        self,
+        commands: dict[str, BaseCommand | BaseCommandGroup],
+        cmd_name: str,
+        arguments: dict[str, Any] | list[dict[str, Any]],
+    ):
+        itr = MockDirectMessageInteraction()
+        cmd = get_cmd(commands, cmd_name)
+        assert cmd is not None, f"{cmd_name} command not found"
+
+        if cmd.guild_only:
+            pytest.skip(reason=f"{cmd_name} is a guild-only command, skipping.")
+
+        arguments = listify(arguments)
+
+        for arg_set in arguments:
+            arg_variants = self.expand_arg_variants(arg_set)
+            for args in arg_variants:
+                try:
+                    await cmd.handle(itr=itr, **args)
                 except Exception as e:
                     pytest.fail(f"Error while running command /{cmd_name} with args {args}: {e}")
 

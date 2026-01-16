@@ -5,7 +5,12 @@ import pytest
 
 # Required to mark the library as essential for testing in our workflows
 import pytest_asyncio  # noqa: F401 # type: ignore
-from utils.mocking import MockDirectMessageInteraction, MockImage, MockInteraction, MockSound
+from utils.mocking import (
+    MockDirectMessageInteraction,
+    MockImage,
+    MockInteraction,
+    MockSound,
+)
 from utils.utils import listify
 
 from bot import Bot

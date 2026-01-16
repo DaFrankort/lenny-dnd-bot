@@ -1,3 +1,4 @@
+import pytest
 from utils.mocking import MockInteraction
 
 from embeds.stats import StatsEmbed
@@ -5,6 +6,7 @@ from logic.stats import Stats
 
 
 class TestStats:
+    @pytest.mark.timeout(10)
     def test_init(self):
         stats = Stats()
 
@@ -15,6 +17,7 @@ class TestStats:
             assert isinstance(result, int), "Result should be an integer"
             assert 3 <= result <= 24, "Result should be between 4 and 24 (sum of 3 rolls)"
 
+    @pytest.mark.timeout(10)
     def test_get_embed_title(self):
         itr = MockInteraction()
         stats = Stats()
@@ -23,6 +26,7 @@ class TestStats:
 
         assert itr.user.display_name in embed_title, "Embed title should contain the user's display name"
 
+    @pytest.mark.timeout(10)
     def test_get_embed_description(self):
         itr = MockInteraction()
         stats = Stats()
@@ -36,3 +40,8 @@ class TestStats:
 
         total = sum(result for _, result in stats.stats)
         assert str(total) in description, "Description should contain the total of all stats"
+
+    @pytest.mark.timeout(10)
+    def test_attempt_timeout(self):
+        with pytest.raises(ValueError):
+            Stats(min_total=999)

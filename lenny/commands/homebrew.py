@@ -32,6 +32,7 @@ class HomebrewAddCommand(BaseCommand):
     desc = "Add custom content to your tome of homebrew."
     help = "Add new homebrew content to your server."
 
+    @describe(md_file="Extract info from Markdown file and adjust formatting for discord.")
     async def handle(self, itr: discord.Interaction, md_file: discord.Attachment | None = None):
         self.log(itr)
         md_data = None

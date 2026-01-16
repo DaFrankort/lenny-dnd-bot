@@ -247,7 +247,7 @@ class TestBotCommands:
                 try:
                     await cmd.handle(itr=itr, **args)
                 except Exception as e:
-                    pytest.fail(f"Error while running command /{cmd_name} with args {args}: {e}")
+                    pytest.fail(f"Error while running command /{cmd_name} in GUILD with args {args}: {e}")
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize("cmd_name, arguments", SLASH_COMMAND_TESTS)
@@ -273,7 +273,7 @@ class TestBotCommands:
                 try:
                     await cmd.handle(itr=itr, **args)
                 except Exception as e:
-                    pytest.fail(f"Error while running command /{cmd_name} with args {args}: {e}")
+                    pytest.fail(f"Error while running command /{cmd_name} in PRIVATE MESSAGE with args {args}: {e}")
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(

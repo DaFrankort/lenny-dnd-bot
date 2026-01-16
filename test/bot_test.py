@@ -249,6 +249,7 @@ class TestBotCommands:
                 except Exception as e:
                     pytest.fail(f"Error while running command /{cmd_name} in GUILD with args {args}: {e}")
 
+    @pytest.mark.strict
     @pytest.mark.asyncio
     @pytest.mark.parametrize("cmd_name, arguments", SLASH_COMMAND_TESTS)
     @pytest.mark.timeout(60)  # Protect against infinite loops

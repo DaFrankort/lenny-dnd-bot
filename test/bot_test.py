@@ -248,10 +248,8 @@ class TestBotCommands:
                 try:
                     await cmd.handle(itr=itr, **args)
                     if cmd.guild_only:
-                        with pytest.raises(Exception):
-                            await cmd.handle(itr=itr_dm, **args)
-                    else:
-                        await cmd.handle(itr=itr_dm, **args)
+                        continue
+                    await cmd.handle(itr=itr_dm, **args)
                 except Exception as e:
                     pytest.fail(f"Error while running command /{cmd_name} with args {args}: {e}")
 

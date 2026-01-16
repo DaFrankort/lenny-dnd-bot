@@ -86,6 +86,7 @@ class MockInteraction(discord.Interaction):
         self.user = user
         self.guild_id = guild_id
         self.channel = MockTextChannel(mock_guild, channel_id)
+
         self.response = MagicMock()
         self.response.send_message = AsyncMock()
         self.response.defer = AsyncMock()
@@ -96,11 +97,20 @@ class MockInteraction(discord.Interaction):
         self._state._get_guild = MagicMock(return_value=mock_guild)
 
 
+class MockDMChannel(discord.DMChannel):
+    def __init__(self, user: discord.User):
+        self.recipients = [user]
+        self.id = 0
+
+
 class MockDirectMessageInteraction(discord.Interaction):
     """Mock interaction class to simulate Discord interactions in direct messages."""
 
     def __init__(self, user: MockUser = MockUser("user")):
         self.user = user
+        self.guild_id = None
+        self.channel = MockDMChannel(user)
+
         self.response = MagicMock()
         self.response.send_message = AsyncMock()
         self.response.defer = AsyncMock()

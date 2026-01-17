@@ -1,5 +1,5 @@
 import discord
-from discord.app_commands import autocomplete, describe, Choice
+from discord.app_commands import Choice, autocomplete, describe
 
 from commands.command import BaseCommand, BaseCommandGroup
 from embeds.color import ColorSetEmbed, ColorShowEmbed

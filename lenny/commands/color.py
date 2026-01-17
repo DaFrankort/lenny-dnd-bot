@@ -1,16 +1,49 @@
 import discord
-from discord.app_commands import autocomplete, describe
+from discord.app_commands import Choice, autocomplete, describe
 
 from commands.command import BaseCommand, BaseCommandGroup
 from embeds.color import ColorSetEmbed, ColorShowEmbed
 from embeds.embed import SuccessEmbed
-from logic.color import (
-    UserColor,
-    autocomplete_hex_color,
-    autocomplete_rgb_color,
-    save_hex_color,
-    save_rgb_color,
-)
+from logic.color import UserColor, save_hex_color, save_rgb_color
+
+
+async def autocomplete_hex_color(itr: discord.Interaction, current: str) -> list[Choice[str]]:
+    """
+    Suggests the current hex-color the user is using if no input has been done yet.
+    If there is an input, will auto-format the input to be the correct length.
+    """
+    current_clean: str = current.replace("#", "").replace(" ", "").strip()
+    if not current_clean:  # Show current color if no input
+        color = UserColor.get(itr)
+        hex_color = UserColor.to_hex(color)
+        return [Choice(name=hex_color, value=hex_color)]
+
+    # Enforce 6-characters
+    current_clean = (current_clean[:6]).ljust(6, "0")
+    hex_color = f"#{current_clean}"
+    return [Choice(name=hex_color, value=hex_color)]
+
+
+async def autocomplete_rgb_color(itr: discord.Interaction, current: str) -> list[Choice[str]]:
+    """Suggests the current value the user has for each argument (R/G/B), if no input has been done yet."""
+    current = str(current)
+    if current:
+        return []
+
+    itr_options: list[dict] | None = itr.data["options"][0]["options"][0]["options"]  # type: ignore
+    if not itr_options:
+        return []
+
+    focused: str = [arg["name"] for arg in itr_options if arg.get("focused", False)][0]  # type: ignore
+    if not focused:
+        return []
+
+    r, g, b = UserColor.to_rgb(UserColor.get(itr))
+    color_map = {"r": r, "g": g, "b": b}
+    value = color_map.get(focused, None)  # pyright: ignore[reportUnknownArgumentType]
+    if value is None:
+        return []
+    return [Choice(name=str(value), value=str(value))]
 
 
 class ColorCommandGroup(BaseCommandGroup):

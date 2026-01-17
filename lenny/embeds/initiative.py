@@ -47,7 +47,7 @@ class InitiativeRollModal(BaseModal):
             d20 = initiative.rolls[i]
             mod = initiative.modifier
             total = d20 + mod
-            mod_str = f"+ {mod}" if mod > 0 else f"- {-mod}"
+            mod_str = f"+ {mod}" if mod >= 0 else f"- {-mod}"
             descriptions.append(f"- ``[{d20}] {mod_str}`` -> {total}")
         descriptions.append(f"\n**Initiative**: {initiative.get_total()}")
         description = "\n".join(descriptions)

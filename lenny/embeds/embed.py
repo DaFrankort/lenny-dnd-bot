@@ -1,5 +1,8 @@
+from typing import Any
+
 import discord
 
+from components.items import TitleTextDisplay
 from logic.color import UserColor
 
 
@@ -38,3 +41,38 @@ class NoResultsFoundEmbed(BaseEmbed):
 class ErrorEmbed(BaseEmbed):
     def __init__(self, error: str):
         super().__init__("Error!", f"{error}", color=discord.Color.red())
+
+
+class BaseLayoutView(discord.ui.LayoutView):
+    container: discord.ui.Container[Any]
+    file: discord.File | None = None
+
+    def __init__(
+        self,
+        title: str,
+        url: str | None = None,
+        thumbnail_img: str | None = None,
+        color: discord.Color = discord.Color.dark_green(),
+        spoiler: bool = False,
+        timeout: int = 180,
+    ):
+        super().__init__(timeout=timeout)
+        self.container = discord.ui.Container(accent_color=color, spoiler=spoiler)
+
+        title_item = TitleTextDisplay(title, None, url)
+        if thumbnail_img:
+            thumbnail_item = discord.ui.Thumbnail(thumbnail_img)  # type: ignore
+            header = discord.ui.Section(title_item, accessory=thumbnail_item)  # type: ignore
+            self.container.add_item(header)
+        else:
+            self.container.add_item(title_item)
+
+    def set_thumbnail_image(self, img_url: str):
+        self.thumbnail = img_url
+
+    def add_field(self, name: str | None, value: str):
+        text = f"**{name}**\n{value}" if name else value
+        self.container.add_item(discord.ui.TextDisplay(text))
+
+    def build(self):
+        self.add_item(self.container)

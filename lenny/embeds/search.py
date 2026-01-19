@@ -11,7 +11,7 @@ from embeds.dnd.background import BackgroundEmbed
 from embeds.dnd.boons import BoonEmbed
 from embeds.dnd.class_ import ClassEmbed
 from embeds.dnd.condition import ConditionEmbed
-from embeds.dnd.creature import CreatureEmbed
+from embeds.dnd.creature import CreatureLayoutView
 from embeds.dnd.cult import CultEmbed
 from embeds.dnd.deities import DeityEmbed
 from embeds.dnd.feat import FeatEmbed
@@ -57,7 +57,7 @@ def get_dnd_embed(itr: discord.Interaction, dnd_entry: DNDEntry):  # pylint: dis
         case Condition():
             return ConditionEmbed(dnd_entry)
         case Creature():
-            return CreatureEmbed(dnd_entry)
+            return CreatureLayoutView(dnd_entry)
         case Class():
             sources = Config.get(itr).allowed_sources
             return ClassEmbed(dnd_entry, allowed_sources=sources)

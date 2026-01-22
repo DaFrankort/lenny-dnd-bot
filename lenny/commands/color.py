@@ -1,10 +1,16 @@
 import discord
-from discord.app_commands import Choice, autocomplete, describe
+from discord.app_commands import Choice, autocomplete, choices, describe
 
 from commands.command import BaseCommand, BaseCommandGroup
 from embeds.color import ColorSetEmbed, ColorShowEmbed
 from embeds.embed import SuccessEmbed
-from logic.color import UserColor, save_hex_color, save_rgb_color
+from logic.color import (
+    UserColor,
+    get_basic_user_color_choices,
+    save_base_color,
+    save_hex_color,
+    save_rgb_color,
+)
 
 
 async def autocomplete_hex_color(itr: discord.Interaction, current: str) -> list[Choice[str]]:
@@ -65,6 +71,7 @@ class ColorSetCommandGroup(BaseCommandGroup):
         super().__init__()
         self.add_command(ColorSetHexCommand())
         self.add_command(ColorSetRGBCommand())
+        self.add_command(ColorSetBaseCommand())
 
 
 class ColorSetHexCommand(BaseCommand):
@@ -106,6 +113,26 @@ class ColorSetRGBCommand(BaseCommand):
         self.log(itr)
         result = save_rgb_color(itr, r, g, b)
         embed = ColorSetEmbed(itr, result, is_hex=False)
+        await itr.response.send_message(embed=embed, file=embed.file, ephemeral=True)
+
+
+class ColorSetBaseCommand(BaseCommand):
+    name = "base"
+    desc = "Select a preferred color from a list of basic colors."
+    help = "Set a custom color for yourself by selecting a basic color."
+
+    @describe(
+        color="The color you'd like to use for display.",
+    )
+    @choices(color=get_basic_user_color_choices())
+    async def handle(
+        self,
+        itr: discord.Interaction,
+        color: str,
+    ):
+        self.log(itr)
+        result = save_base_color(itr, color)
+        embed = ColorSetEmbed(itr, result, is_hex=True)
         await itr.response.send_message(embed=embed, file=embed.file, ephemeral=True)
 
 

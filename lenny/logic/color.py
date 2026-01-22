@@ -8,6 +8,38 @@ from PIL import Image, ImageDraw
 from logic.jsonhandler import JsonHandler
 from methods import FontType, get_font, when
 
+BASIC_USER_COLORS = {
+    "Red": discord.Color.red(),
+    "Dark Red": discord.Color.dark_red(),
+    "Brand Red": discord.Color.brand_red(),
+    "Orange": discord.Color.orange(),
+    "Dark Orange": discord.Color.dark_orange(),
+    "Gold": discord.Color.gold(),
+    "Dark Gold": discord.Color.dark_gold(),
+    "Yellow": discord.Color.yellow(),
+    "Green": discord.Color.green(),
+    "Dark Green": discord.Color.dark_green(),
+    "Brand Green": discord.Color.brand_green(),
+    "Teal": discord.Color.teal(),
+    "Dark Teal": discord.Color.dark_teal(),
+    "Blue": discord.Color.blue(),
+    "Dark Blue": discord.Color.dark_blue(),
+    "Blurple": discord.Color.blurple(),
+    "OG Blurple": discord.Color.og_blurple(),
+    "Purple": discord.Color.purple(),
+    "Dark Purple": discord.Color.dark_purple(),
+    "Magenta": discord.Color.magenta(),
+    "Dark Magenta": discord.Color.dark_magenta(),
+    "Pink": discord.Color.pink(),
+    "Fuchsia": discord.Color.fuchsia(),
+    "Greyple": discord.Color.greyple(),
+    # Can't have more than 25 colors!
+}
+
+
+def get_basic_user_color_choices() -> list[discord.app_commands.Choice[str]]:
+    return [discord.app_commands.Choice(name=clr, value=clr) for clr in BASIC_USER_COLORS.keys()][:25]
+
 
 def get_palette_image(color: discord.Color | int) -> discord.File:
     if isinstance(color, discord.Color):
@@ -66,6 +98,17 @@ def save_rgb_color(itr: discord.Interaction, r: int, g: int, b: int) -> UserColo
     UserColor.add(itr, color)
 
     return UserColorSaveResult(old_color, color)
+
+
+def save_base_color(itr: discord.Interaction, key: str):
+    old_color = UserColor.get(itr)
+    color = BASIC_USER_COLORS.get(key)
+    if color is None:
+        raise ValueError(f"Unknown base-color: `{key}`")
+
+    UserColor.add(itr, color.value)
+
+    return UserColorSaveResult(old_color, color.value)
 
 
 class UserColorFileHandler(JsonHandler[int]):

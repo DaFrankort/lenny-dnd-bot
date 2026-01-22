@@ -68,6 +68,14 @@ def save_rgb_color(itr: discord.Interaction, r: int, g: int, b: int) -> UserColo
     return UserColorSaveResult(old_color, color)
 
 
+def save_role_color(itr: discord.Interaction) -> UserColorSaveResult:
+    old_color = UserColor.get(itr)
+    color = itr.user.color
+    UserColor.add(itr, color.value)
+
+    return UserColorSaveResult(old_color, color.value)
+
+
 class UserColorFileHandler(JsonHandler[int]):
     """Class to handle user colors, which are used in embeds."""
 

@@ -4,7 +4,7 @@ from discord.app_commands import Choice, autocomplete, describe
 from commands.command import BaseCommand, BaseCommandGroup
 from embeds.color import ColorSetEmbed, ColorShowEmbed
 from embeds.embed import SuccessEmbed
-from logic.color import UserColor, save_hex_color, save_rgb_color
+from logic.color import UserColor, save_hex_color, save_rgb_color, save_role_color
 
 
 async def autocomplete_hex_color(itr: discord.Interaction, current: str) -> list[Choice[str]]:
@@ -65,6 +65,7 @@ class ColorSetCommandGroup(BaseCommandGroup):
         super().__init__()
         self.add_command(ColorSetHexCommand())
         self.add_command(ColorSetRGBCommand())
+        self.add_command(ColorSetRoleCommand())
 
 
 class ColorSetHexCommand(BaseCommand):
@@ -106,6 +107,18 @@ class ColorSetRGBCommand(BaseCommand):
         self.log(itr)
         result = save_rgb_color(itr, r, g, b)
         embed = ColorSetEmbed(itr, result, is_hex=False)
+        await itr.response.send_message(embed=embed, file=embed.file, ephemeral=True)
+
+
+class ColorSetRoleCommand(BaseCommand):
+    name = "role"
+    desc = "Set your color to the one of your highest role."
+    help = "Sets your color to match the color of your highest ranking role."
+
+    async def handle(self, itr: discord.Interaction):
+        self.log(itr)
+        result = save_role_color(itr)
+        embed = ColorSetEmbed(itr, result, is_hex=True)
         await itr.response.send_message(embed=embed, file=embed.file, ephemeral=True)
 
 

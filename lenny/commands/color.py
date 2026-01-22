@@ -126,7 +126,7 @@ class ColorSetBaseCommand(BaseCommand):
     async def handle(
         self,
         itr: discord.Interaction,
-        color: str,
+        color: int,
     ):
         self.log(itr)
         result = save_base_color(itr, color)

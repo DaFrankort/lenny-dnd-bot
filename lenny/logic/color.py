@@ -35,10 +35,6 @@ class BasicColors(ChoicedEnum):
     FUCHSIA = discord.Color.fuchsia().value
     GREYPLE = discord.Color.greyple().value
 
-    @classmethod
-    def choices(cls) -> list[discord.app_commands.Choice[str]]:
-        return [discord.app_commands.Choice(name=e.name.replace("_", " ").title(), value=e.name) for e in cls]  # type: ignore
-
 
 def get_palette_image(color: discord.Color | int) -> discord.File:
     if isinstance(color, discord.Color):
@@ -99,9 +95,8 @@ def save_rgb_color(itr: discord.Interaction, r: int, g: int, b: int) -> UserColo
     return UserColorSaveResult(old_color, color)
 
 
-def save_base_color(itr: discord.Interaction, key: str):
+def save_base_color(itr: discord.Interaction, color: int):
     old_color = UserColor.get(itr)
-    color = BasicColors[key].value
     UserColor.add(itr, color)
 
     return UserColorSaveResult(old_color, color)

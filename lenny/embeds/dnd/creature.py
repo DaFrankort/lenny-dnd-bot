@@ -15,7 +15,9 @@ class CreatureTab(ChoicedEnum):
 
 class CreatureTabButton(discord.ui.Button):  # type: ignore
     def __init__(self, creature: Creature, tab: CreatureTab, current_tab: CreatureTab):
-        super().__init__(label=tab.value, style=discord.ButtonStyle.gray, disabled=(tab == current_tab))
+        selected = tab == current_tab
+        style = discord.ButtonStyle.gray if not selected else discord.ButtonStyle.blurple
+        super().__init__(label=tab.value, style=style, disabled=selected)
         self.creature = creature
         self.tab = tab
 
@@ -33,6 +35,18 @@ class CreatureTabActionRow(discord.ui.ActionRow):  # type: ignore
             if tab is CreatureTab.DEFAULT:
                 continue
 
+            if tab is CreatureTab.DETAILS and (not creature.details and not creature.stats):
+                continue
+
+            if tab is CreatureTab.TRAITS and not creature.traits:
+                continue
+
+            if tab is CreatureTab.ACTIONS and (not creature.actions and not creature.bonus_actions):
+                continue
+
+            if tab is CreatureTab.INFO and not creature.description:
+                continue
+
             self.add_item(CreatureTabButton(creature=creature, tab=tab, current_tab=current_tab))
 
 
@@ -47,21 +61,23 @@ class CreatureLayoutView(BaseLayoutView):
         if creature.summoned_by_class:
             self.add_field(name="Summoned by class", value=creature.summoned_by_class)
 
-        if creature.description:
-            ...
-
         if creature.is_summonable:
             self.container.add_item(CreatureTabActionRow(creature=creature, current_tab=tab))  # type: ignore
 
         match tab:
             case CreatureTab.DETAILS:
-                self.add_field(name="hi", value="detail")
+                self.add_description_fields(creature, creature.stats)
+                self.add_description_fields(creature, creature.details)
+
             case CreatureTab.TRAITS:
-                self.add_field(name="hi", value="traits")
+                self.add_description_fields(creature, creature.traits)
+
             case CreatureTab.ACTIONS:
-                self.add_field(name="hi", value="actions")
+                self.add_description_fields(creature, creature.actions)
+
             case CreatureTab.INFO:
-                self.add_field(name="hi", value="info")
+                self.add_description_fields(creature, creature.description)
+
             case _:
                 ...
 

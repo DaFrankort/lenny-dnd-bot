@@ -1,9 +1,12 @@
+import logging
 from typing import Any
 
 import discord
 
 from components.items import TitleTextDisplay
+from embeds.dnd.abstract import build_list
 from logic.color import UserColor
+from logic.dnd.abstract import Description, DNDEntry, build_table
 
 
 class BaseEmbed(discord.Embed):
@@ -76,3 +79,53 @@ class BaseLayoutView(discord.ui.LayoutView):
 
     def build(self):
         self.add_item(self.container)
+
+    def add_description_fields(
+        self,
+        entry: DNDEntry,
+        descriptions: list[Description],
+        ignore_tables: bool = False,
+        char_field_limit: int = 1024,
+        char_embed_limit: int = 6000,
+        max_components: int = 25,
+    ):
+        char_field_limit = min(char_field_limit, 1024)
+        char_embed_limit = min(char_embed_limit, 6000)
+        max_components = min(max_components, 25)
+
+        char_count = 5000  # TODO
+        entry_type = entry.entry_type
+        for description in descriptions:
+            if (len(self.container.children)) >= max_components:
+                logging.debug(
+                    "%s - Max component count reached! %d >= %d", entry_type, len(self.container.children), max_components
+                )
+                break
+
+            name = description["name"]
+
+            if description["type"] == "text":
+                value = description["value"]
+            elif description["type"] == "table":
+                if ignore_tables:
+                    value = ""
+                else:
+                    value = build_table(description["table"])
+            elif description["type"] == "list":
+                value = build_list(entry, description["list"], char_field_limit)
+            else:
+                value = ""
+
+            field_length = len(name) + len(value)
+            if field_length >= char_field_limit:
+                logging.debug(
+                    "%s - Field character limit reached! %d >= %d", entry_type.upper(), field_length, char_field_limit
+                )
+                continue  # TODO split field to fit, possibly concatenate descriptions to make optimal use of field-limits
+
+            char_count += field_length
+            if char_count >= char_embed_limit:
+                logging.debug("%s - Embed character limit reached! %d >= %d", entry_type.upper(), char_count, char_embed_limit)
+                break  # TODO Cut description short and add a message
+
+            self.add_field(name=name, value=value)

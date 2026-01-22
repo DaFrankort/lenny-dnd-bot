@@ -9,8 +9,8 @@ class Creature(DNDEntry):
     summoned_by_class: str | None
     token_url: str | None
     description: list[Description]
-    stats: Description
-    details: Description
+    stats: list[Description]  # TODO, Make list in backend instead of in frontend
+    details: list[Description]  # TODO, Make list in backend instead of in frontend
     traits: list[Description]
     actions: list[Description]
     bonus_actions: list[Description]
@@ -31,8 +31,8 @@ class Creature(DNDEntry):
         self.select_description = self.subtitle
 
         # Currently only summonable creatures require this data.
-        self.stats = obj["stats"] if self.is_summonable else []  # type: ignore
-        self.details = obj["details"] if self.is_summonable else []  # type: ignore
+        self.stats = [obj["stats"]] if self.is_summonable else []  # type: ignore
+        self.details = [obj["details"]] if self.is_summonable else []  # type: ignore
         self.traits = obj["traits"] if self.is_summonable else []  # type: ignore
         self.actions = obj["actions"] if self.is_summonable else []  # type: ignore
         self.bonus_actions = obj["bonusActions"] if self.is_summonable else []  # type: ignore

@@ -38,7 +38,7 @@ BASIC_USER_COLORS = {
 
 
 def get_basic_user_color_choices() -> list[discord.app_commands.Choice[str]]:
-    return [discord.app_commands.Choice(name=clr, value=clr) for clr in BASIC_USER_COLORS.keys()][:25]
+    return [discord.app_commands.Choice(name=clr, value=clr) for clr in BASIC_USER_COLORS][:25]
 
 
 def get_palette_image(color: discord.Color | int) -> discord.File:

@@ -18,7 +18,7 @@ from commands.command import BaseCommand, BaseCommandGroup
 from commands.tokengen import AlignH, AlignV
 from embeds.dnd.class_ import ClassEmbed
 from logic.charactergen import class_choices, species_choices
-from logic.color import BASIC_USER_COLORS
+from logic.color import BasicColors
 from logic.config import Config, ConfigHandler
 from logic.dnd.abstract import DNDEntry, DNDEntryList
 from logic.dnd.data import Data
@@ -94,7 +94,7 @@ SLASH_COMMAND_TESTS: Iterable[Iterable[Any]] = [
     ),
     (
         "color set base",
-        {"color": next(iter(BASIC_USER_COLORS))},
+        {"color": BasicColors.BLUE},
     ),
     ("color show", {}),
     ("color clear", {}),  # Run clear last, to remove useless data from files.
@@ -310,10 +310,6 @@ class TestBotCommands:
             (
                 "color set hex",
                 {"hex_color": "Green"},
-            ),
-            (
-                "color set base",
-                {"hex_color": "#00ff00"},
             ),
             (
                 "playsound",

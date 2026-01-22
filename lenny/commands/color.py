@@ -5,8 +5,8 @@ from commands.command import BaseCommand, BaseCommandGroup
 from embeds.color import ColorSetEmbed, ColorShowEmbed
 from embeds.embed import SuccessEmbed
 from logic.color import (
+    BasicColors,
     UserColor,
-    get_basic_user_color_choices,
     save_base_color,
     save_hex_color,
     save_rgb_color,
@@ -121,10 +121,8 @@ class ColorSetBaseCommand(BaseCommand):
     desc = "Select a preferred color from a list of basic colors."
     help = "Set a custom color for yourself by selecting a basic color."
 
-    @describe(
-        color="The color you'd like to use for display.",
-    )
-    @choices(color=get_basic_user_color_choices())
+    @describe(color="The color you'd like to use for display.")
+    @choices(color=BasicColors.choices())
     async def handle(
         self,
         itr: discord.Interaction,

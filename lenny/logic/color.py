@@ -6,39 +6,38 @@ import discord
 from PIL import Image, ImageDraw
 
 from logic.jsonhandler import JsonHandler
-from methods import FontType, get_font, when
-
-BASIC_USER_COLORS = {
-    "Red": discord.Color.red(),
-    "Dark Red": discord.Color.dark_red(),
-    "Brand Red": discord.Color.brand_red(),
-    "Orange": discord.Color.orange(),
-    "Dark Orange": discord.Color.dark_orange(),
-    "Gold": discord.Color.gold(),
-    "Dark Gold": discord.Color.dark_gold(),
-    "Yellow": discord.Color.yellow(),
-    "Green": discord.Color.green(),
-    "Dark Green": discord.Color.dark_green(),
-    "Brand Green": discord.Color.brand_green(),
-    "Teal": discord.Color.teal(),
-    "Dark Teal": discord.Color.dark_teal(),
-    "Blue": discord.Color.blue(),
-    "Dark Blue": discord.Color.dark_blue(),
-    "Blurple": discord.Color.blurple(),
-    "OG Blurple": discord.Color.og_blurple(),
-    "Purple": discord.Color.purple(),
-    "Dark Purple": discord.Color.dark_purple(),
-    "Magenta": discord.Color.magenta(),
-    "Dark Magenta": discord.Color.dark_magenta(),
-    "Pink": discord.Color.pink(),
-    "Fuchsia": discord.Color.fuchsia(),
-    "Greyple": discord.Color.greyple(),
-    # Can't have more than 25 colors!
-}
+from methods import ChoicedEnum, FontType, get_font, when
 
 
-def get_basic_user_color_choices() -> list[discord.app_commands.Choice[str]]:
-    return [discord.app_commands.Choice(name=clr, value=clr) for clr in BASIC_USER_COLORS][:25]
+class BasicColors(ChoicedEnum):
+    RED = discord.Color.red().value
+    DARK_RED = discord.Color.dark_red().value
+    BRAND_RED = discord.Color.brand_red().value
+    ORANGE = discord.Color.orange().value
+    DARK_ORANGE = discord.Color.dark_orange().value
+    GOLD = discord.Color.gold().value
+    DARK_GOLD = discord.Color.dark_gold().value
+    YELLOW = discord.Color.yellow().value
+    GREEN = discord.Color.green().value
+    DARK_GREEN = discord.Color.dark_green().value
+    BRAND_GREEN = discord.Color.brand_green().value
+    TEAL = discord.Color.teal().value
+    DARK_TEAL = discord.Color.dark_teal().value
+    BLUE = discord.Color.blue().value
+    DARK_BLUE = discord.Color.dark_blue().value
+    BLURPLE = discord.Color.blurple().value
+    OG_BLURPLE = discord.Color.og_blurple().value
+    PURPLE = discord.Color.purple().value
+    DARK_PURPLE = discord.Color.dark_purple().value
+    MAGENTA = discord.Color.magenta().value
+    DARK_MAGENTA = discord.Color.dark_magenta().value
+    PINK = discord.Color.pink().value
+    FUCHSIA = discord.Color.fuchsia().value
+    GREYPLE = discord.Color.greyple().value
+
+    @classmethod
+    def choices(cls) -> list[discord.app_commands.Choice[str]]:
+        return [discord.app_commands.Choice(name=e.name.replace("_", " ").title(), value=e.name) for e in cls]  # type: ignore
 
 
 def get_palette_image(color: discord.Color | int) -> discord.File:
@@ -102,13 +101,10 @@ def save_rgb_color(itr: discord.Interaction, r: int, g: int, b: int) -> UserColo
 
 def save_base_color(itr: discord.Interaction, key: str):
     old_color = UserColor.get(itr)
-    color = BASIC_USER_COLORS.get(key)
-    if color is None:
-        raise ValueError(f"Unknown base-color: `{key}`")
+    color = BasicColors[key].value
+    UserColor.add(itr, color)
 
-    UserColor.add(itr, color.value)
-
-    return UserColorSaveResult(old_color, color.value)
+    return UserColorSaveResult(old_color, color)
 
 
 class UserColorFileHandler(JsonHandler[int]):

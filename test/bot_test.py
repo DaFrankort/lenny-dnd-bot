@@ -94,7 +94,7 @@ SLASH_COMMAND_TESTS: Iterable[Iterable[Any]] = [
     ),
     (
         "color set base",
-        {"color": BasicColors.BLUE},
+        {"color": [BasicColors.RED.name, BasicColors.BLUE.name, BasicColors.GREEN.name]},
     ),
     ("color show", {}),
     ("color clear", {}),  # Run clear last, to remove useless data from files.

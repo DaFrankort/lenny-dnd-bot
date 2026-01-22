@@ -6,7 +6,34 @@ import discord
 from PIL import Image, ImageDraw
 
 from logic.jsonhandler import JsonHandler
-from methods import FontType, get_font, when
+from methods import ChoicedEnum, FontType, get_font, when
+
+
+class BasicColors(ChoicedEnum):
+    RED = discord.Color.red().value
+    DARK_RED = discord.Color.dark_red().value
+    BRAND_RED = discord.Color.brand_red().value
+    ORANGE = discord.Color.orange().value
+    DARK_ORANGE = discord.Color.dark_orange().value
+    GOLD = discord.Color.gold().value
+    DARK_GOLD = discord.Color.dark_gold().value
+    YELLOW = discord.Color.yellow().value
+    GREEN = discord.Color.green().value
+    DARK_GREEN = discord.Color.dark_green().value
+    BRAND_GREEN = discord.Color.brand_green().value
+    TEAL = discord.Color.teal().value
+    DARK_TEAL = discord.Color.dark_teal().value
+    BLUE = discord.Color.blue().value
+    DARK_BLUE = discord.Color.dark_blue().value
+    BLURPLE = discord.Color.blurple().value
+    OG_BLURPLE = discord.Color.og_blurple().value
+    PURPLE = discord.Color.purple().value
+    DARK_PURPLE = discord.Color.dark_purple().value
+    MAGENTA = discord.Color.magenta().value
+    DARK_MAGENTA = discord.Color.dark_magenta().value
+    PINK = discord.Color.pink().value
+    FUCHSIA = discord.Color.fuchsia().value
+    GREYPLE = discord.Color.greyple().value
 
 
 def get_palette_image(color: discord.Color | int) -> discord.File:
@@ -63,6 +90,13 @@ def save_hex_color(itr: discord.Interaction, hex_color: str) -> UserColorSaveRes
 def save_rgb_color(itr: discord.Interaction, r: int, g: int, b: int) -> UserColorSaveResult:
     old_color = UserColor.get(itr)
     color = discord.Color.from_rgb(r, g, b).value
+    UserColor.add(itr, color)
+
+    return UserColorSaveResult(old_color, color)
+
+
+def save_base_color(itr: discord.Interaction, color: int):
+    old_color = UserColor.get(itr)
     UserColor.add(itr, color)
 
     return UserColorSaveResult(old_color, color)

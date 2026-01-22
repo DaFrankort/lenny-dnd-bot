@@ -158,6 +158,7 @@ Optionally adjust the frame's color with `hue-shift` (default: gold), control im
 Commands that resemble user-actions are highlighted with colors that are unique per user. This makes it easy to discern different user's actions.
 By default the user's color is automatically generated based on their display name. Users can adjust their colors using following commands:
 
+- `/color set base <color>` - Set your color from a selection of basic colors.
 - `/color set hex <hex_color>` - Set your color using a hexadecimal color value.
 - `/color set rgb <r> <g> <b>` - Set your color using a RGB value.
 - `/color clear` - Clears your set color and enforces use of an auto-generated color.

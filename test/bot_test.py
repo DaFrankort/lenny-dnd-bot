@@ -18,6 +18,7 @@ from commands.command import BaseCommand, BaseCommandGroup
 from commands.tokengen import AlignH, AlignV
 from embeds.dnd.class_ import ClassEmbed
 from logic.charactergen import class_choices, species_choices
+from logic.color import BasicColors
 from logic.config import Config, ConfigHandler
 from logic.dnd.abstract import DNDEntry, DNDEntryList
 from logic.dnd.data import Data
@@ -90,6 +91,10 @@ SLASH_COMMAND_TESTS: Iterable[Iterable[Any]] = [
     (
         "color set rgb",
         {"r": [255, 0], "g": [255, 0], "b": [255, 0]},
+    ),
+    (
+        "color set base",
+        {"color": [BasicColors.RED.value, BasicColors.BLUE.value, BasicColors.GREEN.value]},
     ),
     ("color show", {}),
     ("color clear", {}),  # Run clear last, to remove useless data from files.

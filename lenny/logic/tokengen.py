@@ -155,7 +155,7 @@ def _apply_background(
         bg = Image.new("RGBA", image.size, (255, 255, 255, 255))
 
     elif bg_type.value == BackgroundType.FANCY.value:
-        bg = TOKEN_BG.copy()
+        bg = TOKEN_BG.copy().resize(image.size)
 
     else:
         raise ValueError(f"Unknown background-type: {bg_type.name.title()}")

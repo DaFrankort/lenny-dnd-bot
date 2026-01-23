@@ -9,11 +9,15 @@ class Stats:
     """Class for rolling character-stats in D&D 5e."""
 
     stats: list[tuple[list[int], int]]
+    min_total: int
+    roll_count: int
 
     def __init__(self, min_total: int = -1) -> None:
-        for _ in range(256):
+        self.min_total = min_total
+        for i in range(256):
             self.stats = [self.roll_stat() for _ in range(6)]
             if self.total >= min_total:
+                self.roll_count = i
                 return
         raise ValueError(
             f"Could not generate stats with a minimum total of {min_total}.\n"

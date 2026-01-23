@@ -20,6 +20,12 @@ class StatsEmbed(UserActionEmbed):
 
         super().__init__(itr, title, description)
 
+        if self.stats.min_total > 0:
+            footer = f"Minimum Total: {self.stats.min_total}\nSucceeded after {self.stats.roll_count} reroll"
+            if self.stats.roll_count != 1:
+                footer += "s"
+            self.set_footer(text=f"{footer}.")
+
     def get_title(self) -> str:
         return f"Rolling stats for {self.itr.user.display_name}"
 

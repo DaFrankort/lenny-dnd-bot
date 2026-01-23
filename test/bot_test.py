@@ -5,6 +5,7 @@ import pytest
 
 # Required to mark the library as essential for testing in our workflows
 import pytest_asyncio  # noqa: F401 # type: ignore
+from logic.tokengen import BackgroundType
 from utils.mocking import (
     MockDirectMessageInteraction,
     MockImage,
@@ -111,6 +112,7 @@ SLASH_COMMAND_TESTS: Iterable[Iterable[Any]] = [
             {"image": MockImage(), "h_alignment": AlignH.values()},
             {"image": MockImage(), "v_alignment": AlignV.values()},
             {"image": MockImage(), "variants": [0, 3, 10]},
+            {"image": MockImage(), "background_type": BackgroundType.values()},
         ],
     ),
     (
@@ -121,6 +123,7 @@ SLASH_COMMAND_TESTS: Iterable[Iterable[Any]] = [
             {"url": MockImage().url, "h_alignment": AlignH.values()},
             {"url": MockImage().url, "v_alignment": AlignV.values()},
             {"url": MockImage().url, "variants": [0, 3, 10]},
+            {"url": MockImage().url, "background_type": BackgroundType.values()},
         ],
     ),
     ("initiative", {}),

@@ -29,6 +29,7 @@ class TokenGenCommand(BaseCommand):
     @describe(
         image="The image to turn into a token.",
         frame_hue="Hue shift to apply to the token-frame (Gold: 0 | Red: -30 | Blue: 180 | Green: 80).",
+        background_type="For transparent images; choose what type of background you'd like to apply.",
         h_alignment="Horizontal alignment for the token image.",
         v_alignment="Vertical alignment for the token image.",
         variants="Create many tokens with label-numbers.",
@@ -66,6 +67,7 @@ class TokenGenUrlCommand(BaseCommand):
     @describe(
         url="The image-url to generate a token from.",
         frame_hue="Hue shift to apply to the token-frame (Gold: 0 | Red: -30 | Blue: 180 | Green: 80).",
+        background_type="For transparent images; choose what type of background you'd like to apply.",
         h_alignment="Horizontal alignment for the token image.",
         v_alignment="Vertical alignment for the token image.",
         variants="Create many tokens with label-numbers.",

@@ -197,6 +197,7 @@ class HelpTabList:
                     "There are a few options to adjust the way a token image is generated, by default it will provide a golden border and center the provided image.",
                     "However you can use the following options to adjust the way the token is generated:",
                     "- ``hue-shift`` - Allows you to shift the color of the token's border, this is a number between -360 and 360. By default a shift of 0 is used, which results in a golden border.",
+                    "- ``background_type`` - Only affects transparent images. Allows you to set either a fancy red background, pure white, or transparent background.",
                     "- ``h_alignment`` - Adjusts the horizontal alignment of the image, this can be `left`, `center`, `right`, or `face`.",
                     "- ``v_alignment`` - Adjusts the vertical alignment of the image, this can be `top`, `center`, `bottom`, or `face`.",
                     "- ``variants`` - Creates up to 10 variants of the token image, to easily discern similar tokens from each other.",

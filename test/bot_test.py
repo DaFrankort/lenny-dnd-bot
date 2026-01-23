@@ -5,7 +5,6 @@ import pytest
 
 # Required to mark the library as essential for testing in our workflows
 import pytest_asyncio  # noqa: F401 # type: ignore
-from logic.tokengen import BackgroundType
 from utils.mocking import (
     MockDirectMessageInteraction,
     MockImage,
@@ -25,6 +24,7 @@ from logic.dnd.abstract import DNDEntry, DNDEntryList
 from logic.dnd.data import Data
 from logic.dnd.name import Gender
 from logic.roll import Advantage
+from logic.tokengen import BackgroundType
 
 SLASH_COMMAND_TESTS: Iterable[Iterable[Any]] = [
     (

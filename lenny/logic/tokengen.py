@@ -9,7 +9,7 @@ import aiohttp
 import cv2
 import discord
 import numpy as np
-from PIL import Image, ImageDraw, UnidentifiedImageError
+from PIL import Image, ImageDraw, UnidentifiedImageError, ImageChops
 
 from methods import ChoicedEnum, FontType, get_font
 
@@ -203,12 +203,16 @@ def _crop_image_and_apply_background(
     mask = Image.new("L", (inner_width, inner_height), 0)
     draw = ImageDraw.Draw(mask)
     draw.ellipse((0, 0, inner_width, inner_height), fill=255)
-    image.putalpha(mask)
+
+    # Combine alphas
+    original_alpha = image.getchannel("A")
+    combined_alpha = ImageChops.multiply(original_alpha, mask)
+    image.putalpha(combined_alpha)
 
     # Paste onto transparent background of full token size
-    background = Image.new("RGBA", (width, height), (0, 0, 0, 0))
-    background.paste(image, (inset, inset), image)
-    return background
+    result = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+    result.paste(image, (inset, inset), image)
+    return result
 
 
 def _shift_hue(image: Image.Image, hue: int) -> Image.Image:

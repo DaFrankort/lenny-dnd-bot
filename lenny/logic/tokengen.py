@@ -9,7 +9,7 @@ import aiohttp
 import cv2
 import discord
 import numpy as np
-from PIL import Image, ImageDraw, UnidentifiedImageError, ImageChops
+from PIL import Image, ImageChops, ImageDraw, UnidentifiedImageError
 
 from methods import ChoicedEnum, FontType, get_font
 
@@ -147,21 +147,15 @@ def _squarify_image(image: Image.Image, h_align: AlignH, v_align: AlignV) -> Ima
 def _apply_background(
     image: Image.Image,
     bg_type: BackgroundType,
-    hue: int,
 ) -> Image.Image:
-    print(bg_type)
     if bg_type.value == BackgroundType.TRANSPARENT.value:
-        print("trans")
         bg = Image.new("RGBA", image.size, (0, 0, 0, 0))
 
     elif bg_type.value == BackgroundType.WHITE.value:
-        print("white")
         bg = Image.new("RGBA", image.size, (255, 255, 255, 255))
 
     elif bg_type.value == BackgroundType.FANCY.value:
-        print("fancy")
-        bg = _shift_hue(TOKEN_BG, hue).resize(image.size)
-        bg = _shift_hue(bg, hue)
+        bg = TOKEN_BG.copy()
 
     else:
         raise ValueError(f"Unknown background-type: {bg_type.name.title()}")
@@ -172,7 +166,6 @@ def _apply_background(
 
 def _crop_image_and_apply_background(
     image: Image.Image,
-    hue: int,
     bg_type: BackgroundType,
     h_align: AlignH,
     v_align: AlignV,
@@ -197,7 +190,7 @@ def _crop_image_and_apply_background(
     inner_height = height - 2 * inset
     image = image.resize((inner_width, inner_height), Image.Resampling.LANCZOS)
 
-    image = _apply_background(image=image, bg_type=bg_type, hue=hue)
+    image = _apply_background(image=image, bg_type=bg_type)
 
     # Apply circular mask
     mask = Image.new("L", (inner_width, inner_height), 0)
@@ -249,7 +242,7 @@ def generate_token_image(
     h_align: AlignH = AlignH.CENTER,
     v_align: AlignV = AlignV.CENTER,
 ) -> Image.Image:
-    inner = _crop_image_and_apply_background(image, hue, bg_type, h_align, v_align, TOKEN_FRAME.size)
+    inner = _crop_image_and_apply_background(image, bg_type, h_align, v_align, TOKEN_FRAME.size)
     frame = _shift_hue(TOKEN_FRAME, hue)
     return Image.alpha_composite(inner, frame)
 

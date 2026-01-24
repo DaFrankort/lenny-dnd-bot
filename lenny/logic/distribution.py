@@ -19,6 +19,8 @@ class DistributionResult:
     advantage: Advantage
     mean: float
     stdev: float
+    min: int
+    max: int
     min_to_beat: tuple[float, float] | None
 
 
@@ -101,6 +103,15 @@ def distribution(
         stdev = dist.stdev()
         chart = _distribution_chart(dist, color, min_to_beat)
 
-        return DistributionResult(expression, chart, advantage, mean, stdev, min_to_beat_and_odds)
+        return DistributionResult(
+            expression=expression,
+            chart=chart,
+            advantage=advantage,
+            mean=mean,
+            stdev=stdev,
+            min=dist.min(),
+            max=dist.max(),
+            min_to_beat=min_to_beat_and_odds,
+        )
     except Exception as exception:
         raise exception

@@ -64,7 +64,7 @@ class FavoritesAddCommand(BaseCommand):
         for entry in entries:
             if entry.title == name:
                 FavoritesCache.get(itr).store(entry)
-                await itr.response.send_message(f"Added ``{entry.title}``")
+                await itr.response.send_message(f"➕ Added ``{entry.title}`` to favorites!", ephemeral=True)
                 return
         raise ValueError(f"Could not find {name}")
 
@@ -83,4 +83,4 @@ class FavoritesRemoveCommand(BaseCommand):
     async def handle(self, itr: discord.Interaction, name: str):
         self.log(itr)
         FavoritesCache.get(itr).delete(name_to_delete=name)
-        await itr.response.send_message(f"Removed ``{name}``")
+        await itr.response.send_message(f"❌ Removed ``{name}`` from favorites!", ephemeral=True)

@@ -27,6 +27,7 @@ from commands.stats import StatsCommandGroup
 from commands.timestamp import TimestampCommandGroup
 from commands.tokengen import TokenGenCommandGroup
 from context_menus.delete import DeleteContextMenu
+from context_menus.favorites import AddFavoriteContextMenu
 from context_menus.reroll import RerollContextMenu
 from context_menus.timestamp import RequestTimestampContextMenu
 from context_menus.zip_files import ZipAttachmentsContextMenu
@@ -91,6 +92,7 @@ class Bot(discord.Client):
 
         # Context menus
         self.tree.add_command(DeleteContextMenu())
+        self.tree.add_command(AddFavoriteContextMenu())
         self.tree.add_command(RerollContextMenu())
         self.tree.add_command(RequestTimestampContextMenu())
         self.tree.add_command(ZipAttachmentsContextMenu())

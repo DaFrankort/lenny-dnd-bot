@@ -61,14 +61,14 @@ class FavoritesAddCommand(BaseCommand):
         entry = Data.search(name, allowed_sources=sources).get_all()[0]  # TODO MATCH SOURCE
         FavoritesCache.get(itr).store(entry)
 
-        await itr.response.send_message(f"Added {entry.title}")
+        await itr.response.send_message(f"Added ``{entry.title}``")
 
 
 async def favorites_autocomplete(itr: discord.Interaction, current: str) -> list[discord.app_commands.Choice[str]]:
     results: list[discord.app_commands.Choice[str]] = []
     favorites = FavoritesCache.get(itr).get_all_choices()
     for favorite in favorites:
-        if current.replace(" ", "").lower() in favorite.name.replace(" ", "").lower():
+        if current.replace(" ", "").lower() in favorite.name.replace(" ", "").lower():  # TODO, Use fuzzy search logic
             results.append(favorite)
         if len(results) >= 25:
             break
@@ -84,4 +84,5 @@ class FavoritesRemoveCommand(BaseCommand):
     @discord.app_commands.autocomplete(name=favorites_autocomplete)
     async def handle(self, itr: discord.Interaction, name: str):  # type: ignore
         self.log(itr)
-        raise NotImplementedError(f"Sorry! I'm still working on this, I can't add your {name}")
+        FavoritesCache.get(itr).delete(name_to_delete=name)
+        await itr.response.send_message(f"Removed ``{name}``")

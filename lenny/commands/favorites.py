@@ -2,6 +2,7 @@ import discord
 from discord.app_commands import choices
 
 from commands.command import BaseCommand, BaseCommandGroup
+from embeds.favorites import FavoritesLayoutView
 from logic.config import Config
 from logic.dnd.abstract import DNDEntryType, fuzzy_matches_list
 from logic.dnd.data import Data
@@ -28,12 +29,12 @@ class FavoritesViewCommand(BaseCommand):
     async def handle(self, itr: discord.Interaction, filter: DNDEntryType | None = None):
         self.log(itr)
         if filter is None:
-            favorites = FavoritesCache.get(itr).get_all_choices()
+            favorites = FavoritesCache.get(itr).get_all()
         else:
-            favorites = FavoritesCache.get(itr).get_choices(filter)
+            favorites = FavoritesCache.get(itr).get(filter)
 
-        msg = "**Here are your favorites:**\n- " + "\n- ".join(f.name for f in favorites)
-        await itr.response.send_message(msg)
+        view = FavoritesLayoutView(favorites)
+        await itr.response.send_message(view=view)
 
 
 async def dnd_entries_autocomplete(itr: discord.Interaction, current: str) -> list[discord.app_commands.Choice[str]]:

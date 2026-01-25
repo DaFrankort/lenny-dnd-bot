@@ -2,9 +2,8 @@ import discord
 from discord.app_commands import choices
 
 from commands.command import BaseCommand, BaseCommandGroup
-from commands.search import item_name_autocomplete, spell_name_autocomplete
 from logic.config import Config
-from logic.dnd.abstract import DNDEntryType
+from logic.dnd.abstract import DNDEntryType, fuzzy_matches_list
 from logic.dnd.data import Data
 from logic.favorites import FavoritesCache
 
@@ -38,15 +37,18 @@ class FavoritesViewCommand(BaseCommand):
 
 
 async def dnd_entries_autocomplete(itr: discord.Interaction, current: str) -> list[discord.app_commands.Choice[str]]:
+    if current.strip() == "":
+        return []
+    sources = Config.get(itr).allowed_sources
+    entries = Data.search(current, sources)
     results: list[discord.app_commands.Choice[str]] = []
-    autocompletes = [spell_name_autocomplete, item_name_autocomplete]  # TODO Add all in a better way than this.
 
-    for autocomplete in autocompletes:
-        results += await autocomplete(itr, current)
+    for entry in entries.get_all_sorted():
+        results.append(discord.app_commands.Choice(name=entry.title, value=entry.title))
         if len(results) > 25:
             break
 
-    return results[:25]
+    return results[:25][::-1]
 
 
 class FavoritesAddCommand(BaseCommand):
@@ -58,22 +60,18 @@ class FavoritesAddCommand(BaseCommand):
     async def handle(self, itr: discord.Interaction, name: str):
         self.log(itr)
         sources = Config.get(itr).allowed_sources
-        entry = Data.search(name, allowed_sources=sources).get_all()[0]  # TODO MATCH SOURCE
-        FavoritesCache.get(itr).store(entry)
-
-        await itr.response.send_message(f"Added ``{entry.title}``")
+        entries = Data.search(name, sources, 95).get_all()
+        for entry in entries:
+            if entry.title == name:
+                FavoritesCache.get(itr).store(entry)
+                await itr.response.send_message(f"Added ``{entry.title}``")
+                return
+        raise ValueError(f"Could not find {name}")
 
 
 async def favorites_autocomplete(itr: discord.Interaction, current: str) -> list[discord.app_commands.Choice[str]]:
-    results: list[discord.app_commands.Choice[str]] = []
-    favorites = FavoritesCache.get(itr).get_all_choices()
-    for favorite in favorites:
-        if current.replace(" ", "").lower() in favorite.name.replace(" ", "").lower():  # TODO, Use fuzzy search logic
-            results.append(favorite)
-        if len(results) >= 25:
-            break
-
-    return results[:25]
+    favorites = FavoritesCache.get(itr).get_all()
+    return [match.choice for match in fuzzy_matches_list(current, favorites)][:25]
 
 
 class FavoritesRemoveCommand(BaseCommand):
@@ -82,7 +80,7 @@ class FavoritesRemoveCommand(BaseCommand):
     help = "Removes a D&D entry from your favorites."
 
     @discord.app_commands.autocomplete(name=favorites_autocomplete)
-    async def handle(self, itr: discord.Interaction, name: str):  # type: ignore
+    async def handle(self, itr: discord.Interaction, name: str):
         self.log(itr)
         FavoritesCache.get(itr).delete(name_to_delete=name)
         await itr.response.send_message(f"Removed ``{name}``")

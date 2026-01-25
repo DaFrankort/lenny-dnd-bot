@@ -26,12 +26,12 @@ class FavoritesViewCommand(BaseCommand):
     help = "Manage and view your favorite D&D entries."
 
     @choices(filter=DNDEntryType.choices())
-    async def handle(self, itr: discord.Interaction, filter: DNDEntryType | None = None):
+    async def handle(self, itr: discord.Interaction, type: DNDEntryType | None = None):
         self.log(itr)
-        if filter is None:
+        if type is None:
             favorites = FavoritesCache.get(itr).get_all()
         else:
-            favorites = FavoritesCache.get(itr).get(filter)
+            favorites = FavoritesCache.get(itr).get(type)
 
         view = FavoritesLayoutView(favorites)
         await itr.response.send_message(view=view)

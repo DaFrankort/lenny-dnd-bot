@@ -7,7 +7,7 @@ from commands.command import BaseContextMenu
 
 
 class ZipAttachmentsContextMenu(BaseContextMenu):
-    name = "Zip message files"
+    name = "📂 Zip message files"
     help = "Packs all attachments from a message into one ZIP file, making it faster to download many files."
 
     async def handle(self, interaction: discord.Interaction, message: discord.Message):

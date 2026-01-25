@@ -10,7 +10,7 @@ class BaseEmbed(discord.Embed):
         super().__init__(color=color, title=title, type="rich", url=None, description=None, timestamp=None)
 
         if description:
-            self.add_field(name="", value=description)
+            self.add_field(name="", value=description, inline=False)
 
 
 class SuccessEmbed(BaseEmbed):

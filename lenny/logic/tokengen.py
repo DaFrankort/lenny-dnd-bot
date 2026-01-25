@@ -9,7 +9,7 @@ import aiohttp
 import cv2
 import discord
 import numpy as np
-from PIL import Image, ImageDraw, UnidentifiedImageError
+from PIL import Image, ImageChops, ImageDraw, UnidentifiedImageError
 
 from methods import ChoicedEnum, FontType, get_font
 
@@ -43,6 +43,12 @@ class AlignV(str, ChoicedEnum):
     CENTER = "center"
     BOTTOM = "bottom"
     FACE = "detect face"
+
+
+class BackgroundType(str, ChoicedEnum):
+    FANCY = "fancy"
+    WHITE = "white"
+    TRANSPARENT = "transparent"
 
 
 async def open_image_url(url: str) -> Image.Image | None:
@@ -138,8 +144,29 @@ def _squarify_image(image: Image.Image, h_align: AlignH, v_align: AlignV) -> Ima
     return image
 
 
-def _crop_image(
+def _apply_background(
     image: Image.Image,
+    bg_type: BackgroundType,
+) -> Image.Image:
+    if bg_type.value == BackgroundType.TRANSPARENT.value:
+        bg = Image.new("RGBA", image.size, (0, 0, 0, 0))
+
+    elif bg_type.value == BackgroundType.WHITE.value:
+        bg = Image.new("RGBA", image.size, (255, 255, 255, 255))
+
+    elif bg_type.value == BackgroundType.FANCY.value:
+        bg = TOKEN_BG.copy().resize(image.size)
+
+    else:
+        raise ValueError(f"Unknown background-type: {bg_type.name.title()}")
+
+    bg.paste(image, (0, 0), image)
+    return bg
+
+
+def _crop_image_and_apply_background(
+    image: Image.Image,
+    bg_type: BackgroundType,
     h_align: AlignH,
     v_align: AlignV,
     max_size: tuple[int, int] = (512, 512),
@@ -153,32 +180,32 @@ def _crop_image(
     4. Applying a transparent circular mask to make the image round.
     """
 
-    width_x = max_size[0]
-    width_y = max_size[1]
+    width, height = max_size
 
     # Make square-shaped
     image = _squarify_image(image, h_align, v_align)
 
     # Resize with inset to avoid sticking out of the frame
-    inner_width = width_x - 2 * inset
-    inner_height = width_y - 2 * inset
+    inner_width = width - 2 * inset
+    inner_height = height - 2 * inset
     image = image.resize((inner_width, inner_height), Image.Resampling.LANCZOS)
 
-    # Add white background, for cleaner png-tokens
-    white_bg = Image.new("RGBA", image.size, (255, 255, 255, 255))
-    white_bg.paste(image, (0, 0), image)
-    image = white_bg
+    image = _apply_background(image=image, bg_type=bg_type)
 
     # Apply circular mask
     mask = Image.new("L", (inner_width, inner_height), 0)
     draw = ImageDraw.Draw(mask)
     draw.ellipse((0, 0, inner_width, inner_height), fill=255)
-    image.putalpha(mask)
+
+    # Combine alphas
+    original_alpha = image.getchannel("A")
+    combined_alpha = ImageChops.multiply(original_alpha, mask)
+    image.putalpha(combined_alpha)
 
     # Paste onto transparent background of full token size
-    background = Image.new("RGBA", (width_x, width_y), (0, 0, 0, 0))
-    background.paste(image, (inset, inset), image)
-    return background
+    result = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+    result.paste(image, (inset, inset), image)
+    return result
 
 
 def _shift_hue(image: Image.Image, hue: int) -> Image.Image:
@@ -211,10 +238,11 @@ def _shift_hue(image: Image.Image, hue: int) -> Image.Image:
 def generate_token_image(
     image: Image.Image,
     hue: int,
+    bg_type: BackgroundType,
     h_align: AlignH = AlignH.CENTER,
     v_align: AlignV = AlignV.CENTER,
 ) -> Image.Image:
-    inner = _crop_image(image, h_align, v_align, TOKEN_FRAME.size)
+    inner = _crop_image_and_apply_background(image, bg_type, h_align, v_align, TOKEN_FRAME.size)
     frame = _shift_hue(TOKEN_FRAME, hue)
     return Image.alpha_composite(inner, frame)
 
@@ -331,6 +359,7 @@ async def generate_token_from_file(
     h_alignment: AlignH,
     v_alignment: AlignV,
     variants: int,
+    bg_type: BackgroundType,
 ) -> list[discord.File]:
     if not image.content_type:
         raise ValueError("Unknown attachment type!")
@@ -341,7 +370,7 @@ async def generate_token_from_file(
     if img is None:
         raise ValueError("Could not process image, please try again later or with another image.")
 
-    token_image = generate_token_image(img, frame_hue, h_alignment, v_alignment)
+    token_image = generate_token_image(img, frame_hue, bg_type, h_alignment, v_alignment)
 
     if variants != 0:
         files = generate_token_variants(token_image=token_image, filename_seed=image, amount=variants)
@@ -351,7 +380,12 @@ async def generate_token_from_file(
 
 
 async def generate_token_from_url(
-    url: str, frame_hue: int, h_alignment: AlignH, v_alignment: AlignV, variants: int
+    url: str,
+    frame_hue: int,
+    h_alignment: AlignH,
+    v_alignment: AlignV,
+    variants: int,
+    bg_type: BackgroundType,
 ) -> list[discord.File]:
     if not url.startswith("http"):
         raise ValueError(f"Not a valid URL: '{url}'")
@@ -360,7 +394,7 @@ async def generate_token_from_url(
     if img is None:
         raise ValueError("Could not process image, please provide a valid image-URL.")
 
-    token_image = generate_token_image(img, frame_hue, h_alignment, v_alignment)
+    token_image = generate_token_image(img, frame_hue, bg_type, h_alignment, v_alignment)
 
     if variants != 0:
         files = generate_token_variants(token_image=token_image, filename_seed=url, amount=variants)

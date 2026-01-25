@@ -18,11 +18,13 @@ from commands.command import BaseCommand, BaseCommandGroup
 from commands.tokengen import AlignH, AlignV
 from embeds.dnd.class_ import ClassEmbed
 from logic.charactergen import class_choices, species_choices
+from logic.color import BasicColors
 from logic.config import Config, ConfigHandler
 from logic.dnd.abstract import DNDEntry, DNDEntryList
 from logic.dnd.data import Data
 from logic.dnd.name import Gender
 from logic.roll import Advantage
+from logic.tokengen import BackgroundType
 
 SLASH_COMMAND_TESTS: Iterable[Iterable[Any]] = [
     (
@@ -91,6 +93,10 @@ SLASH_COMMAND_TESTS: Iterable[Iterable[Any]] = [
         "color set rgb",
         {"r": [255, 0], "g": [255, 0], "b": [255, 0]},
     ),
+    (
+        "color set base",
+        {"color": [BasicColors.RED.value, BasicColors.BLUE.value, BasicColors.GREEN.value]},
+    ),
     ("color show", {}),
     ("color clear", {}),  # Run clear last, to remove useless data from files.
     ("stats roll", {}),
@@ -106,6 +112,7 @@ SLASH_COMMAND_TESTS: Iterable[Iterable[Any]] = [
             {"image": MockImage(), "h_alignment": AlignH.values()},
             {"image": MockImage(), "v_alignment": AlignV.values()},
             {"image": MockImage(), "variants": [0, 3, 10]},
+            {"image": MockImage(), "background_type": BackgroundType.values()},
         ],
     ),
     (
@@ -116,6 +123,7 @@ SLASH_COMMAND_TESTS: Iterable[Iterable[Any]] = [
             {"url": MockImage().url, "h_alignment": AlignH.values()},
             {"url": MockImage().url, "v_alignment": AlignV.values()},
             {"url": MockImage().url, "variants": [0, 3, 10]},
+            {"url": MockImage().url, "background_type": BackgroundType.values()},
         ],
     ),
     ("initiative", {}),

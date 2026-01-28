@@ -4,7 +4,7 @@ from commands.command import BaseContextMenu
 
 
 class DeleteContextMenu(BaseContextMenu):
-    name = "Delete message"
+    name = "❌ Delete message"
     help = "Deletes the bot's message, useful for cleaning up accidental searches, spoilers or general bot-clutter."
 
     async def handle(self, interaction: discord.Interaction, message: discord.Message):

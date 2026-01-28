@@ -10,6 +10,7 @@ from commands.charactergen import CharacterGenCommand
 from commands.color import ColorCommandGroup
 from commands.config import ConfigCommand
 from commands.distribution import DistributionCommand
+from commands.favorites import FavoritesCommandGroup
 from commands.help import HelpCommand
 from commands.homebrew import HomebrewCommandGroup
 from commands.initiative import InitiativeCommand
@@ -26,11 +27,13 @@ from commands.stats import StatsCommandGroup
 from commands.timestamp import TimestampCommandGroup
 from commands.tokengen import TokenGenCommandGroup
 from context_menus.delete import DeleteContextMenu
+from context_menus.favorites import AddFavoriteContextMenu
 from context_menus.reroll import RerollContextMenu
 from context_menus.timestamp import RequestTimestampContextMenu
 from context_menus.zip_files import ZipAttachmentsContextMenu
 from logic.config import Config
 from logic.dicecache import DiceCache
+from logic.favorites import FavoritesCache
 from logic.homebrew import HomebrewData
 from logic.searchcache import SearchCache
 from logic.voice_chat import VC, Sounds
@@ -85,9 +88,11 @@ class Bot(discord.Client):
         self.tree.add_command(SearchCommandGroup())
         self.tree.add_command(TimestampCommandGroup())
         self.tree.add_command(HomebrewCommandGroup())
+        self.tree.add_command(FavoritesCommandGroup())
 
         # Context menus
         self.tree.add_command(DeleteContextMenu())
+        self.tree.add_command(AddFavoriteContextMenu())
         self.tree.add_command(RerollContextMenu())
         self.tree.add_command(RequestTimestampContextMenu())
         self.tree.add_command(ZipAttachmentsContextMenu())
@@ -139,3 +144,4 @@ class Bot(discord.Client):
         DiceCache.clear_cache(max_age=900)
         Config.clear_cache(max_age=900)
         SearchCache.clear_cache(max_age=450)
+        FavoritesCache.clear_cache(max_age=450)

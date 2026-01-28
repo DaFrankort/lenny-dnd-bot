@@ -104,7 +104,7 @@ class VC:
             del VC.clients[guild_id]
 
     @staticmethod
-    async def play(itr: Interaction, sound_type: SoundType):
+    async def play(itr: Interaction, sound_type: SoundType, force_stop: bool = False):
         """Play an audio file in the voice channel."""
         if not VC.voice_available:
             return
@@ -121,14 +121,17 @@ class VC:
         if not client:
             return
 
-        retries = 0
-        while client.is_playing():
-            # We queue sounds for 3 seconds, to prevent abrupt sound cuts
-            if retries >= 30:
-                client.stop()
-                break
-            await asyncio.sleep(0.1)
-            retries += 1
+        if force_stop:
+            client.stop()
+        else:
+            retries = 0
+            while client.is_playing():
+                # We queue sounds for 3 seconds, to prevent abrupt sound cuts
+                if retries >= 30:
+                    client.stop()
+                    break
+                await asyncio.sleep(0.1)
+                retries += 1
 
         sound = Sounds.get(sound_type)
         if sound:

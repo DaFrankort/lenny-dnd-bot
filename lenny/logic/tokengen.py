@@ -1,5 +1,4 @@
 import io
-import logging
 import math
 import os
 import time
@@ -9,7 +8,7 @@ import aiohttp
 import cv2
 import discord
 import numpy as np
-from PIL import Image, ImageChops, ImageDraw, UnidentifiedImageError
+from PIL import Image, ImageChops, ImageDraw, ImageSequence, UnidentifiedImageError
 
 from methods import ChoicedEnum, FontType, get_font
 
@@ -56,18 +55,13 @@ async def open_image_url(url: str) -> Image.Image | None:
         async with session.get(url) as resp:
             if resp.status != 200:
                 return None
-            content_type = resp.headers.get("Content-Type", "")
-            if not content_type.startswith("image/"):
-                return None
             image_bytes = await resp.read()
 
     try:
-        base_image = Image.open(io.BytesIO(image_bytes)).convert("RGBA")
-    except UnidentifiedImageError as exc:
-        logging.error(exc)
+        # DO NOT .convert("RGBA") here; it flattens animations
+        return Image.open(io.BytesIO(image_bytes))
+    except UnidentifiedImageError:
         return None
-
-    return base_image
 
 
 async def open_image(image: discord.Attachment) -> Image.Image | None:
@@ -77,12 +71,7 @@ async def open_image(image: discord.Attachment) -> Image.Image | None:
                 return None
             image_bytes = await resp.read()
 
-    base_image = Image.open(io.BytesIO(image_bytes)).convert("RGBA")
-
-    if not base_image:
-        return None
-
-    return base_image
+    return Image.open(io.BytesIO(image_bytes))
 
 
 def _detect_face_center(image: Image.Image) -> tuple[int, int]:
@@ -245,14 +234,35 @@ def generate_token_image(
     bg_type: BackgroundType,
     h_align: AlignH = AlignH.CENTER,
     v_align: AlignV = AlignV.CENTER,
-) -> Image.Image:
-    inner = _crop_image_and_apply_background(image, bg_type, h_align, v_align, TOKEN_FRAME.size)
-    frame = _shift_hue(TOKEN_FRAME, hue)
-    return Image.alpha_composite(inner, frame)
+) -> list[Image.Image]:
+    processed_frames: list[Image.Image] = []
+
+    # Pre-shift the border once to save performance
+    shifted_frame = _shift_hue(TOKEN_FRAME, hue)
+
+    # Calculate the crop box once using the first frame
+    # to prevent "jittery" movement in the animation.
+    # first_frame_rgba = image.convert("RGBA")
+    # We create a temporary square version to get the crop coordinates
+    # (Refactoring _squarify to return the box is ideal, but for now we process frame 1)
+
+    for frame in ImageSequence.Iterator(image):
+        # Process each frame individually
+        curr_frame = frame.convert("RGBA")
+
+        # Apply the crop/mask logic
+        inner = _crop_image_and_apply_background(curr_frame, bg_type, h_align, v_align, TOKEN_FRAME.size)
+
+        # Merge with the border
+        combined = Image.alpha_composite(inner, shifted_frame)
+        processed_frames.append(combined)
+
+    return processed_frames
 
 
-def _get_filename(name: str, token_id: int) -> str:
-    return f"{name}_token_{int(time.time())}_{token_id}.png"
+def _get_filename(name: str, token_id: int, is_animated: bool = False) -> str:
+    ext = "webp" if is_animated else "png"
+    return f"{name}_token_{int(time.time())}_{token_id}.{ext}"
 
 
 def generate_token_url_filename(url: str, token_id: int = 0) -> str:
@@ -265,22 +275,45 @@ def generate_token_filename(base_image: discord.Attachment, token_id: int = 0) -
     return _get_filename(filename, token_id)
 
 
-def image_to_bytesio(image: Image.Image) -> io.BytesIO:
+def image_to_bytesio(images: list[Image.Image], original_image: Image.Image | None = None) -> io.BytesIO:
     output = io.BytesIO()
-    image.save(output, format="PNG")
+
+    if len(images) == 1:
+        images[0].save(output, format="PNG")
+    else:
+        # Extract duration from original (milliseconds)
+        dur = 40  # Default 25fps
+        if original_image and "duration" in original_image.info:
+            dur = original_image.info["duration"]
+
+        # Use WebP for animations to support full transparency
+        images[0].save(
+            output,
+            format="WEBP",
+            save_all=True,
+            append_images=images[1:],
+            duration=dur,
+            loop=0,
+            lossless=False,  # Set to True for higher quality/larger file
+            quality=80,
+        )
+
     output.seek(0)
     return output
 
 
 def generate_token_variants(
-    token_image: Image.Image,
+    token_image: list[Image.Image],
     filename_seed: discord.Attachment | str,
     amount: int,
 ) -> list[discord.File]:
+    if len(token_image) > 1:
+        raise ValueError("Sorry! Multiple moving token variants are not supported!")
+    image = token_image[0]
     files: list[discord.File] = []
     for i in range(amount):
         token_id = i + 1
-        labeled_image = add_number_to_tokenimage(token_image=token_image, number=token_id, amount=amount)
+        labeled_image = add_number_to_tokenimage(token_image=image, number=token_id, amount=amount)
         filename = (
             generate_token_url_filename(filename_seed, token_id)
             if isinstance(filename_seed, str)
@@ -288,7 +321,7 @@ def generate_token_variants(
         )
         files.append(
             discord.File(
-                fp=image_to_bytesio(labeled_image),
+                fp=image_to_bytesio([labeled_image]),
                 filename=filename,
             )
         )
@@ -379,7 +412,10 @@ async def generate_token_from_file(
     if variants != 0:
         files = generate_token_variants(token_image=token_image, filename_seed=image, amount=variants)
         return files
-    file = discord.File(fp=image_to_bytesio(token_image), filename=generate_token_filename(image))
+
+    is_anim = len(token_image) > 1
+    fname = _get_filename(os.path.splitext(image.filename)[0], 0, is_anim)
+    file = discord.File(fp=image_to_bytesio(token_image, img), filename=fname)
     return [file]
 
 

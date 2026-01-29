@@ -405,4 +405,3 @@ async def generate_token_from_url(
         return files
     file = discord.File(fp=image_to_bytesio(token_image), filename=generate_token_url_filename(url))
     return [file]
-

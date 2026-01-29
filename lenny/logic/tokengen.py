@@ -200,8 +200,8 @@ def _crop_image_and_apply_background(
     # Adjust alpha channels
     alpha = mask
     if bg_type is BackgroundType.TRANSPARENT:
-        # If the background is transparent, we want to retain the original transparency of the original image.
-        # With a solid background we don't want this, because it'd give an odd transparency effect where the main image has transparency.
+        # If the background is transparent, we want to retain the transparency of the original image.
+        # With a solid background we don't want this, because it gives an odd effect where the main image transparency is retained over the background.
         original_alpha = image.getchannel("A")
         alpha = ImageChops.multiply(original_alpha, mask)
     image.putalpha(alpha)
@@ -405,3 +405,4 @@ async def generate_token_from_url(
         return files
     file = discord.File(fp=image_to_bytesio(token_image), filename=generate_token_url_filename(url))
     return [file]
+

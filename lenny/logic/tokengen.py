@@ -197,10 +197,14 @@ def _crop_image_and_apply_background(
     draw = ImageDraw.Draw(mask)
     draw.ellipse((0, 0, inner_width, inner_height), fill=255)
 
-    # Combine alphas
-    original_alpha = image.getchannel("A")
-    combined_alpha = ImageChops.multiply(original_alpha, mask)
-    image.putalpha(combined_alpha)
+    # Adjust alpha channels
+    alpha = mask
+    if bg_type is BackgroundType.TRANSPARENT:
+        # If the background is transparent, we want to retain the original transparency of the original image.
+        # With a solid background we don't want this, because it'd give an odd transparency effect where the main image has transparency.
+        original_alpha = image.getchannel("A")
+        alpha = ImageChops.multiply(original_alpha, mask)
+    image.putalpha(alpha)
 
     # Paste onto transparent background of full token size
     result = Image.new("RGBA", (width, height), (0, 0, 0, 0))

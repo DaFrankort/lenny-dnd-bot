@@ -2,6 +2,41 @@ import discord
 
 from components.items import BaseSeparator, TitleTextDisplay
 from components.paginated_view import PaginatedLayoutView
+from embeds.search import send_dnd_embed
+from logic.dnd.abstract import DNDEntry
+from logic.dnd.data import Data
+
+
+class FavoriteSelectButton(discord.ui.Button["FavoritesLayoutView"]):
+    entry: DNDEntry | None
+    name: str
+    source: str
+
+    def __init__(self, name: str):
+        self.name, self.source = name.rsplit("(", 1)
+        self.name = self.name.strip()
+        self.source = self.source.replace(")", "").strip()
+
+        self.entry = None
+        entries = Data.search(self.name, set([self.source]), 95).get_all()
+
+        if len(entries) > 0:
+            self.entry = entries[0]
+
+        bracket_source = f"({self.source})"
+        label = f"{self.name} {bracket_source}"
+        if len(label) > 80:
+            cutoff_symbol = "..."
+            new_size = 80 - (len(cutoff_symbol) + len(bracket_source))
+            label = label[:new_size] + cutoff_symbol
+
+        emoji: str = "❓" if self.entry is None else self.entry.entry_type.emoji
+        super().__init__(label=label, emoji=emoji, style=discord.ButtonStyle.gray, disabled=self.entry is None)
+
+    async def callback(self, interaction: discord.Interaction):
+        if self.entry is None:
+            raise ValueError("Sorry! This entry is no longer available.")
+        await send_dnd_embed(interaction, self.entry)
 
 
 class FavoritesLayoutView(PaginatedLayoutView):
@@ -16,7 +51,7 @@ class FavoritesLayoutView(PaginatedLayoutView):
 
         super().__init__()
 
-        title = "Your favorites!"
+        title = "⭐ Your favorites!"
         self.title_item = TitleTextDisplay(name=title)
         self.build()
 
@@ -39,7 +74,7 @@ class FavoritesLayoutView(PaginatedLayoutView):
 
         # CONTENT
         for option in self.get_current_options():
-            container.add_item(discord.ui.TextDisplay(f"- {option}"))
+            container.add_item(discord.ui.ActionRow(FavoriteSelectButton(option)))
 
         # FOOTER
         if self.entry_count > self.per_page:

@@ -15,7 +15,7 @@ class InitiativeCommand(BaseCommand):
         self.log(itr)
         view = InitiativeContainerView(itr)
         await itr.response.send_message(view=view)
-        await VC.play(itr, SoundType.INITIATIVE)
+        await VC.play(itr, SoundType.INITIATIVE, True)
 
         message = await itr.original_response()
         await Initiatives.set_message(itr, message)

@@ -41,10 +41,7 @@ class InitiativeRollModal(BaseModal):
 
         descriptions: list[str] = []
 
-        roll_counts = {Advantage.ADVANTAGE: 2, Advantage.ELVEN_ACCURACY: 3}
-        roll_count = roll_counts.get(advantage, 1)
-        for i in range(roll_count):
-            d20 = initiative.rolls[i]
+        for d20 in initiative.rolls:
             mod = initiative.modifier
             total = d20 + mod
             mod_str = f"+ {mod}" if mod >= 0 else f"- {-mod}"
@@ -55,7 +52,7 @@ class InitiativeRollModal(BaseModal):
         view = InitiativeContainerView(itr)
         sound_type = SoundType.CREATURE if name else SoundType.PLAYER
         await itr.response.defer()
-        await VC.play(itr, sound_type)
+        await VC.play(itr, sound_type, True)
         if itr.message:
             await itr.followup.edit_message(message_id=itr.message.id, view=view)
             await itr.followup.send(
@@ -88,7 +85,7 @@ class InitiativeSetModal(BaseModal):
         description = f"**Initiative**: {initiative.get_total()}"
 
         view = InitiativeContainerView(itr)
-        await VC.play(itr, SoundType.WRITE)
+        await VC.play(itr, SoundType.WRITE, True)
         await itr.response.edit_message(view=view)
         await itr.followup.send(
             embed=UserActionEmbed(itr=itr, title=title, description=description),
@@ -117,7 +114,7 @@ class InitiativeDeleteModal(BaseModal):
         initiative = Initiatives.remove(itr, name)
         view = InitiativeContainerView(itr)
 
-        await VC.play(itr, SoundType.DELETE)
+        await VC.play(itr, SoundType.DELETE, True)
         await itr.response.edit_message(view=view)
 
         embed = BaseEmbed(title="Removed initiative", description=f"Initiative removed for {initiative.name}!")
@@ -170,7 +167,7 @@ class InitiativeBulkModal(BaseModal):
         description = "\n".join(descriptions)
 
         view = InitiativeContainerView(itr)
-        await VC.play(itr, SoundType.CREATURE)
+        await VC.play(itr, SoundType.CREATURE, True)
         await itr.response.edit_message(view=view)
         await itr.followup.send(
             embed=UserActionEmbed(itr=itr, title=title, description=description),
@@ -197,7 +194,7 @@ class InitiativeClearConfirmModal(BaseModal):
 
         Initiatives.clear(itr)
         view = InitiativeContainerView(itr)
-        await VC.play(itr, SoundType.DELETE)
+        await VC.play(itr, SoundType.DELETE, True)
         await itr.response.edit_message(view=view)
         await itr.followup.send(
             embed=BaseEmbed("Cleared all initiatives!", f"Cleared by {itr.user.display_name}."),
@@ -241,7 +238,7 @@ class InitiativeDMRow(ui.ActionRow["InitiativeContainerView"]):
     @ui.button(label="Lock", style=discord.ButtonStyle.primary, custom_id="lock_btn", row=1)
     async def lock(self, itr: Interaction, button: ui.Button["InitiativeContainerView"]):
         log_button_press(itr, button, "InitiativeContainerView")
-        await VC.play(itr, SoundType.LOCK)
+        await VC.play(itr, SoundType.LOCK, True)
         await itr.response.edit_message(view=InitiativeContainerView(itr, True))
 
     @ui.button(
@@ -261,7 +258,7 @@ class InitiativeUnlockButton(ui.Button["InitiativeContainerView"]):
 
     async def callback(self, interaction: Interaction):
         log_button_press(interaction, self, "InitiativeContainerView")
-        await VC.play(interaction, SoundType.LOCK)
+        await VC.play(interaction, SoundType.LOCK, True)
         await interaction.response.edit_message(view=InitiativeContainerView(interaction, False))
 
 

@@ -212,6 +212,15 @@ class HelpTabList:
                     "If no features were detected at all this will return an error-message.",
                 ],
             ),
+            (
+                "Supported Formats",
+                [
+                    "You can upload both static and moving images.",
+                    "- Static images will be returned as a `.png` file.",
+                    "- Moving images will be returned as a `.webp` file.",
+                    "*Download the original image for the highest quality, otherwise it will be a compressed `.webp`.*",
+                ],
+            ),
         ],
     )
 

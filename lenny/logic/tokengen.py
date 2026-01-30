@@ -251,9 +251,9 @@ def _get_filename(name: str, extension: str, token_id: int) -> str:
     return f"{name}_token_{int(time.time())}_{token_id}.{extension}"
 
 
-def _image_to_bytesio(image: Image.Image, format: Literal["PNG"]) -> io.BytesIO:
+def _image_to_bytesio(image: Image.Image, file_format: Literal["PNG"]) -> io.BytesIO:
     output = io.BytesIO()
-    image.save(output, format=format)
+    image.save(output, format=file_format)
     output.seek(0)
     return output
 

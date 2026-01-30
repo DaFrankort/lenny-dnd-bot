@@ -9,7 +9,7 @@ import aiohttp
 import cv2
 import discord
 import numpy as np
-from PIL import Image, ImageChops, ImageDraw
+from PIL import Image, ImageChops, ImageDraw, ImageSequence
 
 from methods import ChoicedEnum, FontType, get_font
 
@@ -29,6 +29,7 @@ CASCADES = tuple(
         "haarcascade_fullbody.xml",  # Find center of the whole person instead
     )
 )
+EXPORTABLE_EXTENSIONS = Literal["PNG", "WEBP"]
 
 
 class AlignH(str, ChoicedEnum):
@@ -63,7 +64,7 @@ async def open_image_from_url(url: str) -> Image.Image:
 
             image_bytes = await resp.read()
 
-    return Image.open(io.BytesIO(image_bytes)).convert("RGBA")
+    return Image.open(io.BytesIO(image_bytes))
 
 
 async def open_image_from_attachment(image: discord.Attachment) -> Image.Image:
@@ -73,7 +74,7 @@ async def open_image_from_attachment(image: discord.Attachment) -> Image.Image:
                 raise ValueError(f"Could not open image url: {image.url}")
             image_bytes = await resp.read()
 
-    base_image = Image.open(io.BytesIO(image_bytes)).convert("RGBA")
+    base_image = Image.open(io.BytesIO(image_bytes))
 
     if not base_image:
         raise ValueError("Could not process image, please provide a valid image file.")
@@ -239,23 +240,45 @@ def _generate_token_image(
     bg_type: BackgroundType,
     h_align: AlignH,
     v_align: AlignV,
-) -> Image.Image:
-    size = TOKEN_FRAME.size
-    image = _crop_image(image, h_align, v_align, size)
-    image = _apply_background(image, bg_type)
-    image = _apply_circular_mask(image, bg_type, size)
+) -> list[Image.Image]:
+    frames: list[Image.Image] = []
 
-    frame = _shift_hue(TOKEN_FRAME, hue)
-    return Image.alpha_composite(image, frame)
+    border = _shift_hue(TOKEN_FRAME, hue)
+    size = TOKEN_FRAME.size
+
+    for frame in ImageSequence.Iterator(image):
+        frame = frame.convert("RGBA")
+        frame = _crop_image(frame, h_align, v_align, size)
+        frame = _apply_background(frame, bg_type)
+        frame = _apply_circular_mask(frame, bg_type, size)
+        frames.append(Image.alpha_composite(frame, border))
+
+    return frames
 
 
 def _get_filename(name: str, extension: str, token_id: int) -> str:
     return f"{name}_token_{int(time.time())}_{token_id}.{extension}"
 
 
-def _image_to_bytesio(image: Image.Image, file_format: Literal["PNG"]) -> io.BytesIO:
+def _image_to_bytesio(image: list[Image.Image], file_format: EXPORTABLE_EXTENSIONS, duration: int = 0) -> io.BytesIO:
     output = io.BytesIO()
-    image.save(output, format=file_format)
+    print(file_format, duration)
+
+    if file_format == "PNG":
+        image[0].save(output, format=file_format)
+
+    elif file_format == "WEBP":
+        image[0].save(
+            output,
+            format="WEBP",
+            save_all=True,
+            append_images=image[1:],
+            duration=duration,
+            loop=0,
+            lossless=False,  # Set to True for higher quality/larger file
+            quality=80,
+        )
+
     output.seek(0)
     return output
 
@@ -332,18 +355,26 @@ async def _generate_token_files(
 ) -> list[discord.File]:
     base_token = _generate_token_image(image, frame_hue, bg_type, h_alignment, v_alignment)
 
+    extension: EXPORTABLE_EXTENSIONS = "PNG"
+    duration: int = 0
+    if len(base_token) > 1:
+        extension = "WEBP"
+        duration = image.info["duration"] if "duration" in image.info else 40
+
     # If only a single image, and no variants, return as-is
     if variants <= 0:
-        filename = _get_filename(name, "png", 0)
-        return [discord.File(_image_to_bytesio(base_token, "PNG"), filename)]
+        filename = _get_filename(name, extension, 0)
+        return [discord.File(_image_to_bytesio(base_token, extension, duration), filename)]
+
+    raise NotImplementedError("Sorry! Still working on this!")
 
     # Otherwise, add variants
     files: list[discord.File] = []
     for i in range(variants):
         token_id = i + 1
         labeled_token = _add_number_to_tokenimage(base_token, token_id, variants)
-        filename = _get_filename(name, "png", token_id)
-        files.append(discord.File(_image_to_bytesio(labeled_token, "PNG"), filename))
+        filename = _get_filename(name, extension, token_id)
+        files.append(discord.File(_image_to_bytesio(labeled_token, extension), filename))
 
     return files
 

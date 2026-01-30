@@ -7,6 +7,7 @@ import pytest
 import pytest_asyncio  # noqa: F401 # type: ignore
 from utils.mocking import (
     MockDirectMessageInteraction,
+    MockGIFImage,
     MockImage,
     MockInteraction,
     MockSound,
@@ -107,22 +108,22 @@ SLASH_COMMAND_TESTS: Iterable[Iterable[Any]] = [
     (
         "tokengen file",
         [
-            {"image": MockImage()},
+            {"image": [MockImage(), MockGIFImage()]},
             {"image": MockImage(), "frame_hue": [-180, 0, 180]},
             {"image": MockImage(), "h_alignment": AlignH.values()},
             {"image": MockImage(), "v_alignment": AlignV.values()},
-            {"image": MockImage(), "variants": [0, 3, 10]},
+            {"image": [MockImage(), MockGIFImage()], "variants": [0, 3]},
             {"image": MockImage(), "background_type": BackgroundType.values()},
         ],
     ),
     (
         "tokengen url",
         [
-            {"url": MockImage().url},
+            {"url": [MockImage().url, MockGIFImage().url]},
             {"url": MockImage().url, "frame_hue": [-180, 0, 180]},
             {"url": MockImage().url, "h_alignment": AlignH.values()},
             {"url": MockImage().url, "v_alignment": AlignV.values()},
-            {"url": MockImage().url, "variants": [0, 3, 10]},
+            {"url": [MockImage().url, MockGIFImage().url], "variants": [0, 3]},
             {"url": MockImage().url, "background_type": BackgroundType.values()},
         ],
     ),

@@ -29,7 +29,7 @@ CASCADES = tuple(
         "haarcascade_fullbody.xml",  # Find center of the whole person instead
     )
 )
-EXPORTABLE_EXTENSIONS = Literal["PNG", "WEBP"]
+ExportableExtensions = Literal["PNG", "WEBP"]
 
 
 class AlignH(str, ChoicedEnum):
@@ -247,11 +247,11 @@ def _generate_token_image(
     size = TOKEN_FRAME.size
 
     for frame in ImageSequence.Iterator(image):
-        frame = frame.convert("RGBA")
-        frame = _crop_image(frame, h_align, v_align, size)
-        frame = _apply_background(frame, bg_type)
-        frame = _apply_circular_mask(frame, bg_type, size)
-        frames.append(Image.alpha_composite(frame, border))
+        f = frame.convert("RGBA")
+        f = _crop_image(f, h_align, v_align, size)
+        f = _apply_background(f, bg_type)
+        f = _apply_circular_mask(f, bg_type, size)
+        frames.append(Image.alpha_composite(f, border))
 
     return frames
 
@@ -260,7 +260,7 @@ def _get_filename(name: str, extension: str, token_id: int) -> str:
     return f"{name}_token_{int(time.time())}_{token_id}.{extension}"
 
 
-def _image_to_bytesio(image: list[Image.Image], file_format: EXPORTABLE_EXTENSIONS, duration: int = 0) -> io.BytesIO:
+def _images_to_bytesio(image: list[Image.Image], file_format: ExportableExtensions, duration: int = 0) -> io.BytesIO:
     output = io.BytesIO()
 
     if file_format == "PNG":
@@ -361,7 +361,7 @@ async def _generate_token_files(
 ) -> list[discord.File]:
     base_token = _generate_token_image(image, frame_hue, bg_type, h_alignment, v_alignment)
 
-    extension: EXPORTABLE_EXTENSIONS = "PNG"
+    extension: ExportableExtensions = "PNG"
     duration: int = 0
     if len(base_token) > 1:
         extension = "WEBP"
@@ -370,7 +370,7 @@ async def _generate_token_files(
     # If only a single image, and no variants, return as-is
     if variants <= 0:
         filename = _get_filename(name, extension, 0)
-        return [discord.File(_image_to_bytesio(base_token, extension, duration), filename)]
+        return [discord.File(_images_to_bytesio(base_token, extension, duration), filename)]
 
     # Otherwise, add variants
     files: list[discord.File] = []
@@ -378,7 +378,7 @@ async def _generate_token_files(
         token_id = i + 1
         labeled_token = _generate_variant_tokens(base_token, token_id, variants)
         filename = _get_filename(name, extension, token_id)
-        files.append(discord.File(_image_to_bytesio(labeled_token, extension), filename))
+        files.append(discord.File(_images_to_bytesio(labeled_token, extension), filename))
 
     return files
 

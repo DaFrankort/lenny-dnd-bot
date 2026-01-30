@@ -262,7 +262,6 @@ def _get_filename(name: str, extension: str, token_id: int) -> str:
 
 def _image_to_bytesio(image: list[Image.Image], file_format: EXPORTABLE_EXTENSIONS, duration: int = 0) -> io.BytesIO:
     output = io.BytesIO()
-    print(file_format, duration)
 
     if file_format == "PNG":
         image[0].save(output, format=file_format)
@@ -344,6 +343,13 @@ def _add_number_to_tokenimage(token_image: Image.Image, number: int, amount: int
     return combined
 
 
+def _generate_variant_tokens(token_image: list[Image.Image], number: int, amount: int) -> list[Image.Image]:
+    frames: list[Image.Image] = []
+    for frame in token_image:
+        frames.append(_add_number_to_tokenimage(frame, number, amount))
+    return frames
+
+
 async def _generate_token_files(
     image: Image.Image,
     name: str,
@@ -366,13 +372,11 @@ async def _generate_token_files(
         filename = _get_filename(name, extension, 0)
         return [discord.File(_image_to_bytesio(base_token, extension, duration), filename)]
 
-    raise NotImplementedError("Sorry! Still working on this!")
-
     # Otherwise, add variants
     files: list[discord.File] = []
     for i in range(variants):
         token_id = i + 1
-        labeled_token = _add_number_to_tokenimage(base_token, token_id, variants)
+        labeled_token = _generate_variant_tokens(base_token, token_id, variants)
         filename = _get_filename(name, extension, token_id)
         files.append(discord.File(_image_to_bytesio(labeled_token, extension), filename))
 

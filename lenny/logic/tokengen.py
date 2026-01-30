@@ -160,23 +160,14 @@ def _apply_background(
     return bg
 
 
-def _crop_image_and_apply_background(
+def _crop_image(
     image: Image.Image,
-    bg_type: BackgroundType,
     h_align: AlignH,
     v_align: AlignV,
-    max_size: tuple[int, int] = (512, 512),
+    size: tuple[int, int],
     inset: int = 8,
-) -> Image.Image:
-    """
-    Processes the input image by:
-    1. Cropping it to a square shape, adjusting the focus of the image.
-    2. Applying an inset, to make sure image fits within frame.
-    3. Applying a white background, for cleaner transparent image handling.
-    4. Applying a transparent circular mask to make the image round.
-    """
-
-    width, height = max_size
+):
+    width, height = size
 
     # Make square-shaped
     image = _squarify_image(image, h_align, v_align)
@@ -184,11 +175,19 @@ def _crop_image_and_apply_background(
     # Resize with inset to avoid sticking out of the frame
     inner_width = width - 2 * inset
     inner_height = height - 2 * inset
-    image = image.resize((inner_width, inner_height), Image.Resampling.LANCZOS)
+    return image.resize((inner_width, inner_height), Image.Resampling.LANCZOS)
 
-    image = _apply_background(image=image, bg_type=bg_type)
 
-    # Apply circular mask
+def _apply_circular_mask(
+    image: Image.Image,
+    bg_type: BackgroundType,
+    size: tuple[int, int],
+    inset: int = 8,
+):
+    width, height = size
+    inner_width = width - 2 * inset
+    inner_height = height - 2 * inset
+
     mask = Image.new("L", (inner_width, inner_height), 0)
     draw = ImageDraw.Draw(mask)
     draw.ellipse((0, 0, inner_width, inner_height), fill=255)
@@ -202,7 +201,6 @@ def _crop_image_and_apply_background(
         alpha = ImageChops.multiply(original_alpha, mask)
     image.putalpha(alpha)
 
-    # Paste onto transparent background of full token size
     result = Image.new("RGBA", (width, height), (0, 0, 0, 0))
     result.paste(image, (inset, inset), image)
     return result
@@ -242,9 +240,13 @@ def _generate_token_image(
     h_align: AlignH,
     v_align: AlignV,
 ) -> Image.Image:
-    inner = _crop_image_and_apply_background(image, bg_type, h_align, v_align, TOKEN_FRAME.size)
+    size = TOKEN_FRAME.size
+    image = _crop_image(image, h_align, v_align, size)
+    image = _apply_background(image, bg_type)
+    image = _apply_circular_mask(image, bg_type, size)
+
     frame = _shift_hue(TOKEN_FRAME, hue)
-    return Image.alpha_composite(inner, frame)
+    return Image.alpha_composite(image, frame)
 
 
 def _get_filename(name: str, extension: str, token_id: int) -> str:

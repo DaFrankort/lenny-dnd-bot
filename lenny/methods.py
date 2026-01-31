@@ -1,3 +1,4 @@
+from datetime import date
 import logging
 from enum import Enum
 from typing import Any, TypeVar
@@ -60,3 +61,26 @@ def is_valid_url(url: str) -> bool:
         return bool(validators.url(url))
     except validators.utils.ValidationError:
         return False
+
+
+class BotDateEvent:
+    name: str
+    start: tuple[int, int]
+    end: tuple[int, int]
+    status_message: str
+    avatar_path: str
+
+    def __init__(
+        self, name: str, status_message: str, avatar_img: str, start: tuple[int, int], end: tuple[int, int] | None = None
+    ):
+        self.name = name
+        self.status_message = status_message
+        self.avatar_path = r"./assets/images/profile_pictures/" + avatar_img
+        self.start = start
+        self.end = end or start
+
+    def is_active(self):
+        today = date.today()
+        start_date = date(today.year, *self.start)
+        end_date = date(today.year, *self.end)
+        return start_date <= today <= end_date

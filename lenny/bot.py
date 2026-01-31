@@ -1,3 +1,4 @@
+from datetime import datetime, time
 import logging
 import os
 
@@ -34,6 +35,7 @@ from logic.dicecache import DiceCache
 from logic.homebrew import HomebrewData
 from logic.searchcache import SearchCache
 from logic.voice_chat import VC, Sounds
+from methods import BotDateEvent
 
 
 class Bot(discord.Client):
@@ -117,12 +119,10 @@ class Bot(discord.Client):
         else:
             VC.disable_vc()
 
-        await self.change_presence(
-            activity=discord.CustomActivity(name="Rolling d20s!"),
-            status=discord.Status.online,
-        )
+        await self._set_status()
         logging.info("Finished initialization")
         self._cache_cleaner.start()
+        self._set_status.start()
 
     async def _attempt_sync_guild(self):
         guild = discord.utils.get(self.guilds, id=self.guild_id)
@@ -139,3 +139,43 @@ class Bot(discord.Client):
         DiceCache.clear_cache(max_age=900)
         Config.clear_cache(max_age=900)
         SearchCache.clear_cache(max_age=450)
+
+    @tasks.loop(time=time(hour=0, minute=0, second=0))
+    async def _set_status(self):
+        if not self.user:
+            return
+
+        events = [
+            BotDateEvent(
+                name="Birthday",
+                status_message=f"I've turned {datetime.now().year - 2025} today!",
+                avatar_img="birthday.jpg",
+                start=(1, 31),
+            ),
+            BotDateEvent(
+                name="Christmas", status_message="Merry christmas!", avatar_img="xmas.jpg", start=(12, 1), end=(12, 26)
+            ),
+            BotDateEvent(
+                name="New years",
+                status_message=f"I hope you have a wonderful {datetime.now().year}!",
+                avatar_img="default.png",
+                start=(2, 12),
+            ),
+        ]
+
+        status_message = "Rolling d20s!"
+        avatar_path = r"./assets/images/profile_pictures/default.png"
+        for event in events:
+            if event.is_active():
+                logging.info("Event detected: %s", event.name)
+                status_message = event.status_message
+                avatar_path = event.avatar_path
+
+        await self.change_presence(
+            activity=discord.CustomActivity(name=status_message),
+            status=discord.Status.online,
+        )
+
+        with open(avatar_path, "rb") as f:
+            avatar_bytes = f.read()
+        await self.user.edit(avatar=avatar_bytes)

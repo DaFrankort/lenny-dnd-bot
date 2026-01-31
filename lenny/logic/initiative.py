@@ -89,7 +89,7 @@ class GlobalInitiativeTracker:
         except Forbidden:
             logging.error("Missing permissions to delete message!")
         except HTTPException as e:
-            logging.error(f"Failed to delete message: {e}")
+            logging.error("Failed to delete message: %s", e)
 
     def get(self, itr: Interaction) -> list[Initiative]:
         if not itr.channel_id:

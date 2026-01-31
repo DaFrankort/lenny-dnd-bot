@@ -81,7 +81,7 @@ class GlobalInitiativeTracker:
             return
 
         try:
-            prev_message: Message = await itr.channel.fetch_message(prev_message_id)
+            prev_message = await itr.channel.fetch_message(prev_message_id)
             if isinstance(prev_message, Message):
                 await prev_message.delete()
         except NotFound:

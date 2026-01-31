@@ -2,19 +2,11 @@ import logging
 import random
 
 import discord
-from discord import Interaction, Message, NotFound
+from discord import Forbidden, HTTPException, Interaction, Message, NotFound
 from discord.app_commands import Choice
 from rapidfuzz import fuzz
 
 from logic.roll import Advantage
-
-
-async def clean_up_old_message(message: Message):
-    """Cleans up old discord.Message objects."""
-    try:
-        await message.delete()
-    except NotFound:
-        logging.error("Previous message was already been deleted!")
 
 
 class Initiative:
@@ -63,7 +55,7 @@ class Initiative:
 
 class GlobalInitiativeTracker:
     channel_initiatives: dict[int, list[Initiative]]
-    channel_messages: dict[int, Message]
+    channel_messages: dict[int, int]
     INITIATIVE_LIMIT = 25  # Max options for a discord dropdown
 
     def __init__(self):
@@ -75,18 +67,29 @@ class GlobalInitiativeTracker:
         return name.strip().lower()
 
     async def set_message(self, itr: Interaction, message: Message) -> None:
-        if not itr.channel_id:
+        if not itr.channel or not itr.channel_id:
+            return
+        if not isinstance(itr.channel, discord.abc.Messageable):
+            return  # Not a channel that can contain messages
+
+        prev_message_id = self.channel_messages.get(itr.channel_id, None)
+        if prev_message_id == message.id:
             return
 
-        prev_message = self.channel_messages.get(itr.channel_id, None)
-        if prev_message is None:
-            self.channel_messages[itr.channel_id] = message
+        self.channel_messages[itr.channel_id] = message.id
+        if prev_message_id is None:
             return
 
-        is_new_message = prev_message != message
-        if is_new_message:
-            await clean_up_old_message(prev_message)
-            self.channel_messages[itr.channel_id] = message
+        try:
+            prev_message: Message = await itr.channel.fetch_message(prev_message_id)
+            if isinstance(prev_message, Message):
+                await prev_message.delete()
+        except NotFound:
+            logging.error("Previous message was already been deleted!")
+        except Forbidden:
+            logging.error("Missing permissions to delete message!")
+        except HTTPException as e:
+            logging.error(f"Failed to delete message: {e}")
 
     def get(self, itr: Interaction) -> list[Initiative]:
         if not itr.channel_id:

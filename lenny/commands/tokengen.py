@@ -6,8 +6,8 @@ from logic.tokengen import (
     AlignH,
     AlignV,
     BackgroundType,
-    generate_token_from_file,
-    generate_token_from_url,
+    generate_tokens_from_file,
+    generate_tokens_from_url,
 )
 
 
@@ -55,7 +55,7 @@ class TokenGenCommand(BaseCommand):
         h_align = AlignH(h_alignment)
         v_align = AlignV(v_alignment)
         background = BackgroundType(background_type)
-        files = await generate_token_from_file(image, frame_hue, h_align, v_align, variants, bg_type=background)
+        files = await generate_tokens_from_file(image, frame_hue, h_align, v_align, variants, bg_type=background)
         await itr.followup.send(files=files)
 
 
@@ -93,5 +93,5 @@ class TokenGenUrlCommand(BaseCommand):
         h_align = AlignH(h_alignment)
         v_align = AlignV(v_alignment)
         background = BackgroundType(background_type)
-        files = await generate_token_from_url(url, frame_hue, h_align, v_align, variants, bg_type=background)
+        files = await generate_tokens_from_url(url, frame_hue, h_align, v_align, variants, bg_type=background)
         await itr.followup.send(files=files)

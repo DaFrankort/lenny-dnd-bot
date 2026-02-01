@@ -1,15 +1,15 @@
 import io
-import logging
 import math
 import os
 import time
 from collections.abc import Sequence
+from typing import Literal
 
 import aiohttp
 import cv2
 import discord
 import numpy as np
-from PIL import Image, ImageChops, ImageDraw, UnidentifiedImageError
+from PIL import Image, ImageChops, ImageDraw, ImageSequence
 
 from methods import ChoicedEnum, FontType, get_font
 
@@ -29,6 +29,7 @@ CASCADES = tuple(
         "haarcascade_fullbody.xml",  # Find center of the whole person instead
     )
 )
+ExportableExtensions = Literal["PNG", "WEBP"]
 
 
 class AlignH(str, ChoicedEnum):
@@ -51,36 +52,32 @@ class BackgroundType(str, ChoicedEnum):
     TRANSPARENT = "transparent"
 
 
-async def open_image_url(url: str) -> Image.Image | None:
+async def open_image_from_url(url: str) -> Image.Image:
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as resp:
             if resp.status != 200:
-                return None
+                raise ValueError(f"Could not open image url: {url}")
+
             content_type = resp.headers.get("Content-Type", "")
             if not content_type.startswith("image/"):
-                return None
+                raise ValueError("Could not process image, please provide a URL that links to a valid image.")
+
             image_bytes = await resp.read()
 
-    try:
-        base_image = Image.open(io.BytesIO(image_bytes)).convert("RGBA")
-    except UnidentifiedImageError as exc:
-        logging.error(exc)
-        return None
-
-    return base_image
+    return Image.open(io.BytesIO(image_bytes))
 
 
-async def open_image(image: discord.Attachment) -> Image.Image | None:
+async def open_image_from_attachment(image: discord.Attachment) -> Image.Image:
     async with aiohttp.ClientSession() as session:
         async with session.get(image.url) as resp:
             if resp.status != 200:
-                return None
+                raise ValueError(f"Could not open image url: {image.url}")
             image_bytes = await resp.read()
 
-    base_image = Image.open(io.BytesIO(image_bytes)).convert("RGBA")
+    base_image = Image.open(io.BytesIO(image_bytes))
 
     if not base_image:
-        return None
+        raise ValueError("Could not process image, please provide a valid image file.")
 
     return base_image
 
@@ -164,23 +161,14 @@ def _apply_background(
     return bg
 
 
-def _crop_image_and_apply_background(
+def _crop_image(
     image: Image.Image,
-    bg_type: BackgroundType,
     h_align: AlignH,
     v_align: AlignV,
-    max_size: tuple[int, int] = (512, 512),
+    size: tuple[int, int],
     inset: int = 8,
-) -> Image.Image:
-    """
-    Processes the input image by:
-    1. Cropping it to a square shape, adjusting the focus of the image.
-    2. Applying an inset, to make sure image fits within frame.
-    3. Applying a white background, for cleaner transparent image handling.
-    4. Applying a transparent circular mask to make the image round.
-    """
-
-    width, height = max_size
+):
+    width, height = size
 
     # Make square-shaped
     image = _squarify_image(image, h_align, v_align)
@@ -188,11 +176,19 @@ def _crop_image_and_apply_background(
     # Resize with inset to avoid sticking out of the frame
     inner_width = width - 2 * inset
     inner_height = height - 2 * inset
-    image = image.resize((inner_width, inner_height), Image.Resampling.LANCZOS)
+    return image.resize((inner_width, inner_height), Image.Resampling.LANCZOS)
 
-    image = _apply_background(image=image, bg_type=bg_type)
 
-    # Apply circular mask
+def _apply_circular_mask(
+    image: Image.Image,
+    bg_type: BackgroundType,
+    size: tuple[int, int],
+    inset: int = 8,
+):
+    width, height = size
+    inner_width = width - 2 * inset
+    inner_height = height - 2 * inset
+
     mask = Image.new("L", (inner_width, inner_height), 0)
     draw = ImageDraw.Draw(mask)
     draw.ellipse((0, 0, inner_width, inner_height), fill=255)
@@ -206,7 +202,6 @@ def _crop_image_and_apply_background(
         alpha = ImageChops.multiply(original_alpha, mask)
     image.putalpha(alpha)
 
-    # Paste onto transparent background of full token size
     result = Image.new("RGBA", (width, height), (0, 0, 0, 0))
     result.paste(image, (inset, inset), image)
     return result
@@ -239,64 +234,55 @@ def _shift_hue(image: Image.Image, hue: int) -> Image.Image:
     return shifted_rgba
 
 
-def generate_token_image(
+def _generate_token_image(
     image: Image.Image,
     hue: int,
     bg_type: BackgroundType,
-    h_align: AlignH = AlignH.CENTER,
-    v_align: AlignV = AlignV.CENTER,
-) -> Image.Image:
-    inner = _crop_image_and_apply_background(image, bg_type, h_align, v_align, TOKEN_FRAME.size)
-    frame = _shift_hue(TOKEN_FRAME, hue)
-    return Image.alpha_composite(inner, frame)
+    h_align: AlignH,
+    v_align: AlignV,
+) -> list[Image.Image]:
+    frames: list[Image.Image] = []
+
+    border = _shift_hue(TOKEN_FRAME, hue)
+    size = TOKEN_FRAME.size
+
+    for frame in ImageSequence.Iterator(image):
+        f = frame.convert("RGBA")
+        f = _crop_image(f, h_align, v_align, size)
+        f = _apply_background(f, bg_type)
+        f = _apply_circular_mask(f, bg_type, size)
+        frames.append(Image.alpha_composite(f, border))
+
+    return frames
 
 
-def _get_filename(name: str, token_id: int) -> str:
-    return f"{name}_token_{int(time.time())}_{token_id}.png"
+def _get_filename(name: str, extension: str, token_id: int) -> str:
+    return f"{name}_token_{int(time.time())}_{token_id}.{extension}"
 
 
-def generate_token_url_filename(url: str, token_id: int = 0) -> str:
-    url_hash = str(abs(hash(url)))
-    return _get_filename(url_hash, token_id)
-
-
-def generate_token_filename(base_image: discord.Attachment, token_id: int = 0) -> str:
-    filename = os.path.splitext(base_image.filename)[0]
-    return _get_filename(filename, token_id)
-
-
-def image_to_bytesio(image: Image.Image) -> io.BytesIO:
+def _images_to_bytesio(image: list[Image.Image], file_format: ExportableExtensions, duration: int = 0) -> io.BytesIO:
     output = io.BytesIO()
-    image.save(output, format="PNG")
+
+    if file_format == "PNG":
+        image[0].save(output, format=file_format)
+
+    elif file_format == "WEBP":
+        image[0].save(
+            output,
+            format="WEBP",
+            save_all=True,
+            append_images=image[1:],
+            duration=duration,
+            loop=0,
+            lossless=False,  # Set to True for higher quality/larger file
+            quality=80,
+        )
+
     output.seek(0)
     return output
 
 
-def generate_token_variants(
-    token_image: Image.Image,
-    filename_seed: discord.Attachment | str,
-    amount: int,
-) -> list[discord.File]:
-    files: list[discord.File] = []
-    for i in range(amount):
-        token_id = i + 1
-        labeled_image = add_number_to_tokenimage(token_image=token_image, number=token_id, amount=amount)
-        filename = (
-            generate_token_url_filename(filename_seed, token_id)
-            if isinstance(filename_seed, str)
-            else generate_token_filename(filename_seed, token_id)
-        )
-        files.append(
-            discord.File(
-                fp=image_to_bytesio(labeled_image),
-                filename=filename,
-            )
-        )
-
-    return files
-
-
-def calculate_number_position_of_token_image(
+def _calculate_number_position_of_token_image(
     token_image: Image.Image,
     label: Image.Image,
     angle_rad: float,
@@ -312,10 +298,10 @@ def calculate_number_position_of_token_image(
     py = cy + int(ry * math.sin(angle_rad)) - (label.height // 2)
 
     # Adjust to place label so its center is on the rim
-    return (int(px), int(py))
+    return int(px), int(py)
 
 
-def add_number_to_tokenimage(token_image: Image.Image, number: int, amount: int) -> Image.Image:
+def _add_number_to_tokenimage(token_image: Image.Image, number: int, amount: int) -> Image.Image:
     label_size = (72, 72)
     font_size = int(min(label_size) * 0.6) if number < 10 else int(min(label_size) * 0.5)
 
@@ -349,7 +335,7 @@ def add_number_to_tokenimage(token_image: Image.Image, number: int, amount: int)
     angle_rad = math.radians(90)  # 90 Is bottom, 0 is right-side
 
     # Adjust to place label so its center is on the rim
-    pos = calculate_number_position_of_token_image(token_image, label, angle_rad)
+    pos = _calculate_number_position_of_token_image(token_image, label, angle_rad)
 
     combined = token_image.copy()
     combined.alpha_composite(label, dest=pos)
@@ -357,7 +343,47 @@ def add_number_to_tokenimage(token_image: Image.Image, number: int, amount: int)
     return combined
 
 
-async def generate_token_from_file(
+def _generate_variant_tokens(token_image: list[Image.Image], number: int, amount: int) -> list[Image.Image]:
+    frames: list[Image.Image] = []
+    for frame in token_image:
+        frames.append(_add_number_to_tokenimage(frame, number, amount))
+    return frames
+
+
+async def _generate_token_files(
+    image: Image.Image,
+    name: str,
+    frame_hue: int,
+    h_alignment: AlignH,
+    v_alignment: AlignV,
+    variants: int,
+    bg_type: BackgroundType,
+) -> list[discord.File]:
+    base_token = _generate_token_image(image, frame_hue, bg_type, h_alignment, v_alignment)
+
+    extension: ExportableExtensions = "PNG"
+    duration: int = 0
+    if len(base_token) > 1:
+        extension = "WEBP"
+        duration = image.info["duration"] if "duration" in image.info else 40
+
+    # If only a single image, and no variants, return as-is
+    if variants <= 0:
+        filename = _get_filename(name, extension, 0)
+        return [discord.File(_images_to_bytesio(base_token, extension, duration), filename)]
+
+    # Otherwise, add variants
+    files: list[discord.File] = []
+    for i in range(variants):
+        token_id = i + 1
+        labeled_token = _generate_variant_tokens(base_token, token_id, variants)
+        filename = _get_filename(name, extension, token_id)
+        files.append(discord.File(_images_to_bytesio(labeled_token, extension), filename))
+
+    return files
+
+
+async def generate_tokens_from_file(
     image: discord.Attachment,
     frame_hue: int,
     h_alignment: AlignH,
@@ -370,20 +396,21 @@ async def generate_token_from_file(
     if not image.content_type.startswith("image"):
         raise ValueError("Attachment must be an image.")
 
-    img = await open_image(image)
-    if img is None:
-        raise ValueError("Could not process image, please try again later or with another image.")
+    img = await open_image_from_attachment(image)
+    name = os.path.splitext(image.filename)[0]
 
-    token_image = generate_token_image(img, frame_hue, bg_type, h_alignment, v_alignment)
+    return await _generate_token_files(
+        image=img,
+        name=name,
+        frame_hue=frame_hue,
+        h_alignment=h_alignment,
+        v_alignment=v_alignment,
+        variants=variants,
+        bg_type=bg_type,
+    )
 
-    if variants != 0:
-        files = generate_token_variants(token_image=token_image, filename_seed=image, amount=variants)
-        return files
-    file = discord.File(fp=image_to_bytesio(token_image), filename=generate_token_filename(image))
-    return [file]
 
-
-async def generate_token_from_url(
+async def generate_tokens_from_url(
     url: str,
     frame_hue: int,
     h_alignment: AlignH,
@@ -394,14 +421,15 @@ async def generate_token_from_url(
     if not url.startswith("http"):
         raise ValueError(f"Not a valid URL: '{url}'")
 
-    img = await open_image_url(url)
-    if img is None:
-        raise ValueError("Could not process image, please provide a valid image-URL.")
+    img = await open_image_from_url(url)
+    url_hash = str(abs(hash(url)))
 
-    token_image = generate_token_image(img, frame_hue, bg_type, h_alignment, v_alignment)
-
-    if variants != 0:
-        files = generate_token_variants(token_image=token_image, filename_seed=url, amount=variants)
-        return files
-    file = discord.File(fp=image_to_bytesio(token_image), filename=generate_token_url_filename(url))
-    return [file]
+    return await _generate_token_files(
+        image=img,
+        name=url_hash,
+        frame_hue=frame_hue,
+        h_alignment=h_alignment,
+        v_alignment=v_alignment,
+        variants=variants,
+        bg_type=bg_type,
+    )

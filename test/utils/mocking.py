@@ -138,6 +138,12 @@ class MockImage(MockAttachment):
         super().__init__(url, "image")
 
 
+class MockGIFImage(MockAttachment):
+    def __init__(self):
+        url = r"https://static.klipy.com/ii/d7aec6f6f171607374b2065c836f92f4/ec/f3/OXB1QWhn.gif"
+        super().__init__(url, "image")
+
+
 class MockSound(MockAttachment):
     def __init__(self):
         url = r"https://diviextended.com/wp-content/uploads/2021/10/sound-of-waves-marine-drive-mumbai.mp3"

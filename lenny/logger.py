@@ -20,22 +20,22 @@ def log_application_command_interaction(itr: Interaction):
         logging.error(e)
         criteria = []
 
-    criteria_text = " ".join(criteria)
-    cmd_name = itr.command.qualified_name if itr.command else "???"
-
-    logging.info("%s => /%s %s", itr.user.name, cmd_name, criteria_text)
+    logging.info("%s => /%s %s", itr.user.name, itr.command.qualified_name, " ".join(criteria))
 
 
 def log_component_interaction(itr: Interaction):
-    component_type = itr.data.get("component_type") if itr.data else None
+    if not itr.data:
+        return
+
+    component_type = itr.data.get("component_type")
     if component_type == 3:  # DROPDOWN
-        values = ",".join(itr.data["values"]) if itr.data and "values" in itr.data else ""
+        values = ",".join(itr.data["values"]) if "values" in itr.data else ""
         values = f"[{values}]"
 
         logging.info("%s selected %s", itr.user.name, values)
 
     elif component_type == 2:  # BUTTON
-        btn_id = itr.data.get("custom_id") if itr.data else None
+        btn_id = itr.data.get("custom_id", None)
         if not btn_id:
             return
 

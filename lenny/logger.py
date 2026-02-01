@@ -49,10 +49,13 @@ def log_modal_submit_interaction(itr: Interaction):
 
     for component in itr.data["components"]:
         c = component.get("component", {})
-        if c.get("value", None) and isinstance(c.get("value"), str):
-            fields.append(c.get("value", ""))
-        elif c.get("values", None) and isinstance(c.get("values"), list):
-            values = ", ".join(c.get("values", []))
+        c_value = c.get("value", "")
+        if c_value:
+            fields.append(c_value)
+
+        c_values = c.get("values", [])
+        if c_values:
+            values = ", ".join(c_values)
             fields.append(f"[{values}]")
 
     logging.info("%s submitted modal => %s", itr.user.name, "; ".join(fields))

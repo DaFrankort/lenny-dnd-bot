@@ -8,7 +8,7 @@ from logic.dicecache import DiceCache
 from logic.initiative import Initiative, Initiatives
 from logic.roll import Advantage
 from logic.voice_chat import VC, SoundType
-from methods import Boolean, log_button_press, when
+from methods import Boolean, when
 
 
 class InitiativeRollModal(BaseModal):
@@ -222,12 +222,10 @@ class InitiativePlayerRow(ui.ActionRow["InitiativeContainerView"]):
 class InitiativeDMRow(ui.ActionRow["InitiativeContainerView"]):
     @ui.button(label="Bulk", style=discord.ButtonStyle.primary, custom_id="bulk_btn", row=1)
     async def bulk_roll_initiative(self, itr: Interaction, button: ui.Button["InitiativeContainerView"]):
-        log_button_press(itr, button, "InitiativeContainerView")
         await itr.response.send_modal(InitiativeBulkModal(itr))
 
     @ui.button(label="Lock", style=discord.ButtonStyle.primary, custom_id="lock_btn", row=1)
     async def lock(self, itr: Interaction, button: ui.Button["InitiativeContainerView"]):
-        log_button_press(itr, button, "InitiativeContainerView")
         await VC.play(itr, SoundType.LOCK, True)
         await itr.response.edit_message(view=InitiativeContainerView(itr, True))
 
@@ -238,7 +236,6 @@ class InitiativeDMRow(ui.ActionRow["InitiativeContainerView"]):
         row=1,
     )
     async def clear_initiative(self, itr: Interaction, button: ui.Button["InitiativeContainerView"]):
-        log_button_press(itr, button, "InitiativeContainerView")
         await itr.response.send_modal(InitiativeClearConfirmModal(itr))
 
 
@@ -247,7 +244,6 @@ class InitiativeUnlockButton(ui.Button["InitiativeContainerView"]):
         super().__init__(style=discord.ButtonStyle.primary, label="Unlock", custom_id="unlock_btn")
 
     async def callback(self, interaction: Interaction):
-        log_button_press(interaction, self, "InitiativeContainerView")
         await VC.play(interaction, SoundType.LOCK, True)
         await interaction.response.edit_message(view=InitiativeContainerView(interaction, False))
 

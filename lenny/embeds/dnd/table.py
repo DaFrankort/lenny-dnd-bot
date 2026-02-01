@@ -16,7 +16,6 @@ from logic.dnd.abstract import build_table_from_rows
 from logic.dnd.table import DNDTable
 from logic.roll import RollResult
 from logic.voice_chat import VC, SoundType
-from methods import log_button_press
 
 
 class DNDTableEntryView(discord.ui.LayoutView):
@@ -69,7 +68,6 @@ class DNDTableRollButton(ui.Button[DNDTableEntryView]):
         self.table = table
 
     async def callback(self, interaction: discord.Interaction):
-        log_button_press(itr=interaction, button=self, location=f"Table Roll - {self.table.name}")
         result = self.table.roll()
         if result is None:
             # Disable button to prevent further attempts, since it will keep failing.

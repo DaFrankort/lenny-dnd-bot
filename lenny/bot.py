@@ -2,7 +2,7 @@ import logging
 import os
 
 import discord
-from discord import app_commands, InteractionType
+from discord import app_commands, InteractionType, AppCommandType
 from discord.ext import tasks
 from dotenv import load_dotenv
 
@@ -151,6 +151,12 @@ class Bot(discord.Client):
 
         match interaction.type:
             case InteractionType.application_command:
+                # Context menu interactions
+                if interaction.command.type is not AppCommandType.chat_input:  # type: ignore
+                    logging.info("%s => %s", cmd_user, interaction.command.name)  # type: ignore
+                    return
+
+                # Slash commands
                 try:
                     criteria = [f"[{k}={v}]" for k, v in vars(interaction.namespace).items()]
                 except Exception as e:  # pylint: disable=broad-except
@@ -162,7 +168,15 @@ class Bot(discord.Client):
                 logging.info("%s => /%s %s", cmd_user, cmd_name, criteria_text)
 
             case InteractionType.component:
-                ...
+                component_type = interaction.data["component_type"]  # type: ignore
+                if component_type == 3:  # DROPDOWN
+                    values = ",".join(interaction.data["values"])  # type: ignore
+                    values = f"[{values}]"
+                    logging.info("%s selected %s", cmd_user, values)
+
+                elif component_type == 2:  # BUTTON
+                    btn_id = interaction.data["custom_id"]  # type: ignore
+                    logging.info("%s pressed %s", cmd_user, btn_id)  # type: ignore
 
             case InteractionType.modal_submit:
                 fields: list[str] = []
@@ -171,7 +185,8 @@ class Bot(discord.Client):
                     if c.get("value", None):  # type: ignore
                         fields.append(c["value"])  # type: ignore
                     elif c.get("values", None):  # type: ignore
-                        fields.append(", ".join(c["values"]))  # type: ignore
+                        values = ", ".join(c["values"])  # type: ignore
+                        fields.append(f"[{values}]")
 
                 logging.info("%s submitted modal => %s", cmd_user, "; ".join(fields))
 

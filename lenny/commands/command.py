@@ -1,4 +1,3 @@
-import logging
 from abc import abstractmethod
 from typing import Any
 
@@ -111,9 +110,6 @@ class BaseContextMenu(discord.app_commands.ContextMenu):
             callback=self.handle,
         )
         self.on_error = self.error_handler
-
-    def log(self, itr: discord.Interaction):
-        logging.info("%s => %s", itr.user.name, self.name)
 
     @abstractmethod
     async def handle(self, interaction: discord.Interaction, message: discord.Message) -> None:

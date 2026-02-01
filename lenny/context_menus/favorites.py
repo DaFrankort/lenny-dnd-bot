@@ -18,7 +18,6 @@ class AddFavoriteContextMenu(BaseContextMenu):
         raise ValueError("Could not detect a D&D entry in this message!")
 
     async def handle(self, interaction: discord.Interaction, message: discord.Message):
-        self.log(interaction)
         if not interaction.client.user:
             raise ValueError("The bot is not associated with a user account!")
 

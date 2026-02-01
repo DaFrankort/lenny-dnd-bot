@@ -221,7 +221,9 @@ class InitiativePlayerRow(ui.ActionRow["InitiativeContainerView"]):
 
 class InitiativeDMRow(ui.ActionRow["InitiativeContainerView"]):
     @ui.button(label="Bulk", style=discord.ButtonStyle.primary, custom_id="bulk_btn", row=1)
-    async def bulk_roll_initiative(self, itr: Interaction, button: ui.Button["InitiativeContainerView"]):  # pylint: disable=unused-argument
+    async def bulk_roll_initiative(
+        self, itr: Interaction, button: ui.Button["InitiativeContainerView"]
+    ):  # pylint: disable=unused-argument
         await itr.response.send_modal(InitiativeBulkModal(itr))
 
     @ui.button(label="Lock", style=discord.ButtonStyle.primary, custom_id="lock_btn", row=1)
@@ -235,7 +237,9 @@ class InitiativeDMRow(ui.ActionRow["InitiativeContainerView"]):
         custom_id="clear_btn",
         row=1,
     )
-    async def clear_initiative(self, itr: Interaction, button: ui.Button["InitiativeContainerView"]):  # pylint: disable=unused-argument
+    async def clear_initiative(
+        self, itr: Interaction, button: ui.Button["InitiativeContainerView"]
+    ):  # pylint: disable=unused-argument
         await itr.response.send_modal(InitiativeClearConfirmModal(itr))
 
 

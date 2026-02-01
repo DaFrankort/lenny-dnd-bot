@@ -120,6 +120,15 @@ Look up various D&D data from [5e.tools](https://5e.tools/).
 - `/search deity <deity-name>` - Look up a D&D Deity (e.g. Bahamut).
 - `/search all <query>` - Look for many related results regarding D&D data. Example: `/search all fire` would return any data with 'fire' in the name.
 
+#### Favorite Entries
+
+You can mark certain D&D data entries as your favorite, making it easy to quickly look them up again later.
+
+- `/favorites add <entry>` - Mark a D&D data entry as your favorite.
+- `/favorites remove <entry>` - Remove a D&D data entry from your favorites.
+- `/favorites view [type_filter]` - List all your favorite D&D data entries.
+You can also right-click on an embed and select "Add to Favorites" to manage your favorites quickly.
+
 ### D&D Homebrew Data
 
 Manage your server's homebrew D&D data for spells, items, creatures, and more.

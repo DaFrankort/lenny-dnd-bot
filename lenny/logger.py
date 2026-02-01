@@ -28,12 +28,7 @@ def log_application_command_interaction(itr: Interaction):
 
 def log_component_interaction(itr: Interaction):
     component_type = itr.data.get("component_type") if itr.data else None
-    if not component_type:
-        return
-
     if component_type == 3:  # DROPDOWN
-        if itr.data and "values" in itr.data:
-            return
         values = ",".join(itr.data["values"]) if itr.data and "values" in itr.data else ""
         values = f"[{values}]"
 

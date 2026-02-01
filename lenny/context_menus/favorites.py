@@ -31,11 +31,11 @@ class AddFavoriteContextMenu(BaseContextMenu):
         name = name.strip()
         source = source.replace(")", "").strip()
 
-        entries = Data.search(name, set(source), 95).get_all()
+        entries = Data.search(name, set([source]), 95).get_all()
         for entry in entries:
-            if entry.title == name:
+            if entry.name == name and entry.source == source:
                 FavoritesCache.get(interaction).store(entry)
-                await interaction.response.send_message(f"Added ``{entry.title}``")
+                await interaction.response.send_message(f"➕ Added ``{entry.title}`` to favorites!", ephemeral=True)
                 return
 
         raise ValueError(f"Could not find entry by the name of ``{name}``")

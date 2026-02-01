@@ -53,9 +53,8 @@ def log_modal_submit_interaction(itr: Interaction):
             value = c.get("value")
             if isinstance(value, str):
                 fields.append(value)
-        elif c.get("values", None):
-            if isinstance(c.get("values"), list):
-                values = ", ".join(c.get("values", []))
-                fields.append(f"[{values}]")
+        elif c.get("values", None) and isinstance(c.get("values"), list):
+            values = ", ".join(c.get("values", []))
+            fields.append(f"[{values}]")
 
     logging.info("%s submitted modal => %s", itr.user.name, "; ".join(fields))

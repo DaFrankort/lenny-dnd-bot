@@ -1,6 +1,6 @@
-from datetime import datetime, time
 import logging
 import os
+from datetime import datetime, time
 
 import discord
 from discord import app_commands
@@ -153,7 +153,11 @@ class Bot(discord.Client):
                 start=(1, 21),
             ),
             BotDateEvent(
-                name="Christmas", status_message="Happy holidays! I hope you have Frost resistance!", avatar_img="xmas.jpg", start=(12, 1), end=(12, 26)
+                name="Christmas",
+                status_message="Happy holidays! I hope you have Frost resistance!",
+                avatar_img="xmas.jpg",
+                start=(12, 1),
+                end=(12, 26),
             ),
             BotDateEvent(
                 name="New years",

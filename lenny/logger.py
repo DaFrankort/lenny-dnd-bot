@@ -49,10 +49,8 @@ def log_modal_submit_interaction(itr: Interaction):
 
     for component in itr.data["components"]:
         c = component.get("component", {})
-        if c.get("value", None):
-            value = c.get("value")
-            if isinstance(value, str):
-                fields.append(value)
+        if c.get("value", None) and isinstance(c.get("value"), str):
+            fields.append(c.get("value", ""))
         elif c.get("values", None) and isinstance(c.get("values"), list):
             values = ", ".join(c.get("values", []))
             fields.append(f"[{values}]")

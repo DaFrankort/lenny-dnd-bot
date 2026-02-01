@@ -24,8 +24,6 @@ class InitiativeRollModal(BaseModal):
         super().__init__(itr, title="Rolling for Initiative")
 
     async def on_submit(self, itr: Interaction):
-        self.log_inputs(itr)
-
         name = self.get_str(self.name)
         modifier = self.get_int(self.modifier)
         if modifier is None:
@@ -70,8 +68,6 @@ class InitiativeSetModal(BaseModal):
         super().__init__(itr, title="Setting your Initiative value")
 
     async def on_submit(self, itr: Interaction):
-        self.log_inputs(itr)
-
         name = self.get_str(self.name)
         value = self.get_int(self.value)
         if not value or value < 0:
@@ -108,8 +104,6 @@ class InitiativeDeleteModal(BaseModal):
         super().__init__(itr, title="Remove an Initiative")
 
     async def on_submit(self, itr: Interaction) -> None:
-        self.log_inputs(itr)
-
         name = self.get_choice(self.name, result_type=str)
         initiative = Initiatives.remove(itr, name)
         view = InitiativeContainerView(itr)
@@ -137,8 +131,6 @@ class InitiativeBulkModal(BaseModal):
         super().__init__(itr, title="Adding Initiatives in bulk!")
 
     async def on_submit(self, itr: Interaction):
-        self.log_inputs(itr)
-
         name = str(self.name.input)
         modifier = self.get_int(self.modifier)
         amount = self.get_int(self.amount)
@@ -182,8 +174,6 @@ class InitiativeClearConfirmModal(BaseModal):
         super().__init__(itr, title="Are you sure you want to clear?")
 
     async def on_submit(self, itr: Interaction):
-        self.log_inputs(itr)
-
         confirm = str(self.confirm.input)
         if confirm != "CLEAR":
             await itr.response.send_message(

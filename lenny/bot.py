@@ -147,6 +147,8 @@ class Bot(discord.Client):
         FavoritesCache.clear_cache(max_age=450)
 
     async def on_interaction(self, interaction: discord.Interaction):
+        cmd_user = interaction.user.name
+
         match interaction.type:
             case InteractionType.application_command:
                 try:
@@ -156,16 +158,22 @@ class Bot(discord.Client):
                     criteria = []
 
                 criteria_text = " ".join(criteria)
-                cmd_user = interaction.user.name
                 cmd_name = interaction.command.qualified_name if interaction.command else "???"
-
                 logging.info("%s => /%s %s", cmd_user, cmd_name, criteria_text)
 
             case InteractionType.component:
                 ...
 
             case InteractionType.modal_submit:
-                ...
+                fields: list[str] = []
+                for component in interaction.data["components"]:  # type: ignore
+                    c = component.get("component", {})  # type: ignore
+                    if c.get("value", None):  # type: ignore
+                        fields.append(c["value"])  # type: ignore
+                    elif c.get("values", None):  # type: ignore
+                        fields.append(", ".join(c["values"]))  # type: ignore
+
+                logging.info("%s submitted modal => %s", cmd_user, "; ".join(fields))
 
             case _:
                 ...

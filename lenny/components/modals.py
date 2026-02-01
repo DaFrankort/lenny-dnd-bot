@@ -14,17 +14,6 @@ class BaseModal(Modal):
         super().__init__(title=title)
         self.itr = itr
 
-    # def log_inputs(self, itr: Interaction):
-    #     """Logs all text input values."""
-    #     input_values = {
-    #         child.text: str(child.input)
-    #         for child in self.children
-    #         if isinstance(child, BaseLabelTextInput) and str(child.input) != ""
-    #     }
-
-    #     username = itr.user.name
-    #     logging.info("%s submitted modal => %s", username, input_values)
-
     async def on_error(self, itr: Interaction, error: Exception):
         embed = get_error_embed(error)
         await itr.response.send_message(embed=embed, ephemeral=True)

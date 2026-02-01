@@ -150,32 +150,32 @@ class Bot(discord.Client):
                 name="Birthday",
                 status_message=f"I've turned {datetime.now().year - 2025} today!",
                 avatar_img="birthday.jpg",
-                start=(1, 31),
+                start=(1, 21),
             ),
             BotDateEvent(
-                name="Christmas", status_message="Merry christmas!", avatar_img="xmas.jpg", start=(12, 1), end=(12, 26)
+                name="Christmas", status_message="Happy holidays! I hope you have Frost resistance!", avatar_img="xmas.jpg", start=(12, 1), end=(12, 26)
             ),
             BotDateEvent(
                 name="New years",
                 status_message=f"I hope you have a wonderful {datetime.now().year}!",
                 avatar_img="default.png",
-                start=(2, 12),
+                start=(1, 1),
             ),
         ]
 
         status_message = "Rolling d20s!"
-        avatar_path = r"./assets/images/profile_pictures/default.png"
+        # avatar_path = r"./assets/images/profile_pictures/default.webp"
         for event in events:
             if event.is_active():
                 logging.info("Event detected: %s", event.name)
                 status_message = event.status_message
-                avatar_path = event.avatar_path
+                # avatar_path = event.avatar_path
 
         await self.change_presence(
             activity=discord.CustomActivity(name=status_message),
             status=discord.Status.online,
         )
 
-        with open(avatar_path, "rb") as f:
-            avatar_bytes = f.read()
-        await self.user.edit(avatar=avatar_bytes)
+        # with open(avatar_path, "rb") as f:
+        #     avatar_bytes = f.read()
+        # await self.user.edit(avatar=avatar_bytes)

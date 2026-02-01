@@ -28,7 +28,6 @@ class FavoritesViewCommand(BaseCommand):
 
     @choices(type_filter=DNDEntryType.choices())
     async def handle(self, itr: discord.Interaction, type_filter: DNDEntryType | None = None):
-        self.log(itr)
         if type_filter is None:
             favorites = FavoritesCache.get(itr).get_all()
         else:
@@ -60,7 +59,6 @@ class FavoritesAddCommand(BaseCommand):
 
     @discord.app_commands.autocomplete(name=dnd_entries_autocomplete)
     async def handle(self, itr: discord.Interaction, name: str):
-        self.log(itr)
         sources = Config.get(itr).allowed_sources
         entries = Data.search(name, sources, 95).get_all()
         for entry in entries:
@@ -83,7 +81,6 @@ class FavoritesRemoveCommand(BaseCommand):
 
     @discord.app_commands.autocomplete(name=favorites_autocomplete)
     async def handle(self, itr: discord.Interaction, name: str):
-        self.log(itr)
         FavoritesCache.get(itr).delete(name_to_delete=name)
         embed = BaseEmbed(title="Removed favorite!", description=f"``{name}`` was **removed** from your favorites.")
         await itr.response.send_message(embed=embed, ephemeral=True)

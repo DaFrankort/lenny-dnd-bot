@@ -2,7 +2,7 @@ import logging
 import os
 
 import discord
-from discord import app_commands
+from discord import app_commands, InteractionType
 from discord.ext import tasks
 from dotenv import load_dotenv
 
@@ -145,3 +145,27 @@ class Bot(discord.Client):
         Config.clear_cache(max_age=900)
         SearchCache.clear_cache(max_age=450)
         FavoritesCache.clear_cache(max_age=450)
+
+    async def on_interaction(self, interaction: discord.Interaction):
+        match interaction.type:
+            case InteractionType.application_command:
+                try:
+                    criteria = [f"[{k}={v}]" for k, v in vars(interaction.namespace).items()]
+                except Exception as e:  # pylint: disable=broad-except
+                    logging.error(e)
+                    criteria = []
+
+                criteria_text = " ".join(criteria)
+                cmd_user = interaction.user.name
+                cmd_name = interaction.command.qualified_name if interaction.command else "???"
+
+                logging.info("%s => /%s %s", cmd_user, cmd_name, criteria_text)
+
+            case InteractionType.component:
+                ...
+
+            case InteractionType.modal_submit:
+                ...
+
+            case _:
+                ...

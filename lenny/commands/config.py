@@ -16,8 +16,6 @@ class ConfigSourcesCommand(BaseCommand):
 
     @choices(content=ContentChoice.choices())
     async def handle(self, itr: discord.Interaction, content: str):
-        self.log(itr)
-
         config = Config.get(itr)
         content_choice = ContentChoice(content)
         if itr.guild is None:
@@ -37,8 +35,6 @@ class ConfigPermissionsCommand(BaseCommand):
     help = "Open up an overview you can use to configure the bot's permissions in your server."
 
     async def handle(self, itr: discord.Interaction):
-        self.log(itr)
-
         config = Config.get(itr)
         if itr.guild is None:
             embed = ErrorEmbed("Permissions can only be managed in a server!")

@@ -43,7 +43,6 @@ class RollCommand(BaseCommand):
         else:
             advantage = Advantage(advantage)
 
-        self.log(itr)
         result = roll(diceroll, advantage)
         DiceCache.get(itr).store_expression(result.expression)
         DiceCache.get(itr).store_reason(reason)
@@ -59,7 +58,6 @@ class D20Command(BaseCommand):
     help = "Rolls a basic 1d20 with no modifiers."
 
     async def handle(self, itr: discord.Interaction):
-        self.log(itr)
         result = roll("1d20", Advantage.NORMAL)
         embed = RollEmbed(itr, result, None)
         await itr.response.send_message(embed=embed)
@@ -90,7 +88,6 @@ class MultiRollCommand(BaseCommand):
         advantage: str = Advantage.NORMAL,
         reason: str | None = None,
     ):
-        self.log(itr)
         result = multi_roll(diceroll, amount, Advantage(advantage))
         DiceCache.get(itr).store_expression(result.expression)
         DiceCache.get(itr).store_reason(reason)

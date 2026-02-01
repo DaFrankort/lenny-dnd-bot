@@ -83,18 +83,6 @@ class BaseCommand(discord.app_commands.Command[BaseCommandGroup, Any, None]):
 
         return f"/{self.qualified_name} {args_str}".strip()
 
-    def log(self, itr: discord.Interaction):
-        """Log user's command-usage in the terminal"""
-
-        try:
-            criteria = [f"[{k}={v}]" for k, v in vars(itr.namespace).items()]
-        except Exception as e:  # pylint: disable=broad-except
-            logging.error(e)
-            criteria = []
-        criteria_text = " ".join(criteria)
-
-        logging.info("%s => /%s %s", itr.user.name, self.qualified_name, criteria_text)
-
     @abstractmethod
     async def handle(self, itr: discord.Interaction, *args: Any, **kwargs: Any) -> None:
         raise NotImplementedError

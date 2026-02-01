@@ -72,8 +72,11 @@ class FavoritesLayoutView(PaginatedLayoutView):
         container.add_item(BaseSeparator())
 
         # CONTENT
-        for option in self.get_current_options():
-            container.add_item(discord.ui.ActionRow(FavoriteSelectButton(option)))
+        if len(self.favorites) == 0:
+            container.add_item(discord.ui.TextDisplay("*No favorites found!*"))
+        else:
+            for option in self.get_current_options():
+                container.add_item(discord.ui.ActionRow(FavoriteSelectButton(option)))
 
         # FOOTER
         if self.entry_count > self.per_page:

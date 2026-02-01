@@ -26,19 +26,17 @@ def log_application_command_interaction(itr: Interaction):
 def log_component_interaction(itr: Interaction):
     if not itr.data:
         return
-
     component_type = itr.data.get("component_type")
-    if component_type == 3:  # DROPDOWN
-        values = ",".join(itr.data["values"]) if "values" in itr.data else ""
-        values = f"[{values}]"
 
+    # DROPDOWN
+    if component_type == 3 and "values" in itr.data:
+        values = ",".join(itr.data["values"])
+        values = f"[{values}]"
         logging.info("%s selected %s", itr.user.name, values)
 
-    elif component_type == 2:  # BUTTON
-        btn_id = itr.data.get("custom_id", None)
-        if not btn_id:
-            return
-
+    # BUTTON
+    elif component_type == 2 and "custom_id" in itr.data:
+        btn_id = itr.data.get("custom_id")
         logging.info("%s pressed %s", itr.user.name, btn_id)
 
 

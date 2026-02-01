@@ -1,6 +1,7 @@
 import discord
 
 from commands.command import BaseContextMenu
+from embeds.favorites import FavoriteAddedEmbed
 from logic.dnd.data import Data
 from logic.favorites import FavoritesCache
 
@@ -35,7 +36,7 @@ class AddFavoriteContextMenu(BaseContextMenu):
         for entry in entries:
             if entry.name == name and entry.source == source:
                 FavoritesCache.get(interaction).store(entry)
-                await interaction.response.send_message(f"✅ Added ``{entry.title}`` to favorites!", ephemeral=True)
+                await interaction.response.send_message(embed=FavoriteAddedEmbed(entry), ephemeral=True)
                 return
 
         raise ValueError(f"Could not find entry by the name of ``{name}``")

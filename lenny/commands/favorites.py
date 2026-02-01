@@ -2,7 +2,8 @@ import discord
 from discord.app_commands import choices
 
 from commands.command import BaseCommand, BaseCommandGroup
-from embeds.favorites import FavoritesLayoutView
+from embeds.embed import BaseEmbed
+from embeds.favorites import FavoriteAddedEmbed, FavoritesLayoutView
 from logic.config import Config
 from logic.dnd.abstract import DNDEntryType, fuzzy_matches_list
 from logic.dnd.data import Data
@@ -65,7 +66,7 @@ class FavoritesAddCommand(BaseCommand):
         for entry in entries:
             if entry.title == name:
                 FavoritesCache.get(itr).store(entry)
-                await itr.response.send_message(f"✅ Added ``{entry.title}`` to favorites!", ephemeral=True)
+                await itr.response.send_message(embed=FavoriteAddedEmbed(entry), ephemeral=True)
                 return
         raise ValueError(f"Could not find {name}")
 
@@ -84,4 +85,5 @@ class FavoritesRemoveCommand(BaseCommand):
     async def handle(self, itr: discord.Interaction, name: str):
         self.log(itr)
         FavoritesCache.get(itr).delete(name_to_delete=name)
-        await itr.response.send_message(f"❌ Removed ``{name}`` from favorites!", ephemeral=True)
+        embed = BaseEmbed(title="Removed favorite!", description=f"``{name}`` was **removed** from your favorites.")
+        await itr.response.send_message(embed=embed, ephemeral=True)

@@ -2,6 +2,7 @@ import discord
 
 from components.items import BaseSeparator, TitleTextDisplay
 from components.paginated_view import PaginatedLayoutView
+from embeds.embed import BaseEmbed
 from embeds.search import send_dnd_embed
 from logic.dnd.abstract import DNDEntry
 from logic.dnd.data import Data
@@ -84,3 +85,8 @@ class FavoritesLayoutView(PaginatedLayoutView):
             container.add_item(self.navigation_footer())
 
         self.add_item(container)
+
+
+class FavoriteAddedEmbed(BaseEmbed):
+    def __init__(self, entry: DNDEntry):
+        super().__init__(title="Added favorite", description=f"``{entry.title}`` was **added** to your favorites.")

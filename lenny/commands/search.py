@@ -71,7 +71,6 @@ class SearchSpellCommand(BaseCommand):
     @autocomplete(name=spell_name_autocomplete)
     @describe(name="Name of the spell to look up.")
     async def handle(self, itr: discord.Interaction, name: str):
-        self.log(itr)
         sources = Config.get(itr).allowed_sources
         found = Data.spells.get(name, sources)
         await send_dnd_entry_lookup_result(itr, "spells", found, name)
@@ -89,7 +88,6 @@ class SearchItemCommand(BaseCommand):
     @autocomplete(name=item_name_autocomplete)
     @describe(name="Name of the item to look up.")
     async def handle(self, itr: discord.Interaction, name: str):
-        self.log(itr)
         sources = Config.get(itr).allowed_sources
         found = Data.items.get(name, sources)
         await send_dnd_entry_lookup_result(itr, "items", found, name)
@@ -107,7 +105,6 @@ class SearchConditionCommand(BaseCommand):
     @autocomplete(name=condition_name_autocomplete)
     @describe(name="Name of the condition to look up.")
     async def handle(self, itr: discord.Interaction, name: str):
-        self.log(itr)
         sources = Config.get(itr).allowed_sources
         found = Data.conditions.get(name, sources)
         await send_dnd_entry_lookup_result(itr, "conditions", found, name)
@@ -125,7 +122,6 @@ class SearchCreatureCommand(BaseCommand):
     @autocomplete(name=creature_name_autocomplete)
     @describe(name="Name of the creature to look up.")
     async def handle(self, itr: discord.Interaction, name: str):
-        self.log(itr)
         sources = Config.get(itr).allowed_sources
         found = Data.creatures.get(name, sources)
         await send_dnd_entry_lookup_result(itr, "creatures", found, name)
@@ -178,7 +174,6 @@ class SearchClassCommand(BaseCommand):
         subclass: str | None = None,
         level: discord.app_commands.Range[int, 0, 20] = 0,
     ):
-        self.log(itr)
         sources = Config.get(itr).allowed_sources
         found = Data.classes.get(name, sources)
 
@@ -209,7 +204,6 @@ class SearchRuleCommand(BaseCommand):
     @autocomplete(name=rule_name_autocomplete)
     @describe(name="Name of the rule to look up.")
     async def handle(self, itr: discord.Interaction, name: str):
-        self.log(itr)
         sources = Config.get(itr).allowed_sources
         found = Data.rules.get(name, sources)
         await send_dnd_entry_lookup_result(itr, "rules", found, name)
@@ -227,7 +221,6 @@ class SearchActionCommand(BaseCommand):
     @autocomplete(name=action_name_autocomplete)
     @describe(name="Name of the action to look up.")
     async def handle(self, itr: discord.Interaction, name: str):
-        self.log(itr)
         sources = Config.get(itr).allowed_sources
         found = Data.actions.get(name, sources)
         await send_dnd_entry_lookup_result(itr, "actions", found, name)
@@ -245,7 +238,6 @@ class SearchFeatCommand(BaseCommand):
     @autocomplete(name=feat_name_autocomplete)
     @describe(name="Name of the feat to look up.")
     async def handle(self, itr: discord.Interaction, name: str):
-        self.log(itr)
         sources = Config.get(itr).allowed_sources
         found = Data.feats.get(name, sources)
         await send_dnd_entry_lookup_result(itr, "feats", found, name)
@@ -263,7 +255,6 @@ class SearchLanguageCommand(BaseCommand):
     @autocomplete(name=language_name_autocomplete)
     @describe(name="Name of the language to look up.")
     async def handle(self, itr: discord.Interaction, name: str):
-        self.log(itr)
         sources = Config.get(itr).allowed_sources
         found = Data.languages.get(name, sources)
         await send_dnd_entry_lookup_result(itr, "languages", found, name)
@@ -281,7 +272,6 @@ class SearchBackgroundCommand(BaseCommand):
     @autocomplete(name=background_name_autocomplete)
     @describe(name="Name of the background to look up.")
     async def handle(self, itr: discord.Interaction, name: str):
-        self.log(itr)
         sources = Config.get(itr).allowed_sources
         found = Data.backgrounds.get(name, sources)
         await send_dnd_entry_lookup_result(itr, "background", found, name)
@@ -299,7 +289,6 @@ class SearchTableCommand(BaseCommand):
     @autocomplete(name=table_name_autocomplete)
     @describe(name="Name of the table to look up.")
     async def handle(self, itr: discord.Interaction, name: str):
-        self.log(itr)
         sources = Config.get(itr).allowed_sources
         found = Data.tables.get(name, sources)
         await send_dnd_entry_lookup_result(itr, "table", found, name)
@@ -317,7 +306,6 @@ class SearchSpeciesCommand(BaseCommand):
     @autocomplete(name=species_name_autocomplete)
     @describe(name="Name of the species to look up.")
     async def handle(self, itr: discord.Interaction, name: str):
-        self.log(itr)
         sources = Config.get(itr).allowed_sources
         found = Data.species.get(name, sources)
         await send_dnd_entry_lookup_result(itr, "species", found, name)
@@ -335,7 +323,6 @@ class SearchVehicleCommand(BaseCommand):
     @autocomplete(name=vehicle_name_autocomplete)
     @describe(name="Name of the vehicle to look up.")
     async def handle(self, itr: discord.Interaction, name: str):
-        self.log(itr)
         sources = Config.get(itr).allowed_sources
         found = Data.vehicles.get(name, sources)
         await send_dnd_entry_lookup_result(itr, "vehicle", found, name)
@@ -353,7 +340,6 @@ class SearchObjectCommand(BaseCommand):
     @autocomplete(name=object_name_autocomplete)
     @describe(name="Name of the object to look up.")
     async def handle(self, itr: discord.Interaction, name: str):
-        self.log(itr)
         sources = Config.get(itr).allowed_sources
         found = Data.objects.get(name, sources)
         await send_dnd_entry_lookup_result(itr, "object", found, name)
@@ -371,7 +357,6 @@ class SearchHazardCommand(BaseCommand):
     @autocomplete(name=hazard_name_autocomplete)
     @describe(name="Name of the trap or hazard to look up.")
     async def handle(self, itr: discord.Interaction, name: str):
-        self.log(itr)
         sources = Config.get(itr).allowed_sources
         found = Data.hazards.get(name, sources)
         await send_dnd_entry_lookup_result(itr, "hazard", found, name)
@@ -389,7 +374,6 @@ class SearchDeityCommand(BaseCommand):
     @autocomplete(name=deity_name_autocomplete)
     @describe(name="Name of the deity to look up.")
     async def handle(self, itr: discord.Interaction, name: str):
-        self.log(itr)
         sources = Config.get(itr).allowed_sources
         found = Data.deities.get(name, sources)
         await send_dnd_entry_lookup_result(itr, "deity", found, name)
@@ -407,7 +391,6 @@ class SearchCultCommand(BaseCommand):
     @autocomplete(name=cult_name_autocomplete)
     @describe(name="Name of the cult to look up.")
     async def handle(self, itr: discord.Interaction, name: str):
-        self.log(itr)
         sources = Config.get(itr).allowed_sources
         found = Data.cults.get(name, sources)
         await send_dnd_entry_lookup_result(itr, "cult", found, name)
@@ -425,7 +408,6 @@ class SearchBoonCommand(BaseCommand):
     @autocomplete(name=boon_name_autocomplete)
     @describe(name="Name of the boon to look up.")
     async def handle(self, itr: discord.Interaction, name: str):
-        self.log(itr)
         sources = Config.get(itr).allowed_sources
         found = Data.boons.get(name, sources)
         await send_dnd_entry_lookup_result(itr, "boon", found, name)
@@ -438,7 +420,6 @@ class SearchAnyCommand(BaseCommand):
 
     @describe(query="Search for results matching this query.")
     async def handle(self, itr: discord.Interaction, query: str):
-        self.log(itr)
         sources = Config.get(itr).allowed_sources
         results = Data.search(query, sources)
         logging.debug("Found %d results for '%s'", len(results.get_all()), query)

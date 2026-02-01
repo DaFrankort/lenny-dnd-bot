@@ -63,8 +63,6 @@ class HomebrewEntryAddModal(BaseModal):
         super().__init__(itr=itr, title="Add new homebrew entry")
 
     async def on_submit(self, itr: discord.Interaction):
-        self.log_inputs(itr)
-
         name = self.get_str(self.name)
         entry_type: DNDEntryType | None = self.get_choice(self.type, DNDEntryType)
         url = self.get_str(self.url)
@@ -104,8 +102,6 @@ class HomebrewEditModal(BaseModal):
         super().__init__(itr=itr, title=f"Edit {entry.entry_type.value}: {entry.name}")
 
     async def on_submit(self, itr: discord.Interaction):
-        self.log_inputs(itr)
-
         name = self.get_str(self.name)
         url = self.get_str(self.url)
         subtitle = self.get_str(self.subtitle)

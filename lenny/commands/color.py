@@ -82,7 +82,6 @@ class ColorSetHexCommand(BaseCommand):
     @describe(hex_color="A hexadecimal value representing a color (Example: #ff00ff or aa44cc).")
     @autocomplete(hex_color=autocomplete_hex_color)
     async def handle(self, itr: discord.Interaction, hex_color: str):
-        self.log(itr)
         result = save_hex_color(itr, hex_color)
         embed = ColorSetEmbed(itr, result, is_hex=True)
         await itr.response.send_message(embed=embed, file=embed.file, ephemeral=True)
@@ -110,7 +109,6 @@ class ColorSetRGBCommand(BaseCommand):
         g: discord.app_commands.Range[int, 0, 255],
         b: discord.app_commands.Range[int, 0, 255],
     ):
-        self.log(itr)
         result = save_rgb_color(itr, r, g, b)
         embed = ColorSetEmbed(itr, result, is_hex=False)
         await itr.response.send_message(embed=embed, file=embed.file, ephemeral=True)
@@ -128,7 +126,6 @@ class ColorSetBaseCommand(BaseCommand):
         itr: discord.Interaction,
         color: int,
     ):
-        self.log(itr)
         result = save_base_color(itr, color)
         embed = ColorSetEmbed(itr, result, is_hex=True)
         await itr.response.send_message(embed=embed, file=embed.file, ephemeral=True)
@@ -140,7 +137,6 @@ class ColorShowCommand(BaseCommand):
     help = "Shows the color that you are currently using publicly."
 
     async def handle(self, itr: discord.Interaction):
-        self.log(itr)
         color = UserColor.get(itr)
         embed = ColorShowEmbed(itr, color)
         await itr.response.send_message(embed=embed, file=embed.file)
@@ -152,7 +148,6 @@ class ColorClearCommand(BaseCommand):
     help = "Set your color back to an auto-generated one."
 
     async def handle(self, itr: discord.Interaction):
-        self.log(itr)
         removed = UserColor.remove(itr)
         embed = SuccessEmbed(
             title_success="Cleared user-defined color.",

@@ -37,7 +37,6 @@ class TimestampRelativeCommand(BaseCommand):
         days: Range[int, 0, 7] = 0,
         weeks: Range[int, 0, 999] = 0,
     ):
-        self.log(itr)
         result = get_relative_timestamp_from_now(seconds, minutes, hours, days, weeks)
         embed = RelativeTimestampEmbed(timestamp=result)
         await itr.response.send_message(embed=embed, ephemeral=True)
@@ -60,7 +59,6 @@ class TimestampDateCommand(BaseCommand):
         timezone: Range[int, -14, 14],
         date: str | None = None,
     ):
-        self.log(itr)
         result = get_date_timestamp(time, timezone, date)
         view = TimestampDatesContainerView(result)
         await itr.response.send_message(view=view, ephemeral=True)

@@ -11,7 +11,6 @@ class ZipAttachmentsContextMenu(BaseContextMenu):
     help = "Packs all attachments from a message into one ZIP file, making it faster to download many files."
 
     async def handle(self, interaction: discord.Interaction, message: discord.Message):
-        self.log(interaction)
         if not interaction.client.user:
             raise ValueError("The bot is not associated with a user account!")
 

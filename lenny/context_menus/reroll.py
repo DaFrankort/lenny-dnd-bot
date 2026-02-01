@@ -70,8 +70,6 @@ class RerollContextMenu(BaseContextMenu):
         await VC.play_dice_roll(interaction, result, reason)
 
     async def handle(self, interaction: discord.Interaction, message: discord.Message):
-        self.log(interaction)
-
         if interaction.client.user is None:
             raise ValueError("The bot is not associated with a user account!")
 

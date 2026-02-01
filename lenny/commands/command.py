@@ -1,4 +1,3 @@
-import logging
 from abc import abstractmethod
 from typing import Any
 
@@ -83,18 +82,6 @@ class BaseCommand(discord.app_commands.Command[BaseCommandGroup, Any, None]):
 
         return f"/{self.qualified_name} {args_str}".strip()
 
-    def log(self, itr: discord.Interaction):
-        """Log user's command-usage in the terminal"""
-
-        try:
-            criteria = [f"[{k}={v}]" for k, v in vars(itr.namespace).items()]
-        except Exception as e:  # pylint: disable=broad-except
-            logging.error(e)
-            criteria = []
-        criteria_text = " ".join(criteria)
-
-        logging.info("%s => /%s %s", itr.user.name, self.qualified_name, criteria_text)
-
     @abstractmethod
     async def handle(self, itr: discord.Interaction, *args: Any, **kwargs: Any) -> None:
         raise NotImplementedError
@@ -123,9 +110,6 @@ class BaseContextMenu(discord.app_commands.ContextMenu):
             callback=self.handle,
         )
         self.on_error = self.error_handler
-
-    def log(self, itr: discord.Interaction):
-        logging.info("%s => %s", itr.user.name, self.name)
 
     @abstractmethod
     async def handle(self, interaction: discord.Interaction, message: discord.Message) -> None:

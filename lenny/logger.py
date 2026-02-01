@@ -1,0 +1,56 @@
+import logging
+
+from discord import AppCommandType, Interaction
+
+
+def log_application_command_interaction(itr: Interaction):
+    if not itr.command:
+        return
+    command_type = getattr(itr.command, "type", None)
+
+    # Context menu interaction
+    if command_type in (AppCommandType.user, AppCommandType.message):
+        logging.info("%s => %s", itr.user.name, itr.command.name)
+        return
+
+    # Slash command
+    criteria = []
+    if itr.namespace:
+        criteria = [f"[{k}={v}]" for k, v in vars(itr.namespace).items()]
+    logging.info("%s => /%s %s", itr.user.name, itr.command.qualified_name, " ".join(criteria))
+
+
+def log_component_interaction(itr: Interaction):
+    if not itr.data:
+        return
+    component_type = itr.data.get("component_type")
+
+    # DROPDOWN
+    if component_type == 3 and "values" in itr.data:
+        values = ",".join(itr.data["values"])
+        values = f"[{values}]"
+        logging.info("%s selected %s", itr.user.name, values)
+
+    # BUTTON
+    elif component_type == 2 and "custom_id" in itr.data:
+        btn_id = itr.data.get("custom_id")
+        logging.info("%s pressed %s", itr.user.name, btn_id)
+
+
+def log_modal_submit_interaction(itr: Interaction):
+    fields: list[str] = []
+    if not itr.data or "components" not in itr.data:
+        return
+
+    for component in itr.data["components"]:
+        c = component.get("component", {})
+        c_value = c.get("value", "")
+        if c_value:
+            fields.append(c_value)
+
+        c_values = c.get("values", [])
+        if c_values:
+            values = ", ".join(c_values)
+            fields.append(f"[{values}]")
+
+    logging.info("%s submitted modal => %s", itr.user.name, "; ".join(fields))

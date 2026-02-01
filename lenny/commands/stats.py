@@ -27,7 +27,6 @@ class StatsRollCommand(BaseCommand):
     @describe(min_total="The minimum value your stats should total to. Higher totals may fail to generate.")
     async def handle(self, itr: discord.Interaction, min_total: discord.app_commands.Range[int, 18, 108] = -1):
         # Min total is between 18 (3*6) and 108 (18*6), because these are the lowest and highest stats a player can roll.
-        self.log(itr)
         await itr.response.defer()
         stats = Stats(min_total)
         embed = StatsEmbed(itr, stats)
@@ -60,7 +59,6 @@ class StatsVisualizeCommand(BaseCommand):
         wis: discord.app_commands.Range[int, 0, 48],
         cha: discord.app_commands.Range[int, 0, 48],
     ):
-        self.log(itr)
         embed = UserActionEmbed(
             itr=itr,
             title=f"{itr.user.display_name}'s stats visualized!",

@@ -8,7 +8,6 @@ class DeleteContextMenu(BaseContextMenu):
     help = "Deletes the bot's message, useful for cleaning up accidental searches, spoilers or general bot-clutter."
 
     async def handle(self, interaction: discord.Interaction, message: discord.Message):
-        self.log(interaction)
         if not interaction.client.user:
             raise ValueError("The bot is not associated with a user account!")
 

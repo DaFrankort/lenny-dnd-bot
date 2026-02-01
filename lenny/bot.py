@@ -2,7 +2,7 @@ import logging
 import os
 
 import discord
-from discord import app_commands
+from discord import InteractionType, app_commands
 from discord.ext import tasks
 from dotenv import load_dotenv
 
@@ -31,6 +31,11 @@ from context_menus.favorites import AddFavoriteContextMenu
 from context_menus.reroll import RerollContextMenu
 from context_menus.timestamp import RequestTimestampContextMenu
 from context_menus.zip_files import ZipAttachmentsContextMenu
+from logger import (
+    log_application_command_interaction,
+    log_component_interaction,
+    log_modal_submit_interaction,
+)
 from logic.config import Config
 from logic.dicecache import DiceCache
 from logic.favorites import FavoritesCache
@@ -145,3 +150,14 @@ class Bot(discord.Client):
         Config.clear_cache(max_age=900)
         SearchCache.clear_cache(max_age=450)
         FavoritesCache.clear_cache(max_age=450)
+
+    async def on_interaction(self, interaction: discord.Interaction):
+        match interaction.type:
+            case InteractionType.application_command:
+                log_application_command_interaction(interaction)
+            case InteractionType.component:
+                log_component_interaction(interaction)
+            case InteractionType.modal_submit:
+                log_modal_submit_interaction(interaction)
+            case _:
+                ...

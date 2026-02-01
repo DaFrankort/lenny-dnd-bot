@@ -49,7 +49,6 @@ class TokenGenCommand(BaseCommand):
         v_alignment: str = AlignV.CENTER,
         variants: Range[int, 0, 10] = 0,
     ):
-        self.log(itr)
         await itr.response.defer()
 
         h_align = AlignH(h_alignment)
@@ -87,7 +86,6 @@ class TokenGenUrlCommand(BaseCommand):
         v_alignment: str = AlignV.CENTER,
         variants: Range[int, 0, 10] = 0,
     ):
-        self.log(itr)
         await itr.response.defer()
 
         h_align = AlignH(h_alignment)

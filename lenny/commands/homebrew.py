@@ -34,7 +34,6 @@ class HomebrewAddCommand(BaseCommand):
 
     @describe(md_file="Extract info from Markdown file and adjust formatting for discord.")
     async def handle(self, itr: discord.Interaction, md_file: discord.Attachment | None = None):
-        self.log(itr)
         md_data = None
         if md_file:
             md_data = await MDFile.from_attachment(md_file)
@@ -54,7 +53,6 @@ class HomebrewSearchCommand(BaseCommand):
     @autocomplete(name=homebrew_name_autocomplete)
     @describe(name="The name of the entry you want to find.")
     async def handle(self, itr: discord.Interaction, name: str):
-        self.log(itr)
         entry = HomebrewData.get(itr).get(name)
         embed = HomebrewEmbed(itr, entry)
         await itr.response.send_message(embed=embed)
@@ -68,7 +66,6 @@ class HomebrewListCommand(BaseCommand):
     @choices(filter=DNDEntryType.choices())
     @describe(filter="Show only homebrew entries of a certain type. Shows all by default.")
     async def handle(self, itr: discord.Interaction, filter: str | None = None):  # pylint: disable=redefined-builtin
-        self.log(itr)
         view = HomebrewListView(itr, filter)
         await itr.response.send_message(view=view, ephemeral=True)
 
@@ -81,7 +78,6 @@ class HomebrewEditCommand(BaseCommand):
     @autocomplete(name=homebrew_name_autocomplete)
     @describe(name="The name of the entry you want to edit.")
     async def handle(self, itr: discord.Interaction, name: str):
-        self.log(itr)
         entry = HomebrewData.get(itr).get(name)
         modal = HomebrewEditModal(itr, entry)
         await itr.response.send_modal(modal)
@@ -95,7 +91,6 @@ class HomebrewRemoveCommand(BaseCommand):
     @autocomplete(name=homebrew_name_autocomplete)
     @describe(name="The name of the entry you want to remove.")
     async def handle(self, itr: discord.Interaction, name: str):
-        self.log(itr)
         entry = HomebrewData.get(itr).delete(itr, name)
         embed = HomebrewEmbed(itr, entry)
         embed.color = discord.Color.red()

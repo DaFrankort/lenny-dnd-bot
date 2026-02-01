@@ -26,7 +26,6 @@ class DistributionCommand(BaseCommand):
         advantage: str = Advantage.NORMAL,
         min_to_beat: int | None = None,
     ):
-        self.log(itr)
         await itr.response.defer()
         color = UserColor.get(itr)
         result = distribution(expression, Advantage(advantage), color, min_to_beat)

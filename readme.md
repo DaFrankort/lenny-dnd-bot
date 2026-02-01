@@ -143,6 +143,7 @@ Entries can be added straight from a markdown file, any formatting will be conve
 
 Create 5e.tools-style token images quickly, [like this example](https://5e.tools/img/bestiary/tokens/MM/Goblin.webp).
 Optionally adjust the frame's color with `hue-shift` (default: gold), control image alignment using `h_alignment` and `v_alignment` (default: center), and `variants` for generating up to 10 numbered variants of your tokens.
+Additionally supports gif images as input, which will be preserved in the output tokens.
 
 - `/tokengen file <image-attachment> [hue-shift] [background_type] [h_alignment] [v_alignment] [variants]` - Generate a token from an image attachment.
 - `/tokengen url <image-url> [hue-shift] [background_type] [h_alignment] [v_alignment] [variants]` - Generate a token from an image URL.

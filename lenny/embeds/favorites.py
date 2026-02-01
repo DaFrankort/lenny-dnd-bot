@@ -51,8 +51,7 @@ class FavoritesLayoutView(PaginatedLayoutView):
 
         super().__init__()
 
-        title = "⭐ Your favorites!"
-        self.title_item = TitleTextDisplay(name=title)
+        self.title_item = TitleTextDisplay(name="Favorites")
         self.build()
 
     @property

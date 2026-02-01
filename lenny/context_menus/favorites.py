@@ -14,8 +14,6 @@ class AddFavoriteContextMenu(BaseContextMenu):
         if embed and embed.title:
             return embed.title
 
-        # TODO Components v2 support
-
         raise ValueError("Could not detect a D&D entry in this message!")
 
     async def handle(self, interaction: discord.Interaction, message: discord.Message):

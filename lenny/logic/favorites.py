@@ -17,8 +17,7 @@ class FavoritesHandler(JsonHandler[list[str]]):
         if value in self.data[key]:
             raise ValueError(f"``{entry.title}`` is already in your favorites!")
 
-        # TODO: Not source specific yet, e.g. if a player favorites Barbarian, it could constantly prompt them if they want PHB or XPHB barbarian.
-        self.data[key].append(entry.title)  # TODO: Do we want a limit?
+        self.data[key].append(entry.title)
         self.data[key] = sorted(self.data[key])
         self.save()
 
@@ -46,15 +45,6 @@ class FavoritesHandler(JsonHandler[list[str]]):
         for key in self.data:
             data += self.get(key)
         return data
-
-    def get_choices(self, key: str) -> list[discord.app_commands.Choice[str]]:
-        return [discord.app_commands.Choice(name=f"★ {value}", value=value) for value in self.get(key)]
-
-    def get_all_choices(self) -> list[discord.app_commands.Choice[str]]:
-        choices: list[discord.app_commands.Choice[str]] = []
-        for key in self.data:
-            choices += self.get_choices(key)
-        return choices
 
 
 class GlobalFavoritesHandler(JsonFolderHandler[FavoritesHandler]):

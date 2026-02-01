@@ -34,7 +34,7 @@ class FavoritesViewCommand(BaseCommand):
             favorites = FavoritesCache.get(itr).get(type_filter)
 
         view = FavoritesLayoutView(favorites)
-        await itr.response.send_message(view=view)
+        await itr.response.send_message(view=view, ephemeral=True)
 
 
 async def dnd_entries_autocomplete(itr: discord.Interaction, current: str) -> list[discord.app_commands.Choice[str]]:

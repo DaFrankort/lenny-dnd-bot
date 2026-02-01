@@ -65,7 +65,7 @@ class FavoritesAddCommand(BaseCommand):
         for entry in entries:
             if entry.title == name:
                 FavoritesCache.get(itr).store(entry)
-                await itr.response.send_message(f"➕ Added ``{entry.title}`` to favorites!", ephemeral=True)
+                await itr.response.send_message(f"✅ Added ``{entry.title}`` to favorites!", ephemeral=True)
                 return
         raise ValueError(f"Could not find {name}")
 

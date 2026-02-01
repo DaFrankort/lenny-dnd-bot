@@ -169,6 +169,9 @@ SLASH_COMMAND_TESTS: Iterable[Iterable[Any]] = [
             "char_class": [None, "rogue"],
         },
     ),
+    ("favorites add", {"name": Data.spells.entries[0].title}),
+    ("favorites view", {}),
+    ("favorites remove", {"name": Data.spells.entries[0].title}),
     # Homebrew commands work through modals, and are thus not testable.
     # ("", {"": "", "": ""}),
 ]

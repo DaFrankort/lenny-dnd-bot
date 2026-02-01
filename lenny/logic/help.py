@@ -150,6 +150,21 @@ class HelpTabList:
         ],
     )
 
+    Favorites = HelpTab(
+        tab="favorites",
+        name="Favorites",
+        commands=["favorites"],
+        text="Add D&D lookup entries to your favorites for quick and easy access.",
+        info=[
+            (
+                "Context Menu",
+                [
+                    "By right clicking a lookup result from a ``/search`` command, you can use the ``Add to Favorites`` option under ``Apps`` to easily add an entry to your favorites."
+                ],
+            )
+        ],
+    )
+
     Initiative = HelpTab(
         tab="initiative",
         name="Initiative",
@@ -256,6 +271,7 @@ class HelpTabList:
             self.Initiative,
             self.TokenGen,
             self.Config,
+            self.Favorites,
         ]
 
     @property

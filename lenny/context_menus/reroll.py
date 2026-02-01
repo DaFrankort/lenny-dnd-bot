@@ -8,7 +8,7 @@ from logic.voice_chat import VC, SoundType
 
 
 class RerollContextMenu(BaseContextMenu):
-    name = "Re-roll"
+    name = "🎲 Re-roll"
     help = "Will repeat a roll done with the __/roll__ or __/multiroll__ commands."
 
     @staticmethod

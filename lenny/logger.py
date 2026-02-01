@@ -14,12 +14,9 @@ def log_application_command_interaction(itr: Interaction):
         return
 
     # Slash command
-    try:
+    criteria = []
+    if itr.namespace:
         criteria = [f"[{k}={v}]" for k, v in vars(itr.namespace).items()]
-    except Exception as e:  # pylint: disable=broad-except
-        logging.error(e)
-        criteria = []
-
     logging.info("%s => /%s %s", itr.user.name, itr.command.qualified_name, " ".join(criteria))
 
 

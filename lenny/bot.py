@@ -2,7 +2,7 @@ import logging
 import os
 
 import discord
-from discord import app_commands, InteractionType, AppCommandType
+from discord import InteractionType, app_commands
 from discord.ext import tasks
 from dotenv import load_dotenv
 
@@ -31,6 +31,11 @@ from context_menus.favorites import AddFavoriteContextMenu
 from context_menus.reroll import RerollContextMenu
 from context_menus.timestamp import RequestTimestampContextMenu
 from context_menus.zip_files import ZipAttachmentsContextMenu
+from logger import (
+    log_application_command_interaction,
+    log_component_interaction,
+    log_modal_submit_interaction,
+)
 from logic.config import Config
 from logic.dicecache import DiceCache
 from logic.favorites import FavoritesCache
@@ -147,48 +152,12 @@ class Bot(discord.Client):
         FavoritesCache.clear_cache(max_age=450)
 
     async def on_interaction(self, interaction: discord.Interaction):
-        cmd_user = interaction.user.name
-
         match interaction.type:
             case InteractionType.application_command:
-                # Context menu interactions
-                if interaction.command.type is not AppCommandType.chat_input:  # type: ignore
-                    logging.info("%s => %s", cmd_user, interaction.command.name)  # type: ignore
-                    return
-
-                # Slash commands
-                try:
-                    criteria = [f"[{k}={v}]" for k, v in vars(interaction.namespace).items()]
-                except Exception as e:  # pylint: disable=broad-except
-                    logging.error(e)
-                    criteria = []
-
-                criteria_text = " ".join(criteria)
-                cmd_name = interaction.command.qualified_name if interaction.command else "???"
-                logging.info("%s => /%s %s", cmd_user, cmd_name, criteria_text)
-
+                log_application_command_interaction(interaction)
             case InteractionType.component:
-                component_type = interaction.data["component_type"]  # type: ignore
-                if component_type == 3:  # DROPDOWN
-                    values = ",".join(interaction.data["values"])  # type: ignore
-                    values = f"[{values}]"
-                    logging.info("%s selected %s", cmd_user, values)
-
-                elif component_type == 2:  # BUTTON
-                    btn_id = interaction.data["custom_id"]  # type: ignore
-                    logging.info("%s pressed %s", cmd_user, btn_id)  # type: ignore
-
+                log_component_interaction(interaction)
             case InteractionType.modal_submit:
-                fields: list[str] = []
-                for component in interaction.data["components"]:  # type: ignore
-                    c = component.get("component", {})  # type: ignore
-                    if c.get("value", None):  # type: ignore
-                        fields.append(c["value"])  # type: ignore
-                    elif c.get("values", None):  # type: ignore
-                        values = ", ".join(c["values"])  # type: ignore
-                        fields.append(f"[{values}]")
-
-                logging.info("%s submitted modal => %s", cmd_user, "; ".join(fields))
-
+                log_modal_submit_interaction(interaction)
             case _:
                 ...

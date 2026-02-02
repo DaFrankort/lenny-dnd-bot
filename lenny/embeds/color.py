@@ -15,20 +15,55 @@ class ColorShowEmbed(UserActionEmbed):
         self.set_image(url=f"attachment://{self.file.filename}")
 
 
+class ColorSelectView(discord.ui.View):
+    def __init__(self, itr: discord.Interaction, result: UserColorSaveResult, is_hex: bool):
+        super().__init__()
+        self.result = result
+        self.is_hex = is_hex
+        for color in result.color:
+            self.add_item(ColorButton(color, result, is_hex))
+
+
+class ColorButton(discord.ui.Button["ColorSelectView"]):
+    def __init__(self, color: int, result: UserColorSaveResult, is_hex: bool):
+        super().__init__(style=discord.ButtonStyle.blurple, label=UserColor.to_name(color))
+        self.color = color
+        self.result = result
+        self.is_hex = is_hex
+
+    async def callback(self, interaction: discord.Interaction):
+        UserColor.add(interaction, self.color)
+        embed = ColorSetEmbed(
+            itr=interaction,
+            result=self.result,
+            is_hex=self.is_hex,
+            selected_color=self.color,
+        )
+        await interaction.response.edit_message(embed=embed, view=embed.view, attachments=[embed.file])
+
+
 class ColorSetEmbed(UserActionEmbed):
     is_hex: bool
     file: discord.File
+    view: ColorSelectView | None
 
-    def __init__(self, itr: discord.Interaction, result: UserColorSaveResult, is_hex: bool):
+    def __init__(
+        self,
+        itr: discord.Interaction,
+        result: UserColorSaveResult,
+        is_hex: bool,
+        selected_color: int | None = None,
+    ):
         self.is_hex = is_hex
-        self.file = get_palette_image(result.color)
+        color = selected_color or result.color[0]
+        self.file = get_palette_image(color)
 
         descriptions: list[str] = []
         if self.is_hex:
-            descriptions.append(f"``{UserColor.to_hex(result.old_color)}`` => ``{UserColor.to_hex(result.color)}``")
+            descriptions.append(f"``{UserColor.to_hex(result.old_color)}`` => ``{UserColor.to_hex(color)}``")
         else:
             ro, go, bo = UserColor.to_rgb(result.old_color)
-            rn, gn, bn = UserColor.to_rgb(result.color)
+            rn, gn, bn = UserColor.to_rgb(color)
             descriptions.append(f"R ``{ro:03}`` => ``{rn:03}``")
             descriptions.append(f"G ``{go:03}`` => ``{gn:03}``")
             descriptions.append(f"B ``{bo:03}`` => ``{bn:03}``")
@@ -40,3 +75,6 @@ class ColorSetEmbed(UserActionEmbed):
             description=description,
         )
         self.set_image(url=f"attachment://{self.file.filename}")
+
+        if len(result.color) > 1:
+            self.view = ColorSelectView(itr, result, is_hex)

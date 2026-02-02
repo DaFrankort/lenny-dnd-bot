@@ -144,6 +144,9 @@ class ColorSetImageCommand(BaseCommand):
     ):
         result = await save_image_color(itr)
         embed = ColorSetEmbed(itr, result, is_hex=True)
+        if embed.view:
+            await itr.response.send_message(embed=embed, view=embed.view, file=embed.file, ephemeral=True)
+            return
         await itr.response.send_message(embed=embed, file=embed.file, ephemeral=True)
 
 

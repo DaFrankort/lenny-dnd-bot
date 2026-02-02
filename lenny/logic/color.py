@@ -1,4 +1,3 @@
-import colorsys
 import dataclasses
 import io
 import re
@@ -73,7 +72,7 @@ def get_palette_image(color: discord.Color | int) -> discord.File:
 @dataclasses.dataclass
 class UserColorSaveResult:
     old_color: int
-    color: int
+    color: list[int]
 
 
 def save_hex_color(itr: discord.Interaction, hex_color: str) -> UserColorSaveResult:
@@ -86,7 +85,7 @@ def save_hex_color(itr: discord.Interaction, hex_color: str) -> UserColorSaveRes
     color = UserColor.parse(hex_color)
     UserColor.add(itr, color)
 
-    return UserColorSaveResult(old_color, color)
+    return UserColorSaveResult(old_color, [color])
 
 
 def save_rgb_color(itr: discord.Interaction, r: int, g: int, b: int) -> UserColorSaveResult:
@@ -94,14 +93,14 @@ def save_rgb_color(itr: discord.Interaction, r: int, g: int, b: int) -> UserColo
     color = discord.Color.from_rgb(r, g, b).value
     UserColor.add(itr, color)
 
-    return UserColorSaveResult(old_color, color)
+    return UserColorSaveResult(old_color, [color])
 
 
 def save_base_color(itr: discord.Interaction, color: int):
     old_color = UserColor.get(itr)
     UserColor.add(itr, color)
 
-    return UserColorSaveResult(old_color, color)
+    return UserColorSaveResult(old_color, [color])
 
 
 async def save_image_color(itr: discord.Interaction) -> UserColorSaveResult:
@@ -110,34 +109,37 @@ async def save_image_color(itr: discord.Interaction) -> UserColorSaveResult:
         raise RuntimeError("You don't have a profile picture set!")
 
     image = await open_image_from_url(avatar.url)
-    image = image.convert("RGB").resize((8, 8))
+    image = image.convert("RGB").resize((256, 256))
+    quantized = image.quantize(colors=8, method=2)
+    color_counts = quantized.getcolors()
+    palette = quantized.getpalette()
 
-    pixels = image.getdata()
-    best_color: tuple[int, int, int] | None = None
-    max_vibrancy: float = 0.0
+    if not color_counts or not palette:
+        raise ValueError("Could not retrieve colors from that image!")
 
-    for pixel in pixels:
-        if not isinstance(pixel, (tuple, list)) or len(pixel) != 3:
-            continue
-        r, g, b = pixel
-        _, s, v = colorsys.rgb_to_hsv(r / 255, g / 255, b / 255)
+    color_counts.sort(key=lambda x: x[0], reverse=True)
+    best_colors: list[int] = []
 
-        if s < 0.5 or v < 0.2:
-            continue
+    for _, index in color_counts:
+        i: int = index * 3  # type: ignore
+        r: int = palette[i]
+        g: int = palette[i + 1]
+        b: int = palette[i + 2]
 
-        vibrancy = s * v
-        if vibrancy > max_vibrancy:
-            max_vibrancy = vibrancy
-            best_color = (int(r), int(g), int(b))
+        brightness = (r + g + b) / 3
+        if 70 < brightness < 240:
+            color = discord.Color.from_rgb(r, g, b).value
+            best_colors.append(color)
 
-    if not best_color:
-        raise RuntimeError("TODO sorry no fallback color yet :(")
+        if len(best_colors) >= 5:
+            break
+
+    if not best_colors and color_counts:
+        raise RuntimeError("Could not determine a dominant colors.")
 
     old_color = UserColor.get(itr)
-    r, g, b = best_color
-    color = discord.Color.from_rgb(r, g, b).value
-    UserColor.add(itr, color)
-    return UserColorSaveResult(old_color=old_color, color=color)
+    UserColor.add(itr, best_colors[0])
+    return UserColorSaveResult(old_color=old_color, color=best_colors)
 
 
 class UserColorFileHandler(JsonHandler[int]):

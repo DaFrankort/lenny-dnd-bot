@@ -62,6 +62,10 @@ class MockUser(discord.User):
         self._avatar = MagicMock()
         self._state = MagicMock()
 
+    @property
+    def avatar(self):
+        return MockImageAsset()
+
 
 class MockMember(discord.Member):
     def __init__(self, user: MockUser, guild: discord.Guild, admin: bool):
@@ -148,3 +152,11 @@ class MockSound(MockAttachment):
     def __init__(self):
         url = r"https://diviextended.com/wp-content/uploads/2021/10/sound-of-waves-marine-drive-mumbai.mp3"
         super().__init__(url, "audio")
+
+
+class MockImageAsset(discord.Asset):
+    def __init__(self):
+        self._state = MagicMock()
+        self._url = "https://i.etsystatic.com/10819873/r/il/5452b6/3900731377/il_794xN.3900731377_57vj.jpg"
+        self._key = str(hash(self.url))
+        self._animated = False

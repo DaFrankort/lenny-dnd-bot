@@ -226,7 +226,8 @@ class UserColorFileHandler(JsonHandler[int]):
 
     def to_name(self, color: int) -> str:
         hex_val = self.to_hex(color)
-        name = colornames.find(hex_val)  # type: ignore # pylint: no-value-for-parameter
+        # pylint: disable=no-value-for-parameter
+        name = colornames.find(hex_val)  # type: ignore
         if isinstance(name, str):
             return name
         return hex_val

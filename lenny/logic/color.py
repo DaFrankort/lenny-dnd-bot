@@ -2,7 +2,7 @@ import dataclasses
 import io
 import re
 
-import colornames
+import colornames  # type: ignore
 import discord
 from PIL import Image, ImageDraw
 
@@ -226,7 +226,7 @@ class UserColorFileHandler(JsonHandler[int]):
 
     def to_name(self, color: int) -> str:
         hex_val = self.to_hex(color)
-        name = colornames.find(hex_val)  # type: ignore
+        name = colornames.find(hex_val)  # type: ignore # pylint: no-value-for-parameter
         if isinstance(name, str):
             return name
         return hex_val

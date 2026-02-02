@@ -7,7 +7,7 @@ import discord
 from PIL import Image, ImageDraw
 
 from logic.jsonhandler import JsonHandler
-from logic.tokengen import open_image_from_url
+from logic.tokengen import open_image_from_attachment, open_image_from_url
 from methods import ChoicedEnum, FontType, get_font, when
 
 
@@ -104,12 +104,16 @@ def save_base_color(itr: discord.Interaction, color: int):
     return UserColorSaveResult(old_color, [color])
 
 
-async def save_image_color(itr: discord.Interaction) -> UserColorSaveResult:
+async def save_image_color(itr: discord.Interaction, attachment: discord.Attachment | None) -> UserColorSaveResult:
     avatar = itr.user.display_avatar or itr.user.avatar
     if not avatar:
         raise RuntimeError("You don't have a profile picture set!")
 
-    image = await open_image_from_url(avatar.url)
+    if not attachment:
+        image = await open_image_from_url(avatar.url)
+    else:
+        image = await open_image_from_attachment(attachment)
+
     image = image.convert("RGB").resize((256, 256))
     quantized = image.quantize(colors=8, method=2)
     color_counts = quantized.getcolors()
@@ -128,7 +132,7 @@ async def save_image_color(itr: discord.Interaction) -> UserColorSaveResult:
         b: int = palette[i + 2]
 
         brightness = (r + g + b) / 3
-        if 70 < brightness < 240:
+        if 10 < brightness < 240:
             color = discord.Color.from_rgb(r, g, b).value
             best_colors.append(color)
 

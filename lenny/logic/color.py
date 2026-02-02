@@ -2,6 +2,7 @@ import dataclasses
 import io
 import re
 
+import colornames
 import discord
 from PIL import Image, ImageDraw
 
@@ -222,6 +223,13 @@ class UserColorFileHandler(JsonHandler[int]):
 
     def to_hex(self, color: int) -> str:
         return f"#{color:06X}".upper()
+
+    def to_name(self, color: int) -> str:
+        hex_val = self.to_hex(color)
+        name = colornames.find(hex_val)  # type: ignore
+        if isinstance(name, str):
+            return name
+        return hex_val
 
 
 UserColor = UserColorFileHandler()

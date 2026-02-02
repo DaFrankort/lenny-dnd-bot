@@ -9,6 +9,7 @@ from PIL import Image, ImageDraw
 from logic.jsonhandler import JsonHandler
 from logic.tokengen import open_image_from_attachment, open_image_from_url
 from methods import ChoicedEnum, FontType, get_font, when
+import colorsys
 
 
 class BasicColors(ChoicedEnum):
@@ -122,25 +123,24 @@ async def save_image_color(itr: discord.Interaction, attachment: discord.Attachm
     if not color_counts or not palette:
         raise ValueError("Could not retrieve colors from that image!")
 
-    color_counts.sort(key=lambda x: x[0], reverse=True)
-    best_colors: list[int] = []
+    candidates: list[tuple[float, int, int]] = []  # (saturation, count, color_int)
 
-    for _, index in color_counts:
+    for count, index in color_counts:
         i: int = index * 3  # type: ignore
         r: int = palette[i]
         g: int = palette[i + 1]
         b: int = palette[i + 2]
 
-        brightness = (r + g + b) / 3
-        if 10 < brightness < 240:
-            color = discord.Color.from_rgb(r, g, b).value
-            best_colors.append(color)
+        _, s, _ = colorsys.rgb_to_hsv(r / 255.0, g / 255.0, b / 255.0)
+        color = discord.Color.from_rgb(r, g, b).value
+        candidates.append((s, count, color))
 
-        if len(best_colors) >= 5:
-            break
+    if not candidates:
+        raise RuntimeError("Could not determine dominant colors.")
 
-    if not best_colors and color_counts:
-        raise RuntimeError("Could not determine a dominant colors.")
+    # Prioritize by saturation first, then by frequency
+    candidates.sort(key=lambda t: (t[0], t[1]), reverse=True)
+    best_colors = [c for _, _, c in candidates[:5]]
 
     old_color = UserColor.get(itr)
     UserColor.add(itr, best_colors[0])

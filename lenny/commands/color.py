@@ -9,6 +9,7 @@ from logic.color import (
     UserColor,
     save_base_color,
     save_hex_color,
+    save_image_color,
     save_rgb_color,
 )
 
@@ -72,6 +73,7 @@ class ColorSetCommandGroup(BaseCommandGroup):
         self.add_command(ColorSetHexCommand())
         self.add_command(ColorSetRGBCommand())
         self.add_command(ColorSetBaseCommand())
+        self.add_command(ColorSetImageCommand())
 
 
 class ColorSetHexCommand(BaseCommand):
@@ -127,6 +129,20 @@ class ColorSetBaseCommand(BaseCommand):
         color: int,
     ):
         result = save_base_color(itr, color)
+        embed = ColorSetEmbed(itr, result, is_hex=True)
+        await itr.response.send_message(embed=embed, file=embed.file, ephemeral=True)
+
+
+class ColorSetImageCommand(BaseCommand):
+    name = "image"
+    desc = "Sets a color based on your profile picture."
+    help = "Set a color based on your discord avatar image."
+
+    async def handle(
+        self,
+        itr: discord.Interaction,
+    ):
+        result = await save_image_color(itr)
         embed = ColorSetEmbed(itr, result, is_hex=True)
         await itr.response.send_message(embed=embed, file=embed.file, ephemeral=True)
 

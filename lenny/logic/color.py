@@ -1,3 +1,4 @@
+import colorsys
 import dataclasses
 import io
 import re
@@ -6,6 +7,7 @@ import discord
 from PIL import Image, ImageDraw
 
 from logic.jsonhandler import JsonHandler
+from logic.tokengen import open_image_from_url
 from methods import ChoicedEnum, FontType, get_font, when
 
 
@@ -100,6 +102,42 @@ def save_base_color(itr: discord.Interaction, color: int):
     UserColor.add(itr, color)
 
     return UserColorSaveResult(old_color, color)
+
+
+async def save_image_color(itr: discord.Interaction) -> UserColorSaveResult:
+    avatar = itr.user.display_avatar or itr.user.avatar
+    if not avatar:
+        raise RuntimeError("You don't have a profile picture set!")
+
+    image = await open_image_from_url(avatar.url)
+    image = image.convert("RGB").resize((8, 8))
+
+    pixels = image.getdata()
+    best_color: tuple[int, int, int] | None = None
+    max_vibrancy: float = 0.0
+
+    for pixel in pixels:
+        if not isinstance(pixel, (tuple, list)) or len(pixel) != 3:
+            continue
+        r, g, b = pixel
+        _, s, v = colorsys.rgb_to_hsv(r / 255, g / 255, b / 255)
+
+        if s < 0.5 or v < 0.2:
+            continue
+
+        vibrancy = s * v
+        if vibrancy > max_vibrancy:
+            max_vibrancy = vibrancy
+            best_color = (int(r), int(g), int(b))
+
+    if not best_color:
+        raise RuntimeError("TODO sorry no fallback color yet :(")
+
+    old_color = UserColor.get(itr)
+    r, g, b = best_color
+    color = discord.Color.from_rgb(r, g, b).value
+    UserColor.add(itr, color)
+    return UserColorSaveResult(old_color=old_color, color=color)
 
 
 class UserColorFileHandler(JsonHandler[int]):

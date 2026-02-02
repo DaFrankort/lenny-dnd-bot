@@ -20,13 +20,15 @@ class ColorSelectView(discord.ui.View):
         super().__init__()
         self.result = result
         self.is_hex = is_hex
+        user_color = UserColor.get(itr)
         for color in result.color:
-            self.add_item(ColorButton(color, result, is_hex))
+            disabled = user_color == color
+            self.add_item(ColorButton(color, result, is_hex, disabled))
 
 
 class ColorButton(discord.ui.Button["ColorSelectView"]):
-    def __init__(self, color: int, result: UserColorSaveResult, is_hex: bool):
-        super().__init__(style=discord.ButtonStyle.blurple, label=UserColor.to_name(color))
+    def __init__(self, color: int, result: UserColorSaveResult, is_hex: bool, disabled: bool):
+        super().__init__(style=discord.ButtonStyle.gray, label=UserColor.to_name(color), disabled=disabled)
         self.color = color
         self.result = result
         self.is_hex = is_hex

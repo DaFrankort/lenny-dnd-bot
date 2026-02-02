@@ -135,9 +135,10 @@ class ColorSetBaseCommand(BaseCommand):
 
 class ColorSetImageCommand(BaseCommand):
     name = "image"
-    desc = "Sets a color based on your profile picture."
-    help = "Set a color based on your discord avatar image."
+    desc = "Choose a color from a palette generated from an image."
+    help = "Pick a color from a palette generated from an image. If no image is provided, your server avatar will be used."
 
+    @describe(image="Alternative image to base your colors on, uses your server-avatar if left empty.")
     async def handle(self, itr: discord.Interaction, image: discord.Attachment | None = None):
         result = await save_image_color(itr, image)
         embed = ColorSetEmbed(itr, result, is_hex=True)

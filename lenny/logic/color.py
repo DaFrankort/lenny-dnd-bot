@@ -115,7 +115,7 @@ async def save_image_color(itr: discord.Interaction, attachment: discord.Attachm
     else:
         image = await open_image_from_attachment(attachment)
 
-    image = image.convert("RGB").resize((256, 256))
+    image = image.convert("RGB").resize((min(image.size) // 2, min(image.size) // 2))
     quantized = image.quantize(colors=8, method=2)
     color_counts = quantized.getcolors()
     palette = quantized.getpalette()

@@ -6,9 +6,11 @@ from embeds.color import ColorSetEmbed, ColorShowEmbed
 from embeds.embed import SuccessEmbed
 from logic.color import (
     BasicColors,
+    ImageColorStyle,
     UserColor,
     save_base_color,
     save_hex_color,
+    save_image_color,
     save_rgb_color,
 )
 
@@ -72,6 +74,7 @@ class ColorSetCommandGroup(BaseCommandGroup):
         self.add_command(ColorSetHexCommand())
         self.add_command(ColorSetRGBCommand())
         self.add_command(ColorSetBaseCommand())
+        self.add_command(ColorSetImageCommand())
 
 
 class ColorSetHexCommand(BaseCommand):
@@ -128,6 +131,30 @@ class ColorSetBaseCommand(BaseCommand):
     ):
         result = save_base_color(itr, color)
         embed = ColorSetEmbed(itr, result, is_hex=True)
+        await itr.response.send_message(embed=embed, file=embed.file, ephemeral=True)
+
+
+class ColorSetImageCommand(BaseCommand):
+    name = "image"
+    desc = "Choose a color from a palette generated from an image."
+    help = "Pick a color from a palette generated from an image. If no image is provided, your server avatar will be used."
+
+    @describe(
+        image="Alternative image to base your colors on, uses your server-avatar if left empty.",
+        style="(Default = Realistic); Adjusts the color-style of the generated colors.",
+    )
+    @choices(style=ImageColorStyle.choices())
+    async def handle(
+        self,
+        itr: discord.Interaction,
+        image: discord.Attachment | None = None,
+        style: int = ImageColorStyle.REALISTIC.value,
+    ):
+        result = await save_image_color(itr, image, ImageColorStyle(style))
+        embed = ColorSetEmbed(itr, result, is_hex=True)
+        if embed.view:
+            await itr.response.send_message(embed=embed, view=embed.view, file=embed.file, ephemeral=True)
+            return
         await itr.response.send_message(embed=embed, file=embed.file, ephemeral=True)
 
 

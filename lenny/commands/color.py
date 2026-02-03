@@ -6,6 +6,7 @@ from embeds.color import ColorSetEmbed, ColorShowEmbed
 from embeds.embed import SuccessEmbed
 from logic.color import (
     BasicColors,
+    ImageColorStyle,
     UserColor,
     save_base_color,
     save_hex_color,
@@ -140,15 +141,16 @@ class ColorSetImageCommand(BaseCommand):
 
     @describe(
         image="Alternative image to base your colors on, uses your server-avatar if left empty.",
-        complexity="(Default: 32); Controls how many colors the algorithm can use.",
+        style="(Default = Realistic); Adjusts the color-style of the generated colors.",
     )
+    @choices(style=ImageColorStyle.choices())
     async def handle(
         self,
         itr: discord.Interaction,
         image: discord.Attachment | None = None,
-        complexity: discord.app_commands.Range[int, 4, 256] = 32,
+        style: int = ImageColorStyle.REALISTIC.value,
     ):
-        result = await save_image_color(itr, image, complexity)
+        result = await save_image_color(itr, image, ImageColorStyle(style))
         embed = ColorSetEmbed(itr, result, is_hex=True)
         if embed.view:
             await itr.response.send_message(embed=embed, view=embed.view, file=embed.file, ephemeral=True)

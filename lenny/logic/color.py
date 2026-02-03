@@ -134,8 +134,14 @@ def _get_rgb_chroma(rgb: tuple[float, float, float]) -> float:
     return (a * a + b * b) ** 0.5  # type: ignore
 
 
+class ImageColorStyle(ChoicedEnum):
+    REALISTIC = Image.Quantize.FASTOCTREE.value
+    COLORFUL = Image.Quantize.MAXCOVERAGE.value
+    FADED = Image.Quantize.MEDIANCUT.value
+
+
 async def save_image_color(
-    itr: discord.Interaction, attachment: discord.Attachment | None, complexity: int = 32
+    itr: discord.Interaction, attachment: discord.Attachment | None, style: ImageColorStyle
 ) -> UserColorSaveResult:
     avatar = itr.user.display_avatar or itr.user.avatar
     if not avatar:
@@ -147,7 +153,7 @@ async def save_image_color(
         image = await open_image_from_attachment(attachment)
     image = image.convert("RGB")
 
-    quantized = image.quantize(colors=complexity, method=2)
+    quantized = image.quantize(colors=32, method=style.value)
     color_counts = quantized.getcolors()
     palette = quantized.getpalette()
 

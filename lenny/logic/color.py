@@ -129,7 +129,7 @@ def _get_rgb_chroma(rgb: tuple[float, float, float]) -> float:
     """
     Compute the chroma (vibrancy) of an RGB color.
     """
-    lab = color.rgb2lab([[[rgb[0]/255, rgb[1]/255, rgb[2]/255]]])[0,0]  # type: ignore
+    lab = color.rgb2lab([[[rgb[0]/255, rgb[1]/255, rgb[2]/255]]])[0, 0]  # type: ignore
     a, b = lab[1], lab[2]  # type: ignore
     return (a*a + b*b) ** 0.5  # type: ignore
 

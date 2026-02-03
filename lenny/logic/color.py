@@ -131,29 +131,30 @@ async def save_image_color(itr: discord.Interaction, attachment: discord.Attachm
     if not color_counts or not palette:
         raise ValueError("Could not retrieve colors from that image!")
 
-    colors: list[tuple[tuple[float, float, float], int]] = []  # RGB, count
-    for count, index in color_counts:
+    # Group colors from palette by how common they are in the image.
+    rgb_colors: list[tuple[float, float, float]] = []  # RGB
+    for _, index in color_counts:
         i: int = index * 3  # type: ignore
-        colors.append(((palette[i], palette[i + 1], palette[i + 2]), count))
+        rgb_colors.append(((palette[i], palette[i + 1], palette[i + 2])))
 
-    candidates: list[tuple[float, float, float]] = []  # HSV list
-    for rgb, count in colors:
+    # Group colors by how unique their HSV values are.
+    hsv_colors: list[tuple[float, float, float]] = []  # HSV list
+    for rgb in rgb_colors:
         h, s, v = colorsys.rgb_to_hsv(rgb[0], rgb[1], rgb[2])
         v = v / 255.0  # colorsys returns v as a 0-255 value instead of 0-1.
 
         if not (0.2 <= v <= 0.8):  # Filter out very dark or light colors
             continue
-        if any(_in_hsv_range((h, s, v), hsv, 0.2) for hsv in candidates):
+        if any(_in_hsv_range((h, s, v), hsv, 0.2) for hsv in hsv_colors):
             continue
+        hsv_colors.append((h, s, v))
 
-        candidates.append((h, s, v))
-
-    if not candidates:
+    if not hsv_colors:
         raise RuntimeError("Could not determine dominant colors.")
 
-    candidates = candidates[:5]
-    candidates.sort(key=lambda t: (t[1] * t[2]), reverse=True)  # Sort by vibrancy (saturation * value)
-    best_colors = [discord.Color.from_hsv(h, s, v).value for h, s, v in candidates]
+    hsv_colors = hsv_colors[:5]
+    hsv_colors.sort(key=lambda t: (t[1] * t[2]), reverse=True)  # Sort by vibrancy (saturation * value)
+    best_colors = [discord.Color.from_hsv(h, s, v).value for h, s, v in hsv_colors]
 
     old_color = UserColor.get(itr)
     UserColor.add(itr, best_colors[0])

@@ -172,6 +172,9 @@ By default the user's color is automatically generated based on their display na
 - `/color set base <color>` - Set your color from a selection of basic colors.
 - `/color set hex <hex_color>` - Set your color using a hexadecimal color value.
 - `/color set rgb <r> <g> <b>` - Set your color using a RGB value.
+- `/color set image [image] [style]` - Generates color suggestions based on your profile picture.
+  - ``[image]`` - You can optionally upload a different image instead.
+  - ``[style]`` - Apply a different color-selection algorithm, changing the overall mood of the generated colors.
 - `/color clear` - Clears your set color and enforces use of an auto-generated color.
 - `/color show` - Shows the color you've set to everyone.
 

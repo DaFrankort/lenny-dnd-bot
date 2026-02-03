@@ -1,3 +1,4 @@
+import colorsys
 import dataclasses
 import io
 import re
@@ -9,7 +10,6 @@ from PIL import Image, ImageDraw
 from logic.jsonhandler import JsonHandler
 from logic.tokengen import open_image_from_attachment, open_image_from_url
 from methods import ChoicedEnum, FontType, get_font, when
-import colorsys
 
 
 class BasicColors(ChoicedEnum):
@@ -105,6 +105,14 @@ def save_base_color(itr: discord.Interaction, color: int):
     return UserColorSaveResult(old_color, [color])
 
 
+def _in_hsv_range(hsv_1: tuple[float, float, float], hsv_2: tuple[float, float, float], radius: float):
+    """Checks if hsv_1 is in range of hsv_2."""
+    for i in range(3):
+        if abs(hsv_2[i] - hsv_1[i]) > radius:
+            return False
+    return True
+
+
 async def save_image_color(itr: discord.Interaction, attachment: discord.Attachment | None) -> UserColorSaveResult:
     avatar = itr.user.display_avatar or itr.user.avatar
     if not avatar:
@@ -116,31 +124,36 @@ async def save_image_color(itr: discord.Interaction, attachment: discord.Attachm
         image = await open_image_from_attachment(attachment)
 
     image = image.convert("RGB").resize((min(image.size) // 2, min(image.size) // 2))
-    quantized = image.quantize(colors=8, method=2)
+    quantized = image.quantize(colors=32, method=2)
     color_counts = quantized.getcolors()
     palette = quantized.getpalette()
 
     if not color_counts or not palette:
         raise ValueError("Could not retrieve colors from that image!")
 
-    candidates: list[tuple[float, int, int]] = []  # (saturation, count, color_int)
-
+    colors: list[tuple[tuple[float, float, float], int]] = []  # RGB, count
     for count, index in color_counts:
         i: int = index * 3  # type: ignore
-        r: int = palette[i]
-        g: int = palette[i + 1]
-        b: int = palette[i + 2]
+        colors.append(((palette[i], palette[i + 1], palette[i + 2]), count))
 
-        _, s, _ = colorsys.rgb_to_hsv(r / 255.0, g / 255.0, b / 255.0)
-        color = discord.Color.from_rgb(r, g, b).value
-        candidates.append((s, count, color))
+    candidates: list[tuple[float, float, float]] = []  # HSV list
+    for rgb, count in colors:
+        h, s, v = colorsys.rgb_to_hsv(rgb[0], rgb[1], rgb[2])
+        v = v / 255.0  # colorsys returns v as a 0-255 value instead of 0-1.
+
+        if not (0.2 <= v <= 0.8):  # Filter out very dark or light colors
+            continue
+        if any(_in_hsv_range((h, s, v), hsv, 0.2) for hsv in candidates):
+            continue
+
+        candidates.append((h, s, v))
 
     if not candidates:
         raise RuntimeError("Could not determine dominant colors.")
 
-    # Prioritize by saturation first, then by frequency
-    candidates.sort(key=lambda t: (t[0], t[1]), reverse=True)
-    best_colors = [c for _, _, c in candidates[:5]]
+    candidates = candidates[:5]
+    candidates.sort(key=lambda t: (t[1] * t[2]), reverse=True)  # Sort by vibrancy (saturation * value)
+    best_colors = [discord.Color.from_hsv(h, s, v).value for h, s, v in candidates]
 
     old_color = UserColor.get(itr)
     UserColor.add(itr, best_colors[0])

@@ -105,7 +105,7 @@ def save_base_color(itr: discord.Interaction, color: int):
     return UserColorSaveResult(old_color, [color])
 
 
-def _get_delta_e(rgb1: tuple[float, float, float], rgb2: tuple[float, float, float]) -> float:
+def _get_delta_e(rgb1: tuple[int, int, int], rgb2: tuple[int, int, int]) -> float:
     """
     Calculates ΔE between two rgb values.
 
@@ -129,12 +129,14 @@ def _get_rgb_chroma(rgb: tuple[float, float, float]) -> float:
     """
     Compute the chroma (vibrancy) of an RGB color.
     """
-    lab = color.rgb2lab([[[rgb[0]/255, rgb[1]/255, rgb[2]/255]]])[0, 0]  # type: ignore
+    lab = color.rgb2lab([[[rgb[0] / 255, rgb[1] / 255, rgb[2] / 255]]])[0, 0]  # type: ignore
     a, b = lab[1], lab[2]  # type: ignore
-    return (a*a + b*b) ** 0.5  # type: ignore
+    return (a * a + b * b) ** 0.5  # type: ignore
 
 
-async def save_image_color(itr: discord.Interaction, attachment: discord.Attachment | None) -> UserColorSaveResult:
+async def save_image_color(
+    itr: discord.Interaction, attachment: discord.Attachment | None, complexity: int = 32
+) -> UserColorSaveResult:
     avatar = itr.user.display_avatar or itr.user.avatar
     if not avatar:
         raise RuntimeError("You don't have a profile picture set!")
@@ -145,7 +147,7 @@ async def save_image_color(itr: discord.Interaction, attachment: discord.Attachm
         image = await open_image_from_attachment(attachment)
     image = image.convert("RGB")
 
-    quantized = image.quantize(colors=32, method=2)
+    quantized = image.quantize(colors=complexity, method=2)
     color_counts = quantized.getcolors()
     palette = quantized.getpalette()
 
@@ -153,24 +155,26 @@ async def save_image_color(itr: discord.Interaction, attachment: discord.Attachm
         raise ValueError("Could not retrieve colors from that image!")
 
     # Group colors from palette by how common they are in the image.
-    palette_rgb_colors: list[tuple[float, float, float]] = []  # RGB
+    palette_rgb_colors: list[tuple[int, int, int]] = []  # RGB
     for _, index in color_counts:
         i: int = index * 3  # type: ignore
         palette_rgb_colors.append(((palette[i], palette[i + 1], palette[i + 2])))
 
-    # Filter colors by uniqueness (Using deltaE)
-    rgb_colors: list[tuple[float, float, float]] = []  # RGB
+    # Filter colors by uniqueness (Using delta-E)
+    rgb_colors: list[tuple[int, int, int]] = []  # RGB
     for rgb in palette_rgb_colors:
         if any(_get_delta_e(rgb, rgb2) <= 8 for rgb2 in rgb_colors):
+            continue
+        # Filter out non-vibrant colors, like black, gray or white.
+        if _get_rgb_chroma(rgb) < 8:  # 8 yielded best results whilst testing.
             continue
         rgb_colors.append(rgb)
 
     if not rgb_colors:
         raise RuntimeError("Could not determine dominant colors.")
 
-    rgb_colors.sort(key=_get_rgb_chroma, reverse=True)
     rgb_colors = rgb_colors[:10]
-    best_colors = [discord.Color.from_rgb(int(r), int(g), int(b)).value for r, g, b in rgb_colors]
+    best_colors = [discord.Color.from_rgb(r, g, b).value for r, g, b in rgb_colors]
 
     old_color = UserColor.get(itr)
     UserColor.add(itr, best_colors[0])

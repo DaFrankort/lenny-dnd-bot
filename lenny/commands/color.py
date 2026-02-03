@@ -138,9 +138,17 @@ class ColorSetImageCommand(BaseCommand):
     desc = "Choose a color from a palette generated from an image."
     help = "Pick a color from a palette generated from an image. If no image is provided, your server avatar will be used."
 
-    @describe(image="Alternative image to base your colors on, uses your server-avatar if left empty.")
-    async def handle(self, itr: discord.Interaction, image: discord.Attachment | None = None):
-        result = await save_image_color(itr, image)
+    @describe(
+        image="Alternative image to base your colors on, uses your server-avatar if left empty.",
+        complexity="(Default: 32); Controls how many colors the algorithm can use.",
+    )
+    async def handle(
+        self,
+        itr: discord.Interaction,
+        image: discord.Attachment | None = None,
+        complexity: discord.app_commands.Range[int, 4, 256] = 32,
+    ):
+        result = await save_image_color(itr, image, complexity)
         embed = ColorSetEmbed(itr, result, is_hex=True)
         if embed.view:
             await itr.response.send_message(embed=embed, view=embed.view, file=embed.file, ephemeral=True)

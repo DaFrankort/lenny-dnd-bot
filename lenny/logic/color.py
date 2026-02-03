@@ -4,8 +4,8 @@ import re
 
 import colornames  # type: ignore
 import discord
+import skimage
 from PIL import Image, ImageDraw
-from skimage import color
 
 from logic.jsonhandler import JsonHandler
 from logic.tokengen import open_image_from_attachment, open_image_from_url
@@ -120,16 +120,16 @@ def _get_delta_e(rgb1: tuple[int, int, int], rgb2: tuple[int, int, int]) -> floa
     Source: https://zschuessler.github.io/DeltaE/learn/
     """
     # Convert RGB 0-255 to 0-1 and wrap as 1x1x3 arrays for skimage
-    lab1 = color.rgb2lab([[[rgb1[0] / 255, rgb1[1] / 255, rgb1[2] / 255]]])[0, 0]  # type: ignore
-    lab2 = color.rgb2lab([[[rgb2[0] / 255, rgb2[1] / 255, rgb2[2] / 255]]])[0, 0]  # type: ignore
-    return color.deltaE_ciede2000(lab1, lab2)  # type: ignore
+    lab1 = skimage.color.rgb2lab([[[rgb1[0] / 255, rgb1[1] / 255, rgb1[2] / 255]]])[0, 0]  # type: ignore
+    lab2 = skimage.color.rgb2lab([[[rgb2[0] / 255, rgb2[1] / 255, rgb2[2] / 255]]])[0, 0]  # type: ignore
+    return skimage.color.deltaE_ciede2000(lab1, lab2)  # type: ignore
 
 
 def _get_rgb_chroma(rgb: tuple[float, float, float]) -> float:
     """
     Compute the chroma (vibrancy) of an RGB color.
     """
-    lab = color.rgb2lab([[[rgb[0] / 255, rgb[1] / 255, rgb[2] / 255]]])[0, 0]  # type: ignore
+    lab = skimage.color.rgb2lab([[[rgb[0] / 255, rgb[1] / 255, rgb[2] / 255]]])[0, 0]  # type: ignore
     a, b = lab[1], lab[2]  # type: ignore
     return (a * a + b * b) ** 0.5  # type: ignore
 

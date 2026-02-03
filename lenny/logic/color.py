@@ -2,10 +2,13 @@ import dataclasses
 import io
 import re
 
+import colornames  # type: ignore
 import discord
+import skimage
 from PIL import Image, ImageDraw
 
 from logic.jsonhandler import JsonHandler
+from logic.tokengen import open_image_from_attachment, open_image_from_url
 from methods import ChoicedEnum, FontType, get_font, when
 
 
@@ -71,7 +74,7 @@ def get_palette_image(color: discord.Color | int) -> discord.File:
 @dataclasses.dataclass
 class UserColorSaveResult:
     old_color: int
-    color: int
+    color: list[int]
 
 
 def save_hex_color(itr: discord.Interaction, hex_color: str) -> UserColorSaveResult:
@@ -84,7 +87,7 @@ def save_hex_color(itr: discord.Interaction, hex_color: str) -> UserColorSaveRes
     color = UserColor.parse(hex_color)
     UserColor.add(itr, color)
 
-    return UserColorSaveResult(old_color, color)
+    return UserColorSaveResult(old_color, [color])
 
 
 def save_rgb_color(itr: discord.Interaction, r: int, g: int, b: int) -> UserColorSaveResult:
@@ -92,14 +95,113 @@ def save_rgb_color(itr: discord.Interaction, r: int, g: int, b: int) -> UserColo
     color = discord.Color.from_rgb(r, g, b).value
     UserColor.add(itr, color)
 
-    return UserColorSaveResult(old_color, color)
+    return UserColorSaveResult(old_color, [color])
 
 
 def save_base_color(itr: discord.Interaction, color: int):
     old_color = UserColor.get(itr)
     UserColor.add(itr, color)
 
-    return UserColorSaveResult(old_color, color)
+    return UserColorSaveResult(old_color, [color])
+
+
+def _get_perceived_color_delta(rgb1: tuple[int, int, int], rgb2: tuple[int, int, int]) -> float:
+    """
+    Calculates ΔE between two rgb values.
+
+    ΔE is a way to measure how different two colors are in human perception.
+    It's represented as a value from 0 to 100 where:
+    - <1 = Not perceptible
+    - 1-2  = Perceptible through close observation
+    - 2-10 = Perceptible at a glance
+    - 11-49 = Colors are more similar than opposite.
+    - 100 = Colors are exact opposite.
+
+    Source: https://zschuessler.github.io/DeltaE/learn/
+    """
+    # Convert RGB 0-255 to 0-1 and wrap as 1x1x3 arrays for skimage
+    lab1 = skimage.color.rgb2lab([[[rgb1[0] / 255, rgb1[1] / 255, rgb1[2] / 255]]])[0, 0]  # type: ignore
+    lab2 = skimage.color.rgb2lab([[[rgb2[0] / 255, rgb2[1] / 255, rgb2[2] / 255]]])[0, 0]  # type: ignore
+    return skimage.color.deltaE_ciede2000(lab1, lab2)  # type: ignore
+
+
+def _get_rgb_chroma(rgb: tuple[float, float, float]) -> float:
+    """
+    Compute the chroma (vibrancy) of an RGB color.
+    """
+    lab = skimage.color.rgb2lab([[[rgb[0] / 255, rgb[1] / 255, rgb[2] / 255]]])[0, 0]  # type: ignore
+    a, b = lab[1], lab[2]  # type: ignore
+    return (a * a + b * b) ** 0.5  # type: ignore
+
+
+class ImageColorStyle(ChoicedEnum):
+    REALISTIC = Image.Quantize.FASTOCTREE.value
+    COLORFUL = Image.Quantize.MAXCOVERAGE.value
+    FADED = Image.Quantize.MEDIANCUT.value
+
+
+def _get_image_colors(image: Image.Image) -> list[tuple[int, int, int]]:
+    """Gets the colors from an image, returns a list of RGB values."""
+    color_counts = image.getcolors()
+    palette = image.getpalette()
+
+    if not color_counts or not palette:
+        raise ValueError("Could not retrieve colors from that image!")
+
+    result: list[tuple[int, int, int]] = []
+    for _, index in color_counts:
+        i: int = index * 3  # type: ignore
+        result.append(((palette[i], palette[i + 1], palette[i + 2])))
+    return result
+
+
+def _filter_most_unique_colors(
+    colors: list[tuple[int, int, int]], min_delta_e: float, min_rgb_chroma: float
+) -> list[tuple[int, int, int]]:
+    """
+    Filters a list of RGB colors to keep only visually distinct and sufficiently vibrant ones.
+    Args:
+        colors: List of RGB color tuples (R, G, B).
+        min_delta_e: Minimum perceptual distance (Delta E) required for two colors to be considered visually distinct.
+        min_rgb_chroma: Minimum chroma threshold; colors below this value (dark or low-saturation) are discarded.
+
+    Returns:
+        A list of RGB tuples representing the most perceptually unique colors.
+        If all colors were filtered out, the first five prominent colors are returned instead.
+    """
+    result: list[tuple[int, int, int]] = []
+    for rgb in colors:
+        if any(_get_perceived_color_delta(rgb, rgb2) <= min_delta_e for rgb2 in result):
+            continue
+        if _get_rgb_chroma(rgb) < min_rgb_chroma:
+            continue
+        result.append(rgb)
+
+    if not result:
+        return colors[:5]
+    return result
+
+
+async def save_image_color(
+    itr: discord.Interaction, attachment: discord.Attachment | None, style: ImageColorStyle
+) -> UserColorSaveResult:
+    avatar = itr.user.display_avatar or itr.user.avatar
+    if attachment:
+        image = await open_image_from_attachment(attachment)
+    elif avatar:
+        image = await open_image_from_url(avatar.url)
+    else:
+        raise RuntimeError("You don't have a profile picture set!")
+
+    image = image.convert("RGB")
+    quantized = image.quantize(colors=32, method=style.value)
+    colors = _get_image_colors(quantized)
+    filtered = _filter_most_unique_colors(colors, 8, 8)[:10]  # The values 8 & 8 gave the best results during testing.
+    best_colors = [discord.Color.from_rgb(r, g, b).value for r, g, b in filtered]
+
+    old_color = UserColor.get(itr)
+    UserColor.add(itr, best_colors[0])
+    return UserColorSaveResult(old_color=old_color, color=best_colors)
 
 
 class UserColorFileHandler(JsonHandler[int]):
@@ -182,6 +284,14 @@ class UserColorFileHandler(JsonHandler[int]):
 
     def to_hex(self, color: int) -> str:
         return f"#{color:06X}".upper()
+
+    def to_name(self, color: int) -> str:
+        hex_val = self.to_hex(color)
+        # pylint: disable=no-value-for-parameter
+        name = colornames.find(hex_val)  # type: ignore
+        if isinstance(name, str):
+            return name
+        return hex_val
 
 
 UserColor = UserColorFileHandler()

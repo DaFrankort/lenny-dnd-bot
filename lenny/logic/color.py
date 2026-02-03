@@ -105,7 +105,7 @@ def save_base_color(itr: discord.Interaction, color: int):
     return UserColorSaveResult(old_color, [color])
 
 
-def _get_delta_e(rgb1: tuple[int, int, int], rgb2: tuple[int, int, int]) -> float:
+def _get_perceived_color_delta(rgb1: tuple[int, int, int], rgb2: tuple[int, int, int]) -> float:
     """
     Calculates ΔE between two rgb values.
 
@@ -144,13 +144,12 @@ async def save_image_color(
     itr: discord.Interaction, attachment: discord.Attachment | None, style: ImageColorStyle
 ) -> UserColorSaveResult:
     avatar = itr.user.display_avatar or itr.user.avatar
-    if not avatar:
-        raise RuntimeError("You don't have a profile picture set!")
-
-    if not attachment:
+    if attachment:
+        image = await open_image_from_attachment(attachment)
+    elif avatar:
         image = await open_image_from_url(avatar.url)
     else:
-        image = await open_image_from_attachment(attachment)
+        raise RuntimeError("You don't have a profile picture set!")
     image = image.convert("RGB")
 
     quantized = image.quantize(colors=32, method=style.value)
@@ -169,7 +168,7 @@ async def save_image_color(
     # Filter colors by uniqueness (Using delta-E)
     rgb_colors: list[tuple[int, int, int]] = []  # RGB
     for rgb in palette_rgb_colors:
-        if any(_get_delta_e(rgb, rgb2) <= 8 for rgb2 in rgb_colors):
+        if any(_get_perceived_color_delta(rgb, rgb2) <= 8 for rgb2 in rgb_colors):
             continue
         # Filter out non-vibrant colors, like black, gray or white.
         if _get_rgb_chroma(rgb) < 8:  # 8 yielded best results whilst testing.

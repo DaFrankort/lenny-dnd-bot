@@ -5,11 +5,11 @@ import re
 import colornames  # type: ignore
 import discord
 from PIL import Image, ImageDraw
+from skimage import color
 
 from logic.jsonhandler import JsonHandler
 from logic.tokengen import open_image_from_attachment, open_image_from_url
 from methods import ChoicedEnum, FontType, get_font, when
-import colorsys
 
 
 class BasicColors(ChoicedEnum):
@@ -105,7 +105,38 @@ def save_base_color(itr: discord.Interaction, color: int):
     return UserColorSaveResult(old_color, [color])
 
 
-async def save_image_color(itr: discord.Interaction, attachment: discord.Attachment | None) -> UserColorSaveResult:
+def _get_delta_e(rgb1: tuple[int, int, int], rgb2: tuple[int, int, int]) -> float:
+    """
+    Calculates ΔE between two rgb values.
+
+    ΔE is a way to measure how different two colors are in human perception.
+    It's represented as a value from 0 to 100 where:
+    - <1 = Not perceptible
+    - 1-2  = Perceptible through close observation
+    - 2-10 = Perceptible at a glance
+    - 11-49 = Colors are more similar than opposite.
+    - 100 = Colors are exact opposite.
+
+    Source: https://zschuessler.github.io/DeltaE/learn/
+    """
+    # Convert RGB 0-255 to 0-1 and wrap as 1x1x3 arrays for skimage
+    lab1 = color.rgb2lab([[[rgb1[0] / 255, rgb1[1] / 255, rgb1[2] / 255]]])[0, 0]  # type: ignore
+    lab2 = color.rgb2lab([[[rgb2[0] / 255, rgb2[1] / 255, rgb2[2] / 255]]])[0, 0]  # type: ignore
+    return color.deltaE_ciede2000(lab1, lab2)  # type: ignore
+
+
+def _get_rgb_chroma(rgb: tuple[float, float, float]) -> float:
+    """
+    Compute the chroma (vibrancy) of an RGB color.
+    """
+    lab = color.rgb2lab([[[rgb[0] / 255, rgb[1] / 255, rgb[2] / 255]]])[0, 0]  # type: ignore
+    a, b = lab[1], lab[2]  # type: ignore
+    return (a * a + b * b) ** 0.5  # type: ignore
+
+
+async def save_image_color(
+    itr: discord.Interaction, attachment: discord.Attachment | None, complexity: int = 32
+) -> UserColorSaveResult:
     avatar = itr.user.display_avatar or itr.user.avatar
     if not avatar:
         raise RuntimeError("You don't have a profile picture set!")
@@ -114,33 +145,36 @@ async def save_image_color(itr: discord.Interaction, attachment: discord.Attachm
         image = await open_image_from_url(avatar.url)
     else:
         image = await open_image_from_attachment(attachment)
+    image = image.convert("RGB")
 
-    image = image.convert("RGB").resize((min(image.size) // 2, min(image.size) // 2))
-    quantized = image.quantize(colors=8, method=2)
+    quantized = image.quantize(colors=complexity, method=2)
     color_counts = quantized.getcolors()
     palette = quantized.getpalette()
 
     if not color_counts or not palette:
         raise ValueError("Could not retrieve colors from that image!")
 
-    candidates: list[tuple[float, int, int]] = []  # (saturation, count, color_int)
-
-    for count, index in color_counts:
+    # Group colors from palette by how common they are in the image.
+    palette_rgb_colors: list[tuple[int, int, int]] = []  # RGB
+    for _, index in color_counts:
         i: int = index * 3  # type: ignore
-        r: int = palette[i]
-        g: int = palette[i + 1]
-        b: int = palette[i + 2]
+        palette_rgb_colors.append(((palette[i], palette[i + 1], palette[i + 2])))
 
-        _, s, _ = colorsys.rgb_to_hsv(r / 255.0, g / 255.0, b / 255.0)
-        color = discord.Color.from_rgb(r, g, b).value
-        candidates.append((s, count, color))
+    # Filter colors by uniqueness (Using delta-E)
+    rgb_colors: list[tuple[int, int, int]] = []  # RGB
+    for rgb in palette_rgb_colors:
+        if any(_get_delta_e(rgb, rgb2) <= 8 for rgb2 in rgb_colors):
+            continue
+        # Filter out non-vibrant colors, like black, gray or white.
+        if _get_rgb_chroma(rgb) < 8:  # 8 yielded best results whilst testing.
+            continue
+        rgb_colors.append(rgb)
 
-    if not candidates:
+    if not rgb_colors:
         raise RuntimeError("Could not determine dominant colors.")
 
-    # Prioritize by saturation first, then by frequency
-    candidates.sort(key=lambda t: (t[0], t[1]), reverse=True)
-    best_colors = [c for _, _, c in candidates[:5]]
+    rgb_colors = rgb_colors[:10]
+    best_colors = [discord.Color.from_rgb(r, g, b).value for r, g, b in rgb_colors]
 
     old_color = UserColor.get(itr)
     UserColor.add(itr, best_colors[0])

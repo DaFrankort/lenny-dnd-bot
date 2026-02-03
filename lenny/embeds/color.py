@@ -59,6 +59,7 @@ class ColorSetEmbed(UserActionEmbed):
         self.is_hex = is_hex
         color = selected_color or result.color[0]
         self.file = get_palette_image(color)
+        self.view = None
 
         descriptions: list[str] = []
         if self.is_hex:

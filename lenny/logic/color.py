@@ -43,7 +43,8 @@ def get_palette_image(color: discord.Color | int) -> discord.File:
     if isinstance(color, discord.Color):
         color = color.value
     r, g, b = UserColor.to_rgb(color)
-    hex_str = f"#{color:06X}"
+    name = UserColor.to_name(color)
+    hex_code = f"#{color:06X}"
 
     # Draw square
     image = Image.new("RGBA", (256, 64), (r, g, b, 255))
@@ -55,14 +56,20 @@ def get_palette_image(color: discord.Color | int) -> discord.File:
     font_color = when(luminance > 0.5, "black", "white")
     font = get_font(FontType.MONOSPACE, font_size)
 
-    bbox = draw.textbbox((0, 0), hex_str, font=font)
-    text_w = bbox[2] - bbox[0]
-    text_h = bbox[3] - bbox[1]
+    lines = [name, hex_code]
+    spacing = 6
 
-    x = (image.width - text_w) // 2
-    y = (image.height - text_h) // 2 - (font_size // 4)
+    line_heights = [font.getbbox(line)[3] - font.getbbox(line)[1] for line in lines]
+    total_height = sum(line_heights) + spacing * (len(lines) - 1)
 
-    draw.text((x, y), hex_str, font=font, fill=font_color)
+    y = (image.height - total_height) // 2 - 4
+    for i, line in enumerate(lines):
+        line_bbox = draw.textbbox((0, 0), line, font=font)
+        line_w = line_bbox[2] - line_bbox[0]
+        # Center horizontally
+        x = (image.width - line_w) // 2
+        draw.text((x, y), line, font=font, fill=font_color)
+        y += line_heights[i] + spacing
 
     # Buffer and send
     buffer = io.BytesIO()

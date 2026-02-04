@@ -1,6 +1,6 @@
 import pytest
 from discord import Interaction
-from utils.mocking import MockInteraction, MockUser
+from mocking import MockInteraction, MockUser
 
 from logic.dicecache import DiceCache, DiceCacheInfo
 

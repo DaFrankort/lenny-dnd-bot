@@ -5,7 +5,7 @@ import pytest
 
 # Required to mark the library as essential for testing in our workflows
 import pytest_asyncio  # noqa: F401 # type: ignore
-from utils.mocking import (
+from mocking import (
     MockDirectMessageInteraction,
     MockGIFImage,
     MockImage,

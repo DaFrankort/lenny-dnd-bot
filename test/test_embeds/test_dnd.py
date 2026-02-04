@@ -1,6 +1,6 @@
 import discord
 import pytest
-from utils.mocking import MockInteraction
+from mocking import MockInteraction
 
 from embeds.search import MultiDNDSelectView
 from logic.config import Config

@@ -2,7 +2,7 @@ from typing import Awaitable, Callable
 
 import discord
 import pytest
-from utils.mocking import MockInteraction
+from mocking import MockInteraction
 
 from commands.search import (
     action_name_autocomplete,

@@ -1,5 +1,11 @@
 import pytest
-from utils.mocking import MockBot, MockServerTextChannel, MockUser
+from utils.mocking import (
+    MockBot,
+    MockInteraction,
+    MockServerTextChannel,
+    MockServerTextMessage,
+    MockUser,
+)
 
 from bot import Bot
 from commands.command import BaseContextMenu
@@ -34,3 +40,11 @@ class TestAbstractContextMenu:
     @pytest.fixture()
     def channel(self):
         return MockServerTextChannel()
+
+    @pytest.fixture()
+    def itr(self, user: MockUser):
+        return MockInteraction(user)
+
+    @pytest.fixture()
+    def message(self, user: MockUser, channel: MockServerTextChannel):
+        return MockServerTextMessage(user, channel)

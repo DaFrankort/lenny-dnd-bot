@@ -35,15 +35,12 @@ class TestRerollContextMenu(TestAbstractContextMenu):
     async def test_reroll_embeds(
         self,
         cmd: BaseContextMenu,
-        user: MockUser,
-        channel: MockServerTextChannel,
+        itr: MockInteraction,
+        message: MockServerTextMessage,
         is_valid: bool,
         title: str,
     ):
         """Attempt to re-roll on various titles."""
-
-        itr = MockInteraction(user)
-        message = MockServerTextMessage(user, channel)
 
         message.embeds = [self.create_roll_embed(title)]
 
@@ -53,21 +50,19 @@ class TestRerollContextMenu(TestAbstractContextMenu):
             with pytest.raises(ValueError):
                 await cmd.handle(itr, message)
 
-    async def test_invalid_embed_reroll(self, cmd: BaseContextMenu, user: MockUser, channel: MockServerTextChannel):
+    async def test_invalid_embed_reroll(self, cmd: BaseContextMenu, itr: MockInteraction, message: MockServerTextMessage):
         """Try to roll on message with no embeds."""
-        itr = MockInteraction(user)
-        message = MockServerTextMessage(user, channel)
         message.embeds = []
 
         with pytest.raises(ValueError):
             await cmd.handle(itr, message)
 
-    async def test_invalid_user_reroll(self, cmd: BaseContextMenu, user: MockUser, channel: MockServerTextChannel):
+    async def test_invalid_user_reroll(self, cmd: BaseContextMenu, itr: MockInteraction, channel: MockServerTextChannel):
         """Try to roll on an embed from a different user."""
 
-        itr = MockInteraction(user)
         other = MockUser("other")
         message = MockServerTextMessage(other, channel)
 
+        assert itr.user.id != message.author.id
         with pytest.raises(PermissionError):
             await cmd.handle(itr, message)

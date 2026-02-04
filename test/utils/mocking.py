@@ -86,7 +86,7 @@ class MockMember(discord.Member):
 
 
 class MockTextChannel(discord.TextChannel):
-    def __init__(self, guild: discord.Guild, id: int):
+    def __init__(self, guild: discord.Guild = MockGuild(999), id: int = 100):
         self.guild = guild
         self.id = id
 
@@ -110,11 +110,6 @@ class MockInteraction(discord.Interaction):
         self._servers = MagicMock()
         self._original_response = MagicMock()
         self._state._get_guild = MagicMock(return_value=mock_guild)
-
-
-class MockServerTextChannel(discord.TextChannel):
-    def __init__(self, guild: discord.Guild = MockGuild(999)):
-        self.guild = guild
 
 
 class MockDMChannel(discord.DMChannel):
@@ -180,8 +175,8 @@ class MockImageAsset(discord.Asset):
         self._animated = False
 
 
-class MockServerTextMessage(discord.Message):
-    def __init__(self, user: discord.User, channel: discord.TextChannel = MockServerTextChannel(), content: str = "") -> None:
+class MockMessage(discord.Message):
+    def __init__(self, user: discord.User, channel: discord.TextChannel = MockTextChannel(), content: str = "") -> None:
         # The id is the amount of nanoseconds since epoch
         self.id = round(time.time() * 1e9)
         self.author = user
@@ -195,7 +190,7 @@ class MockServerTextMessage(discord.Message):
         return
 
 
-class MockTextMessageEmbed(discord.Embed):
+class MockEmbed(discord.Embed):
     def __init__(self, title: str, author: str = "", contents: str = ""):
         super().__init__(title=title)
         self.set_author(name=author)

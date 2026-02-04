@@ -1,9 +1,9 @@
 import pytest
 from test_context_menus.context_menu import TestAbstractContextMenu
 from utils.mocking import (
+    MockEmbed,
     MockInteraction,
-    MockServerTextMessage,
-    MockTextMessageEmbed,
+    MockMessage,
     MockUser,
 )
 
@@ -19,12 +19,12 @@ class TestFavoritesContextMenu(TestAbstractContextMenu):
         self,
         cmd: BaseContextMenu,
         itr: MockInteraction,
-        message: MockServerTextMessage,
+        message: MockMessage,
     ):
         """Try to add a valid entry to favorites."""
 
         entry = Data.spells.entries[0]
-        message.embeds = [MockTextMessageEmbed(title=entry.title)]
+        message.embeds = [MockEmbed(title=entry.title)]
 
         await cmd.handle(itr, message)
 
@@ -32,11 +32,11 @@ class TestFavoritesContextMenu(TestAbstractContextMenu):
         self,
         cmd: BaseContextMenu,
         itr: MockInteraction,
-        message: MockServerTextMessage,
+        message: MockMessage,
     ):
         """Try to add an invalid entry with an invalid title to favorites."""
 
-        message.embeds = [MockTextMessageEmbed(title="Invalid title")]
+        message.embeds = [MockEmbed(title="Invalid title")]
 
         with pytest.raises(ValueError):
             await cmd.handle(itr, message)
@@ -47,8 +47,8 @@ class TestFavoritesContextMenu(TestAbstractContextMenu):
         entry = Data.spells.entries[0]
         other = MockUser("other")
 
-        message = MockServerTextMessage(other)
-        message.embeds = [MockTextMessageEmbed(title=entry.title)]
+        message = MockMessage(other)
+        message.embeds = [MockEmbed(title=entry.title)]
 
         assert itr.user.id != message.author.id
         with pytest.raises(ValueError):
@@ -58,7 +58,7 @@ class TestFavoritesContextMenu(TestAbstractContextMenu):
         self,
         cmd: BaseContextMenu,
         itr: MockInteraction,
-        message: MockServerTextMessage,
+        message: MockMessage,
     ):
         """Try to add an invalid entry with no entry embeds to favorites."""
 
@@ -71,11 +71,11 @@ class TestFavoritesContextMenu(TestAbstractContextMenu):
         self,
         cmd: BaseContextMenu,
         itr: MockInteraction,
-        message: MockServerTextMessage,
+        message: MockMessage,
     ):
         """Try to add non-existent entry to favorites."""
 
-        message.embeds = [MockTextMessageEmbed(title="Does-Not-Exist (DoesNotExist)")]
+        message.embeds = [MockEmbed(title="Does-Not-Exist (DoesNotExist)")]
 
         with pytest.raises(ValueError):
             await cmd.handle(itr, message)

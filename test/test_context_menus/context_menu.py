@@ -2,7 +2,7 @@ import pytest
 from utils.mocking import (
     MockBot,
     MockInteraction,
-    MockServerTextMessage,
+    MockMessage,
     MockUser,
 )
 
@@ -42,4 +42,4 @@ class TestAbstractContextMenu:
 
     @pytest.fixture()
     def message(self, user: MockUser):
-        return MockServerTextMessage(user)
+        return MockMessage(user)

@@ -1,6 +1,6 @@
 import pytest
 from test_context_menus.context_menu import TestAbstractContextMenu
-from utils.mocking import MockInteraction, MockServerTextMessage, MockUser
+from utils.mocking import MockInteraction, MockMessage, MockUser
 
 from commands.command import BaseContextMenu
 from context_menus.delete import DeleteContextMenu
@@ -9,7 +9,7 @@ from context_menus.delete import DeleteContextMenu
 class TestDeleteContextMenu(TestAbstractContextMenu):
     context_menu_name = DeleteContextMenu.name
 
-    async def test_delete_bot_message(self, cmd: BaseContextMenu, itr: MockInteraction, message: MockServerTextMessage):
+    async def test_delete_bot_message(self, cmd: BaseContextMenu, itr: MockInteraction, message: MockMessage):
         """Verify that the bot is allowed to delete its own message."""
 
         assert itr.user.id == message.author.id
@@ -19,7 +19,7 @@ class TestDeleteContextMenu(TestAbstractContextMenu):
         """Verify that the bot is not allowed to delete another user's message."""
 
         other = MockUser("other")
-        message = MockServerTextMessage(other)
+        message = MockMessage(other)
 
         assert itr.user.id != message.author.id
         with pytest.raises(PermissionError):

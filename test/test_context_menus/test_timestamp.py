@@ -1,6 +1,6 @@
 import pytest
 from test_context_menus.context_menu import TestAbstractContextMenu
-from utils.mocking import MockInteraction, MockServerTextMessage, MockUser
+from utils.mocking import MockInteraction, MockMessage, MockUser
 
 from commands.command import BaseContextMenu
 from context_menus.timestamp import RequestTimestampContextMenu
@@ -13,7 +13,7 @@ class TestTimestampContextMenu(TestAbstractContextMenu):
         """Try to retrieve the timestamp from a valid message."""
 
         itr = MockInteraction(user)
-        message = MockServerTextMessage(user, content="in 4 hours")
+        message = MockMessage(user, content="in 4 hours")
 
         await cmd.handle(itr, message)
 
@@ -21,7 +21,7 @@ class TestTimestampContextMenu(TestAbstractContextMenu):
         """Try to retrieve the timestamp from a valid message."""
 
         itr = MockInteraction(user)
-        message = MockServerTextMessage(user, content="somewhere in the future")
+        message = MockMessage(user, content="somewhere in the future")
 
         with pytest.raises(ValueError):
             await cmd.handle(itr, message)

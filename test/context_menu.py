@@ -7,7 +7,9 @@ import pytest_asyncio  # noqa: F401 # type: ignore
 from bot import Bot
 from commands.command import BaseContextMenu
 from context_menus.delete import DeleteContextMenu
-from utils.mocking import MockBot, MockInteraction, MockServerTextChannel, MockServerTextMessage, MockUser
+from context_menus.favorites import AddFavoriteContextMenu
+from logic.dnd.data import Data
+from utils.mocking import MockBot, MockInteraction, MockServerTextChannel, MockServerTextMessage, MockTextMessageEmbed, MockUser
 
 
 def get_context_menu_cmd(bot: Bot, name: str) -> BaseContextMenu:
@@ -47,4 +49,66 @@ class TestDeleteContextMenu:
         message = MockServerTextMessage(other, channel)
 
         with pytest.raises(PermissionError):
+            await cmd.handle(itr, message)
+
+
+class TestFavoritesContextMenu:
+    @pytest.fixture()
+    def cmd(self):
+        return get_context_menu_cmd(MockBot(), AddFavoriteContextMenu.name)
+
+    async def test_add_valid_entry_to_favorites(self, cmd: BaseContextMenu):
+        entry = Data.spells.entries[0]
+
+        user = MockUser("bot")
+        itr = MockInteraction(user)
+        channel = MockServerTextChannel()
+        message = MockServerTextMessage(user, channel)
+        message.embeds = [MockTextMessageEmbed(title=entry.title)]
+
+        await cmd.handle(itr, message)
+
+    async def test_add_invalid_title_entry_to_favorites(self, cmd: BaseContextMenu):
+        user = MockUser("bot")
+        itr = MockInteraction(user)
+        channel = MockServerTextChannel()
+        message = MockServerTextMessage(user, channel)
+        message.embeds = [MockTextMessageEmbed(title="Invalid title")]
+
+        with pytest.raises(ValueError):
+            await cmd.handle(itr, message)
+
+    async def test_add_invalid_user_entry_to_favorites(self, cmd: BaseContextMenu):
+        entry = Data.spells.entries[0]
+        user = MockUser("bot")
+        other = MockUser("other")
+
+        itr = MockInteraction(user)
+        channel = MockServerTextChannel()
+        message = MockServerTextMessage(other, channel)
+        message.embeds = [MockTextMessageEmbed(title=entry.title)]
+
+        with pytest.raises(ValueError):
+            await cmd.handle(itr, message)
+
+    async def test_add_invalid_embeds_entry_to_favorites(self, cmd: BaseContextMenu):
+        user = MockUser("bot")
+
+        itr = MockInteraction(user)
+        channel = MockServerTextChannel()
+        message = MockServerTextMessage(user, channel)
+        message.embeds = []
+
+        with pytest.raises(ValueError):
+            await cmd.handle(itr, message)
+
+    async def test_add_invalid_nonexistent_entry_to_favorites(self, cmd: BaseContextMenu):
+        user = MockUser("bot")
+
+        itr = MockInteraction(user)
+        channel = MockServerTextChannel()
+        message = MockServerTextMessage(user, channel)
+        message.embeds = [MockTextMessageEmbed(title="Does-Not-Exist (DoesNotExist)")]
+
+        with pytest.raises(ValueError):
             await cmd.handle(itr, message)

@@ -187,3 +187,8 @@ class MockServerTextMessage(discord.Message):
         # Overwritten because we don't want to actually delete discord messages.
         # This is purely to mock behavior.
         return
+
+
+class MockTextMessageEmbed(discord.Embed):
+    def __init__(self, title: str):
+        super().__init__(title=title)

@@ -23,6 +23,6 @@ class TestAbstractContextMenu:
     def cmd(self):
         if not self.context_menu_name:
             raise NotImplementedError(
-                f"Context menu test class '{self.__class__.__name__}' does not have it's context_menu_name value set!"
+                f"Context menu test class '{self.__class__.__name__}' does not have its context_menu_name value set!"
             )
         return get_context_menu_cmd(MockBot(), self.context_menu_name)

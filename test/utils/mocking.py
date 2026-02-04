@@ -190,5 +190,7 @@ class MockServerTextMessage(discord.Message):
 
 
 class MockTextMessageEmbed(discord.Embed):
-    def __init__(self, title: str):
+    def __init__(self, title: str, author: str = "", contents: str = ""):
         super().__init__(title=title)
+        self.set_author(name=author)
+        self.add_field(name="", value=contents)

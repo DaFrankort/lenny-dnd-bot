@@ -1,8 +1,9 @@
 import discord
 import pytest
+from utils.mocking import MockInteraction
+
 from embeds.stats import StatsEmbed
 from logic.stats import Stats
-from utils.mocking import MockInteraction
 
 
 class TestStats:

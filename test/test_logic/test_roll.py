@@ -1,4 +1,5 @@
 import math
+
 import pytest
 
 from logic.roll import Advantage, roll

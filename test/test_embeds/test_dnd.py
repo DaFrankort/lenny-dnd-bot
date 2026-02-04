@@ -1,10 +1,10 @@
 import discord
 import pytest
+from utils.mocking import MockInteraction
 
 from embeds.search import MultiDNDSelectView
 from logic.config import Config
 from logic.dnd.data import Data
-from utils.mocking import MockInteraction
 
 
 class TestDNDEmbed:

@@ -1,7 +1,6 @@
 import pytest
 from utils.mocking import MockInteraction
 
-
 from logic.config import Config
 from logic.dnd.abstract import fuzzy_matches
 from logic.dnd.data import Data

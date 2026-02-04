@@ -1,6 +1,9 @@
 from typing import Awaitable, Callable
+
 import discord
 import pytest
+from utils.mocking import MockInteraction
+
 from commands.search import (
     action_name_autocomplete,
     background_name_autocomplete,
@@ -25,7 +28,6 @@ from logic.config import Config
 from logic.dnd.abstract import DNDEntry
 from logic.dnd.data import Data
 from logic.searchcache import SearchCache
-from utils.mocking import MockInteraction
 
 AutocompleteMethod = Callable[[discord.Interaction, str], Awaitable[list[discord.app_commands.Choice[str]]]]
 

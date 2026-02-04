@@ -23,7 +23,7 @@ class BaseContextMenu(discord.app_commands.ContextMenu):
 
     @abstractmethod
     async def handle(self, interaction: discord.Interaction, message: discord.Message) -> None:
-        raise NotImplementedError
+        raise NotImplementedError()
 
     @staticmethod
     async def error_handler(itr: discord.Interaction, error: discord.app_commands.AppCommandError):

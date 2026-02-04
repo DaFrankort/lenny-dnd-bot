@@ -1,3 +1,4 @@
+import time
 from unittest.mock import AsyncMock, MagicMock
 
 import discord
@@ -178,9 +179,12 @@ class MockImageAsset(discord.Asset):
 
 
 class MockServerTextMessage(discord.Message):
-    def __init__(self, user: discord.User, channel: discord.TextChannel) -> None:
+    def __init__(self, user: discord.User, channel: discord.TextChannel, content: str = "") -> None:
+        # The id is the amount of nanoseconds since epoch
+        self.id = round(time.time() * 1e9)
         self.author = user
         self.channel = channel
+        self.content = content
         self._state = MagicMock()
 
     async def delete(self, *, delay: float | None = None) -> None:

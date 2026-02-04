@@ -10,10 +10,10 @@ def get_context_menu_cmd(bot: Bot, name: str) -> BaseContextMenu:
     for command in commands:
         if command.name == name:
             if not isinstance(command, BaseContextMenu):
-                raise ValueError(f"Command with name '{name}' is not a context menu!")
+                raise TypeError(f"Command with name '{name}' is not a context menu!")
             return command
 
-    raise ValueError(f"Context menu with name '{name}' not found!")
+    raise LookupError(f"Context menu with name '{name}' not found!")
 
 
 class TestAbstractContextMenu:

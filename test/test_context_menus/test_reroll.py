@@ -2,7 +2,6 @@ import pytest
 from test_context_menus.context_menu import TestAbstractContextMenu
 from utils.mocking import (
     MockInteraction,
-    MockServerTextChannel,
     MockServerTextMessage,
     MockTextMessageEmbed,
     MockUser,
@@ -57,11 +56,11 @@ class TestRerollContextMenu(TestAbstractContextMenu):
         with pytest.raises(ValueError):
             await cmd.handle(itr, message)
 
-    async def test_invalid_user_reroll(self, cmd: BaseContextMenu, itr: MockInteraction, channel: MockServerTextChannel):
+    async def test_invalid_user_reroll(self, cmd: BaseContextMenu, itr: MockInteraction):
         """Try to roll on an embed from a different user."""
 
         other = MockUser("other")
-        message = MockServerTextMessage(other, channel)
+        message = MockServerTextMessage(other)
 
         assert itr.user.id != message.author.id
         with pytest.raises(PermissionError):

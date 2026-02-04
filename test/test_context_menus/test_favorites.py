@@ -2,7 +2,6 @@ import pytest
 from test_context_menus.context_menu import TestAbstractContextMenu
 from utils.mocking import (
     MockInteraction,
-    MockServerTextChannel,
     MockServerTextMessage,
     MockTextMessageEmbed,
     MockUser,
@@ -42,18 +41,13 @@ class TestFavoritesContextMenu(TestAbstractContextMenu):
         with pytest.raises(ValueError):
             await cmd.handle(itr, message)
 
-    async def test_add_invalid_user_entry_to_favorites(
-        self,
-        cmd: BaseContextMenu,
-        itr: MockInteraction,
-        channel: MockServerTextChannel,
-    ):
+    async def test_add_invalid_user_entry_to_favorites(self, cmd: BaseContextMenu, itr: MockInteraction):
         """Try to add a valid entry with an embed from a different user to favorites."""
 
         entry = Data.spells.entries[0]
         other = MockUser("other")
 
-        message = MockServerTextMessage(other, channel)
+        message = MockServerTextMessage(other)
         message.embeds = [MockTextMessageEmbed(title=entry.title)]
 
         assert itr.user.id != message.author.id

@@ -1,13 +1,8 @@
 import pytest
 from test_context_menus.context_menu import TestAbstractContextMenu
-from utils.mocking import (
-    MockEmbed,
-    MockInteraction,
-    MockMessage,
-    MockUser,
-)
+from utils.mocking import MockEmbed, MockInteraction, MockMessage, MockUser
 
-from commands.command import BaseContextMenu
+from context_menus.context_menu import BaseContextMenu
 from context_menus.favorites import AddFavoriteContextMenu
 from logic.dnd.data import Data
 

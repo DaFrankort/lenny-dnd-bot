@@ -1,13 +1,8 @@
 import pytest
-from utils.mocking import (
-    MockBot,
-    MockInteraction,
-    MockMessage,
-    MockUser,
-)
+from utils.mocking import MockBot, MockInteraction, MockMessage, MockUser
 
 from bot import Bot
-from commands.command import BaseContextMenu
+from context_menus.context_menu import BaseContextMenu
 
 
 def get_context_menu_cmd(bot: Bot, name: str) -> BaseContextMenu:

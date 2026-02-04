@@ -147,6 +147,8 @@ class MockAttachment(discord.Attachment):
         self.url = url
         self.filename = "file.data"
         self.content_type = content_type
+        self.read = AsyncMock()
+        self.read.return_value = bytes()
 
 
 class MockImage(MockAttachment):

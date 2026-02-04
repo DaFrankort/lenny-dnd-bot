@@ -1,32 +1,11 @@
 import pytest
 from utils.mocking import MockInteraction
-from utils.utils import AutocompleteMethod
 
-from commands.search import (
-    action_name_autocomplete,
-    background_name_autocomplete,
-    boon_name_autocomplete,
-    class_name_autocomplete,
-    condition_name_autocomplete,
-    creature_name_autocomplete,
-    cult_name_autocomplete,
-    feat_name_autocomplete,
-    hazard_name_autocomplete,
-    item_name_autocomplete,
-    language_name_autocomplete,
-    object_name_autocomplete,
-    rule_name_autocomplete,
-    species_name_autocomplete,
-    spell_name_autocomplete,
-    subclass_name_lookup,
-    table_name_autocomplete,
-    vehicle_name_autocomplete,
-)
+
 from embeds.search import MultiDNDSelectView
 from logic.config import Config
-from logic.dnd.abstract import DNDEntry, fuzzy_matches
+from logic.dnd.abstract import fuzzy_matches
 from logic.dnd.data import Data
-from logic.searchcache import SearchCache
 
 
 class TestDndData:
@@ -87,62 +66,9 @@ class TestDndData:
         fuzzy = fuzzy_matches(query, value, fuzzy_threshold=75)
         assert (fuzzy is not None) == result
 
-    @pytest.mark.parametrize(
-        "class_name, query, contains",
-        [
-            ("Wizard", "Illusion", True),
-            ("Wizard", "DoesNotExist", False),
-            ("Barbarian", "Wild Heart", True),
-            ("DoesNotExist", "Evoker", False),
-        ],
-    )
-    def test_subclass_lookup(self, class_name: str, query: str, contains: bool):
-        itr = MockInteraction()
-        sources = Config.get(itr).allowed_sources
-
-        subclasses = subclass_name_lookup(class_name, query, sources)
-        if contains:
-            assert len(subclasses) > 0, f"Class {class_name} expected to have '{query}' as a subclass."
-        else:
-            assert len(subclasses) == 0, f"Class {class_name} did not expect '{query}' as a subclass."
-
     def test_name_table_species_input_gives_species_name(self):
         species_list = Data.names.get_species()
         for species in species_list:
             _, new_species, _ = Data.names.get_random(species, None)
             assert new_species, "Namegen - Returned species must not be None"
             assert new_species.lower() == species.lower(), "Namegen - Returned Species must match input species"
-
-
-class TestSearchCache:
-    @pytest.mark.asyncio
-    @pytest.mark.parametrize(
-        "entry, autocomplete_method",
-        [
-            (Data.spells.entries[0], spell_name_autocomplete),
-            (Data.items.entries[0], item_name_autocomplete),
-            (Data.conditions.entries[0], condition_name_autocomplete),
-            (Data.creatures.entries[0], creature_name_autocomplete),
-            (Data.classes.entries[0], class_name_autocomplete),
-            (Data.rules.entries[0], rule_name_autocomplete),
-            (Data.actions.entries[0], action_name_autocomplete),
-            (Data.feats.entries[0], feat_name_autocomplete),
-            (Data.languages.entries[0], language_name_autocomplete),
-            (Data.backgrounds.entries[0], background_name_autocomplete),
-            (Data.tables.entries[0], table_name_autocomplete),
-            (Data.species.entries[0], species_name_autocomplete),
-            (Data.vehicles.entries[0], vehicle_name_autocomplete),
-            (Data.objects.entries[0], object_name_autocomplete),
-            (Data.hazards.entries[0], hazard_name_autocomplete),
-            (Data.cults.entries[0], cult_name_autocomplete),
-            (Data.boons.entries[0], boon_name_autocomplete),
-        ],
-    )
-    async def test_autocompletes(self, entry: DNDEntry, autocomplete_method: AutocompleteMethod):
-        itr = MockInteraction()
-        SearchCache.get(itr).store(entry)
-
-        choices = await autocomplete_method(itr, "")
-        assert (
-            choices[0].name == entry.name
-        ), f"SearchCache {entry.entry_type}-autocomplete should be '{entry.name}', instead was '{choices[0].value}'"

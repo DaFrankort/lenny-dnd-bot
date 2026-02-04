@@ -64,6 +64,8 @@ class TestFavoritesContextMenu:
         return get_context_menu_cmd(MockBot(), AddFavoriteContextMenu.name)
 
     async def test_add_valid_entry_to_favorites(self, cmd: BaseContextMenu):
+        """Try to add a valid entry to favorites."""
+
         entry = Data.spells.entries[0]
 
         user = MockUser("bot")
@@ -75,6 +77,8 @@ class TestFavoritesContextMenu:
         await cmd.handle(itr, message)
 
     async def test_add_invalid_title_entry_to_favorites(self, cmd: BaseContextMenu):
+        """Try to add an invalid entry with an invalid title to favorites."""
+
         user = MockUser("bot")
         itr = MockInteraction(user)
         channel = MockServerTextChannel()
@@ -85,6 +89,8 @@ class TestFavoritesContextMenu:
             await cmd.handle(itr, message)
 
     async def test_add_invalid_user_entry_to_favorites(self, cmd: BaseContextMenu):
+        """Try to add an invalid entry with an embed from a different user to favorites."""
+
         entry = Data.spells.entries[0]
         user = MockUser("bot")
         other = MockUser("other")
@@ -98,6 +104,8 @@ class TestFavoritesContextMenu:
             await cmd.handle(itr, message)
 
     async def test_add_invalid_embeds_entry_to_favorites(self, cmd: BaseContextMenu):
+        """Try to add an invalid entry with no entry embeds to favorites."""
+
         user = MockUser("bot")
 
         itr = MockInteraction(user)
@@ -109,6 +117,8 @@ class TestFavoritesContextMenu:
             await cmd.handle(itr, message)
 
     async def test_add_invalid_nonexistent_entry_to_favorites(self, cmd: BaseContextMenu):
+        """Try to add non-existent entry to favorites."""
+
         user = MockUser("bot")
 
         itr = MockInteraction(user)

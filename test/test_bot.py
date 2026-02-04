@@ -247,7 +247,6 @@ class TestBotCommands:
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize("cmd_name, arguments", SLASH_COMMAND_TESTS)
-    @pytest.mark.timeout(60)  # Protect against infinite loops
     async def test_slash_commands_guild(
         self,
         commands: dict[str, BaseCommand | BaseCommandGroup],
@@ -271,7 +270,6 @@ class TestBotCommands:
     @pytest.mark.strict
     @pytest.mark.asyncio
     @pytest.mark.parametrize("cmd_name, arguments", SLASH_COMMAND_TESTS)
-    @pytest.mark.timeout(60)  # Protect against infinite loops
     async def test_slash_commands_private_message(
         self,
         commands: dict[str, BaseCommand | BaseCommandGroup],

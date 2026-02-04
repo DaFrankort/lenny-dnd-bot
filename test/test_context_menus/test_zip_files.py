@@ -1,6 +1,6 @@
 import pytest
-from test_context_menus.context_menu import TestAbstractContextMenu
 from mocking import MockImage, MockInteraction, MockMessage
+from test_context_menus.context_menu import TestAbstractContextMenu
 
 from context_menus.context_menu import BaseContextMenu
 from context_menus.zip_files import ZipAttachmentsContextMenu

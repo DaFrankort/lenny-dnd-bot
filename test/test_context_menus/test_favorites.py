@@ -1,6 +1,6 @@
 import pytest
-from test_context_menus.context_menu import TestAbstractContextMenu
 from mocking import MockEmbed, MockInteraction, MockMessage, MockUser
+from test_context_menus.context_menu import TestAbstractContextMenu
 
 from context_menus.context_menu import BaseContextMenu
 from context_menus.favorites import AddFavoriteContextMenu

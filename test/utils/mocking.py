@@ -2,6 +2,14 @@ from unittest.mock import AsyncMock, MagicMock
 
 import discord
 
+from bot import Bot
+
+
+class MockBot(Bot):
+    def __init__(self):
+        super().__init__(voice=False)
+        self.register_commands()
+
 
 class MockRole(discord.Role):
     def __init__(self, name: str, guild: discord.Guild):
@@ -95,10 +103,17 @@ class MockInteraction(discord.Interaction):
         self.response.send_message = AsyncMock()
         self.response.defer = AsyncMock()
         self.followup = AsyncMock()
+        self._client = MagicMock()
+        self._client.user = self.user
         self._state = MagicMock()
         self._servers = MagicMock()
         self._original_response = MagicMock()
         self._state._get_guild = MagicMock(return_value=mock_guild)
+
+
+class MockServerTextChannel(discord.TextChannel):
+    def __init__(self, guild: discord.Guild = MockGuild(999)):
+        self.guild = guild
 
 
 class MockDMChannel(discord.DMChannel):
@@ -160,3 +175,15 @@ class MockImageAsset(discord.Asset):
         self._url = "https://i.etsystatic.com/10819873/r/il/5452b6/3900731377/il_794xN.3900731377_57vj.jpg"
         self._key = str(hash(self.url))
         self._animated = False
+
+
+class MockServerTextMessage(discord.Message):
+    def __init__(self, user: discord.User, channel: discord.TextChannel) -> None:
+        self.author = user
+        self.channel = channel
+        self._state = MagicMock()
+
+    async def delete(self, *, delay: float | None = None) -> None:
+        # Overwritten because we don't want to actually delete discord messages.
+        # This is purely to mock behavior.
+        return

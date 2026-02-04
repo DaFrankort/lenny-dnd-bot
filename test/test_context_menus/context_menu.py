@@ -1,5 +1,5 @@
 import pytest
-from utils.mocking import MockBot
+from utils.mocking import MockBot, MockServerTextChannel, MockUser
 
 from bot import Bot
 from commands.command import BaseContextMenu
@@ -26,3 +26,11 @@ class TestAbstractContextMenu:
                 f"Context menu test class '{self.__class__.__name__}' does not have its context_menu_name value set!"
             )
         return get_context_menu_cmd(MockBot(), self.context_menu_name)
+
+    @pytest.fixture()
+    def user(self):
+        return MockUser("bot")
+
+    @pytest.fixture()
+    def channel(self):
+        return MockServerTextChannel()

@@ -15,23 +15,19 @@ from context_menus.zip_files import ZipAttachmentsContextMenu
 class TestZipFilesContextMenu(TestAbstractContextMenu):
     context_menu_name = ZipAttachmentsContextMenu.name
 
-    async def test_valid_attachments(self, cmd: BaseContextMenu):
+    async def test_valid_attachments(self, cmd: BaseContextMenu, user: MockUser, channel: MockServerTextChannel):
         """Try to zip the valid attachments to a message."""
 
-        user = MockUser("bot")
         itr = MockInteraction(user)
-        channel = MockServerTextChannel()
         message = MockServerTextMessage(user, channel)
         message.attachments = [MockImage(), MockImage()]
 
         await cmd.handle(itr, message)
 
-    async def test_no_attachments(self, cmd: BaseContextMenu):
+    async def test_no_attachments(self, cmd: BaseContextMenu, user: MockUser, channel: MockServerTextChannel):
         """Try to zip a message with no attachments."""
 
-        user = MockUser("bot")
         itr = MockInteraction(user)
-        channel = MockServerTextChannel()
         message = MockServerTextMessage(user, channel)
         message.attachments = []
 

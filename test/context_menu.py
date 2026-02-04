@@ -23,10 +23,10 @@ def get_context_menu_cmd(bot: Bot, name: str) -> BaseContextMenu:
 
 class TestDeleteContextMenu:
     @pytest.fixture()
-    def bot(self):
-        return MockBot()
+    def cmd(self):
+        return get_context_menu_cmd(MockBot(), DeleteContextMenu.name)
 
-    async def test_delete_bot_message(self, bot: Bot):
+    async def test_delete_bot_message(self, cmd: BaseContextMenu):
         """Verify that the bot is allowed to delete its own message."""
 
         user = MockUser("bot")
@@ -34,11 +34,9 @@ class TestDeleteContextMenu:
         channel = MockServerTextChannel()
         message = MockServerTextMessage(user, channel)
 
-        cmd = get_context_menu_cmd(bot, DeleteContextMenu.name)
-
         await cmd.handle(itr, message)
 
-    async def test_delete_other_message(self, bot: Bot):
+    async def test_delete_other_message(self, cmd: BaseContextMenu):
         """Verify that the bot is not allowed to delete another user's error."""
 
         user = MockUser("bot")
@@ -47,8 +45,6 @@ class TestDeleteContextMenu:
         other = MockUser("other")
         channel = MockServerTextChannel()
         message = MockServerTextMessage(other, channel)
-
-        cmd = get_context_menu_cmd(bot, DeleteContextMenu.name)
 
         with pytest.raises(PermissionError):
             await cmd.handle(itr, message)

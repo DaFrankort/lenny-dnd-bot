@@ -1,6 +1,6 @@
 import discord
 import pytest
-from utils.mocking import MockInteraction
+from mocking import MockInteraction
 
 from logic.config import (
     DEFAULT_DISALLOWED_OFFICIAL_SOURCES,

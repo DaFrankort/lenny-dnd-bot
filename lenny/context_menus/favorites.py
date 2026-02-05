@@ -1,6 +1,6 @@
 import discord
 
-from commands.command import BaseContextMenu
+from context_menus.context_menu import BaseContextMenu
 from embeds.favorites import FavoriteAddedEmbed
 from logic.dnd.data import Data
 from logic.favorites import FavoritesCache

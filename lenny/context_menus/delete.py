@@ -1,6 +1,6 @@
 import discord
 
-from commands.command import BaseContextMenu
+from context_menus.context_menu import BaseContextMenu
 
 
 class DeleteContextMenu(BaseContextMenu):

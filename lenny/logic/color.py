@@ -1,6 +1,7 @@
 import dataclasses
 import io
 import re
+import warnings
 
 import colornames  # type: ignore
 import discord
@@ -40,7 +41,7 @@ class BasicColors(ChoicedEnum):
     GREYPLE = discord.Color.greyple().value
 
 
-def _adjust_rgb_color_lightness(rgb: tuple[int, int, int], new_lightness: int) -> tuple[int, int, int]:
+def _adjust_rgb_color_lightness(rgb: tuple[int, int, int], new_lightness: float) -> tuple[int, int, int]:
     """
     Adjust the perceived lightness (CIELAB L*) of an sRGB color.
 
@@ -49,10 +50,16 @@ def _adjust_rgb_color_lightness(rgb: tuple[int, int, int], new_lightness: int) -
     back to sRGB. The a* and b* channels (hue and chroma) are preserved.
     """
     lab = skimage.color.rgb2lab([[[rgb[0] / 255, rgb[1] / 255, rgb[2] / 255]]])[0, 0]  # type: ignore
-    lab[0] = np.clip(new_lightness, 0, 100)
-    rgb_float = skimage.color.lab2rgb([[lab]])[0, 0]  # type: ignore
-    rgb_int = np.clip(rgb_float * 255, 0, 255).astype(int)  # type: ignore
-    return tuple(rgb_int)  # type: ignore
+    lab[0] = np.clip(new_lightness, 0.0, 100.0)
+
+    with warnings.catch_warnings():
+        # Converting LAB to RGB can sometimes generate negative RGB values.
+        # skimage handles this for us by clipping the value to 0 in those cases.
+        # This raises a warning, which doesn't really matter for our use-case.
+        warnings.simplefilter("ignore", UserWarning)
+        rgb_float = skimage.color.lab2rgb([[lab]])[0, 0]  # type: ignore
+
+    return tuple(int(x * 255) for x in rgb_float)  # type: ignore
 
 
 def _get_luminance_font_color(rgb: tuple[int, int, int]) -> tuple[int, int, int]:
@@ -63,10 +70,10 @@ def _get_luminance_font_color(rgb: tuple[int, int, int]) -> tuple[int, int, int]
     r, g, b = rgb
     luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255
     if luminance > 0.5:
-        adjusted_rgb = _adjust_rgb_color_lightness(rgb, 20)
+        adjusted_rgb = _adjust_rgb_color_lightness(rgb, 20.0)
         fallback = (0, 0, 0)  # Black
     else:
-        adjusted_rgb = _adjust_rgb_color_lightness(rgb, 90)
+        adjusted_rgb = _adjust_rgb_color_lightness(rgb, 90.0)
         fallback = (255, 255, 255)  # White
 
     if _get_perceived_color_delta(rgb, adjusted_rgb) < 30:

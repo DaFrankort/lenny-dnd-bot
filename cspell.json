@@ -43,6 +43,7 @@
     "frontalface",
     "fullbody",
     "gamemaster",
+    "getbbox",
     "getchannel",
     "getcolors",
     "getdata",

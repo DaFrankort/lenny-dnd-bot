@@ -46,7 +46,7 @@ class TestFavoritesContextMenu(TestAbstractContextMenu):
         message.embeds = [MockEmbed(title=entry.title)]
 
         assert itr.user.id != message.author.id
-        with pytest.raises(ValueError):
+        with pytest.raises(PermissionError):
             await cmd.handle(itr, message)
 
     async def test_add_invalid_embeds_entry_to_favorites(
@@ -72,5 +72,5 @@ class TestFavoritesContextMenu(TestAbstractContextMenu):
 
         message.embeds = [MockEmbed(title="Does-Not-Exist (DoesNotExist)")]
 
-        with pytest.raises(ValueError):
+        with pytest.raises(KeyError):
             await cmd.handle(itr, message)

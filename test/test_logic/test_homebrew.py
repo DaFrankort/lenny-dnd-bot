@@ -56,7 +56,7 @@ class TestHomebrew:
         deleted_entry = guild_data.delete(itr, "Lightning")
         assert deleted_entry.name == "Lightning"
 
-        with pytest.raises(ValueError):
+        with pytest.raises(KeyError):
             guild_data.get("Lightning")
 
     def test_edit_homebrew_entry(self, itr: Interaction, data: GlobalHomebrewData):
@@ -73,7 +73,7 @@ class TestHomebrew:
         guild_data = data.get(itr)
         guild_data.add(itr, DNDEntryType.SPELL, "Duplicate", None, "desc", "details")
 
-        with pytest.raises(ValueError):
+        with pytest.raises(KeyError):
             guild_data.add(itr, DNDEntryType.SPELL, "Duplicate", None, "desc", "details")
 
     def test_get_all_entries(self, itr: Interaction, data: GlobalHomebrewData):

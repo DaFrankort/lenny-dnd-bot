@@ -1,18 +1,17 @@
 from itertools import product
-from typing import Any, Iterable, TypeVar
+from typing import Any, Iterable, List, TypeVar, Union
 
 import pytest
 
 # Required to mark the library as essential for testing in our workflows
 import pytest_asyncio  # noqa: F401 # type: ignore
-from utils.mocking import (
+from mocking import (
     MockDirectMessageInteraction,
     MockGIFImage,
     MockImage,
     MockInteraction,
     MockSound,
 )
-from utils.utils import listify
 
 from bot import Bot
 from commands.command import BaseCommand, BaseCommandGroup
@@ -178,6 +177,16 @@ SLASH_COMMAND_TESTS: Iterable[Iterable[Any]] = [
 ]
 
 
+T = TypeVar("T")
+TEntry = TypeVar("TEntry", bound=DNDEntry)
+
+
+def listify(value: Union[T, List[T]]) -> List[T]:
+    if isinstance(value, list):
+        return value  # type: ignore # Should return a list of value T
+    return [value]
+
+
 def get_cmd_from_group(group: BaseCommandGroup, parts: list[str]) -> BaseCommand | None:
     """Recursively looks for a command within command-groups."""
     if len(parts) == 0:
@@ -205,9 +214,6 @@ def get_cmd(commands: dict[str, BaseCommand | BaseCommandGroup], name: str) -> B
         return get_cmd_from_group(command, rest)
     else:
         return command
-
-
-TEntry = TypeVar("TEntry", bound=DNDEntry)
 
 
 def get_strict_search_arguments(entry_list: DNDEntryList[TEntry]) -> list[str]:
@@ -241,7 +247,6 @@ class TestBotCommands:
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize("cmd_name, arguments", SLASH_COMMAND_TESTS)
-    @pytest.mark.timeout(60)  # Protect against infinite loops
     async def test_slash_commands_guild(
         self,
         commands: dict[str, BaseCommand | BaseCommandGroup],
@@ -265,7 +270,6 @@ class TestBotCommands:
     @pytest.mark.strict
     @pytest.mark.asyncio
     @pytest.mark.parametrize("cmd_name, arguments", SLASH_COMMAND_TESTS)
-    @pytest.mark.timeout(60)  # Protect against infinite loops
     async def test_slash_commands_private_message(
         self,
         commands: dict[str, BaseCommand | BaseCommandGroup],

@@ -1,5 +1,5 @@
 import pytest
-from utils.mocking import MockBot, MockInteraction, MockMessage, MockUser
+from mocking import MockBot, MockInteraction, MockMessage, MockUser
 
 from bot import Bot
 from context_menus.context_menu import BaseContextMenu

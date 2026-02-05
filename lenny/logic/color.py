@@ -58,7 +58,7 @@ def _adjust_rgb_color_lightness(rgb: tuple[int, int, int], new_lightness: int) -
 def _get_luminance_font_color(rgb: tuple[int, int, int]) -> tuple[int, int, int]:
     """
     Returns a brighter font color based on the given background rgb values.
-    Has a fallback to pure white or black if the lightened color is too similar to the background color.
+    Has a fallback to pure white or black if the adjusted color is too similar to the background color.
     """
     r, g, b = rgb
     luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255

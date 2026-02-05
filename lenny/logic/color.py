@@ -41,6 +41,13 @@ class BasicColors(ChoicedEnum):
 
 
 def _adjust_rgb_color_lightness(rgb: tuple[int, int, int], new_lightness: int) -> tuple[int, int, int]:
+    """
+    Adjust the perceived lightness (CIELAB L*) of an sRGB color.
+
+    The input RGB color is converted to CIELAB, its L* channel is replaced
+    with `new_lightness` (clamped to [0, 100]), and the color is converted
+    back to sRGB. The a* and b* channels (hue and chroma) are preserved.
+    """
     lab = skimage.color.rgb2lab([[[rgb[0] / 255, rgb[1] / 255, rgb[2] / 255]]])[0, 0]  # type: ignore
     lab[0] = np.clip(new_lightness, 0, 100)
     rgb_float = skimage.color.lab2rgb([[lab]])[0, 0]  # type: ignore

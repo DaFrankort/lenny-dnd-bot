@@ -2,7 +2,7 @@ import os
 
 import discord
 import pytest
-from utils.mocking import MockInteraction
+from mocking import MockInteraction
 
 from logic.color import UserColor
 

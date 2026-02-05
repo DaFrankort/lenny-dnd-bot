@@ -1,5 +1,5 @@
-from enum import Enum
 import time
+from enum import Enum
 from unittest.mock import AsyncMock, MagicMock
 
 import discord

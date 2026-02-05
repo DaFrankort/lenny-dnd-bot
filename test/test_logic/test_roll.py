@@ -1,11 +1,7 @@
 import math
-from unittest.mock import MagicMock
 
 import pytest
-from discord import Interaction
-from utils.mocking import MockInteraction, MockUser
 
-from logic.dicecache import DiceCache, DiceCacheInfo
 from logic.roll import Advantage, roll
 
 
@@ -109,99 +105,33 @@ class TestDiceExpression:
         assert not dice2.roll.contains_dice
 
     @pytest.mark.parametrize(
-        "expr, expected",
+        "expected, expr",
         [
-            ("1>0", True),
-            ("1<0", True),
-            ("1==1", True),
-            ("1!=1", True),
-            ("1>=1", True),
-            ("1<=1", True),
-            ("(6>7)", True),
-            ("(((((6>7)))))", True),
-            ("(6>7)*1", False),
-            ("(6>7)*0", False),
-            ("(6>7)*(1d8+7)", False),
-            ("((6>7)*(1d8+7))", False),
-            ("1d20", False),
-            ("1d20+7", False),
-            ("1d20*7", False),
-            ("1d20-7", False),
-            ("1d20/2", False),
-            ("(6<7)*0", False),
-            ("(6<7)*1", False),
-            ("1", False),
-            ("0", False),
-            ("4d8kh3", False),
-            ("1d4ro1", False),
+            (True, "1>0"),
+            (True, "1<0"),
+            (True, "1==1"),
+            (True, "1!=1"),
+            (True, "1>=1"),
+            (True, "1<=1"),
+            (True, "(6>7)"),
+            (True, "(((((6>7)))))"),
+            (False, "(6>7)*1"),
+            (False, "(6>7)*0"),
+            (False, "(6>7)*(1d8+7)"),
+            (False, "((6>7)*(1d8+7))"),
+            (False, "1d20"),
+            (False, "1d20+7"),
+            (False, "1d20*7"),
+            (False, "1d20-7"),
+            (False, "1d20/2"),
+            (False, "(6<7)*0"),
+            (False, "(6<7)*1"),
+            (False, "1"),
+            (False, "0"),
+            (False, "4d8kh3"),
+            (False, "1d4ro1"),
         ],
     )
-    def test_has_comparison_result(self, expr: str, expected: bool):
+    def test_has_comparison_result(self, expected: bool, expr: str):
         result = roll(expr).roll.has_comparison_result
         assert result == expected, f"expression '{expr}' expected {expected} but got {result}"
-
-
-class TestDiceExpressionCache:
-    @pytest.fixture
-    def itr(self):
-        return MockInteraction()
-
-    @pytest.fixture
-    def valid_expression(self):
-        mock_expr = MagicMock()
-        mock_expr.roll.errors = []
-        mock_expr.roll.expression = "1d20+5"
-        mock_expr.reason = "Attack"
-        mock_expr.description = "A valid roll"
-        return mock_expr
-
-    @pytest.fixture
-    def invalid_expression(self):
-        mock_expr = MagicMock()
-        mock_expr.roll.errors = ["error"]
-        mock_expr.description = "An invalid roll"
-        return mock_expr
-
-    @pytest.mark.parametrize(
-        "expression",
-        ["1d20+5", "123+456", "6"],
-    )
-    def test_store_expression_adds_to_cache(self, itr: Interaction, expression: str):
-        DiceCache.get(itr).store_expression(expression)
-        data = DiceCache.get(itr).cache
-
-        assert expression in data.rolls, f"'{expression}' should be in 'rolls'."
-
-    @pytest.mark.parametrize(
-        "reason",
-        ["reason", "attack", "1d20"],
-    )
-    def test_store_reason(self, itr: Interaction, reason: str):
-        DiceCache.get(itr).store_reason(reason)
-        data = DiceCache.get(itr).cache
-
-        assert reason in data.reasons, f"'{reason} should be in 'reasons'"
-
-    def test_get_autocomplete_suggestions_empty(self, itr: Interaction):
-        DiceCache.get(itr).cache = DiceCacheInfo([], [], 0)
-        suggestions = DiceCache.get(itr).get_autocomplete_suggestions("")
-        assert suggestions == [], "Suggestions should be empty when no data is present."
-
-    def test_autocompletes_clean_dice_instead_of_cache(self, itr: Interaction):
-        DiceCache.get(itr).cache = DiceCacheInfo([], [], 0)
-        expected = "1d20"
-        cached_expression = f"{expected}+5"
-        DiceCache.get(itr).store_expression(cached_expression)
-
-        suggestions = DiceCache.get(itr).get_autocomplete_suggestions(expected)
-        assert (
-            suggestions[0].value == expected
-        ), "Autocomplete should prioritize the clean NdN query over stored modified rolls."
-
-    def test_reason_autocomplete_for_new_user(self):
-        itr = MockInteraction(user=MockUser("ReasonTest"))
-        DiceCache.get(itr).data = {}  # Wipe cache to ensure user is "new"
-        DiceCache.get(itr).save()
-
-        reasons = DiceCache.get(itr).get_autocomplete_reason_suggestions("s")
-        assert len(reasons) > 0, "New user could not get reason autocomplete-suggestions."

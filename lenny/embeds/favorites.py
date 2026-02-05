@@ -1,7 +1,6 @@
 import discord
 
-from components.items import BaseSeparator, TitleTextDisplay
-from components.paginated_view import PaginatedLayoutView
+from embeds.components import BaseSeparator, PaginatedLayoutView, TitleTextDisplay
 from embeds.embed import BaseEmbed
 from embeds.search import send_dnd_embed
 from logic.dnd.abstract import DNDEntry

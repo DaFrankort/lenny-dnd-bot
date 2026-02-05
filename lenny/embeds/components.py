@@ -1,10 +1,129 @@
 import abc
 import math
+from typing import Any, TypeVar
 
 import discord
+import discord.ui
 
-from components.items import BaseLabelTextInput
-from components.modals import BaseModal
+from commands.command import get_error_embed
+from methods import when
+
+T = TypeVar("T")
+
+
+class TitleTextDisplay(discord.ui.TextDisplay[discord.ui.LayoutView]):
+    """A TextDisplay which is formatted as a title, with optional source and URL."""
+
+    def __init__(self, name: str, source: str | None = None, url: str | None = None):
+        title = when(source, f"{name} ({source})", name)
+        title = when(url, f"[{title}]({url})", title)
+        title = f"### {title}"
+        super().__init__(content=title)
+
+
+class BaseSeparator(discord.ui.Separator[discord.ui.LayoutView]):
+    def __init__(self, is_large: bool = False):
+        if is_large:
+            super().__init__(spacing=discord.SeparatorSpacing.large)
+        else:
+            super().__init__(spacing=discord.SeparatorSpacing.small)
+
+
+class BaseLabelTextInput(discord.ui.Label[discord.ui.LayoutView]):
+    def __init__(
+        self,
+        *,
+        label: str,
+        style: discord.TextStyle = discord.TextStyle.short,
+        placeholder: str | None = None,
+        required: bool = True,
+        min_length: int | None = None,
+        max_length: int | None = None,
+    ) -> None:
+        super().__init__(
+            text=label,
+            component=discord.ui.TextInput[discord.ui.LayoutView](
+                style=style,
+                placeholder=placeholder,
+                required=required,
+                min_length=min_length,
+                max_length=max_length,
+            ),
+        )
+
+    @property
+    def input(self) -> discord.ui.TextInput[discord.ui.LayoutView]:
+        if isinstance(self.component, discord.ui.TextInput):
+            return self.component
+        raise TypeError("BaseTextInput component is not a discord.ui.TextInput!")
+
+
+class ModalSelectComponent(discord.ui.Label[discord.ui.LayoutView]):
+    def __init__(
+        self,
+        *,
+        label: str,
+        options: list[discord.SelectOption],
+        required: bool = True,
+        disabled: bool = False,
+        placeholder: str | None = None,
+    ) -> None:
+        super().__init__(
+            text=label,
+            component=discord.ui.Select(
+                options=options,
+                required=required,
+                disabled=disabled,
+                placeholder=placeholder,
+            ),
+        )
+
+    @property
+    def input(self) -> discord.ui.Select[discord.ui.LayoutView]:
+        if isinstance(self.component, discord.ui.Select):
+            return self.component
+        raise TypeError("ModalSelectComponent component is not a discord.ui.Select!")
+
+
+class BaseModal(discord.ui.Modal):
+    def __init__(self, itr: discord.Interaction, title: str):
+        super().__init__(title=title)
+        self.itr = itr
+
+    async def on_error(self, itr: discord.Interaction, error: Exception):
+        embed = get_error_embed(error)
+        await itr.response.send_message(embed=embed, ephemeral=True)
+
+    @staticmethod
+    def get_str(component: BaseLabelTextInput) -> str | None:
+        """Safely parse string from LabeledTextComponent. Returns None if input is empty or only spaces."""
+        text = str(component.input).strip()
+        return text if text else None
+
+    @staticmethod
+    def get_int(component: BaseLabelTextInput) -> int | None:
+        """Safely parse integer from LabeledTextComponent. Returns None on failure, defaults to 0 if input is ''"""
+        text = str(component.input).strip()
+        if text == "":
+            return 0
+        try:
+            return int(text)
+        except ValueError:
+            return None
+
+    @staticmethod
+    def get_choice(component: ModalSelectComponent, result_type: type) -> Any | None:
+        """Get the selected choice of a ModalSelectComponent, or None if no choice is selected."""
+        if not component.input.values:
+            return None
+        return result_type(component.input.values[0])
+
+    @staticmethod
+    def format_placeholder(text: str, length: int = 100) -> str:
+        """Cuts off a string to stay within a modal's 100 character-limit for placeholders."""
+        cutoff_str: str = "..."
+        length = length - len(cutoff_str)
+        return text[:length] + cutoff_str if len(text) > length else text
 
 
 class PaginatedJumpModal(BaseModal):

@@ -1,14 +1,14 @@
 import discord
 from discord import ui
 
-from components.items import (
+from embeds.components import (
     BaseLabelTextInput,
+    BaseModal,
     BaseSeparator,
     ModalSelectComponent,
+    PaginatedLayoutView,
     TitleTextDisplay,
 )
-from components.modals import BaseModal
-from components.paginated_view import PaginatedLayoutView
 from logic.dnd.abstract import DNDEntryType
 from logic.homebrew import HomebrewData, HomebrewEntry
 from logic.markdown import MDFile, wrapped_md_table_to_rich_table

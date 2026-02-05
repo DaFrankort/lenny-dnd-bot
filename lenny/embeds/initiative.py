@@ -1,8 +1,12 @@
 import discord
 from discord import Interaction, SelectOption, ui
 
-from components.items import BaseLabelTextInput, BaseSeparator, ModalSelectComponent
-from components.modals import BaseModal
+from embeds.components import (
+    BaseLabelTextInput,
+    BaseModal,
+    BaseSeparator,
+    ModalSelectComponent,
+)
 from embeds.embed import BaseEmbed, UserActionEmbed
 from logic.dicecache import DiceCache
 from logic.initiative import Initiative, Initiatives

@@ -3,7 +3,7 @@ from collections.abc import Sequence
 import discord
 from discord import ui
 
-from components.items import BaseSeparator, TitleTextDisplay
+from embeds.components import BaseSeparator, TitleTextDisplay
 from logic.charactergen import CharacterGenResult
 from logic.charts import get_radar_chart
 from logic.color import UserColor

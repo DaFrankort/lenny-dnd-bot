@@ -1,6 +1,6 @@
 import discord
 
-from commands.command import BaseContextMenu
+from context_menus.context_menu import BaseContextMenu
 from embeds.roll import MultiRollEmbed, RollEmbed
 from logic.dicecache import DiceCache
 from logic.roll import Advantage, multi_roll, roll

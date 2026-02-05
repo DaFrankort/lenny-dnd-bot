@@ -1,6 +1,7 @@
 import dataclasses
 import io
 import re
+from typing import Literal
 
 import colornames  # type: ignore
 import discord
@@ -9,7 +10,7 @@ from PIL import Image, ImageDraw
 
 from logic.jsonhandler import JsonHandler
 from logic.tokengen import open_image_from_attachment, open_image_from_url
-from methods import ChoicedEnum, FontType, get_font, when
+from methods import ChoicedEnum, FontType, get_font
 
 
 class BasicColors(ChoicedEnum):
@@ -39,26 +40,27 @@ class BasicColors(ChoicedEnum):
     GREYPLE = discord.Color.greyple().value
 
 
+def _get_luminance_font_color(r: int, g: int, b: int) -> Literal["black", "white"]:
+    """Returns black or white based on the background color in RGB, used to make text readable over a background."""
+    luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255
+    if luminance > 0.5:
+        return "black"
+    return "white"
+
+
 def get_palette_image(color: discord.Color | int) -> discord.File:
     if isinstance(color, discord.Color):
         color = color.value
     r, g, b = UserColor.to_rgb(color)
-    name = UserColor.to_name(color)
-    hex_code = f"#{color:06X}"
 
     # Draw square
     image = Image.new("RGBA", (256, 64), (r, g, b, 255))
     draw = ImageDraw.Draw(image)
 
     # Draw text
-    font_size = 16
-    luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255
-    font_color = when(luminance > 0.5, "black", "white")
-    font = get_font(FontType.MONOSPACE, font_size)
-
-    lines = [name, hex_code]
+    font = get_font(FontType.MONOSPACE, size=16)
+    lines = [UserColor.to_name(color), UserColor.to_hex(color)]
     spacing = 6
-
     line_heights = [font.getbbox(line)[3] - font.getbbox(line)[1] for line in lines]
     total_height = sum(line_heights) + spacing * (len(lines) - 1)
 
@@ -68,7 +70,7 @@ def get_palette_image(color: discord.Color | int) -> discord.File:
         line_w = line_bbox[2] - line_bbox[0]
         # Center horizontally
         x = (image.width - line_w) // 2
-        draw.text((x, y), line, font=font, fill=font_color)
+        draw.text((x, y), line, font=font, fill=_get_luminance_font_color(r, g, b))
         y += line_heights[i] + spacing
 
     # Buffer and send

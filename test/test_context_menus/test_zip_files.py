@@ -12,7 +12,7 @@ class TestZipFilesContextMenu(TestAbstractContextMenu):
     async def test_valid_attachments(self, cmd: BaseContextMenu, itr: MockInteraction, message: MockMessage):
         """Try to zip the valid attachments to a message."""
 
-        message.attachments = [MockImage(), MockImage()]
+        message.attachments = [MockImage(id=1), MockImage(id=2)]
 
         await cmd.handle(itr, message)
 

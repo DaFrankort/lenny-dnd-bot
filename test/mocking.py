@@ -137,22 +137,22 @@ class MockDirectMessageInteraction(discord.Interaction):
 
 
 class MockAttachment(discord.Attachment):
-    def __init__(self, url: str, content_type: str):
-        self.id = abs(hash(url))
+    def __init__(self, url: str, content_type: str, id: int | None = None):
+        self.id = abs(hash(url)) if id is None else id
         self.url = url
-        self.filename = "file.data"
+        self.filename = f"file.{self.id}.data"
         self.content_type = content_type
         self.read = AsyncMock()
         self.read.return_value = bytes()
 
 
 class MockImage(MockAttachment):
-    def __init__(self, has_face: bool = True):
+    def __init__(self, has_face: bool = True, id: int | None = None):
         if has_face:
             url = r"https://img.freepik.com/free-photo/young-bearded-man-with-striped-shirt_273609-5677.jpg?semt=ais_hybrid&w=740&q=80"
         else:
             url = r"https://img.lovepik.com/element/40116/9419.png_1200.png"
-        super().__init__(url, "image")
+        super().__init__(url, "image", id)
 
 
 class MockGIFImage(MockAttachment):

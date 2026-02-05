@@ -1,6 +1,15 @@
+import time
 from unittest.mock import AsyncMock, MagicMock
 
 import discord
+
+from bot import Bot
+
+
+class MockBot(Bot):
+    def __init__(self):
+        super().__init__(voice=False)
+        self.register_commands()
 
 
 class MockRole(discord.Role):
@@ -77,7 +86,7 @@ class MockMember(discord.Member):
 
 
 class MockTextChannel(discord.TextChannel):
-    def __init__(self, guild: discord.Guild, id: int):
+    def __init__(self, guild: discord.Guild = MockGuild(999), id: int = 100):
         self.guild = guild
         self.id = id
 
@@ -95,6 +104,8 @@ class MockInteraction(discord.Interaction):
         self.response.send_message = AsyncMock()
         self.response.defer = AsyncMock()
         self.followup = AsyncMock()
+        self._client = MagicMock()
+        self._client.user = self.user
         self._state = MagicMock()
         self._servers = MagicMock()
         self._original_response = MagicMock()
@@ -131,6 +142,8 @@ class MockAttachment(discord.Attachment):
         self.url = url
         self.filename = "file.data"
         self.content_type = content_type
+        self.read = AsyncMock()
+        self.read.return_value = bytes()
 
 
 class MockImage(MockAttachment):
@@ -160,3 +173,25 @@ class MockImageAsset(discord.Asset):
         self._url = "https://i.etsystatic.com/10819873/r/il/5452b6/3900731377/il_794xN.3900731377_57vj.jpg"
         self._key = str(hash(self.url))
         self._animated = False
+
+
+class MockMessage(discord.Message):
+    def __init__(self, user: discord.User, channel: discord.TextChannel = MockTextChannel(), content: str = "") -> None:
+        # The id is the amount of nanoseconds since epoch
+        self.id = round(time.time() * 1e9)
+        self.author = user
+        self.channel = channel
+        self.content = content
+        self._state = MagicMock()
+
+    async def delete(self, *, delay: float | None = None) -> None:
+        # Overwritten because we don't want to actually delete discord messages.
+        # This is purely to mock behavior.
+        return
+
+
+class MockEmbed(discord.Embed):
+    def __init__(self, title: str, author: str = "", contents: str = ""):
+        super().__init__(title=title)
+        self.set_author(name=author)
+        self.add_field(name="", value=contents)

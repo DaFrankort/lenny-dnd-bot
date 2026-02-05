@@ -106,7 +106,7 @@ Look up various D&D data from [5e.tools](https://5e.tools/).
 - `/search item <item-name>` - Look up a D&D Item (e.g. Dagger).
 - `/search condition <condition-name>` - Look up a D&D Condition (e.g. Blinded).
 - `/search creature <creature-name>` – Look up a D&D Creature (e.g. Orc).
-- `/search class <class-name>` – Look up a D&D Class (e.g. Wizard).
+- `/search class <class-name> [level] [subclass]` – Look up a D&D Class (e.g. Wizard).
 - `/search rule <rule-name>` – Look up a D&D Rule (e.g. Saving Throw).
 - `/search action <action-name>` – Look up a D&D Action (e.g. Dash).
 - `/search feat <feat-name>` – Look up a D&D Feat (e.g. Savage Attacker).
@@ -127,6 +127,7 @@ You can mark certain D&D data entries as your favorite, making it easy to quickl
 - `/favorites add <entry>` - Mark a D&D data entry as your favorite.
 - `/favorites remove <entry>` - Remove a D&D data entry from your favorites.
 - `/favorites view [type_filter]` - List all your favorite D&D data entries.
+
 You can also right-click on an embed and select "Add to Favorites" to manage your favorites quickly.
 
 ### D&D Homebrew Data
@@ -143,8 +144,8 @@ Entries can be added straight from a markdown file, any formatting will be conve
 
 ### Character Tools
 
-- `/stats roll` – Automatically roll stats for a new character's skills, using the 4d6 drop lowest method. Also generates a radar-graph to visualize the stats.
-- `/stats visualize <str> <dex> <con> <int> <wis> <cha>` – Visualizes character stats in a radar-graph.
+- `/stats roll` – Automatically roll stats for a new character's ability scores, using the 4d6 drop lowest method. Also generates a radar-graph to visualize the stats.
+- `/stats visualize <str> <dex> <con> <int> <wis> <cha>` – Visualizes ability scores in a radar-graph.
 - `/namegen [race] [gender]` - Generate a random name, race and/or gender can be specified but will default to random.
 - `/charactergen [gender] [species] [char_class]` - Generates a character with name, class, species, background and stats. Ensures that the build that is generated is somewhat optimal for your class; automatically selecting fitting backgrounds and assigning stats optimally. Preferred gender, species or class can be provided.
 
@@ -171,6 +172,9 @@ By default the user's color is automatically generated based on their display na
 - `/color set base <color>` - Set your color from a selection of basic colors.
 - `/color set hex <hex_color>` - Set your color using a hexadecimal color value.
 - `/color set rgb <r> <g> <b>` - Set your color using a RGB value.
+- `/color set image [image] [style]` - Generates color suggestions based on your profile picture.
+  - ``[image]`` - You can optionally upload a different image instead.
+  - ``[style]`` - Apply a different color-selection algorithm, changing the overall mood of the generated colors.
 - `/color clear` - Clears your set color and enforces use of an auto-generated color.
 - `/color show` - Shows the color you've set to everyone.
 

@@ -1,9 +1,18 @@
+from enum import Enum
 import time
 from unittest.mock import AsyncMock, MagicMock
 
 import discord
 
 from bot import Bot
+
+
+class ExternalAsset(str, Enum):
+    GIF = "https://media1.tenor.com/m/eTAoIPj7DdIAAAAC/pokemon-pikachu.gif"
+    IMAGE = "https://archives.bulbagarden.net/media/upload/4/4a/0025Pikachu.png"
+    IMAGE_FACE = "https://archives.bulbagarden.net/media/upload/c/cd/Ash_JN.png"
+    AVATAR = "https://archives.bulbagarden.net/media/upload/c/c1/0025Pikachu-PhD.png"
+    SOUND = "https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/25.ogg"
 
 
 class MockBot(Bot):
@@ -149,28 +158,28 @@ class MockAttachment(discord.Attachment):
 class MockImage(MockAttachment):
     def __init__(self, has_face: bool = True, id: int | None = None):
         if has_face:
-            url = r"https://img.freepik.com/free-photo/young-bearded-man-with-striped-shirt_273609-5677.jpg?semt=ais_hybrid&w=740&q=80"
+            url = ExternalAsset.IMAGE_FACE.value
         else:
-            url = r"https://img.lovepik.com/element/40116/9419.png_1200.png"
+            url = ExternalAsset.IMAGE.value
         super().__init__(url, "image", id)
 
 
 class MockGIFImage(MockAttachment):
     def __init__(self):
-        url = r"https://static.klipy.com/ii/d7aec6f6f171607374b2065c836f92f4/ec/f3/OXB1QWhn.gif"
+        url = ExternalAsset.GIF.value
         super().__init__(url, "image")
 
 
 class MockSound(MockAttachment):
     def __init__(self):
-        url = r"https://diviextended.com/wp-content/uploads/2021/10/sound-of-waves-marine-drive-mumbai.mp3"
+        url = ExternalAsset.SOUND.value
         super().__init__(url, "audio")
 
 
 class MockImageAsset(discord.Asset):
     def __init__(self):
         self._state = MagicMock()
-        self._url = "https://i.etsystatic.com/10819873/r/il/5452b6/3900731377/il_794xN.3900731377_57vj.jpg"
+        self._url = ExternalAsset.AVATAR.value
         self._key = str(hash(self.url))
         self._animated = False
 

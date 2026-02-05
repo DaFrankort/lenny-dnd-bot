@@ -114,7 +114,7 @@ def save_base_color(itr: discord.Interaction, color: int):
     return UserColorSaveResult(old_color, [color])
 
 
-def _get_delta_e(rgb1: tuple[int, int, int], rgb2: tuple[int, int, int]) -> float:
+def _get_perceived_color_delta(rgb1: tuple[int, int, int], rgb2: tuple[int, int, int]) -> float:
     """
     Calculates ΔE between two rgb values.
 
@@ -143,47 +143,70 @@ def _get_rgb_chroma(rgb: tuple[float, float, float]) -> float:
     return (a * a + b * b) ** 0.5  # type: ignore
 
 
-async def save_image_color(
-    itr: discord.Interaction, attachment: discord.Attachment | None, complexity: int = 32
-) -> UserColorSaveResult:
-    avatar = itr.user.display_avatar or itr.user.avatar
-    if not avatar:
-        raise RuntimeError("You don't have a profile picture set!")
+class ImageColorStyle(ChoicedEnum):
+    REALISTIC = Image.Quantize.FASTOCTREE.value
+    COLORFUL = Image.Quantize.MAXCOVERAGE.value
+    FADED = Image.Quantize.MEDIANCUT.value
 
-    if not attachment:
-        image = await open_image_from_url(avatar.url)
-    else:
-        image = await open_image_from_attachment(attachment)
-    image = image.convert("RGB")
 
-    quantized = image.quantize(colors=complexity, method=2)
-    color_counts = quantized.getcolors()
-    palette = quantized.getpalette()
+def _get_image_colors(image: Image.Image) -> list[tuple[int, int, int]]:
+    """Gets the colors from an image, returns a list of RGB values."""
+    color_counts = image.getcolors()
+    palette = image.getpalette()
 
     if not color_counts or not palette:
         raise ValueError("Could not retrieve colors from that image!")
 
-    # Group colors from palette by how common they are in the image.
-    palette_rgb_colors: list[tuple[int, int, int]] = []  # RGB
+    result: list[tuple[int, int, int]] = []
     for _, index in color_counts:
         i: int = index * 3  # type: ignore
-        palette_rgb_colors.append(((palette[i], palette[i + 1], palette[i + 2])))
+        result.append(((palette[i], palette[i + 1], palette[i + 2])))
+    return result
 
-    # Filter colors by uniqueness (Using delta-E)
-    rgb_colors: list[tuple[int, int, int]] = []  # RGB
-    for rgb in palette_rgb_colors:
-        if any(_get_delta_e(rgb, rgb2) <= 8 for rgb2 in rgb_colors):
+
+def _filter_most_unique_colors(
+    colors: list[tuple[int, int, int]], min_delta_e: float, min_rgb_chroma: float
+) -> list[tuple[int, int, int]]:
+    """
+    Filters a list of RGB colors to keep only visually distinct and sufficiently vibrant ones.
+    Args:
+        colors: List of RGB color tuples (R, G, B).
+        min_delta_e: Minimum perceptual distance (Delta E) required for two colors to be considered visually distinct.
+        min_rgb_chroma: Minimum chroma threshold; colors below this value (dark or low-saturation) are discarded.
+
+    Returns:
+        A list of RGB tuples representing the most perceptually unique colors.
+        If all colors were filtered out, the first five prominent colors are returned instead.
+    """
+    result: list[tuple[int, int, int]] = []
+    for rgb in colors:
+        if any(_get_perceived_color_delta(rgb, rgb2) <= min_delta_e for rgb2 in result):
             continue
-        # Filter out non-vibrant colors, like black, gray or white.
-        if _get_rgb_chroma(rgb) < 8:  # 8 yielded best results whilst testing.
+        if _get_rgb_chroma(rgb) < min_rgb_chroma:
             continue
-        rgb_colors.append(rgb)
+        result.append(rgb)
 
-    if not rgb_colors:
-        raise RuntimeError("Could not determine dominant colors.")
+    if not result:
+        return colors[:5]
+    return result
 
-    rgb_colors = rgb_colors[:10]
-    best_colors = [discord.Color.from_rgb(r, g, b).value for r, g, b in rgb_colors]
+
+async def save_image_color(
+    itr: discord.Interaction, attachment: discord.Attachment | None, style: ImageColorStyle
+) -> UserColorSaveResult:
+    avatar = itr.user.display_avatar or itr.user.avatar
+    if attachment:
+        image = await open_image_from_attachment(attachment)
+    elif avatar:
+        image = await open_image_from_url(avatar.url)
+    else:
+        raise RuntimeError("You don't have a profile picture set!")
+
+    image = image.convert("RGB")
+    quantized = image.quantize(colors=32, method=style.value)
+    colors = _get_image_colors(quantized)
+    filtered = _filter_most_unique_colors(colors, 8, 8)[:10]  # The values 8 & 8 gave the best results during testing.
+    best_colors = [discord.Color.from_rgb(r, g, b).value for r, g, b in filtered]
 
     old_color = UserColor.get(itr)
     UserColor.add(itr, best_colors[0])

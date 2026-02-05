@@ -1,10 +1,10 @@
 import dataclasses
 import io
 import re
-from typing import Literal
 
 import colornames  # type: ignore
 import discord
+import numpy as np
 import skimage
 from PIL import Image, ImageDraw
 
@@ -40,12 +40,40 @@ class BasicColors(ChoicedEnum):
     GREYPLE = discord.Color.greyple().value
 
 
-def _get_luminance_font_color(r: int, g: int, b: int) -> Literal["black", "white"]:
-    """Returns black or white based on the background color in RGB, used to make text readable over a background."""
+def _adjust_rgb_color_lightness(rgb: tuple[int, int, int], new_lightness: int) -> tuple[int, int, int]:
+    """
+    Adjust the perceived lightness (CIELAB L*) of an sRGB color.
+
+    The input RGB color is converted to CIELAB, its L* channel is replaced
+    with `new_lightness` (clamped to [0, 100]), and the color is converted
+    back to sRGB. The a* and b* channels (hue and chroma) are preserved.
+    """
+    lab = skimage.color.rgb2lab([[[rgb[0] / 255, rgb[1] / 255, rgb[2] / 255]]])[0, 0]  # type: ignore
+    lab[0] = np.clip(new_lightness, 0, 100)
+    rgb_float = skimage.color.lab2rgb([[lab]])[0, 0]  # type: ignore
+    rgb_int = np.clip(rgb_float * 255, 0, 255).astype(int)  # type: ignore
+    return tuple(rgb_int)  # type: ignore
+
+
+def _get_luminance_font_color(rgb: tuple[int, int, int]) -> tuple[int, int, int]:
+    """
+    Returns a brighter font color based on the given background rgb values.
+    Has a fallback to pure white or black if the adjusted color is too similar to the background color.
+    """
+    r, g, b = rgb
     luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255
     if luminance > 0.5:
-        return "black"
-    return "white"
+        adjusted_rgb = _adjust_rgb_color_lightness(rgb, 20)
+        fallback = (0, 0, 0)  # Black
+    else:
+        adjusted_rgb = _adjust_rgb_color_lightness(rgb, 90)
+        fallback = (255, 255, 255)  # White
+
+    if _get_perceived_color_delta(rgb, adjusted_rgb) < 30:
+        # 30 is based on the delta we get when we run red (255, 0, 0) through this method.
+        # The result for red is hard to read and results in a delta of 24.
+        return fallback
+    return adjusted_rgb
 
 
 def get_palette_image(color: discord.Color | int) -> discord.File:
@@ -54,7 +82,7 @@ def get_palette_image(color: discord.Color | int) -> discord.File:
     r, g, b = UserColor.to_rgb(color)
 
     # Draw square
-    image = Image.new("RGBA", (256, 64), (r, g, b, 255))
+    image = Image.new("RGB", (256, 64), (r, g, b, 255))
     draw = ImageDraw.Draw(image)
 
     # Draw text
@@ -70,7 +98,7 @@ def get_palette_image(color: discord.Color | int) -> discord.File:
         line_w = line_bbox[2] - line_bbox[0]
         # Center horizontally
         x = (image.width - line_w) // 2
-        draw.text((x, y), line, font=font, fill=_get_luminance_font_color(r, g, b))
+        draw.text((x, y), line, font=font, fill=_get_luminance_font_color((r, g, b)))
         y += line_heights[i] + spacing
 
     # Buffer and send

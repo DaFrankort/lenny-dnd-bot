@@ -4,8 +4,7 @@ from collections.abc import Sequence
 import discord
 from discord import ui
 
-from components.items import BaseSeparator, TitleTextDisplay
-from components.paginated_view import PaginatedLayoutView
+from embeds.components import BaseSeparator, PaginatedLayoutView, TitleTextDisplay
 from embeds.dnd.action import ActionEmbed
 from embeds.dnd.background import BackgroundEmbed
 from embeds.dnd.boons import BoonEmbed

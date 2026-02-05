@@ -8,8 +8,7 @@ from discord import ui
 from rich.console import Console
 from rich.table import Table
 
-from components.items import BaseSeparator, TitleTextDisplay
-from components.paginated_view import PaginatedLayoutView
+from embeds.components import BaseSeparator, PaginatedLayoutView, TitleTextDisplay
 from embeds.embed import BaseEmbed
 from logic.color import UserColor
 from logic.dnd.abstract import build_table_from_rows

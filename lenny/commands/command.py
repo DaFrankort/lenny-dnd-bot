@@ -15,6 +15,7 @@ def get_error_embed(error: discord.app_commands.AppCommandError | Exception) -> 
         )
 
     titles: dict[str, str] = {
+        "ConnectionError": "Could not establish connection!",
         "IndexError": "Could not find entry!",
         "KeyError": "Could not find entry!",
         "LookupError": "Could not find entry!",

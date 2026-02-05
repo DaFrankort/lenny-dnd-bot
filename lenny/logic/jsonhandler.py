@@ -89,7 +89,7 @@ class JsonHandler(Generic[T]):
         if isinstance(obj, list):
             return [self.serialize(o) for o in obj]  # type: ignore
 
-        raise ValueError(f"Unsupported JSON handler serialization type '{type(obj)}'")
+        raise NotImplementedError(f"Unsupported JSON handler serialization type '{type(obj)}'")
 
     def deserialize(self, obj: Any) -> T:
         if isinstance(obj, (int, str, bool, float)):

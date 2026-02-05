@@ -182,7 +182,7 @@ class GlobalInitiativeTracker:
                 break
 
         if removal_index == -1:
-            raise RuntimeError(f"No initiatives found matching ``{name}``.\n Make sure targets are exact name-matches.")
+            raise KeyError(f"No initiatives found matching ``{name}``.\n Make sure targets are exact name-matches.")
 
         initiative = self.channel_initiatives[channel_id][removal_index]
         del self.channel_initiatives[channel_id][removal_index]
@@ -209,7 +209,7 @@ class GlobalInitiativeTracker:
         channel_initiatives = self.channel_initiatives.get(channel_id, None) or []
         initiative_count = amount + len(channel_initiatives)
         if initiative_count > self.INITIATIVE_LIMIT:
-            raise RuntimeError(f"You attempted to add too many initiatives, the max limit is {self.INITIATIVE_LIMIT}!")
+            raise ValueError(f"You attempted to add too many initiatives, the max limit is {self.INITIATIVE_LIMIT}!")
 
         initiatives: list[Initiative] = []
         for i in range(amount):

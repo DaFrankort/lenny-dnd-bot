@@ -48,7 +48,7 @@ class BaseLabelTextInput(discord.ui.Label[discord.ui.LayoutView]):
     def input(self) -> discord.ui.TextInput[discord.ui.LayoutView]:
         if isinstance(self.component, discord.ui.TextInput):
             return self.component
-        raise ValueError("BaseTextInput component is not a discord.ui.TextInput!")
+        raise TypeError("BaseTextInput component is not a discord.ui.TextInput!")
 
 
 class ModalSelectComponent(discord.ui.Label[discord.ui.LayoutView]):
@@ -75,4 +75,4 @@ class ModalSelectComponent(discord.ui.Label[discord.ui.LayoutView]):
     def input(self) -> discord.ui.Select[discord.ui.LayoutView]:
         if isinstance(self.component, discord.ui.Select):
             return self.component
-        raise ValueError("ModalSelectComponent component is not a discord.ui.Select!")
+        raise TypeError("ModalSelectComponent component is not a discord.ui.Select!")

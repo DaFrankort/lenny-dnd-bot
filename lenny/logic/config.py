@@ -168,7 +168,7 @@ class ConfigHandler(JsonHandler[GuildConfig]):
             self.set_disallowed_official_sources(disallowed_official_sources)
 
         else:
-            raise ValueError(f"Unknown source type: {source}")
+            raise KeyError(f"Unknown source type: {source}")
 
     def disallow_source(self, source: str) -> None:
         if is_partnered_source(source):
@@ -182,7 +182,7 @@ class ConfigHandler(JsonHandler[GuildConfig]):
             self.set_disallowed_official_sources(disallowed_official_sources)
 
         else:
-            raise ValueError(f"Unknown source type: {source}")
+            raise KeyError(f"Unknown source type: {source}")
 
     # endregion sources
 

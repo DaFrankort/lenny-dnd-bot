@@ -78,40 +78,37 @@ def distribution(
     color: int,
     min_to_beat: float | None = None,
 ):
-    try:
-        dist = d20distribution.parse(expression)
-        expression = str(d20.parse(expr=expression))
+    dist = d20distribution.parse(expression)
+    expression = str(d20.parse(expr=expression))
 
-        if advantage == Advantage.ADVANTAGE:
-            dist = dist.advantage()
-        elif advantage == Advantage.DISADVANTAGE:
-            dist = dist.disadvantage()
-        elif advantage == Advantage.ELVEN_ACCURACY:
-            dist = dist.advantage().advantage()
+    if advantage == Advantage.ADVANTAGE:
+        dist = dist.advantage()
+    elif advantage == Advantage.DISADVANTAGE:
+        dist = dist.disadvantage()
+    elif advantage == Advantage.ELVEN_ACCURACY:
+        dist = dist.advantage().advantage()
 
-        if min_to_beat is None:
-            min_to_beat = 0
-            min_to_beat_and_odds = None
-        else:
-            min_to_beat = float(min_to_beat or 0)
-            odds = 0
-            for key in dist.keys():
-                odds += dist.get(key) if key >= min_to_beat else 0
-            min_to_beat_and_odds = (min_to_beat, odds)
+    if min_to_beat is None:
+        min_to_beat = 0
+        min_to_beat_and_odds = None
+    else:
+        min_to_beat = float(min_to_beat or 0)
+        odds = 0
+        for key in dist.keys():
+            odds += dist.get(key) if key >= min_to_beat else 0
+        min_to_beat_and_odds = (min_to_beat, odds)
 
-        mean = dist.mean()
-        stdev = dist.stdev()
-        chart = _distribution_chart(dist, color, min_to_beat)
+    mean = dist.mean()
+    stdev = dist.stdev()
+    chart = _distribution_chart(dist, color, min_to_beat)
 
-        return DistributionResult(
-            expression=expression,
-            chart=chart,
-            advantage=advantage,
-            mean=mean,
-            stdev=stdev,
-            min=dist.min(),
-            max=dist.max(),
-            min_to_beat=min_to_beat_and_odds,
-        )
-    except Exception as exception:
-        raise exception
+    return DistributionResult(
+        expression=expression,
+        chart=chart,
+        advantage=advantage,
+        mean=mean,
+        stdev=stdev,
+        min=dist.min(),
+        max=dist.max(),
+        min_to_beat=min_to_beat_and_odds,
+    )

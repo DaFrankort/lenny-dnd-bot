@@ -66,7 +66,7 @@ class FavoritesAddCommand(BaseCommand):
                 FavoritesCache.get(itr).store(entry)
                 await itr.response.send_message(embed=FavoriteAddedEmbed(entry), ephemeral=True)
                 return
-        raise ValueError(f"Could not find {name}")
+        raise KeyError(f"Could not find {name}")
 
 
 async def favorites_autocomplete(itr: discord.Interaction, current: str) -> list[discord.app_commands.Choice[str]]:

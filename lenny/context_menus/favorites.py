@@ -19,10 +19,10 @@ class AddFavoriteContextMenu(BaseContextMenu):
 
     async def handle(self, interaction: discord.Interaction, message: discord.Message):
         if not interaction.client.user:
-            raise ValueError("The bot is not associated with a user account!")
+            raise RuntimeError("The bot is not associated with a user account!")
 
         if message.author.id != interaction.client.user.id:
-            raise ValueError(f"Favorites only works on messages from {interaction.client.user.mention}!")
+            raise PermissionError(f"Favorites only works on messages from {interaction.client.user.mention}!")
 
         if not message.embeds or len(message.embeds) == 0:
             raise ValueError("Adding to favorites doesn't work on this message type!")
@@ -38,4 +38,4 @@ class AddFavoriteContextMenu(BaseContextMenu):
                 await interaction.response.send_message(embed=FavoriteAddedEmbed(entry), ephemeral=True)
                 return
 
-        raise ValueError(f"Could not find entry by the name of ``{name}``")
+        raise KeyError(f"Could not find entry by the name of ``{name}``")

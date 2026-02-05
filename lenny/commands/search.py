@@ -147,7 +147,7 @@ async def subclass_name_autocomplete(itr: discord.Interaction, current: str) -> 
     class_name = get_command_option(itr, "name")
 
     if not isinstance(class_name, str):
-        raise ValueError(f"Subclass' parent class needs to be a string, received '{class_name}' ({type(class_name)}) instead.")
+        raise TypeError(f"Subclass' parent class needs to be a string, received '{class_name}' ({type(class_name)}) instead.")
 
     sources = Config.get(itr).allowed_sources
     return subclass_name_lookup(class_name, current, sources)

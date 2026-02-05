@@ -15,7 +15,7 @@ class FavoritesHandler(JsonHandler[list[str]]):
         if key not in self.data:
             self.data[key] = []
         if value in self.data[key]:
-            raise ValueError(f"``{entry.title}`` is already in your favorites!")
+            raise KeyError(f"``{entry.title}`` is already in your favorites!")
 
         self.data[key].append(entry.title)
         self.data[key] = sorted(self.data[key])
@@ -30,7 +30,7 @@ class FavoritesHandler(JsonHandler[list[str]]):
                     break
 
         if target_key is None:
-            raise ValueError(f"``{name_to_delete}`` is not in your favorites, failed to remove!")
+            raise KeyError(f"``{name_to_delete}`` is not in your favorites, failed to remove!")
 
         self.data[target_key].remove(name_to_delete)
         self.save()

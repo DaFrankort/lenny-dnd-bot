@@ -19,7 +19,7 @@ class Stats:
             if self.total >= min_total:
                 self.roll_count = i
                 return
-        raise ValueError(
+        raise TimeoutError(
             f"Could not generate stats with a minimum total of {min_total}.\n"
             f"Try again or use a more reasonable ``min_total``."
         )

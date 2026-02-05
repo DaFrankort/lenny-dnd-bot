@@ -36,7 +36,7 @@ class FavoriteSelectButton(discord.ui.Button["FavoritesLayoutView"]):
 
     async def callback(self, interaction: discord.Interaction):
         if self.entry is None:
-            raise ValueError("Sorry! This entry is no longer available.")
+            raise KeyError("Sorry! This entry is no longer available.")
         await send_dnd_embed(interaction, self.entry)
 
 

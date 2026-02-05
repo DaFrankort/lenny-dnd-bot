@@ -56,7 +56,7 @@ def _get_luminance_font_color(rgb: tuple[int, int, int]) -> tuple[int, int, int]
     r, g, b = rgb
     luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255
     if luminance > 0.5:
-        adjusted_rgb = _adjust_rgb_color_lightness(rgb, 10)
+        adjusted_rgb = _adjust_rgb_color_lightness(rgb, 20)
         fallback = (0, 0, 0)  # Black
     else:
         adjusted_rgb = _adjust_rgb_color_lightness(rgb, 90)

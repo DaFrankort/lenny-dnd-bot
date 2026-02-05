@@ -12,7 +12,7 @@ class ZipAttachmentsContextMenu(BaseContextMenu):
 
     async def handle(self, interaction: discord.Interaction, message: discord.Message):
         if not interaction.client.user:
-            raise ValueError("The bot is not associated with a user account!")
+            raise RuntimeError("The bot is not associated with a user account!")
 
         if not message.attachments:
             raise ValueError("This message has no attachments!")

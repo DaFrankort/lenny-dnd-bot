@@ -56,7 +56,7 @@ async def open_image_from_url(url: str) -> Image.Image:
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as resp:
             if resp.status != 200:
-                raise ValueError(f"Could not open image url: {url}")
+                raise ConnectionError(f"Could not open image url: {url}")
 
             content_type = resp.headers.get("Content-Type", "")
             if not content_type.startswith("image/"):
@@ -71,7 +71,7 @@ async def open_image_from_attachment(image: discord.Attachment) -> Image.Image:
     async with aiohttp.ClientSession() as session:
         async with session.get(image.url) as resp:
             if resp.status != 200:
-                raise ValueError(f"Could not open image url: {image.url}")
+                raise ConnectionError(f"Could not open image url: {image.url}")
             image_bytes = await resp.read()
 
     base_image = Image.open(io.BytesIO(image_bytes))

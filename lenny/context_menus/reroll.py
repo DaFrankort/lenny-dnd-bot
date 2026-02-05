@@ -71,7 +71,7 @@ class RerollContextMenu(BaseContextMenu):
 
     async def handle(self, interaction: discord.Interaction, message: discord.Message):
         if interaction.client.user is None:
-            raise ValueError("The bot is not associated with a user account!")
+            raise RuntimeError("The bot is not associated with a user account!")
 
         if message.author.id != interaction.client.user.id:
             raise PermissionError(f"Only works on dice-roll messages sent by {interaction.client.user.name}")

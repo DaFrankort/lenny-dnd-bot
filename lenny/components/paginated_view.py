@@ -112,7 +112,7 @@ class PaginatedLayoutView(discord.ui.LayoutView):
         if not self.modal:
             # This situation should never occur, as this function can only be called
             # after a modal was set in jump_to_page_sendmodal.
-            raise ValueError("Cannot edit PaginatedJumpModal!")
+            raise RuntimeError("Cannot edit PaginatedJumpModal!")
 
         page = self.modal.get_int(self.modal.page)
 

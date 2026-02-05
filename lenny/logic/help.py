@@ -284,7 +284,7 @@ class HelpTabList:
         for t in self.tabs:
             if t.tab == tab:
                 return t
-        raise ValueError(f"help: tab '{tab}' not found.")
+        raise KeyError(f"help: tab '{tab}' not found.")
 
 
 HelpTabs = HelpTabList()

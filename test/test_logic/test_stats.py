@@ -16,5 +16,5 @@ class TestStats:
 
     def test_stat_limits(self):
         """Stats can only roll up to 108 total. In this case, the value will never be reached and will thus timeout."""
-        with pytest.raises(ValueError):
+        with pytest.raises(TimeoutError):
             Stats(min_total=999)

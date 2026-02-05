@@ -88,7 +88,7 @@ def get_dnd_embed(itr: discord.Interaction, dnd_entry: DNDEntry):  # pylint: dis
         case Boon():
             return BoonEmbed(dnd_entry)
         case _:
-            raise LookupError(f"D&D entry '{type(DNDEntry).__name__}' not supported")
+            raise NotImplementedError(f"D&D entry '{type(DNDEntry).__name__}' not supported")
 
 
 async def send_dnd_embed(itr: discord.Interaction, dnd_entry: DNDEntry):

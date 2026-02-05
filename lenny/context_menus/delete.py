@@ -9,7 +9,7 @@ class DeleteContextMenu(BaseContextMenu):
 
     async def handle(self, interaction: discord.Interaction, message: discord.Message):
         if not interaction.client.user:
-            raise ValueError("The bot is not associated with a user account!")
+            raise RuntimeError("The bot is not associated with a user account!")
 
         if message.author.id != interaction.client.user.id:
             raise PermissionError(f"{interaction.client.user.name} can only delete their own messages!")

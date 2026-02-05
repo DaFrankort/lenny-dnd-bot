@@ -14,10 +14,21 @@ def get_error_embed(error: discord.app_commands.AppCommandError | Exception) -> 
             color=discord.Color.red(),
         )
 
-    titles = {
-        "ValueError": "Invalid input!",
+    titles: dict[str, str] = {
+        "ConnectionError": "Could not establish connection!",
+        "IndexError": "Could not find entry!",
+        "KeyError": "Could not find entry!",
+        "LookupError": "Could not find entry!",
+        "PermissionError": "You don't have permission to do this!",
         "RuntimeError": "Can't do that right now!",
+        "SyntaxError": "Invalid syntax!",
+        "TimeoutError": "Input too large!",
+        "TypeError": "Wrong type!",
+        "ValueError": "Invalid input!",
+        "NotImplementedError": "The developers forgot to implement this!",
+        "ZeroDivisionError": "Dividing by zero!",
     }
+
     parts = str(error).split(": ")
     if len(parts) < 2:
         error_title = "Something went wrong!"
@@ -25,9 +36,8 @@ def get_error_embed(error: discord.app_commands.AppCommandError | Exception) -> 
     else:
         error_title = titles.get(parts[1], "Something went wrong!")
         error_msg = ": ".join(parts[2:]) if len(parts) > 2 else ""
-    embed = BaseEmbed(title=error_title, description=error_msg, color=discord.Color.red())
 
-    return embed
+    return BaseEmbed(title=error_title, description=error_msg, color=discord.Color.red())
 
 
 async def handle_command_error(itr: discord.Interaction, error: discord.app_commands.AppCommandError):
@@ -84,7 +94,7 @@ class BaseCommand(discord.app_commands.Command[BaseCommandGroup, Any, None]):
 
     @abstractmethod
     async def handle(self, itr: discord.Interaction, *args: Any, **kwargs: Any) -> None:
-        raise NotImplementedError
+        raise NotImplementedError()
 
     @staticmethod
     async def error_handler(_: Any, itr: discord.Interaction, error: discord.app_commands.AppCommandError):

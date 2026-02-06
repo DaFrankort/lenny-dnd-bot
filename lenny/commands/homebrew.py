@@ -41,8 +41,12 @@ class HomebrewAddCommand(BaseCommand):
         await itr.response.send_modal(modal)
 
 
-async def homebrew_name_autocomplete(itr: discord.Interaction, current: str):
-    return HomebrewData.get(itr).get_autocomplete_suggestions(itr, current)
+async def homebrew_name_search_autocomplete(itr: discord.Interaction, current: str):
+    return HomebrewData.get(itr).get_autocomplete_suggestions(itr, current, show_manageable_only=False)
+
+
+async def homebrew_name_manage_autocomplete(itr: discord.Interaction, current: str):
+    return HomebrewData.get(itr).get_autocomplete_suggestions(itr, current, show_manageable_only=True)
 
 
 class HomebrewSearchCommand(BaseCommand):
@@ -50,7 +54,7 @@ class HomebrewSearchCommand(BaseCommand):
     desc = "Search for secrets in your tome of homebrew."
     help = "Search for existing homebrew content from your server."
 
-    @autocomplete(name=homebrew_name_autocomplete)
+    @autocomplete(name=homebrew_name_search_autocomplete)
     @describe(name="The name of the entry you want to find.")
     async def handle(self, itr: discord.Interaction, name: str):
         entry = HomebrewData.get(itr).get(name)
@@ -75,7 +79,7 @@ class HomebrewEditCommand(BaseCommand):
     desc = "Edit entries in your tome of homebrew!"
     help = "Edit a homebrew entry you created. Can edit all entries if you have permissions to manage messages."
 
-    @autocomplete(name=homebrew_name_autocomplete)
+    @autocomplete(name=homebrew_name_manage_autocomplete)
     @describe(name="The name of the entry you want to edit.")
     async def handle(self, itr: discord.Interaction, name: str):
         entry = HomebrewData.get(itr).get(name)
@@ -88,7 +92,7 @@ class HomebrewRemoveCommand(BaseCommand):
     desc = "Remove entries in your tome of homebrew!"
     help = "Remove a homebrew entry you created. Can remove all entries if you have permissions to manage messages."
 
-    @autocomplete(name=homebrew_name_autocomplete)
+    @autocomplete(name=homebrew_name_manage_autocomplete)
     @describe(name="The name of the entry you want to remove.")
     async def handle(self, itr: discord.Interaction, name: str):
         entry = HomebrewData.get(itr).delete(itr, name)

@@ -174,6 +174,7 @@ class HomebrewGuildData(JsonHandler[list[HomebrewEntry]]):
         self,
         itr: discord.Interaction,
         query: str,
+        show_manageable_only: int,
         fuzzy_threshold: float = 75,
         limit: int = 25,
     ) -> list[Choice[str]]:
@@ -185,7 +186,7 @@ class HomebrewGuildData(JsonHandler[list[HomebrewEntry]]):
         choices: list[FuzzyMatchResult] = []
         for entries in self.data.values():
             for entry in entries:
-                if not entry.can_manage(itr):
+                if show_manageable_only and not entry.can_manage(itr):
                     continue
 
                 choice = fuzzy_matches(query, entry.name, fuzzy_threshold)

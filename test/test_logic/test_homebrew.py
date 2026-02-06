@@ -2,8 +2,12 @@ import os
 
 import pytest
 from discord import Interaction
-from mocking import MockInteraction
+from mocking import MockInteraction, MockUser
 
+from commands.homebrew import (
+    homebrew_name_manage_autocomplete,
+    homebrew_name_search_autocomplete,
+)
 from logic.dnd.abstract import DNDEntryType
 from logic.homebrew import HOMEBREW_PATH, GlobalHomebrewData
 
@@ -111,3 +115,30 @@ class TestHomebrew:
         edited = guild_data.edit(itr, original, "Name", None, invalid_url, "desc")
 
         assert edited.url != invalid_url, f"Invalid URL was edited into Homebrew Entry: `{valid_url}` -> `{invalid_url}`"
+
+    async def test_homebrew_name_search_autocomplete(self, itr: Interaction, data: GlobalHomebrewData):
+        homebrew_name = "Coding"
+        data.get(itr).add(
+            itr, DNDEntryType.SKILL, name=homebrew_name, url=None, select_description=None, description="A valuable skill."
+        )
+
+        itr.user = MockUser("Alternative User")
+        choices = await homebrew_name_search_autocomplete(itr, homebrew_name)
+        assert any(homebrew_name in c.name for c in choices), "User could not look up homebrew entry created by other user!"
+
+    async def test_homebrew_name_manage_autocomplete(self, itr: Interaction, data: GlobalHomebrewData):
+        homebrew_name = "Testing"
+        data.get(itr).add(
+            itr,
+            DNDEntryType.SKILL,
+            name=homebrew_name,
+            url=None,
+            select_description=None,
+            description="An equally valuable skill.",
+        )
+
+        itr.user = MockUser("Better User")
+        choices = await homebrew_name_manage_autocomplete(itr, homebrew_name)
+        assert not any(
+            homebrew_name in c.name for c in choices
+        ), "User should not be able to get autocomplete suggestions for entries they did not create or have perms for."

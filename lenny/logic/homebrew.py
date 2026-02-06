@@ -174,7 +174,7 @@ class HomebrewGuildData(JsonHandler[list[HomebrewEntry]]):
         self,
         itr: discord.Interaction,
         query: str,
-        show_manageable_only: int,
+        show_manageable_only: bool,
         fuzzy_threshold: float = 75,
         limit: int = 25,
     ) -> list[Choice[str]]:

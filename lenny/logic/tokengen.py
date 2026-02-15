@@ -64,7 +64,7 @@ class BackgroundType(str, ChoicedEnum):
             case BackgroundType.FANCY.value:
                 return TOKEN_BG.copy()
 
-        raise ValueError(f"Unknown background-type: {bg_type.name.title()}")
+        raise ValueError(f"Unknown background-type: {self.value.title()}")
 
 
 async def open_image_from_url(url: str) -> Image.Image:

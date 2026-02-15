@@ -6,6 +6,7 @@ import pytest
 # Required to mark the library as essential for testing in our workflows
 import pytest_asyncio  # noqa: F401 # type: ignore
 from mocking import (
+    MockBackgroundImage,
     MockDirectMessageInteraction,
     MockGIFImage,
     MockImage,
@@ -114,6 +115,7 @@ SLASH_COMMAND_TESTS: Iterable[Iterable[Any]] = [
             {"image": MockImage(), "v_alignment": AlignV.values()},
             {"image": [MockImage(), MockGIFImage()], "variants": [0, 3]},
             {"image": MockImage(), "background_type": BackgroundType.values()},
+            {"image": MockImage(), "custom_background": [None, MockBackgroundImage()]},
         ],
     ),
     (
@@ -125,6 +127,7 @@ SLASH_COMMAND_TESTS: Iterable[Iterable[Any]] = [
             {"url": MockImage().url, "v_alignment": AlignV.values()},
             {"url": [MockImage().url, MockGIFImage().url], "variants": [0, 3]},
             {"url": MockImage().url, "background_type": BackgroundType.values()},
+            {"url": MockImage().url, "custom_background": [None, MockBackgroundImage().url]},
         ],
     ),
     ("initiative", {}),

@@ -13,6 +13,7 @@ class ExternalAsset(str, Enum):
     IMAGE_FACE = "https://archives.bulbagarden.net/media/upload/c/cd/Ash_JN.png"
     AVATAR = "https://archives.bulbagarden.net/media/upload/c/c1/0025Pikachu-PhD.png"
     SOUND = "https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/25.ogg"
+    BACKGROUND = "https://archives.bulbagarden.net/media/upload/d/dd/Professor_Oak_Laboratory_M20.png"
 
 
 class MockBot(Bot):
@@ -167,6 +168,12 @@ class MockImage(MockAttachment):
 class MockGIFImage(MockAttachment):
     def __init__(self):
         url = ExternalAsset.GIF.value
+        super().__init__(url, "image")
+
+
+class MockBackgroundImage(MockAttachment):
+    def __init__(self):
+        url = ExternalAsset.BACKGROUND.value
         super().__init__(url, "image")
 
 

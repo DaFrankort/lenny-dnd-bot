@@ -10,7 +10,7 @@ import discord
 import numpy as np
 from PIL import Image, ImageDraw, ImageSequence
 
-from methods import ChoicedEnum, FontType, get_font
+from methods import ChoicedEnum, FontType, get_font, is_valid_url
 
 TOKEN_FRAME = Image.open("./assets/images/token_border.png").convert("RGBA")
 TOKEN_BG = Image.open("./assets/images/token_bg.jpg").convert("RGBA")
@@ -68,7 +68,7 @@ class BackgroundType(str, ChoicedEnum):
 
 
 async def open_image_from_url(url: str) -> Image.Image:
-    if not url.startswith("http"):
+    if not is_valid_url(url):
         raise ValueError(f"Not a valid URL: '{url}'")
 
     async with aiohttp.ClientSession() as session:

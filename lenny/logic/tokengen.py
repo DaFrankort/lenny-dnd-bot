@@ -247,8 +247,8 @@ def _generate_token_image(
     background = _squarify_image(background, h_align=AlignH.CENTER, v_align=AlignV.CENTER)
     background = _crop_image(background, size)
 
-    for frame in ImageSequence.Iterator(image):
-        frame = frame.convert("RGBA")
+    for image_frame in ImageSequence.Iterator(image):
+        frame = image_frame.convert("RGBA")
         frame = _squarify_image(frame, h_align, v_align)
         frame = _crop_image(frame, size)
         frame = _apply_background(frame, background)

@@ -173,18 +173,8 @@ def _apply_background(
     return background
 
 
-def _crop_image(
-    image: Image.Image,
-    size: tuple[int, int],
-    inset: int = 8,
-):
+def _resize_image(image: Image.Image, size: tuple[int, int]):
     return image.resize(size, Image.Resampling.LANCZOS)
-    width, height = size
-
-    # Resize with inset to avoid sticking out of the frame
-    inner_width = width - 2 * inset
-    inner_height = height - 2 * inset
-    return image.resize((inner_width, inner_height), Image.Resampling.LANCZOS)
 
 
 def _apply_circular_mask(image: Image.Image, inset: int = 8):
@@ -245,12 +235,12 @@ def _generate_token_image(
     size = TOKEN_FRAME.size
 
     background = _squarify_image(background, h_align=AlignH.CENTER, v_align=AlignV.CENTER)
-    background = _crop_image(background, size)
+    background = _resize_image(background, size)
 
     for image_frame in ImageSequence.Iterator(image):
         frame = image_frame.convert("RGBA")
         frame = _squarify_image(frame, h_align, v_align)
-        frame = _crop_image(frame, size)
+        frame = _resize_image(frame, size)
         frame = _apply_background(frame, background)
         frame = _apply_circular_mask(frame)
         frame = Image.alpha_composite(frame, border)

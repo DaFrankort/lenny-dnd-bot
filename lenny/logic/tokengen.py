@@ -1,6 +1,5 @@
 import io
 import math
-import os
 import time
 from collections.abc import Sequence
 from typing import Literal
@@ -9,7 +8,7 @@ import aiohttp
 import cv2
 import discord
 import numpy as np
-from PIL import Image, ImageChops, ImageDraw, ImageSequence
+from PIL import Image, ImageDraw, ImageSequence
 
 from methods import ChoicedEnum, FontType, get_font
 
@@ -51,8 +50,27 @@ class BackgroundType(str, ChoicedEnum):
     WHITE = "white"
     TRANSPARENT = "transparent"
 
+    @property
+    def image(self) -> Image.Image:
+        size = TOKEN_BG.size
+
+        match self.value:
+            case BackgroundType.TRANSPARENT.value:
+                return Image.new("RGBA", size, (0, 0, 0, 0))
+
+            case BackgroundType.WHITE.value:
+                return Image.new("RGBA", size, (255, 255, 255, 255))
+
+            case BackgroundType.FANCY.value:
+                return TOKEN_BG.copy()
+
+        raise ValueError(f"Unknown background-type: {bg_type.name.title()}")
+
 
 async def open_image_from_url(url: str) -> Image.Image:
+    if not url.startswith("http"):
+        raise ValueError(f"Not a valid URL: '{url}'")
+
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as resp:
             if resp.status != 200:
@@ -64,10 +82,15 @@ async def open_image_from_url(url: str) -> Image.Image:
 
             image_bytes = await resp.read()
 
-    return Image.open(io.BytesIO(image_bytes))
+    return Image.open(io.BytesIO(image_bytes)).convert("RGBA")
 
 
 async def open_image_from_attachment(image: discord.Attachment) -> Image.Image:
+    if not image.content_type:
+        raise ValueError("Unknown attachment type!")
+    if not image.content_type.startswith("image"):
+        raise ValueError("Attachment must be an image.")
+
     async with aiohttp.ClientSession() as session:
         async with session.get(image.url) as resp:
             if resp.status != 200:
@@ -79,7 +102,7 @@ async def open_image_from_attachment(image: discord.Attachment) -> Image.Image:
     if not base_image:
         raise ValueError("Could not process image, please provide a valid image file.")
 
-    return base_image
+    return base_image.convert("RGBA")
 
 
 def _detect_face_center(image: Image.Image) -> tuple[int, int]:
@@ -143,35 +166,20 @@ def _squarify_image(image: Image.Image, h_align: AlignH, v_align: AlignV) -> Ima
 
 def _apply_background(
     image: Image.Image,
-    bg_type: BackgroundType,
+    background: Image.Image,
 ) -> Image.Image:
-    if bg_type.value == BackgroundType.TRANSPARENT.value:
-        bg = Image.new("RGBA", image.size, (0, 0, 0, 0))
-
-    elif bg_type.value == BackgroundType.WHITE.value:
-        bg = Image.new("RGBA", image.size, (255, 255, 255, 255))
-
-    elif bg_type.value == BackgroundType.FANCY.value:
-        bg = TOKEN_BG.copy().resize(image.size)
-
-    else:
-        raise ValueError(f"Unknown background-type: {bg_type.name.title()}")
-
-    bg.paste(image, (0, 0), image)
-    return bg
+    background = background.copy()
+    background.paste(image, (0, 0), image)
+    return background
 
 
 def _crop_image(
     image: Image.Image,
-    h_align: AlignH,
-    v_align: AlignV,
     size: tuple[int, int],
     inset: int = 8,
 ):
+    return image.resize(size, Image.Resampling.LANCZOS)
     width, height = size
-
-    # Make square-shaped
-    image = _squarify_image(image, h_align, v_align)
 
     # Resize with inset to avoid sticking out of the frame
     inner_width = width - 2 * inset
@@ -179,31 +187,21 @@ def _crop_image(
     return image.resize((inner_width, inner_height), Image.Resampling.LANCZOS)
 
 
-def _apply_circular_mask(
-    image: Image.Image,
-    bg_type: BackgroundType,
-    size: tuple[int, int],
-    inset: int = 8,
-):
-    width, height = size
+def _apply_circular_mask(image: Image.Image, inset: int = 8):
+    width, height = image.size
     inner_width = width - 2 * inset
     inner_height = height - 2 * inset
 
-    mask = Image.new("L", (inner_width, inner_height), 0)
+    x0 = (width - inner_width) / 2
+    y0 = (height - inner_height) / 2
+    x1 = x0 + inner_width
+    y1 = y0 + inner_height
+
+    mask = Image.new("L", image.size, 0)
     draw = ImageDraw.Draw(mask)
-    draw.ellipse((0, 0, inner_width, inner_height), fill=255)
+    draw.ellipse((x0, y0, x1, y1), fill=255)
 
-    # Adjust alpha channels
-    alpha = mask
-    if bg_type is BackgroundType.TRANSPARENT:
-        # If the background is transparent, we want to retain the transparency of the original image.
-        # With a solid background we don't want this, because it gives an odd effect where the main image transparency is retained over the background.
-        original_alpha = image.getchannel("A")
-        alpha = ImageChops.multiply(original_alpha, mask)
-    image.putalpha(alpha)
-
-    result = Image.new("RGBA", (width, height), (0, 0, 0, 0))
-    result.paste(image, (inset, inset), image)
+    result = Image.composite(image, Image.new("RGBA", image.size), mask)
     return result
 
 
@@ -237,7 +235,7 @@ def _shift_hue(image: Image.Image, hue: int) -> Image.Image:
 def _generate_token_image(
     image: Image.Image,
     hue: int,
-    bg_type: BackgroundType,
+    background: Image.Image,
     h_align: AlignH,
     v_align: AlignV,
 ) -> list[Image.Image]:
@@ -246,12 +244,17 @@ def _generate_token_image(
     border = _shift_hue(TOKEN_FRAME, hue)
     size = TOKEN_FRAME.size
 
+    background = _squarify_image(background, h_align=AlignH.CENTER, v_align=AlignV.CENTER)
+    background = _crop_image(background, size)
+
     for frame in ImageSequence.Iterator(image):
-        f = frame.convert("RGBA")
-        f = _crop_image(f, h_align, v_align, size)
-        f = _apply_background(f, bg_type)
-        f = _apply_circular_mask(f, bg_type, size)
-        frames.append(Image.alpha_composite(f, border))
+        frame = frame.convert("RGBA")
+        frame = _squarify_image(frame, h_align, v_align)
+        frame = _crop_image(frame, size)
+        frame = _apply_background(frame, background)
+        frame = _apply_circular_mask(frame)
+        frame = Image.alpha_composite(frame, border)
+        frames.append(frame)
 
     return frames
 
@@ -350,16 +353,16 @@ def _generate_variant_tokens(token_image: list[Image.Image], number: int, amount
     return frames
 
 
-async def _generate_token_files(
+async def generate_token_files(
     image: Image.Image,
     name: str,
     frame_hue: int,
     h_alignment: AlignH,
     v_alignment: AlignV,
     variants: int,
-    bg_type: BackgroundType,
+    background: Image.Image,
 ) -> list[discord.File]:
-    base_token = _generate_token_image(image, frame_hue, bg_type, h_alignment, v_alignment)
+    base_token = _generate_token_image(image, frame_hue, background, h_alignment, v_alignment)
 
     extension: ExportableExtensions = "PNG"
     duration: int = 0
@@ -381,55 +384,3 @@ async def _generate_token_files(
         files.append(discord.File(_images_to_bytesio(labeled_token, extension), filename))
 
     return files
-
-
-async def generate_tokens_from_file(
-    image: discord.Attachment,
-    frame_hue: int,
-    h_alignment: AlignH,
-    v_alignment: AlignV,
-    variants: int,
-    bg_type: BackgroundType,
-) -> list[discord.File]:
-    if not image.content_type:
-        raise ValueError("Unknown attachment type!")
-    if not image.content_type.startswith("image"):
-        raise ValueError("Attachment must be an image.")
-
-    img = await open_image_from_attachment(image)
-    name = os.path.splitext(image.filename)[0]
-
-    return await _generate_token_files(
-        image=img,
-        name=name,
-        frame_hue=frame_hue,
-        h_alignment=h_alignment,
-        v_alignment=v_alignment,
-        variants=variants,
-        bg_type=bg_type,
-    )
-
-
-async def generate_tokens_from_url(
-    url: str,
-    frame_hue: int,
-    h_alignment: AlignH,
-    v_alignment: AlignV,
-    variants: int,
-    bg_type: BackgroundType,
-) -> list[discord.File]:
-    if not url.startswith("http"):
-        raise ValueError(f"Not a valid URL: '{url}'")
-
-    img = await open_image_from_url(url)
-    url_hash = str(abs(hash(url)))
-
-    return await _generate_token_files(
-        image=img,
-        name=url_hash,
-        frame_hue=frame_hue,
-        h_alignment=h_alignment,
-        v_alignment=v_alignment,
-        variants=variants,
-        bg_type=bg_type,
-    )

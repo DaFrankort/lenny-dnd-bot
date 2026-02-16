@@ -6,6 +6,10 @@
 # - Average Time    0.00396 ms/search
 # - Max Capacity    252.8 searches/ms
 
+# Windows 10 | AMD Ryzen 7 5800x | 32GB RAM
+# - Average Time    0.00181 ms/search
+# - Max Capacity    552.7 searches/ms
+
 
 import time
 
@@ -48,7 +52,7 @@ def _run_benchmark_search_all():
     total_time = sum(v for v in inputs.values() if v)
     average = total_time / total_entries
     print(f"### {total_entries} Searches")
-    print(f"### Total time: {(total_time/1000):.1f}s")
+    print(f"### Total time: {(total_time*1000):.1f}s")
     print(f"### Average time: {average:.5f} ms/search")
     print(f"### Max load: {(1/average):.1f} searches/ms")
 

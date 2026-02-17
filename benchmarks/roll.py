@@ -19,4 +19,4 @@ from logic.roll import Advantage, roll
     [Advantage.NORMAL, Advantage.ADVANTAGE, Advantage.DISADVANTAGE, Advantage.ELVEN_ACCURACY],
 )
 def test_roll(benchmark: BenchmarkFixture, expression: str, advantage: Advantage):
-    benchmark(roll, expression, advantage)
+    benchmark.pedantic(roll, args=(expression, advantage), rounds=1000, iterations=5, warmup_rounds=24)  # type: ignore

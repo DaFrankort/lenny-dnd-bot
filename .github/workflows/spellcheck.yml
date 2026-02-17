@@ -24,4 +24,4 @@ jobs:
         run: npm install -g cspell
 
       - name: Run spell check
-        run: cspell --config cspell.json lenny/**/*.py lenny/*.py test/**/*.py test/*.py readme.md
+        run: cspell --config cspell.json lenny/**/*.py lenny/*.py test/**/*.py test/*.py benchmarks/**/*.py benchmarks/*.py *.md

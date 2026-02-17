@@ -66,7 +66,7 @@ class TokenGenCommand(BaseCommand):
         else:
             background = await open_image_from_attachment(custom_background)
 
-        files = await generate_token_files(
+        files = generate_token_files(
             image=img,
             name=name,
             frame_hue=frame_hue,
@@ -121,7 +121,7 @@ class TokenGenUrlCommand(BaseCommand):
         else:
             background = await open_image_from_url(custom_background)
 
-        files = await generate_token_files(
+        files = generate_token_files(
             image=img,
             name=url_hash,
             frame_hue=frame_hue,

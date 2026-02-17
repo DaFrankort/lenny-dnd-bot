@@ -343,7 +343,7 @@ def _generate_variant_tokens(token_image: list[Image.Image], number: int, amount
     return frames
 
 
-async def generate_token_files(
+def generate_token_files(
     image: Image.Image,
     name: str,
     frame_hue: int,

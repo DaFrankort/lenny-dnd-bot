@@ -19,13 +19,11 @@ from logic.tokengen import AlignH, AlignV, generate_token_files
         (AlignV.BOTTOM, AlignH.RIGHT),
     ],
 )
-def test_generate_token_basic_alignments(
+def test_tokengen_basic_align(
     benchmark: BenchmarkFixture,
     v_alignment: AlignV,
     h_alignment: AlignH,
 ) -> None:
-    """Benchmark all alignment combinations separately"""
-
     def setup():
         return tokengen_setup(
             align_v=v_alignment,

@@ -16,11 +16,7 @@ from logic.roll import Advantage, roll
 )
 @pytest.mark.parametrize(
     "advantage",
-    [
-        Advantage.NORMAL,
-        Advantage.ADVANTAGE,
-        Advantage.DISADVANTAGE,
-    ],
+    [Advantage.NORMAL, Advantage.ADVANTAGE, Advantage.DISADVANTAGE, Advantage.ELVEN_ACCURACY],
 )
 def test_roll(benchmark: BenchmarkFixture, expression: str, advantage: Advantage):
     benchmark(roll, expression, advantage)

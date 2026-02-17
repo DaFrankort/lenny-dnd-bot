@@ -30,6 +30,12 @@ def _tokengen_setup(
     )
 
 
+def test_generate_token_basic(benchmark: BenchmarkFixture) -> None:
+    """Generate a simple token with default options"""
+
+    benchmark.pedantic(generate_token_files, setup=_tokengen_setup, rounds=64, warmup_rounds=4)  # type: ignore
+
+
 def test_generate_token_shift_hue(benchmark: BenchmarkFixture) -> None:
     """Generate a simple token with a different frame-hue"""
 

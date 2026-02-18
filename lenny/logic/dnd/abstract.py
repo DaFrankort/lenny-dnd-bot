@@ -181,7 +181,7 @@ class DNDEntryList(abc.ABC, Generic[TDND]):
     type: type
     paths: list[str]
     entries: list[TDND]
-    _entries_map: dict[str, dict[str, TDND]]  # "NAME" -> "SOURCE" -> DNDEntry
+    _source_grouped_entries: dict[str, list[TDND]]
 
     def __init__(self):
         if not hasattr(self, "type"):
@@ -190,17 +190,16 @@ class DNDEntryList(abc.ABC, Generic[TDND]):
             raise NotImplementedError(f"No data paths defined for '{self.__class__.__name__}'!")
 
         self.entries = []
-        self._entries_map = {}
+        self._source_grouped_entries = {}
         for path in self.paths:
             for base_path in BASE_DATA_PATHS:
                 full_path = base_path + path
                 for data in self.read_dnd_data_contents(full_path):
                     entry: TDND = self.type(data)
                     self.entries.append(entry)
-
-                    if entry.name not in self._entries_map:
-                        self._entries_map[entry.name] = {}
-                    self._entries_map[entry.name][entry.source] = entry
+                    if entry.source not in self._source_grouped_entries:
+                        self._source_grouped_entries[entry.source] = []
+                    self._source_grouped_entries[entry.source].append(entry)
 
     @staticmethod
     def read_dnd_data_contents(path: str) -> list[dict[str, Any]]:
@@ -211,24 +210,18 @@ class DNDEntryList(abc.ABC, Generic[TDND]):
         with open(path, "r", encoding="utf-8") as file:
             return json.load(file)
 
-    def get(self, query: str, allowed_sources: set[str], fuzzy_threshold: float = 75) -> list[TDND]:
-        # Fast lookup O(1), in case name is an exact match.
-        results: list[TDND] = []
-        for source in self._entries_map.get(query, {}):
-            if source in allowed_sources:
-                results.append(self._entries_map[query][source])
-        if results:
-            return results
+    def get_allowed_entries(self, allowed_sources: set[str]) -> list[TDND]:
+        result: list[TDND] = []
+        for source in allowed_sources:
+            result.extend(self._source_grouped_entries.get(source, []))
+        return result
 
-        # Fallback to fuzzy lookup
+    def get(self, query: str, allowed_sources: set[str], fuzzy_threshold: float = 75) -> list[TDND]:
         query = query.strip().lower()
         exact: list[TDND] = []
         fuzzy: list[TDND] = []
 
-        for entry in self.entries:
-            if entry.source not in allowed_sources:
-                continue
-
+        for entry in self.get_allowed_entries(allowed_sources):
             entry_name = entry.name.strip().lower()
             if entry_name == query:
                 exact.append(entry)
@@ -252,9 +245,7 @@ class DNDEntryList(abc.ABC, Generic[TDND]):
 
         choices: list[FuzzyMatchResult] = []
         seen_names: set[str] = set()  # Required to avoid duplicate suggestions
-        for e in self.entries:
-            if e.source not in allowed_sources:
-                continue
+        for e in self.get_allowed_entries(allowed_sources):
             if e.name in seen_names:
                 continue
 
@@ -271,10 +262,7 @@ class DNDEntryList(abc.ABC, Generic[TDND]):
         query = query.strip().lower()
         found: list[DNDEntry] = []
 
-        for entry in self.entries:
-            if entry.source not in allowed_sources:
-                continue
-
+        for entry in self.get_allowed_entries(allowed_sources):
             entry_name = entry.name.strip().lower()
             if fuzz.partial_ratio(query, entry_name) > fuzzy_threshold:
                 found.append(entry)

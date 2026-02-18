@@ -102,13 +102,14 @@ class DNDData:
         query = query.strip().lower()
         results = DNDSearchResults()
         for entries in self:
+            for entry in entries.entries:
+                name = entry.name.strip().lower()
+                source = entry.source
 
-            for source in entries.entries:
                 if source not in allowed_sources:
                     continue
-                for name in entries.entries[source]:
-                    if fuzz.partial_ratio(query, name) > threshold:
-                        results.add(entries.entries[source][name])
+                if fuzz.partial_ratio(query, name) > threshold:
+                    results.add(entry)
         return results
 
 

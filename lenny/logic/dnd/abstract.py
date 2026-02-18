@@ -180,7 +180,7 @@ TDND = TypeVar("TDND", bound=DNDEntry)  # pylint: disable=invalid-name
 class DNDEntryList(abc.ABC, Generic[TDND]):
     type: type
     paths: list[str]
-    entries: dict[str, dict[str, TDND]]  # "source": {"name": entry}
+    entries: list[TDND]
 
     def __init__(self):
         if not hasattr(self, "type"):
@@ -188,14 +188,13 @@ class DNDEntryList(abc.ABC, Generic[TDND]):
         if not hasattr(self, "paths"):
             raise NotImplementedError(f"No data paths defined for '{self.__class__.__name__}'!")
 
-        self.entries = {}
+        self.entries = []
         for path in self.paths:
             for base_path in BASE_DATA_PATHS:
                 full_path = base_path + path
                 for data in self.read_dnd_data_contents(full_path):
                     entry: TDND = self.type(data)
-                    self.entries[entry.source] = {}
-                    self.entries[entry.source][entry.name] = entry
+                    self.entries.append(entry)
 
     @staticmethod
     def read_dnd_data_contents(path: str) -> list[dict[str, Any]]:
@@ -211,16 +210,15 @@ class DNDEntryList(abc.ABC, Generic[TDND]):
         exact: list[TDND] = []
         fuzzy: list[TDND] = []
 
-        for source in self.entries.keys():
-            if source not in allowed_sources:
+        for entry in self.entries:
+            if entry.source not in allowed_sources:
                 continue
 
-            for name in self.entries[source]:
-                entry_name = name.strip().lower()
-                if entry_name == query:
-                    exact.append(self.entries[source][name])
-                if fuzz.ratio(query, entry_name) > fuzzy_threshold:
-                    fuzzy.append(self.entries[source][name])
+            entry_name = entry.name.strip().lower()
+            if entry_name == query:
+                exact.append(entry)
+            if fuzz.ratio(query, entry_name) > fuzzy_threshold:
+                fuzzy.append(entry)
 
         exact = sorted(exact, key=lambda e: (e.name, e.source))
         fuzzy = sorted(fuzzy, key=lambda e: (e.name, e.source))
@@ -228,14 +226,6 @@ class DNDEntryList(abc.ABC, Generic[TDND]):
         if len(exact) > 0:
             return exact
         return fuzzy
-
-    @property
-    def all_entries(self) -> list[TDND]:
-        entries: list[TDND] = []
-        for source in self.entries:
-            for name in self.entries[source]:
-                entries.append(self.entries[source][name])
-        return entries
 
     def get_autocomplete_suggestions(
         self, query: str, allowed_sources: set[str], fuzzy_threshold: float = 75, limit: int = 25
@@ -247,18 +237,16 @@ class DNDEntryList(abc.ABC, Generic[TDND]):
 
         choices: list[FuzzyMatchResult] = []
         seen_names: set[str] = set()  # Required to avoid duplicate suggestions
-        for source in self.entries:
-            if source not in allowed_sources:
+        for e in self.entries:
+            if e.source not in allowed_sources:
+                continue
+            if e.name in seen_names:
                 continue
 
-            for name in self.entries[source]:
-                if name in seen_names:
-                    continue
-
-                choice = fuzzy_matches(query, name, fuzzy_threshold)
-                if choice is not None:
-                    choices.append(choice)
-                    seen_names.add(name)
+            choice = fuzzy_matches(query, e.name, fuzzy_threshold)
+            if choice is not None:
+                choices.append(choice)
+                seen_names.add(e.name)
 
         # Sort by query match => fuzzy score => alphabetically
         choices.sort(key=lambda x: (-x.starts_with, -x.score, x.choice.name))
@@ -268,14 +256,13 @@ class DNDEntryList(abc.ABC, Generic[TDND]):
         query = query.strip().lower()
         found: list[DNDEntry] = []
 
-        for source in self.entries:
-            if source not in allowed_sources:
+        for entry in self.entries:
+            if entry.source not in allowed_sources:
                 continue
 
-            for name in self.entries[source]:
-                entry_name = name.strip().lower()
-                if fuzz.partial_ratio(query, entry_name) > fuzzy_threshold:
-                    found.append(self.entries[source][name])
+            entry_name = entry.name.strip().lower()
+            if fuzz.partial_ratio(query, entry_name) > fuzzy_threshold:
+                found.append(entry)
 
         found = sorted(found, key=lambda e: (e.name, e.source))
         return found

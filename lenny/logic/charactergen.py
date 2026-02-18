@@ -14,12 +14,12 @@ from logic.stats import Stats
 
 
 def species_choices(xphb_only: bool = True) -> list[discord.app_commands.Choice[str]]:
-    species = [e.name for e in Data.species.all_entries if (e.source == "XPHB" or not xphb_only) and "(" not in e.name]
+    species = [e.name for e in Data.species.entries if (e.source == "XPHB" or not xphb_only) and "(" not in e.name]
     return [discord.app_commands.Choice(name=spec, value=spec) for spec in species[:25]]
 
 
 def class_choices(xphb_only: bool = True) -> list[discord.app_commands.Choice[str]]:
-    classes = [e.name for e in Data.classes.all_entries if (e.source == "XPHB" or not xphb_only)]
+    classes = [e.name for e in Data.classes.entries if (e.source == "XPHB" or not xphb_only)]
     return [discord.app_commands.Choice(name=char_cls, value=char_cls) for char_cls in classes[:25]]
 
 
@@ -63,7 +63,7 @@ def _get_optimal_background(char_class: Class) -> Background:
 
     # If the primary ability of the class cannot be determined, choose randomly
     if char_class.primary_ability is None:
-        backgrounds = Data.backgrounds.all_entries
+        backgrounds = Data.backgrounds.entries
     else:
         recommended: set[str] = set()
         for ability, background_string in background_table.table["table"]["rows"]:
@@ -75,7 +75,7 @@ def _get_optimal_background(char_class: Class) -> Background:
             backgrounds = background_string.split(",")
             if ability.lower() in char_class.primary_ability.lower():
                 recommended.update(bg.strip().lower() for bg in backgrounds)
-        backgrounds = [entry for entry in Data.backgrounds.all_entries if entry.name.lower() in recommended]
+        backgrounds = [entry for entry in Data.backgrounds.entries if entry.name.lower() in recommended]
 
     background: Background = _get_random_xphb_entry(backgrounds)
     return background
@@ -187,7 +187,7 @@ def generate_dnd_character(gender_str: str | None, species_str: str | None, char
     gender = Gender.OTHER if gender_str is None else Gender(gender_str)
 
     if species_str is None:
-        species: Species = _get_random_xphb_entry(Data.species.all_entries)
+        species: Species = _get_random_xphb_entry(Data.species.entries)
     else:
         species: Species = Data.species.get(query=species_str, allowed_sources=set(["XPHB"]))[0]
     name, _, gender = Data.names.get_random(species.name, gender)
@@ -196,7 +196,7 @@ def generate_dnd_character(gender_str: str | None, species_str: str | None, char
         raise KeyError("Could not determine name and gender for generated character.")
 
     if char_class_str is None:
-        char_class: Class = _get_random_xphb_entry(Data.classes.all_entries)
+        char_class: Class = _get_random_xphb_entry(Data.classes.entries)
     else:
         char_class: Class = Data.classes.get(query=char_class_str, allowed_sources=set(["XPHB"]))[0]
     background = _get_optimal_background(char_class)

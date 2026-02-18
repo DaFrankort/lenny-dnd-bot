@@ -172,9 +172,9 @@ SLASH_COMMAND_TESTS: Iterable[Iterable[Any]] = [
             "char_class": [None, "rogue"],
         },
     ),
-    ("favorites add", {"name": Data.spells.all_entries[0].title}),
+    ("favorites add", {"name": Data.spells.entries[0].title}),
     ("favorites view", {}),
-    ("favorites remove", {"name": Data.spells.all_entries[0].title}),
+    ("favorites remove", {"name": Data.spells.entries[0].title}),
     # Homebrew commands work through modals, and are thus not testable.
     # ("", {"": "", "": ""}),
 ]
@@ -221,7 +221,7 @@ def get_cmd(commands: dict[str, BaseCommand | BaseCommandGroup], name: str) -> B
 
 def get_strict_search_arguments(entry_list: DNDEntryList[TEntry]) -> list[str]:
     disallowed_sources = ConfigHandler.default_disallowed_sources()
-    return [entry.name for entry in entry_list.all_entries if entry.source not in disallowed_sources]
+    return [entry.name for entry in entry_list.entries if entry.source not in disallowed_sources]
 
 
 class TestBotCommands:
@@ -491,7 +491,7 @@ class TestBotCommands:
         classes = Data.classes
         levels = list(range(0, 21))
 
-        for class_ in classes.all_entries:
+        for class_ in classes.entries:
             subclass = class_.subclasses
             for subclass in [None, *class_.subclasses]:
                 for level in levels:

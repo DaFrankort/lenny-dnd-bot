@@ -181,6 +181,7 @@ class DNDEntryList(abc.ABC, Generic[TDND]):
     type: type
     paths: list[str]
     entries: list[TDND]
+    _entries_map: dict[str, dict[str, TDND]]  # "NAME" -> "SOURCE" -> DNDEntry
 
     def __init__(self):
         if not hasattr(self, "type"):
@@ -189,12 +190,17 @@ class DNDEntryList(abc.ABC, Generic[TDND]):
             raise NotImplementedError(f"No data paths defined for '{self.__class__.__name__}'!")
 
         self.entries = []
+        self._entries_map = {}
         for path in self.paths:
             for base_path in BASE_DATA_PATHS:
                 full_path = base_path + path
                 for data in self.read_dnd_data_contents(full_path):
                     entry: TDND = self.type(data)
                     self.entries.append(entry)
+
+                    if entry.name not in self._entries_map:
+                        self._entries_map[entry.name] = {}
+                    self._entries_map[entry.name][entry.source] = entry
 
     @staticmethod
     def read_dnd_data_contents(path: str) -> list[dict[str, Any]]:
@@ -206,6 +212,15 @@ class DNDEntryList(abc.ABC, Generic[TDND]):
             return json.load(file)
 
     def get(self, query: str, allowed_sources: set[str], fuzzy_threshold: float = 75) -> list[TDND]:
+        # Fast lookup O(1), in case name is an exact match.
+        results: list[TDND] = []
+        for source in self._entries_map.get(query, {}):
+            if source in allowed_sources:
+                results.append(self._entries_map[query][source])
+        if results:
+            return results
+
+        # Fallback to fuzzy lookup
         query = query.strip().lower()
         exact: list[TDND] = []
         fuzzy: list[TDND] = []

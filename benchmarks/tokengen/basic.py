@@ -2,7 +2,7 @@ from test.mocking import ExternalAsset
 
 import pytest
 from pytest_benchmark.fixture import BenchmarkFixture
-from utils import tokengen_setup
+from benchmarks.tokengen.tokengen_utils import tokengen_setup
 
 from logic.tokengen import BackgroundType, generate_token_files, open_image_from_url
 

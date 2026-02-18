@@ -1,4 +1,4 @@
-name: BENCHMARKS
+name: BENCHMARK
 
 on:
   pull_request:
@@ -9,7 +9,7 @@ on:
 jobs:
   benchmarks:
     runs-on: ubuntu-latest
-    name: Run Benchmarks
+    name: confirm functionality
     steps:
       - name: Check out source repository
         uses: actions/checkout@v4

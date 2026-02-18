@@ -1,6 +1,6 @@
 import pytest
-from pytest_benchmark.fixture import BenchmarkFixture
 from benchmarks.tokengen.tokengen_utils import tokengen_setup
+from pytest_benchmark.fixture import BenchmarkFixture
 
 from logic.tokengen import generate_token_files
 

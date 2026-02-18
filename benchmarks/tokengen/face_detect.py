@@ -1,8 +1,8 @@
 from test.mocking import ExternalAsset
 
 import pytest
-from pytest_benchmark.fixture import BenchmarkFixture
 from benchmarks.tokengen.tokengen_utils import tokengen_setup
+from pytest_benchmark.fixture import BenchmarkFixture
 
 from logic.tokengen import AlignH, AlignV, generate_token_files, open_image_from_url
 

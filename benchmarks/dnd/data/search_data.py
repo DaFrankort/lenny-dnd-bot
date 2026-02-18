@@ -5,7 +5,7 @@ from logic.dnd.source import ContentChoice, SourceList
 
 
 def test_dnd_data_search(benchmark: BenchmarkFixture) -> None:
-    names: list[str] = [e.name for entry_list in Data for e in entry_list.entries]
+    names: list[str] = [e.name for entry_list in Data for e in entry_list.all_entries]
     sources: set[str] = set({e.name for e in SourceList(content=ContentChoice.ALL).entries})
     index = 0
 

@@ -7,7 +7,7 @@ from logic.dnd.source import ContentChoice, SourceList
 
 @parametrize_entry_lists()
 def test_dnd_entry_list_autocomplete(benchmark: BenchmarkFixture, entry_list: DNDEntryList[DNDEntry]) -> None:
-    names: list[str] = [e.name for e in entry_list.entries]
+    names: list[str] = [e.name for e in entry_list.all_entries]
     sources: set[str] = set({e.name for e in SourceList(content=ContentChoice.ALL).entries})
     index = 0
 

@@ -3,6 +3,7 @@ name: MAIN
 on:
   pull_request:
     paths-ignore:
+      - "benchmarks/**"
       - "*.md"
       - "*.bat"
       - ".env.example"

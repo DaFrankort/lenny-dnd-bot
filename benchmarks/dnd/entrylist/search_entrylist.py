@@ -1,4 +1,4 @@
-from benchmarks.dnd.dnd_utils import parametrize_entry_lists, benchmark_entry_list
+from benchmarks.dnd.dnd_utils import benchmark_entry_list, parametrize_entry_lists
 from pytest_benchmark.fixture import BenchmarkFixture
 
 from logic.dnd.abstract import DNDEntry, DNDEntryList

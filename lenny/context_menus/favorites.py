@@ -57,15 +57,11 @@ class AddFavoriteContextMenu(BaseContextMenu):
             raise PermissionError(f"Favorites only works on messages from {interaction.client.user.mention}!")
 
         name, source = None, None
-        if message.embeds or len(message.embeds) != 0:
+        if message.embeds:
             title = self.get_embed_title(message)
             name, source = self._split_name_and_source(title)
 
-        elif (
-            message.components
-            or len(message.components) != 0
-            and isinstance(message.components[0], discord.components.Container)
-        ):
+        elif message.components and isinstance(message.components[0], discord.components.Container):
             title = self.get_container_title(message.components[0])  # type: ignore
             name, source = self._split_name_and_source(title)
 

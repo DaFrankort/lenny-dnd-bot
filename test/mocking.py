@@ -198,6 +198,7 @@ class MockMessage(discord.Message):
         self.author = user
         self.channel = channel
         self.content = content
+        self.components = []
         self._state = MagicMock()
 
     async def delete(self, *, delay: float | None = None) -> None:

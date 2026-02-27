@@ -1,5 +1,5 @@
 aiohttp==3.13.3
-discord.py==2.6.4
+discord.py==2.7.0
 opencv-python==4.13.0.92
 numpy==2.4.2
 python-dotenv==1.2.1

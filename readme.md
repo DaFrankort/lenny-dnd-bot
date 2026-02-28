@@ -166,6 +166,7 @@ Additionally supports gif images as input, which will be preserved in the output
 - `/timestamp date <time> <timezone> [date]` - Generates all possible timestamps for a specific date & time. Date defaults to the current day.
 
 #### User Colors
+
 Commands that resemble user-actions are highlighted with colors that are unique per user. This makes it easy to discern different user's actions.
 By default the user's color is automatically generated based on their display name. Users can adjust their colors using following commands:
 

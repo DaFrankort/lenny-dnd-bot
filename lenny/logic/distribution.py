@@ -6,7 +6,7 @@ import d20  # type: ignore # Ignore missing stubs
 import d20distribution  # type: ignore
 import discord
 import matplotlib
-from d20distribution.distribution import DiceDistribution  # type: ignore
+from d20distribution.distribution import Distribution  # type: ignore
 from matplotlib import pyplot as plt
 
 from logic.color import UserColor
@@ -34,7 +34,7 @@ def to_matplotlib_color(color: int) -> tuple[float, float, float]:
 
 
 def _distribution_chart(
-    dist: DiceDistribution,
+    dist: Distribution,
     color: int,
     min_to_beat: float,
 ) -> discord.File:

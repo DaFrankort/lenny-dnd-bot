@@ -2,8 +2,12 @@ import io
 from typing import TypeVar
 
 import discord
+import matplotlib
 import numpy as np
 from matplotlib import pyplot as plt
+
+# Required to calculate the chart in a separate thread, https://stackoverflow.com/questions/27147300/matplotlib-tcl-asyncdelete-async-handler-deleted-by-the-wrong-thread
+matplotlib.use("Agg")
 
 T = TypeVar("T")
 

@@ -17,11 +17,11 @@ class TestMethods:
     def test_call_with_timeout(self, sleep: int, timeout: int, success: bool) -> None:
         def timeout_func(sleep: int) -> int:
             time.sleep(sleep)
-            return True
+            return 33
 
         result = call_with_timeout(timeout=timeout, func=timeout_func, args=[sleep])
 
         if success:
-            assert result == True
+            assert result == 33
         else:
             assert result is None

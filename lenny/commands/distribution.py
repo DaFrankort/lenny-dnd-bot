@@ -37,7 +37,7 @@ class DistributionCommand(BaseCommand):
             args=[expression, Advantage(advantage), color, min_to_beat],
         )
         if result is None:
-            raise TimeoutError("Distribution calculation took too long to finish!")
+            raise TimeoutError("Distribution took too long to calculate!")
 
         embed = DistributionEmbed(itr, result)
         await itr.followup.send(embed=embed, file=embed.chart)

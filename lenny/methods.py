@@ -1,8 +1,10 @@
 import logging
+from collections.abc import Callable
 from enum import Enum
 from typing import Any, TypeVar
 
 import discord
+import thread
 import validators
 from PIL import ImageFont
 
@@ -56,3 +58,15 @@ def is_valid_url(url: str) -> bool:
         return bool(validators.url(url))
     except validators.utils.ValidationError:
         return False
+
+
+def call_with_timeout(timeout: int, func: Callable[..., T], args: list[Any]) -> T | None:
+    proc = thread.Thread(target=func, args=args)
+    proc.start()
+    proc.join(timeout=timeout)
+
+    if proc.is_alive():
+        proc.kill()
+        return None
+
+    return proc.result

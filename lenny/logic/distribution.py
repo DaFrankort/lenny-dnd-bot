@@ -5,11 +5,15 @@ import math
 import d20  # type: ignore # Ignore missing stubs
 import d20distribution  # type: ignore
 import discord
+import matplotlib
 from d20distribution.distribution import DiceDistribution  # type: ignore
 from matplotlib import pyplot as plt
 
 from logic.color import UserColor
 from logic.roll import Advantage
+
+# Required to calculate the chart in a separate thread, https://stackoverflow.com/questions/27147300/matplotlib-tcl-asyncdelete-async-handler-deleted-by-the-wrong-thread
+matplotlib.use("Agg")
 
 
 @dataclasses.dataclass

@@ -46,7 +46,7 @@ def log_modal_submit_interaction(itr: Interaction):
         c = component.get("component", {})
         c_value = c.get("value", "")
         if c_value:
-            fields.append(c_value)
+            fields.append(str(c_value))
 
         c_values = c.get("values", [])
         if c_values:

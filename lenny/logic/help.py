@@ -45,7 +45,6 @@ class HelpTabList:
             "roll",
             "d20",
             "multiroll",
-            "distribution",
         ],
         text="You can roll dice using the following commands:",
         info=[
@@ -78,6 +77,35 @@ class HelpTabList:
                     "- *Magic* and *spell*",
                     "- *Archery* and *ranged*",
                     "- *Stealth* and *sneak*",
+                ],
+            ),
+        ],
+    )
+
+    Distribution = HelpTab(
+        tab="distribution",
+        name="Distribution",
+        commands=["distribution"],
+        text="You can generate the image of a dice distribution using the following command:",
+        info=[
+            (
+                "Generating Distributions",
+                [
+                    "The expression of the distribution must follow the same syntax as described on the `Roll` section. Additionally, due to limitations in [the distribution library](https://github.com/pipieter/d20distribution), the `rr` modifier is (currently) not supported."
+                ],
+            ),
+            (
+                "Advantage and Minimum Chances",
+                [
+                    "You can simulate advantages and disadvantages with the command. Additionally, you can supply a `min_to_beat` value to calculate the chances of rolling at least that value."
+                ],
+            ),
+            (
+                "Timeouts",
+                [
+                    "Generating the distributions can take a while. Specifically, if your expression uses the 'e' and 'ra' modifiers or it uses the 'l' and 'h' selectors, a slower algorithm is used to calculate the distributions. In these cases, even for small dice, it can take some time to calculate the end result.",
+                    "",
+                    "A five second limit was put in place to prevent calculating overly difficult or big expressions. If the calculations takes longer than five seconds, a timeout is raised.",
                 ],
             ),
         ],
@@ -265,6 +293,7 @@ class HelpTabList:
             self.Overview,
             self.ContextMenus,
             self.Roll,
+            self.Distribution,
             self.Utility,
             self.Character,
             self.DND,

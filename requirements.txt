@@ -1,5 +1,6 @@
 aiohttp==3.13.3
 discord.py==2.7.1
+davey==0.1.0rc2
 opencv-python==4.13.0.92
 numpy==2.4.2
 python-dotenv==1.2.2

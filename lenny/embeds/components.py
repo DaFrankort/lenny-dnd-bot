@@ -85,6 +85,15 @@ class ModalSelectComponent(discord.ui.Label[discord.ui.LayoutView]):
         raise TypeError("ModalSelectComponent component is not a discord.ui.Select!")
 
 
+class ModalCheckboxComponent(discord.ui.Label[discord.ui.Checkbox[any]]):  # type: ignore
+    def __init__(self, label: str, default: bool = False):
+        super().__init__(text=label, component=discord.ui.Checkbox(default=default))  # type: ignore
+
+    @property
+    def value(self) -> bool:
+        return self.component.value  # type: ignore
+
+
 class BaseModal(discord.ui.Modal):
     def __init__(self, itr: discord.Interaction, title: str):
         super().__init__(title=title)

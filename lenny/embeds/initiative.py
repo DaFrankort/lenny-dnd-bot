@@ -5,6 +5,7 @@ from embeds.components import (
     BaseLabelTextInput,
     BaseModal,
     BaseSeparator,
+    ModalCheckboxComponent,
     ModalSelectComponent,
 )
 from embeds.embed import BaseEmbed, UserActionEmbed
@@ -12,7 +13,7 @@ from logic.dicecache import DiceCache
 from logic.initiative import Initiative, Initiatives
 from logic.roll import Advantage
 from logic.voice_chat import VC, SoundType
-from methods import Boolean, when
+from methods import when
 
 
 class InitiativeRollModal(BaseModal):
@@ -129,7 +130,7 @@ class InitiativeBulkModal(BaseModal):
     name = BaseLabelTextInput(label="Creature's Name", placeholder="Goblin", max_length=128)
     amount = BaseLabelTextInput(label="Amount of creatures to add", placeholder="1", max_length=2)
     advantage = ModalSelectComponent(label="Roll Mode", placeholder="Normal", options=Advantage.options(), required=False)
-    shared = ModalSelectComponent(label="Share Initiative", placeholder="False", options=Boolean.options(), required=False)
+    shared = ModalCheckboxComponent(label="Share Initiative")
 
     def __init__(self, itr: Interaction):
         super().__init__(itr, title="Adding Initiatives in bulk!")
@@ -153,8 +154,8 @@ class InitiativeBulkModal(BaseModal):
             return
 
         advantage = self.get_choice(self.advantage, Advantage) or Advantage.NORMAL
-        shared: Boolean = self.get_choice(self.shared, Boolean) or Boolean.FALSE
-        initiatives = Initiatives.add_bulk(itr, modifier, name, amount, advantage, shared.bool)
+        shared: bool = self.shared.component.value  # type: ignore
+        initiatives = Initiatives.add_bulk(itr, modifier, name, amount, advantage, shared)  # type: ignore
 
         title = f"{itr.user.display_name} rolled Initiative for {amount} {name.strip().title()}(s)!"
         descriptions: list[str] = []

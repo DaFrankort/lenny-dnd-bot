@@ -6,7 +6,7 @@ import shutil
 from enum import Enum
 from pathlib import Path
 
-import davey  # type: ignore
+import davey  # noqa: F401 # pylint: disable=unused-import # type: ignore
 import discord
 from discord import Interaction
 

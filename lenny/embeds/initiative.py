@@ -173,16 +173,16 @@ class InitiativeBulkModal(BaseModal):
 
 
 class InitiativeClearConfirmModal(BaseModal):
-    confirm = BaseLabelTextInput(label="Type 'CLEAR' to confirm", placeholder="CLEAR")
+    confirm = ModalCheckboxComponent(label="Yes, I want to clear all initiatives.")
 
     def __init__(self, itr: Interaction):
         super().__init__(itr, title="Are you sure you want to clear?")
 
     async def on_submit(self, itr: Interaction):
-        confirm = str(self.confirm.input)
-        if confirm != "CLEAR":
+        confirmed = self.confirm.value
+        if not confirmed:
             await itr.response.send_message(
-                embed=BaseEmbed("Clearing cancelled!", "Type 'CLEAR' in all caps to confirm."),
+                embed=BaseEmbed("Clearing cancelled!", "You did not verify that you wanted to clear."),
                 ephemeral=True,
             )
             return

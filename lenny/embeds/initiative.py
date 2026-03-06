@@ -68,7 +68,7 @@ class InitiativeRollModal(BaseModal):
 
 
 class InitiativeSetModal(BaseModal):
-    value = BaseLabelTextInput(label="Initiative value", placeholder="20", max_length=3)
+    value = BaseLabelTextInput(label="Initiative value", max_length=3)
     name = BaseLabelTextInput(label="Name", placeholder="Goblin", required=False, max_length=128)
 
     def __init__(self, itr: Interaction):
@@ -106,7 +106,7 @@ class InitiativeDeleteModal(BaseModal):
             if len(checkboxes[-1].component.options) >= 10:  # type: ignore
                 if len(checkboxes) >= 5:
                     break
-                checkboxes.append(ModalCheckboxGroupComponent(label=f"<= {initiative.get_total()}", options=[]))
+                checkboxes.append(ModalCheckboxGroupComponent(label="‎ ", options=[]))
 
             emoji = when(initiative.is_npc, "🐉", "🧝")
             default = initiative.is_owner(itr.user) and not initiative.is_npc
@@ -143,8 +143,8 @@ class InitiativeBulkModal(BaseModal):
         max_length=3,
         required=False,
     )
-    name = BaseLabelTextInput(label="Creature's Name", placeholder="Goblin", max_length=128)
-    amount = BaseLabelTextInput(label="Amount of creatures to add", placeholder="1", max_length=2)
+    name = BaseLabelTextInput(label="Creature's Name", max_length=128)
+    amount = BaseLabelTextInput(label="Amount of creatures to add", placeholder="1 - 25", max_length=2)
     advantage = ModalSelectComponent(label="Roll Mode", placeholder="Normal", options=Advantage.options(), required=False)
     shared = ModalCheckboxComponent(label="Share Initiative")
 

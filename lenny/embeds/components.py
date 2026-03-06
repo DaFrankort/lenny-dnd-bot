@@ -1,5 +1,6 @@
 import abc
 import math
+import typing
 from typing import Any, TypeVar
 
 import discord
@@ -85,13 +86,14 @@ class ModalSelectComponent(discord.ui.Label[discord.ui.LayoutView]):
         raise TypeError("ModalSelectComponent component is not a discord.ui.Select!")
 
 
-class ModalCheckboxComponent(discord.ui.Label[discord.ui.Checkbox[any]]):  # type: ignore
+class ModalCheckboxComponent(discord.ui.Label[discord.ui.LayoutView]):
     def __init__(self, label: str, default: bool = False):
-        super().__init__(text=label, component=discord.ui.Checkbox(default=default))  # type: ignore
+        super().__init__(text=label, component=discord.ui.Checkbox(default=default))
 
     @property
     def value(self) -> bool:
-        return self.component.value  # type: ignore
+        component = typing.cast(discord.ui.Checkbox[discord.ui.LayoutView], self.component)
+        return component.value
 
 
 class BaseModal(discord.ui.Modal):

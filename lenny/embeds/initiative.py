@@ -69,11 +69,17 @@ class InitiativeRollModal(BaseModal):
 
 class InitiativeSetModal(BaseModal):
     value = BaseLabelTextInput(label="Initiative value", max_length=3)
-    name = BaseLabelTextInput(label="Name", placeholder="Goblin", required=False, max_length=128)
+    name = BaseLabelTextInput(label="Name", required=False, max_length=128)
 
     def __init__(self, itr: Interaction):
-        self.name.input.placeholder = itr.user.display_name.title().strip()
         super().__init__(itr, title="Setting your Initiative value")
+
+        self.name.input.placeholder = itr.user.display_name.title().strip()
+        for initiative in Initiatives.get(itr):
+            if initiative.is_owner(itr.user) and not initiative.is_npc:
+                self.value.component.placeholder = str(initiative.get_total())  # type: ignore
+                self.value.component.default = str(initiative.get_total())  # type: ignore
+                break
 
     async def on_submit(self, itr: Interaction):
         name = self.get_str(self.name)

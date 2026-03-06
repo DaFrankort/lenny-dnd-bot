@@ -31,11 +31,13 @@ class BaseSeparator(discord.ui.Separator[discord.ui.LayoutView]):
 
 
 class BaseLabelTextInput(discord.ui.Label[discord.ui.LayoutView]):
+
     def __init__(
         self,
         *,
         label: str,
         style: discord.TextStyle = discord.TextStyle.short,
+        default: str | None = None,
         placeholder: str | None = None,
         required: bool = True,
         min_length: int | None = None,
@@ -45,6 +47,7 @@ class BaseLabelTextInput(discord.ui.Label[discord.ui.LayoutView]):
             text=label,
             component=discord.ui.TextInput[discord.ui.LayoutView](
                 style=style,
+                default=default,
                 placeholder=placeholder,
                 required=required,
                 min_length=min_length,

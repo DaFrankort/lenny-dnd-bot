@@ -87,13 +87,34 @@ class ModalSelectComponent(discord.ui.Label[discord.ui.LayoutView]):
 
 
 class ModalCheckboxComponent(discord.ui.Label[discord.ui.LayoutView]):
-    def __init__(self, label: str, default: bool = False):
-        super().__init__(text=label, component=discord.ui.Checkbox(default=default))
+    def __init__(self, label: str, description: str | None = None, default: bool = False):
+        super().__init__(text=label, description=description, component=discord.ui.Checkbox(default=default))
 
     @property
     def value(self) -> bool:
         component = typing.cast(discord.ui.Checkbox[discord.ui.LayoutView], self.component)
         return component.value
+
+
+class ModalCheckboxGroupComponent(discord.ui.Label[discord.ui.LayoutView]):
+    def __init__(
+        self,
+        label: str,
+        options: list[discord.CheckboxGroupOption],
+        description: str | None = None,
+        required: bool = False,
+        min_values: int | None = None,
+        max_values: int | None = None,
+    ):
+        checkbox_group: discord.ui.CheckboxGroup[discord.ui.LayoutView] = discord.ui.CheckboxGroup(
+            required=required, min_values=min_values, max_values=max_values, options=options
+        )
+        super().__init__(text=label, description=description, component=checkbox_group)
+
+    @property
+    def values(self) -> list[str]:
+        component = typing.cast(discord.ui.CheckboxGroup[discord.ui.LayoutView], self.component)
+        return component.values
 
 
 class BaseModal(discord.ui.Modal):

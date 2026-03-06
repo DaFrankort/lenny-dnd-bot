@@ -127,8 +127,8 @@ class InitiativeDeleteModal(BaseModal):
     async def on_submit(self, itr: Interaction) -> None:
         deleted_initiatives: list[str] = []
         for child in self.children:
-            child = typing.cast(ModalCheckboxGroupComponent, child)
-            for name in child.values:
+            group = typing.cast(ModalCheckboxGroupComponent, child)
+            for name in group.values:
                 initiative = Initiatives.remove(itr, name)
                 deleted_initiatives.append(initiative.name)
 

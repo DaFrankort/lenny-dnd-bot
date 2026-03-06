@@ -1,11 +1,14 @@
+import typing
+
 import discord
-from discord import Interaction, SelectOption, ui
+from discord import Interaction, ui
 
 from embeds.components import (
     BaseLabelTextInput,
     BaseModal,
     BaseSeparator,
     ModalCheckboxComponent,
+    ModalCheckboxGroupComponent,
     ModalSelectComponent,
 )
 from embeds.embed import BaseEmbed, UserActionEmbed
@@ -95,28 +98,41 @@ class InitiativeSetModal(BaseModal):
 
 
 class InitiativeDeleteModal(BaseModal):
-    name = ModalSelectComponent(label="Roll to delete", options=[], placeholder="Goblin", required=True)
-
     def __init__(self, itr: Interaction):
-        self.name.input.placeholder = itr.user.display_name.title().strip()
-        self.name.input.options.clear()
+        super().__init__(itr, title="Remove initiative rolls")
+
+        checkboxes: list[ModalCheckboxGroupComponent] = [ModalCheckboxGroupComponent("Rolls to delete", options=[])]
         for initiative in Initiatives.get(itr):
+            if len(checkboxes[-1].component.options) >= 10:  # type: ignore
+                if len(checkboxes) >= 5:
+                    break
+                checkboxes.append(ModalCheckboxGroupComponent(label=f"<= {initiative.get_total()}", options=[]))
+
             emoji = when(initiative.is_npc, "🐉", "🧝")
             default = initiative.is_owner(itr.user) and not initiative.is_npc
-            option = SelectOption(label=initiative.name, value=initiative.name, emoji=emoji, default=default)
-            self.name.input.options.append(option)
+            label = f"{emoji} {initiative.name}"
+            checkbox_option = discord.CheckboxGroupOption(label=label, value=initiative.name, default=default)
 
-        super().__init__(itr, title="Remove an Initiative")
+            checkboxes[-1].component.options.append(checkbox_option)  # type: ignore
+
+        for checkbox in checkboxes:
+            self.add_item(checkbox)
 
     async def on_submit(self, itr: Interaction) -> None:
-        name = self.get_choice(self.name, result_type=str)
-        initiative = Initiatives.remove(itr, name)
+        deleted_initiatives: list[str] = []
+        for child in self.children:
+            child = typing.cast(ModalCheckboxGroupComponent, child)
+            for name in child.values:
+                initiative = Initiatives.remove(itr, name)
+                deleted_initiatives.append(initiative.name)
+
         view = InitiativeContainerView(itr)
 
         await VC.play(itr, SoundType.DELETE, True)
         await itr.response.edit_message(view=view)
 
-        embed = BaseEmbed(title="Removed initiative", description=f"Initiative removed for {initiative.name}!")
+        description = "\n- ".join(deleted_initiatives)
+        embed = BaseEmbed(title="Removed initiative", description=f"- {description}")
         await itr.followup.send(embed=embed, ephemeral=True)
 
 
@@ -201,15 +217,17 @@ class InitiativePlayerRow(ui.ActionRow["InitiativeContainerView"]):
     def __init__(self, itr: discord.Interaction):
         super().__init__()
 
-        roll_btn = ui.Button["InitiativeContainerView"](style=discord.ButtonStyle.success, label="Roll")
+        roll_btn = ui.Button["InitiativeContainerView"](style=discord.ButtonStyle.success, custom_id="roll_btn", label="Roll")
         roll_btn.callback = self.roll_initiative
         self.add_item(roll_btn)
 
-        set_btn = ui.Button["InitiativeContainerView"](style=discord.ButtonStyle.success, label="Set")
+        set_btn = ui.Button["InitiativeContainerView"](style=discord.ButtonStyle.success, custom_id="set_btn", label="Set")
         set_btn.callback = self.set_initiative
         self.add_item(set_btn)
 
-        delete_btn = ui.Button["InitiativeContainerView"](style=discord.ButtonStyle.danger, label="Delete Roll")
+        delete_btn = ui.Button["InitiativeContainerView"](
+            style=discord.ButtonStyle.danger, custom_id="delete_btn", label="Delete Roll"
+        )
         delete_btn.callback = self.remove_initiative
         delete_btn.disabled = len(Initiatives.get(itr)) <= 0
         self.add_item(delete_btn)

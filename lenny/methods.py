@@ -44,15 +44,6 @@ class ChoicedEnum(Enum):
         return [e.value for e in cls]
 
 
-class Boolean(ChoicedEnum):
-    TRUE = "true"
-    FALSE = "false"
-
-    @property
-    def bool(self) -> bool:
-        return self.value == "true"
-
-
 def is_valid_url(url: str) -> bool:
     try:
         return bool(validators.url(url))

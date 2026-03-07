@@ -109,7 +109,7 @@ class InitiativeDeleteModal(BaseModal):
 
         checkboxes: list[ModalCheckboxGroupComponent] = [ModalCheckboxGroupComponent("Rolls to delete", options=[])]
         for initiative in Initiatives.get(itr):
-            if len(checkboxes[-1].component.options) >= 10:  # type: ignore
+            if len(checkboxes[-1].options) >= 10:
                 if len(checkboxes) >= 5:
                     break
                 checkboxes.append(ModalCheckboxGroupComponent(label="‎ ", options=[]))
@@ -119,7 +119,7 @@ class InitiativeDeleteModal(BaseModal):
             label = f"{emoji} {initiative.name}"
             checkbox_option = discord.CheckboxGroupOption(label=label, value=initiative.name, default=default)
 
-            checkboxes[-1].component.options.append(checkbox_option)  # type: ignore
+            checkboxes[-1].options.append(checkbox_option)
 
         for checkbox in checkboxes:
             self.add_item(checkbox)

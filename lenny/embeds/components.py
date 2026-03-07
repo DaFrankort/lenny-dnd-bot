@@ -31,7 +31,6 @@ class BaseSeparator(discord.ui.Separator[discord.ui.LayoutView]):
 
 
 class BaseLabelTextInput(discord.ui.Label[discord.ui.LayoutView]):
-
     def __init__(
         self,
         *,
@@ -118,6 +117,11 @@ class ModalCheckboxGroupComponent(discord.ui.Label[discord.ui.LayoutView]):
     def values(self) -> list[str]:
         component = typing.cast(discord.ui.CheckboxGroup[discord.ui.LayoutView], self.component)
         return component.values
+
+    @property
+    def options(self) -> list[discord.CheckboxGroupOption]:
+        component = typing.cast(discord.ui.CheckboxGroup[discord.ui.LayoutView], self.component)
+        return component.options
 
 
 class BaseModal(discord.ui.Modal):

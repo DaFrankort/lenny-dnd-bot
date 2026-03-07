@@ -56,17 +56,23 @@ class BaseLabelTextInput(discord.ui.Label[discord.ui.LayoutView]):
 
     @property
     def input(self) -> discord.ui.TextInput[discord.ui.LayoutView]:
-        if isinstance(self.component, discord.ui.TextInput):
-            return self.component
-        raise TypeError("BaseTextInput component is not a discord.ui.TextInput!")
+        return typing.cast(discord.ui.TextInput[discord.ui.LayoutView], self.component)
 
-    def set_placeholder(self, placeholder: str):
-        component = typing.cast(discord.ui.TextInput[discord.ui.LayoutView], self.component)
-        component.placeholder = placeholder
+    @property
+    def placeholder(self) -> str | None:
+        return self.input.placeholder
 
-    def set_default(self, default: str):
-        component = typing.cast(discord.ui.TextInput[discord.ui.LayoutView], self.component)
-        component.default = default
+    @placeholder.setter
+    def placeholder(self, value: str | None):
+        self.input.placeholder = value
+
+    @property
+    def default(self) -> str | None:
+        return self.input.default
+
+    @default.setter
+    def default(self, value: str | None):
+        self.input.default = value
 
 
 class ModalSelectComponent(discord.ui.Label[discord.ui.LayoutView]):

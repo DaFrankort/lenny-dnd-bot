@@ -25,10 +25,10 @@ class InitiativeRollModal(BaseModal):
     advantage = ModalSelectComponent(label="Roll Mode", placeholder="Normal", options=Advantage.options(), required=False)
 
     def __init__(self, itr: Interaction):
-        self.name.input.placeholder = itr.user.display_name.title().strip()
+        self.name.placeholder = itr.user.display_name.title().strip()
         prev_initiative = str(DiceCache.get(itr).get_last_initiative())
-        self.modifier.input.default = prev_initiative
-        self.modifier.input.placeholder = prev_initiative
+        self.modifier.default = prev_initiative
+        self.modifier.placeholder = prev_initiative
         super().__init__(itr, title="Rolling for Initiative")
 
     async def on_submit(self, itr: Interaction):
@@ -74,11 +74,11 @@ class InitiativeSetModal(BaseModal):
     def __init__(self, itr: Interaction):
         super().__init__(itr, title="Setting your Initiative value")
 
-        self.name.input.placeholder = itr.user.display_name.title().strip()
+        self.name.placeholder = itr.user.display_name.title().strip()
         for initiative in Initiatives.get(itr):
             if initiative.is_owner(itr.user) and not initiative.is_npc:
-                self.value.set_placeholder(str(initiative.get_total()))
-                self.value.set_default(str(initiative.get_total()))
+                self.value.placeholder = str(initiative.get_total())
+                self.value.default = str(initiative.get_total())
                 break
 
     async def on_submit(self, itr: Interaction):

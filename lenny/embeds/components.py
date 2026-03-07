@@ -60,6 +60,14 @@ class BaseLabelTextInput(discord.ui.Label[discord.ui.LayoutView]):
             return self.component
         raise TypeError("BaseTextInput component is not a discord.ui.TextInput!")
 
+    def set_placeholder(self, placeholder: str):
+        component = typing.cast(discord.ui.TextInput[discord.ui.LayoutView], self.component)
+        component.placeholder = placeholder
+
+    def set_default(self, default: str):
+        component = typing.cast(discord.ui.TextInput[discord.ui.LayoutView], self.component)
+        component.default = default
+
 
 class ModalSelectComponent(discord.ui.Label[discord.ui.LayoutView]):
     def __init__(

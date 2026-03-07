@@ -77,8 +77,8 @@ class InitiativeSetModal(BaseModal):
         self.name.input.placeholder = itr.user.display_name.title().strip()
         for initiative in Initiatives.get(itr):
             if initiative.is_owner(itr.user) and not initiative.is_npc:
-                self.value.component.placeholder = str(initiative.get_total())  # type: ignore
-                self.value.component.default = str(initiative.get_total())  # type: ignore
+                self.value.set_placeholder(str(initiative.get_total()))
+                self.value.set_default(str(initiative.get_total()))
                 break
 
     async def on_submit(self, itr: Interaction):

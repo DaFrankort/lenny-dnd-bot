@@ -1,12 +1,15 @@
 import pytest
-from werkzeug.test import Client
+import httpx  # type: ignore Required for fastapi testing
+
+from fastapi.testclient import TestClient
+
 
 from server import app
 
 
 @pytest.fixture()
 def client():
-    return Client(app)
+    return TestClient(app)
 
 
 @pytest.mark.parametrize(
@@ -18,6 +21,6 @@ def client():
         (400, "/roll?expression=1d6&advantage=invalid"),
     ],
 )
-def test_status_codes(client: Client, path: str, status_code: int):
+def test_status_codes(client: TestClient, path: str, status_code: int):
     result = client.get(path)
     assert result.status_code == status_code

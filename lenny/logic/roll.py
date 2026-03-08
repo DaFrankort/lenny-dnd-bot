@@ -214,9 +214,9 @@ class RollResult:
             case _:
                 total = sum(totals)
 
-        for roll in self.rolls:
-            if roll.total == total:
-                self.roll = roll
+        for r in self.rolls:
+            if r.total == total:
+                self.roll = r
                 break
         else:
             # Fallback: return the last result

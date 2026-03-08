@@ -1,4 +1,4 @@
-import httpx  # type: ignore Required for fastapi testing
+import httpx  # noqa: F401 # pylint: disable=unused-import # type: ignore # Required for FastAPI testing
 import pytest
 from fastapi.testclient import TestClient
 

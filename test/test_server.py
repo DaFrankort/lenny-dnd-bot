@@ -1,8 +1,6 @@
-import pytest
 import httpx  # type: ignore Required for fastapi testing
-
+import pytest
 from fastapi.testclient import TestClient
-
 
 from server import app
 

@@ -1,9 +1,10 @@
 import argparse
 from typing import Any
-from fastapi.encoders import jsonable_encoder
-from fastapi.exceptions import RequestValidationError
+
 import uvicorn
 from fastapi import FastAPI, Request
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from logic.roll import Advantage, roll

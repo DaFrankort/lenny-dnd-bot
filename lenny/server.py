@@ -1,46 +1,29 @@
 import argparse
-
-from flask import Flask, jsonify, request
-from flask_restx import Api, Resource
-from gevent.pywsgi import WSGIServer
+from typing import Any
+from fastapi.encoders import jsonable_encoder
+import uvicorn
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 
 from logic.roll import Advantage, roll
 
-app = Flask(__name__)
-api = Api(app)
+app = FastAPI(title="Lenny", docs_url="/")
 
 
-@api.errorhandler(Exception)  # type: ignore
-def handle_exception(exception: Exception):
+def jsonify(obj: object) -> Any:
+    return jsonable_encoder(obj.__dict__)
+
+
+@app.exception_handler(Exception)
+async def handle_exception(request: Request, exception: Exception):
     message = str(exception)
-    return {"message": message}, 400
+    return JSONResponse(status_code=400, content={"error": message})
 
 
-@api.route("/roll")
-class RollEndpoint(Resource):
-    @api.param(
-        "expression",
-        "The expression of the dice roll.",
-        type=str,
-        required=True,
-    )
-    @api.param(
-        "advantage",
-        f"The advantage to use on the roll. Allowed values are {', '.join(Advantage.values())}. (default: {Advantage.NORMAL.value})",
-        type=str,
-        required=False,
-        choices=Advantage.values(),
-    )
-    def get(self):
-        expression = request.args.get("expression")
-        if expression is None:
-            raise ValueError("Missing dice expression in query variables.")
-
-        advantage = request.args.get("advantage") or Advantage.NORMAL.value
-        advantage = Advantage(advantage)
-
-        result = roll(expression, advantage)
-        return jsonify(result.__dict__)
+@app.get("/roll")
+async def get_roll(expression: str, advantage: Advantage = Advantage.NORMAL):
+    result = roll(expression, advantage)
+    return JSONResponse(status_code=200, content=jsonify(result))
 
 
 if __name__ == "__main__":
@@ -50,6 +33,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
     port = args.port
 
-    print(f"Launching Lenny server on localhost:{port}")
-    server = WSGIServer(("0.0.0.0", port), app)
-    server.serve_forever()
+    uvicorn.run(app, host="0.0.0.0", port=port)

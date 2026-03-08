@@ -193,14 +193,18 @@ class SingleRollResult:
         return self.special == DiceSpecial.DIRTY20
 
 
-@dataclasses.dataclass
 class RollResult:
     expression: str
     advantage: Advantage
     rolls: list[SingleRollResult]
+    roll: SingleRollResult
 
-    @property
-    def roll(self) -> SingleRollResult:
+    def __init__(self, expression: str, advantage: Advantage, rolls: list[SingleRollResult]) -> None:
+        self.expression = expression
+        self.advantage = advantage
+        self.rolls = rolls
+
+        # Find the determined roll
         totals = [roll.total for roll in self.rolls]
         match self.advantage:
             case Advantage.ADVANTAGE | Advantage.ELVEN_ACCURACY:
@@ -210,12 +214,13 @@ class RollResult:
             case _:
                 total = sum(totals)
 
-        for r in self.rolls:
-            if r.total == total:
-                return r
-
-        # Fallback: return the last result
-        return self.rolls[-1]
+        for roll in self.rolls:
+            if roll.total == total:
+                self.roll = roll
+                break
+        else:
+            # Fallback: return the last result
+            self.roll = self.rolls[-1]
 
 
 @dataclasses.dataclass

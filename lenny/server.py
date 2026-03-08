@@ -1,7 +1,9 @@
-from flask import Flask, jsonify, request
-from logic.roll import Advantage, roll
-from gevent.pywsgi import WSGIServer
 import argparse
+
+from flask import Flask, jsonify, request
+from gevent.pywsgi import WSGIServer
+
+from logic.roll import Advantage, roll
 
 app = Flask(__name__)
 

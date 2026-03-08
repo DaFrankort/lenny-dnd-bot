@@ -30,11 +30,10 @@ def route_roll():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=5000, help="The port to run the server on. Default 5000.")
-    args = parser.parse_args()
 
-    host = "0.0.0.0"  # localhost
+    args = parser.parse_args()
     port = args.port
 
-    print(f"Launching Lenny server on {host}:{port}")
-    server = WSGIServer((host, port), app)
+    print(f"Launching Lenny server on localhost:{port}")
+    server = WSGIServer(("0.0.0.0", port), app)
     server.serve_forever()

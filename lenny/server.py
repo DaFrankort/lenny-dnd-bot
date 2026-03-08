@@ -1,30 +1,46 @@
 import argparse
 
 from flask import Flask, jsonify, request
+from flask_restx import Api, Resource
 from gevent.pywsgi import WSGIServer
 
 from logic.roll import Advantage, roll
 
 app = Flask(__name__)
+api = Api(app)
 
 
-@app.errorhandler(Exception)
+@api.errorhandler(Exception)  # type: ignore
 def handle_exception(exception: Exception):
     message = str(exception)
-    return jsonify({"error": message}), 400
+    return {"message": message}, 400
 
 
-@app.route("/roll")
-def route_roll():
-    expression = request.args.get("expression")
-    if expression is None:
-        raise ValueError("Missing dice expression in query variables.")
+@api.route("/roll")
+class RollEndpoint(Resource):
+    @api.param(
+        "expression",
+        "The expression of the dice roll.",
+        type=str,
+        required=True,
+    )
+    @api.param(
+        "advantage",
+        f"The advantage to use on the roll. Allowed values are {', '.join(Advantage.values())}. (default: {Advantage.NORMAL.value})",
+        type=str,
+        required=False,
+        choices=Advantage.values(),
+    )
+    def get(self):
+        expression = request.args.get("expression")
+        if expression is None:
+            raise ValueError("Missing dice expression in query variables.")
 
-    advantage = request.args.get("advantage") or Advantage.NORMAL.value
-    advantage = Advantage(advantage)
+        advantage = request.args.get("advantage") or Advantage.NORMAL.value
+        advantage = Advantage(advantage)
 
-    result = roll(expression, advantage)
-    return jsonify(result.__dict__)
+        result = roll(expression, advantage)
+        return jsonify(result.__dict__)
 
 
 if __name__ == "__main__":

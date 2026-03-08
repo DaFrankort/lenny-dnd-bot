@@ -10,3 +10,5 @@ include = ["lenny", "test"]
 exclude = ["**/__pycache__"]
 extraPaths = ["lenny"]
 typeCheckingMode = "strict"
+# Ignore specific errors
+reportMissingTypeStubs = false

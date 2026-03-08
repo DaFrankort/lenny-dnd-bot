@@ -17,13 +17,13 @@ def jsonify(obj: object) -> Any:
 
 
 @app.exception_handler(Exception)
-async def handle_exception(request: Request, exception: Exception):
+async def handle_exception(_request: Request, exception: Exception):
     message = str(exception)
     return JSONResponse(status_code=400, content={"error": message})
 
 
 @app.exception_handler(RequestValidationError)
-async def handle_validation_exception(request: Request, exception: RequestValidationError):
+async def handle_validation_exception(_request: Request, exception: RequestValidationError):
     # Combine all errors into a single string
     message = "; ".join([f"{error['loc'][-1]}: {error['msg']}" for error in exception.errors()])
     return JSONResponse(status_code=400, content={"error": message})

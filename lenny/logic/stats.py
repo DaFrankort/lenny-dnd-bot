@@ -5,6 +5,11 @@ import discord
 from logic.charts import get_radar_chart
 
 
+def get_stat_mod(stat: int) -> str:
+    mod = (stat - 10) // 2
+    return str(mod) if mod < 0 else f"+{mod}"
+
+
 class Stats:
     """Class for rolling character-stats in D&D 5e."""
 
@@ -60,4 +65,24 @@ class BoughtStats:
         return [self.stats[key] for key in self.stats]  # Sorry about this, I forgot how to get the direct values
 
     def get_radar_chart(self, color: int = discord.Color.dark_green().value) -> discord.File:
-        return get_radar_chart(values=self.values, color=color)
+        return get_radar_chart(values=self.values, labels=[k for k in self.stats], color=color)
+
+    def can_add(self, key: str) -> bool:
+        if self.stats[key] >= 15:
+            return False
+        if self.points_left < 0:
+            return False
+        return True
+
+    def can_take(self, key: str) -> bool:
+        return self.stats[key] > 8
+
+    def add_point(self, key: str):
+        if not self.can_add(key):
+            return
+        self.stats[key] += 1
+
+    def take_point(self, key: str):
+        if not self.can_take(key):
+            return
+        self.stats[key] -= 1

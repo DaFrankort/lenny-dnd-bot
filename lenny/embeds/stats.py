@@ -3,7 +3,7 @@ import discord
 from embeds.components import BaseSeparator, TitleTextDisplay
 from embeds.embed import UserActionEmbed
 from logic.color import UserColor
-from logic.stats import BoughtStats, Stats
+from logic.stats import BoughtStats, Stats, get_stat_mod
 
 
 class StatsEmbed(UserActionEmbed):
@@ -50,25 +50,24 @@ class PointBuyActionRow(discord.ui.ActionRow[discord.ui.LayoutView]):
     def __init__(self, key: str, stats: BoughtStats):
         self.key = key
         self.stats = stats
+
         super().__init__()
 
         stat = stats.stats[key]
-        mod = (stat - 10) // 2
-        mod_str = mod if mod < 0 else f"+{mod}"
         self.label_button = discord.ui.Button(
-            style=discord.ButtonStyle.gray, label=f"{key} | {stat} ({mod_str})", disabled=True
+            style=discord.ButtonStyle.gray, label=f"{key} | {stat} ({get_stat_mod(stat)})", disabled=True
         )
 
         self.minus_button = discord.ui.Button(
-            style=discord.ButtonStyle.red, label="-", custom_id=f"{self.key}_min_btn", disabled=(stat <= 8)
+            style=discord.ButtonStyle.red, label="-", custom_id=f"{self.key}_min_btn", disabled=not self.stats.can_take(key)
         )
-        self.minus_button.callback = self.remove_point
+        self.minus_button.callback = self.take_point
 
         self.plus_button = discord.ui.Button(
             style=discord.ButtonStyle.green,
             label="+",
-            custom_id=f"{self.key}_plus_btn",
-            disabled=((stat >= 15) or (self.stats.points_left <= 0)),
+            custom_id=f"{key}_plus_btn",
+            disabled=not self.stats.can_add(key),
         )
         self.plus_button.callback = self.add_point
 
@@ -77,27 +76,16 @@ class PointBuyActionRow(discord.ui.ActionRow[discord.ui.LayoutView]):
         self.add_item(self.label_button)
 
     async def add_point(self, interaction: discord.Interaction):
-        if self.stats.stats[self.key] >= 15:
-            await interaction.response.pong()
-            return
-        self.stats.stats[self.key] += 1
+        self.stats.add_point(self.key)
         await self.update_message(interaction)
 
-    async def remove_point(self, interaction: discord.Interaction):
-        if self.stats.stats[self.key] <= 8:
-            await interaction.response.pong()
-            return
-        self.stats.stats[self.key] -= 1
+    async def take_point(self, interaction: discord.Interaction):
+        self.stats.take_point(self.key)
         await self.update_message(interaction)
 
     async def update_message(self, interaction: discord.Interaction):
-        if self.stats.points_left <= 0:
-            for child in self.children:
-                if child.label == "+":  # type: ignore
-                    child.disabled = True  # type: ignore
-
         view = BoughtStatsLayoutView(interaction, self.stats)
-        await interaction.response.edit_message(view=view)
+        await interaction.response.edit_message(view=view, attachments=[view.chart])
 
 
 class BoughtStatsLayoutView(discord.ui.LayoutView):
@@ -108,8 +96,8 @@ class BoughtStatsLayoutView(discord.ui.LayoutView):
     def __init__(self, itr: discord.Interaction, stats: BoughtStats):
         self.itr = itr
         self.stats = stats
-        self.chart = stats.get_radar_chart(UserColor.get(itr))
         color = UserColor.get(itr)
+        self.chart = stats.get_radar_chart(color)
 
         title = self.get_title()
 
@@ -127,6 +115,8 @@ class BoughtStatsLayoutView(discord.ui.LayoutView):
         container.add_item(PointBuyActionRow("INT", stats))
         container.add_item(PointBuyActionRow("WIS", stats))
         container.add_item(PointBuyActionRow("CHA", stats))
+
+        container.add_item(discord.ui.MediaGallery(discord.MediaGalleryItem(self.chart)))
 
         self.add_item(container)
 

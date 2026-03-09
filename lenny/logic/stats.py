@@ -64,10 +64,10 @@ class BoughtStats:
 
     @property
     def values(self) -> list[int]:
-        return [self.stats[key] for key in self.stats]  # Sorry about this, I forgot how to get the direct values
+        return [val for _, val in self.stats.items()]  # Sorry about this, I forgot how to get the direct values
 
     def get_radar_chart(self, color: int = discord.Color.dark_green().value) -> discord.File:
-        return get_radar_chart(values=self.values, labels=[k for k in self.stats], color=color)
+        return get_radar_chart(values=self.values, labels=list(self.stats), color=color)
 
     def can_add(self, key: str) -> bool:
         if self.stats[key] >= 15:

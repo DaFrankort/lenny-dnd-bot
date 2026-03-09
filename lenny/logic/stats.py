@@ -70,7 +70,7 @@ class BoughtStats:
     def can_add(self, key: str) -> bool:
         if self.stats[key] >= 15:
             return False
-        if self.points_left < 0:
+        if self.points_left <= 0:
             return False
         return True
 

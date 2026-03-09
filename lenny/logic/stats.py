@@ -38,3 +38,32 @@ class Stats:
     def get_radar_chart(self, color: int = discord.Color.dark_green().value) -> discord.File:
         values = [value for _, value in self.stats]
         return get_radar_chart(values=values, color=color)
+
+
+class BoughtStats:
+    stats: dict[str, int] = {"STR": 10, "DEX": 10, "CON": 10, "INT": 10, "WIS": 10, "CHA": 10}
+
+    max_points: int
+
+    def __init__(self, max_points: int):
+        self.max_points = max_points
+
+        if self.spent > self.max_points:
+            new_stat_points = self.max_points // 6
+            for stat in self.stats:
+                self.stats[stat] = new_stat_points
+
+    @property
+    def spent(self) -> int:
+        return sum(self.values)
+
+    @property
+    def points_left(self) -> int:
+        return self.max_points - self.spent
+
+    @property
+    def values(self) -> list[int]:
+        return [self.stats[key] for key in self.stats]  # Sorry about this, I forgot how to get the direct values
+
+    def get_radar_chart(self, color: int = discord.Color.dark_green().value) -> discord.File:
+        return get_radar_chart(values=self.values, color=color)

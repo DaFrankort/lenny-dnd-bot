@@ -3,10 +3,10 @@ from discord.app_commands import describe
 
 from commands.command import BaseCommand, BaseCommandGroup
 from embeds.embed import UserActionEmbed
-from embeds.stats import StatsEmbed
+from embeds.stats import BoughtStatsLayoutView, StatsEmbed
 from logic.charts import get_radar_chart
 from logic.color import UserColor
-from logic.stats import Stats
+from logic.stats import BoughtStats, Stats
 
 
 class StatsCommandGroup(BaseCommandGroup):
@@ -16,6 +16,7 @@ class StatsCommandGroup(BaseCommandGroup):
     def __init__(self):
         super().__init__()
         self.add_command(StatsRollCommand())
+        self.add_command(StatsBuyCommand())
         self.add_command(StatsVisualizeCommand())
 
 
@@ -34,6 +35,22 @@ class StatsRollCommand(BaseCommand):
 
         embed.set_image(url=f"attachment://{chart.filename}")
         await itr.followup.send(embed=embed, file=chart)
+
+
+class StatsBuyCommand(BaseCommand):
+    name = "buy"
+    desc = "Set stats for a character using point-buy!"
+    help = "Allows you to set up points for your character by buying points."
+
+    @describe(max_total="The maximum amount of points you'll have.")
+    async def handle(self, itr: discord.Interaction, max_total: discord.app_commands.Range[int, 18, 108] = 72):
+        await itr.response.defer()
+        stats = BoughtStats(max_total)
+        view = BoughtStatsLayoutView(itr, stats)
+        chart = view.chart
+
+        # view.set_image(url=f"attachment://{chart.filename}")
+        await itr.followup.send(view=view, file=chart)
 
 
 class StatsVisualizeCommand(BaseCommand):

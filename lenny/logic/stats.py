@@ -41,21 +41,15 @@ class Stats:
 
 
 class BoughtStats:
-    stats: dict[str, int] = {"STR": 10, "DEX": 10, "CON": 10, "INT": 10, "WIS": 10, "CHA": 10}
-
+    stats: dict[str, int] = {"STR": 8, "DEX": 8, "CON": 8, "INT": 8, "WIS": 8, "CHA": 8}
     max_points: int
 
-    def __init__(self, max_points: int):
-        self.max_points = max_points
-
-        if self.spent > self.max_points:
-            new_stat_points = self.max_points // 6
-            for stat in self.stats:
-                self.stats[stat] = new_stat_points
+    def __init__(self):
+        self.max_points = 27
 
     @property
     def spent(self) -> int:
-        return sum(self.values)
+        return sum(self.values) - (8 * 6)
 
     @property
     def points_left(self) -> int:

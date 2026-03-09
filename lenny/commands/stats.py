@@ -42,10 +42,9 @@ class StatsBuyCommand(BaseCommand):
     desc = "Set stats for a character using point-buy!"
     help = "Allows you to set up points for your character by buying points."
 
-    @describe(max_total="The maximum amount of points you'll have.")
-    async def handle(self, itr: discord.Interaction, max_total: discord.app_commands.Range[int, 18, 108] = 72):
+    async def handle(self, itr: discord.Interaction):
         await itr.response.defer()
-        stats = BoughtStats(max_total)
+        stats = BoughtStats()
         view = BoughtStatsLayoutView(itr, stats)
         chart = view.chart
 

@@ -54,26 +54,38 @@ class PointBuyActionRow(discord.ui.ActionRow[discord.ui.LayoutView]):
 
         stat = stats.stats[key]
         mod = (stat - 10) // 2
-        self.label_button = discord.ui.Button(style=discord.ButtonStyle.gray, label=f"{key} - {stat} ({mod})", disabled=True)
+        mod_str = mod if mod < 0 else f"+{mod}"
+        self.label_button = discord.ui.Button(
+            style=discord.ButtonStyle.gray, label=f"{key} | {stat} ({mod_str})", disabled=True
+        )
 
-        self.minus_button = discord.ui.Button(style=discord.ButtonStyle.red, label="-")
+        self.minus_button = discord.ui.Button(
+            style=discord.ButtonStyle.red, label="-", custom_id=f"{self.key}_min_btn", disabled=(stat <= 8)
+        )
         self.minus_button.callback = self.remove_point
 
-        self.plus_button = discord.ui.Button(style=discord.ButtonStyle.green, label="+")
+        self.plus_button = discord.ui.Button(
+            style=discord.ButtonStyle.green,
+            label="+",
+            custom_id=f"{self.key}_plus_btn",
+            disabled=((stat >= 15) or (self.stats.points_left <= 0)),
+        )
         self.plus_button.callback = self.add_point
 
-        self.add_item(self.label_button)
         self.add_item(self.minus_button)
         self.add_item(self.plus_button)
+        self.add_item(self.label_button)
 
     async def add_point(self, interaction: discord.Interaction):
-        if self.stats.stats[self.key] >= 20:
+        if self.stats.stats[self.key] >= 15:
+            await interaction.response.pong()
             return
         self.stats.stats[self.key] += 1
         await self.update_message(interaction)
 
     async def remove_point(self, interaction: discord.Interaction):
-        if self.stats.stats[self.key] <= 1:
+        if self.stats.stats[self.key] <= 8:
+            await interaction.response.pong()
             return
         self.stats.stats[self.key] -= 1
         await self.update_message(interaction)

@@ -48,9 +48,11 @@ class Stats:
 class BoughtStats:
     stats: dict[str, int] = {"STR": 8, "DEX": 8, "CON": 8, "INT": 8, "WIS": 8, "CHA": 8}
     max_points: int
+    owner_id: int
 
-    def __init__(self):
+    def __init__(self, itr: discord.Interaction):
         self.max_points = 27
+        self.owner_id = itr.user.id
 
     @property
     def spent(self) -> int:
@@ -86,3 +88,6 @@ class BoughtStats:
         if not self.can_take(key):
             return
         self.stats[key] -= 1
+
+    def is_owner(self, user: discord.User | discord.Member):
+        return self.owner_id == user.id

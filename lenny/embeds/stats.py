@@ -76,10 +76,18 @@ class PointBuyActionRow(discord.ui.ActionRow[discord.ui.LayoutView]):
         self.add_item(self.label_button)
 
     async def add_point(self, interaction: discord.Interaction):
+        if not self.stats.is_owner(interaction.user):
+            await interaction.response.send_message("These stats don't belong to you!", ephemeral=True)
+            return
+
         self.stats.add_point(self.key)
         await self.update_message(interaction)
 
     async def take_point(self, interaction: discord.Interaction):
+        if not self.stats.is_owner(interaction.user):
+            await interaction.response.send_message("These stats don't belong to you!", ephemeral=True)
+            return
+
         self.stats.take_point(self.key)
         await self.update_message(interaction)
 

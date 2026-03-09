@@ -44,7 +44,7 @@ class StatsBuyCommand(BaseCommand):
 
     async def handle(self, itr: discord.Interaction):
         await itr.response.defer()
-        stats = BoughtStats()
+        stats = BoughtStats(itr)
         view = BoughtStatsLayoutView(itr, stats)
         chart = view.chart
 

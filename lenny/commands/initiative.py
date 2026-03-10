@@ -12,10 +12,9 @@ class InitiativeCommand(BaseCommand):
     help = "Summons an embed with buttons, to set up combat-initiatives."
 
     async def handle(self, itr: discord.Interaction):
-        self.log(itr)
         view = InitiativeContainerView(itr)
         await itr.response.send_message(view=view)
-        await VC.play(itr, SoundType.INITIATIVE)
+        await VC.play(itr, SoundType.INITIATIVE, True)
 
         message = await itr.original_response()
         await Initiatives.set_message(itr, message)

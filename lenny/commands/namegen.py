@@ -32,7 +32,6 @@ class NameGenCommand(BaseCommand):
         species: str | None = None,
         gender: str = Gender.OTHER.value,
     ):
-        self.log(itr)
         result = generate_name(species, gender)
 
         desc = f"*{result.gender} {result.species}*".title()

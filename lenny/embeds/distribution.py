@@ -19,7 +19,9 @@ class DistributionEmbed(discord.Embed):
         )
 
         self.add_field(name="Mean", value=f"{result.mean:.2f}", inline=True)
-        self.add_field(name="Stdev", value=f"{result.stdev:.2f}", inline=True)
+        self.add_field(name="Deviation", value=f"{result.stdev:.2f}", inline=True)
+        self.add_field(name="Range", value=f"{result.min} ~ {result.max}", inline=True)
+
         self.set_image(url=f"attachment://{self.chart.filename}")
 
         if result.min_to_beat is not None:

@@ -1,14 +1,14 @@
 import discord
 from discord import ui
 
-from components.items import (
+from embeds.components import (
     BaseLabelTextInput,
+    BaseModal,
     BaseSeparator,
     ModalSelectComponent,
+    PaginatedLayoutView,
     TitleTextDisplay,
 )
-from components.modals import BaseModal
-from components.paginated_view import PaginatedLayoutView
 from logic.dnd.abstract import DNDEntryType
 from logic.homebrew import HomebrewData, HomebrewEntry
 from logic.markdown import MDFile, wrapped_md_table_to_rich_table
@@ -56,15 +56,13 @@ class HomebrewEntryAddModal(BaseModal):
                 raise ValueError(
                     "Markdown file's content exceeds exceeds character-limit!\nPlease use a file with less than 4000 characters."
                 )
-            self.name.input.default = md_file.title
-            self.name.input.placeholder = self.format_placeholder(md_file.title)
-            self.description.input.default = md_file.content
-            self.description.input.placeholder = self.format_placeholder(md_file.content)
+            self.name.default = md_file.title
+            self.name.placeholder = self.format_placeholder(md_file.title)
+            self.description.default = md_file.content
+            self.description.placeholder = self.format_placeholder(md_file.content)
         super().__init__(itr=itr, title="Add new homebrew entry")
 
     async def on_submit(self, itr: discord.Interaction):
-        self.log_inputs(itr)
-
         name = self.get_str(self.name)
         entry_type: DNDEntryType | None = self.get_choice(self.type, DNDEntryType)
         url = self.get_str(self.url)
@@ -94,18 +92,16 @@ class HomebrewEditModal(BaseModal):
 
     def __init__(self, itr: discord.Interaction, entry: HomebrewEntry):
         self.entry = entry
-        self.name.input.default = entry.name
-        self.name.input.placeholder = entry.name
-        self.subtitle.input.default = entry.select_description or ""
-        self.subtitle.input.placeholder = entry.select_description or "Subtitle"
-        self.description.input.default = entry.description
-        self.description.input.placeholder = self.format_placeholder(entry.description)
-        self.url.input.default = entry.url or ""
+        self.name.default = entry.name
+        self.name.placeholder = entry.name
+        self.subtitle.default = entry.select_description or ""
+        self.subtitle.placeholder = entry.select_description or "Subtitle"
+        self.description.default = entry.description
+        self.description.placeholder = self.format_placeholder(entry.description)
+        self.url.default = entry.url or ""
         super().__init__(itr=itr, title=f"Edit {entry.entry_type.value}: {entry.name}")
 
     async def on_submit(self, itr: discord.Interaction):
-        self.log_inputs(itr)
-
         name = self.get_str(self.name)
         url = self.get_str(self.url)
         subtitle = self.get_str(self.subtitle)

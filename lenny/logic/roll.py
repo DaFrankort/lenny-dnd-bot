@@ -254,9 +254,9 @@ def _validate_expression(expression: str) -> None:
         expression = str(d20.parse(expression, allow_comments=False))
         _roll_single(expression)
     except d20.errors.RollSyntaxError as exception:
-        raise ValueError(f"Expression '{expression}' has an invalid syntax!") from exception
+        raise SyntaxError(f"Expression '{expression}' has an invalid syntax!") from exception
     except d20.errors.TooManyRolls as exception:
-        raise ValueError(f"Expression '{expression}' has too many dice rolls!") from exception
+        raise TimeoutError(f"Expression '{expression}' has too many dice rolls!") from exception
     except Exception as exception:
         raise exception
 

@@ -5,11 +5,15 @@ import math
 import d20  # type: ignore # Ignore missing stubs
 import d20distribution  # type: ignore
 import discord
-from d20distribution.distribution import DiceDistribution  # type: ignore
+import matplotlib
+from d20distribution.distribution import Distribution  # type: ignore
 from matplotlib import pyplot as plt
 
 from logic.color import UserColor
 from logic.roll import Advantage
+
+# Required to calculate the chart in a separate thread, https://stackoverflow.com/questions/27147300/matplotlib-tcl-asyncdelete-async-handler-deleted-by-the-wrong-thread
+matplotlib.use("Agg")
 
 
 @dataclasses.dataclass
@@ -19,6 +23,8 @@ class DistributionResult:
     advantage: Advantage
     mean: float
     stdev: float
+    min: int
+    max: int
     min_to_beat: tuple[float, float] | None
 
 
@@ -28,7 +34,7 @@ def to_matplotlib_color(color: int) -> tuple[float, float, float]:
 
 
 def _distribution_chart(
-    dist: DiceDistribution,
+    dist: Distribution,
     color: int,
     min_to_beat: float,
 ) -> discord.File:
@@ -76,31 +82,37 @@ def distribution(
     color: int,
     min_to_beat: float | None = None,
 ):
-    try:
-        dist = d20distribution.parse(expression)
-        expression = str(d20.parse(expr=expression))
+    dist = d20distribution.parse(expression)
+    expression = str(d20.parse(expr=expression))
 
-        if advantage == Advantage.ADVANTAGE:
-            dist = dist.advantage()
-        elif advantage == Advantage.DISADVANTAGE:
-            dist = dist.disadvantage()
-        elif advantage == Advantage.ELVEN_ACCURACY:
-            dist = dist.advantage().advantage()
+    if advantage == Advantage.ADVANTAGE:
+        dist = dist.advantage()
+    elif advantage == Advantage.DISADVANTAGE:
+        dist = dist.disadvantage()
+    elif advantage == Advantage.ELVEN_ACCURACY:
+        dist = dist.advantage(count=3)
 
-        if min_to_beat is None:
-            min_to_beat = 0
-            min_to_beat_and_odds = None
-        else:
-            min_to_beat = float(min_to_beat or 0)
-            odds = 0
-            for key in dist.keys():
-                odds += dist.get(key) if key >= min_to_beat else 0
-            min_to_beat_and_odds = (min_to_beat, odds)
+    if min_to_beat is None:
+        min_to_beat = 0
+        min_to_beat_and_odds = None
+    else:
+        min_to_beat = float(min_to_beat or 0)
+        odds = 0
+        for key in dist.keys():
+            odds += dist.get(key) if key >= min_to_beat else 0
+        min_to_beat_and_odds = (min_to_beat, odds)
 
-        mean = dist.mean()
-        stdev = dist.stdev()
-        chart = _distribution_chart(dist, color, min_to_beat)
+    mean = dist.mean()
+    stdev = dist.stdev()
+    chart = _distribution_chart(dist, color, min_to_beat)
 
-        return DistributionResult(expression, chart, advantage, mean, stdev, min_to_beat_and_odds)
-    except Exception as exception:
-        raise exception
+    return DistributionResult(
+        expression=expression,
+        chart=chart,
+        advantage=advantage,
+        mean=mean,
+        stdev=stdev,
+        min=dist.min(),
+        max=dist.max(),
+        min_to_beat=min_to_beat_and_odds,
+    )

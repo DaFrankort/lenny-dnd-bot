@@ -8,15 +8,13 @@ from discord import ui
 from rich.console import Console
 from rich.table import Table
 
-from components.items import BaseSeparator, TitleTextDisplay
-from components.paginated_view import PaginatedLayoutView
+from embeds.components import BaseSeparator, PaginatedLayoutView, TitleTextDisplay
 from embeds.embed import BaseEmbed
 from logic.color import UserColor
 from logic.dnd.abstract import build_table_from_rows
 from logic.dnd.table import DNDTable
 from logic.roll import RollResult
 from logic.voice_chat import VC, SoundType
-from methods import log_button_press
 
 
 class DNDTableEntryView(discord.ui.LayoutView):
@@ -69,7 +67,6 @@ class DNDTableRollButton(ui.Button[DNDTableEntryView]):
         self.table = table
 
     async def callback(self, interaction: discord.Interaction):
-        log_button_press(itr=interaction, button=self, location=f"Table Roll - {self.table.name}")
         result = self.table.roll()
         if result is None:
             # Disable button to prevent further attempts, since it will keep failing.

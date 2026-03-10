@@ -1,10 +1,18 @@
 import discord
-from discord.app_commands import Choice, autocomplete, describe
+from discord.app_commands import Choice, autocomplete, choices, describe
 
 from commands.command import BaseCommand, BaseCommandGroup
 from embeds.color import ColorSetEmbed, ColorShowEmbed
 from embeds.embed import SuccessEmbed
-from logic.color import UserColor, save_hex_color, save_rgb_color
+from logic.color import (
+    BasicColors,
+    ImageColorStyle,
+    UserColor,
+    save_base_color,
+    save_hex_color,
+    save_image_color,
+    save_rgb_color,
+)
 
 
 async def autocomplete_hex_color(itr: discord.Interaction, current: str) -> list[Choice[str]]:
@@ -65,6 +73,8 @@ class ColorSetCommandGroup(BaseCommandGroup):
         super().__init__()
         self.add_command(ColorSetHexCommand())
         self.add_command(ColorSetRGBCommand())
+        self.add_command(ColorSetBaseCommand())
+        self.add_command(ColorSetImageCommand())
 
 
 class ColorSetHexCommand(BaseCommand):
@@ -75,7 +85,6 @@ class ColorSetHexCommand(BaseCommand):
     @describe(hex_color="A hexadecimal value representing a color (Example: #ff00ff or aa44cc).")
     @autocomplete(hex_color=autocomplete_hex_color)
     async def handle(self, itr: discord.Interaction, hex_color: str):
-        self.log(itr)
         result = save_hex_color(itr, hex_color)
         embed = ColorSetEmbed(itr, result, is_hex=True)
         await itr.response.send_message(embed=embed, file=embed.file, ephemeral=True)
@@ -103,9 +112,49 @@ class ColorSetRGBCommand(BaseCommand):
         g: discord.app_commands.Range[int, 0, 255],
         b: discord.app_commands.Range[int, 0, 255],
     ):
-        self.log(itr)
         result = save_rgb_color(itr, r, g, b)
         embed = ColorSetEmbed(itr, result, is_hex=False)
+        await itr.response.send_message(embed=embed, file=embed.file, ephemeral=True)
+
+
+class ColorSetBaseCommand(BaseCommand):
+    name = "base"
+    desc = "Select a preferred color from a list of basic colors."
+    help = "Set a custom color for yourself by selecting a basic color."
+
+    @describe(color="The color you'd like to use for display.")
+    @choices(color=BasicColors.choices())
+    async def handle(
+        self,
+        itr: discord.Interaction,
+        color: int,
+    ):
+        result = save_base_color(itr, color)
+        embed = ColorSetEmbed(itr, result, is_hex=True)
+        await itr.response.send_message(embed=embed, file=embed.file, ephemeral=True)
+
+
+class ColorSetImageCommand(BaseCommand):
+    name = "image"
+    desc = "Choose a color from a palette generated from an image."
+    help = "Pick a color from a palette generated from an image. If no image is provided, your server avatar will be used."
+
+    @describe(
+        image="Alternative image to base your colors on, uses your server-avatar if left empty.",
+        style="(Default = Realistic); Adjusts the color-style of the generated colors.",
+    )
+    @choices(style=ImageColorStyle.choices())
+    async def handle(
+        self,
+        itr: discord.Interaction,
+        image: discord.Attachment | None = None,
+        style: int = ImageColorStyle.REALISTIC.value,
+    ):
+        result = await save_image_color(itr, image, ImageColorStyle(style))
+        embed = ColorSetEmbed(itr, result, is_hex=True)
+        if embed.view:
+            await itr.response.send_message(embed=embed, view=embed.view, file=embed.file, ephemeral=True)
+            return
         await itr.response.send_message(embed=embed, file=embed.file, ephemeral=True)
 
 
@@ -115,7 +164,6 @@ class ColorShowCommand(BaseCommand):
     help = "Shows the color that you are currently using publicly."
 
     async def handle(self, itr: discord.Interaction):
-        self.log(itr)
         color = UserColor.get(itr)
         embed = ColorShowEmbed(itr, color)
         await itr.response.send_message(embed=embed, file=embed.file)
@@ -127,7 +175,6 @@ class ColorClearCommand(BaseCommand):
     help = "Set your color back to an auto-generated one."
 
     async def handle(self, itr: discord.Interaction):
-        self.log(itr)
         removed = UserColor.remove(itr)
         embed = SuccessEmbed(
             title_success="Cleared user-defined color.",

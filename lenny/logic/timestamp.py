@@ -68,7 +68,7 @@ def _parse_date_from_string(date: str) -> datetime.date:
     elif len(parts) == 3:  # DD/MM/YYYY
         pass
     else:
-        raise ValueError("Invalid date format")
+        raise SyntaxError("Invalid date format")
 
     base_date = datetime.datetime.strptime(date, "%d/%m/%Y").date()
     return base_date
@@ -99,7 +99,7 @@ def get_date_timestamp(time: str, timezone: int, date: str | None) -> int:
     try:
         dt = datetime.datetime.combine(base_date, datetime.time(hour=hours, minute=minutes))
     except ValueError as exc:
-        raise ValueError(f"Invalid time: {str(exc)}") from exc
+        raise SyntaxError(f"Invalid time: {str(exc)}") from exc
 
     dt_utc = dt - datetime.timedelta(hours=timezone)  # Adjust for timezone
     unix_timestamp = int(dt_utc.replace(tzinfo=datetime.timezone.utc).timestamp())

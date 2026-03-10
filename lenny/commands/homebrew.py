@@ -34,7 +34,6 @@ class HomebrewAddCommand(BaseCommand):
 
     @describe(md_file="Extract info from Markdown file and adjust formatting for discord.")
     async def handle(self, itr: discord.Interaction, md_file: discord.Attachment | None = None):
-        self.log(itr)
         md_data = None
         if md_file:
             md_data = await MDFile.from_attachment(md_file)
@@ -42,8 +41,12 @@ class HomebrewAddCommand(BaseCommand):
         await itr.response.send_modal(modal)
 
 
-async def homebrew_name_autocomplete(itr: discord.Interaction, current: str):
-    return HomebrewData.get(itr).get_autocomplete_suggestions(itr, current)
+async def homebrew_name_search_autocomplete(itr: discord.Interaction, current: str):
+    return HomebrewData.get(itr).get_autocomplete_suggestions(itr, current, show_manageable_only=False)
+
+
+async def homebrew_name_manage_autocomplete(itr: discord.Interaction, current: str):
+    return HomebrewData.get(itr).get_autocomplete_suggestions(itr, current, show_manageable_only=True)
 
 
 class HomebrewSearchCommand(BaseCommand):
@@ -51,10 +54,9 @@ class HomebrewSearchCommand(BaseCommand):
     desc = "Search for secrets in your tome of homebrew."
     help = "Search for existing homebrew content from your server."
 
-    @autocomplete(name=homebrew_name_autocomplete)
+    @autocomplete(name=homebrew_name_search_autocomplete)
     @describe(name="The name of the entry you want to find.")
     async def handle(self, itr: discord.Interaction, name: str):
-        self.log(itr)
         entry = HomebrewData.get(itr).get(name)
         embed = HomebrewEmbed(itr, entry)
         await itr.response.send_message(embed=embed)
@@ -68,7 +70,6 @@ class HomebrewListCommand(BaseCommand):
     @choices(filter=DNDEntryType.choices())
     @describe(filter="Show only homebrew entries of a certain type. Shows all by default.")
     async def handle(self, itr: discord.Interaction, filter: str | None = None):  # pylint: disable=redefined-builtin
-        self.log(itr)
         view = HomebrewListView(itr, filter)
         await itr.response.send_message(view=view, ephemeral=True)
 
@@ -78,10 +79,9 @@ class HomebrewEditCommand(BaseCommand):
     desc = "Edit entries in your tome of homebrew!"
     help = "Edit a homebrew entry you created. Can edit all entries if you have permissions to manage messages."
 
-    @autocomplete(name=homebrew_name_autocomplete)
+    @autocomplete(name=homebrew_name_manage_autocomplete)
     @describe(name="The name of the entry you want to edit.")
     async def handle(self, itr: discord.Interaction, name: str):
-        self.log(itr)
         entry = HomebrewData.get(itr).get(name)
         modal = HomebrewEditModal(itr, entry)
         await itr.response.send_modal(modal)
@@ -92,10 +92,9 @@ class HomebrewRemoveCommand(BaseCommand):
     desc = "Remove entries in your tome of homebrew!"
     help = "Remove a homebrew entry you created. Can remove all entries if you have permissions to manage messages."
 
-    @autocomplete(name=homebrew_name_autocomplete)
+    @autocomplete(name=homebrew_name_manage_autocomplete)
     @describe(name="The name of the entry you want to remove.")
     async def handle(self, itr: discord.Interaction, name: str):
-        self.log(itr)
         entry = HomebrewData.get(itr).delete(itr, name)
         embed = HomebrewEmbed(itr, entry)
         embed.color = discord.Color.red()

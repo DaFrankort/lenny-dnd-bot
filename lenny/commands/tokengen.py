@@ -1,3 +1,5 @@
+import os.path
+
 import discord
 from discord.app_commands import Range, choices, describe
 
@@ -5,8 +7,10 @@ from commands.command import BaseCommand, BaseCommandGroup
 from logic.tokengen import (
     AlignH,
     AlignV,
-    generate_token_from_file,
-    generate_token_from_url,
+    BackgroundType,
+    generate_token_files,
+    open_image_from_attachment,
+    open_image_from_url,
 )
 
 
@@ -28,11 +32,14 @@ class TokenGenCommand(BaseCommand):
     @describe(
         image="The image to turn into a token.",
         frame_hue="Hue shift to apply to the token-frame (Gold: 0 | Red: -30 | Blue: 180 | Green: 80).",
+        background_type="For transparent images; choose what type of background you'd like to apply.",
+        custom_background="Custom background image to be added for transparent token. Overwrites background_type.",
         h_alignment="Horizontal alignment for the token image.",
         v_alignment="Vertical alignment for the token image.",
         variants="Create many tokens with label-numbers.",
     )
     @choices(
+        background_type=BackgroundType.choices(),
         h_alignment=AlignH.choices(),
         v_alignment=AlignV.choices(),
     )
@@ -41,16 +48,33 @@ class TokenGenCommand(BaseCommand):
         itr: discord.Interaction,
         image: discord.Attachment,
         frame_hue: Range[int, -360, 360] = 0,
+        background_type: str = BackgroundType.FANCY.value,
+        custom_background: discord.Attachment | None = None,
         h_alignment: str = AlignH.CENTER,
         v_alignment: str = AlignV.CENTER,
         variants: Range[int, 0, 10] = 0,
     ):
-        self.log(itr)
         await itr.response.defer()
 
+        img = await open_image_from_attachment(image)
+        name = os.path.splitext(image.filename)[0]
         h_align = AlignH(h_alignment)
         v_align = AlignV(v_alignment)
-        files = await generate_token_from_file(image, frame_hue, h_align, v_align, variants)
+
+        if custom_background is None:
+            background = BackgroundType(background_type).image
+        else:
+            background = await open_image_from_attachment(custom_background)
+
+        files = generate_token_files(
+            image=img,
+            name=name,
+            frame_hue=frame_hue,
+            h_alignment=h_align,
+            v_alignment=v_align,
+            variants=variants,
+            background=background,
+        )
         await itr.followup.send(files=files)
 
 
@@ -62,11 +86,14 @@ class TokenGenUrlCommand(BaseCommand):
     @describe(
         url="The image-url to generate a token from.",
         frame_hue="Hue shift to apply to the token-frame (Gold: 0 | Red: -30 | Blue: 180 | Green: 80).",
+        background_type="For transparent images; choose what type of background you'd like to apply.",
+        custom_background="The image-url for the custom background image to be added for transparent token. Overwrites background_type.",
         h_alignment="Horizontal alignment for the token image.",
         v_alignment="Vertical alignment for the token image.",
         variants="Create many tokens with label-numbers.",
     )
     @choices(
+        background_type=BackgroundType.choices(),
         h_alignment=AlignH.choices(),
         v_alignment=AlignV.choices(),
     )
@@ -75,14 +102,32 @@ class TokenGenUrlCommand(BaseCommand):
         itr: discord.Interaction,
         url: str,
         frame_hue: Range[int, -360, 360] = 0,
+        background_type: str = BackgroundType.FANCY.value,
+        custom_background: str | None = None,
         h_alignment: str = AlignH.CENTER,
         v_alignment: str = AlignV.CENTER,
         variants: Range[int, 0, 10] = 0,
     ):
-        self.log(itr)
         await itr.response.defer()
+
+        img = await open_image_from_url(url)
+        url_hash = str(abs(hash(url)))
 
         h_align = AlignH(h_alignment)
         v_align = AlignV(v_alignment)
-        files = await generate_token_from_url(url, frame_hue, h_align, v_align, variants)
+
+        if custom_background is None:
+            background = BackgroundType(background_type).image
+        else:
+            background = await open_image_from_url(custom_background)
+
+        files = generate_token_files(
+            image=img,
+            name=url_hash,
+            frame_hue=frame_hue,
+            h_alignment=h_align,
+            v_alignment=v_align,
+            variants=variants,
+            background=background,
+        )
         await itr.followup.send(files=files)

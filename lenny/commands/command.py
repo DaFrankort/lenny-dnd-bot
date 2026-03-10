@@ -1,4 +1,3 @@
-import logging
 from abc import abstractmethod
 from typing import Any
 
@@ -15,10 +14,21 @@ def get_error_embed(error: discord.app_commands.AppCommandError | Exception) -> 
             color=discord.Color.red(),
         )
 
-    titles = {
-        "ValueError": "Invalid input!",
+    titles: dict[str, str] = {
+        "ConnectionError": "Could not establish connection!",
+        "IndexError": "Could not find entry!",
+        "KeyError": "Could not find entry!",
+        "LookupError": "Could not find entry!",
+        "PermissionError": "You don't have permission to do this!",
         "RuntimeError": "Can't do that right now!",
+        "SyntaxError": "Invalid syntax!",
+        "TimeoutError": "Input too large!",
+        "TypeError": "Wrong type!",
+        "ValueError": "Invalid input!",
+        "NotImplementedError": "The developers forgot to implement this!",
+        "ZeroDivisionError": "Dividing by zero!",
     }
+
     parts = str(error).split(": ")
     if len(parts) < 2:
         error_title = "Something went wrong!"
@@ -26,9 +36,8 @@ def get_error_embed(error: discord.app_commands.AppCommandError | Exception) -> 
     else:
         error_title = titles.get(parts[1], "Something went wrong!")
         error_msg = ": ".join(parts[2:]) if len(parts) > 2 else ""
-    embed = BaseEmbed(title=error_title, description=error_msg, color=discord.Color.red())
 
-    return embed
+    return BaseEmbed(title=error_title, description=error_msg, color=discord.Color.red())
 
 
 async def handle_command_error(itr: discord.Interaction, error: discord.app_commands.AppCommandError):
@@ -83,21 +92,9 @@ class BaseCommand(discord.app_commands.Command[BaseCommandGroup, Any, None]):
 
         return f"/{self.qualified_name} {args_str}".strip()
 
-    def log(self, itr: discord.Interaction):
-        """Log user's command-usage in the terminal"""
-
-        try:
-            criteria = [f"[{k}={v}]" for k, v in vars(itr.namespace).items()]
-        except Exception as e:  # pylint: disable=broad-except
-            logging.error(e)
-            criteria = []
-        criteria_text = " ".join(criteria)
-
-        logging.info("%s => /%s %s", itr.user.name, self.qualified_name, criteria_text)
-
     @abstractmethod
     async def handle(self, itr: discord.Interaction, *args: Any, **kwargs: Any) -> None:
-        raise NotImplementedError
+        raise NotImplementedError()
 
     @staticmethod
     async def error_handler(_: Any, itr: discord.Interaction, error: discord.app_commands.AppCommandError):
@@ -106,31 +103,3 @@ class BaseCommand(discord.app_commands.Command[BaseCommandGroup, Any, None]):
     @property
     def params(self):
         return self._params
-
-
-class BaseContextMenu(discord.app_commands.ContextMenu):
-    name: str = ""
-    help: str = ""
-
-    def __init__(self):
-        if not self.name:
-            raise NotImplementedError(f"'name' not defined in {type(self)}")
-        if not self.help:
-            raise NotImplementedError(f"'help' not defined in {type(self)}")
-
-        super().__init__(
-            name=self.name,
-            callback=self.handle,
-        )
-        self.on_error = self.error_handler
-
-    def log(self, itr: discord.Interaction):
-        logging.info("%s => %s", itr.user.name, self.name)
-
-    @abstractmethod
-    async def handle(self, interaction: discord.Interaction, message: discord.Message) -> None:
-        raise NotImplementedError
-
-    @staticmethod
-    async def error_handler(itr: discord.Interaction, error: discord.app_commands.AppCommandError):
-        await handle_command_error(itr, error)

@@ -3,17 +3,16 @@ import zipfile
 
 import discord
 
-from commands.command import BaseContextMenu
+from context_menus.context_menu import BaseContextMenu
 
 
 class ZipAttachmentsContextMenu(BaseContextMenu):
-    name = "Zip message files"
+    name = "📂 Zip message files"
     help = "Packs all attachments from a message into one ZIP file, making it faster to download many files."
 
     async def handle(self, interaction: discord.Interaction, message: discord.Message):
-        self.log(interaction)
         if not interaction.client.user:
-            raise ValueError("The bot is not associated with a user account!")
+            raise RuntimeError("The bot is not associated with a user account!")
 
         if not message.attachments:
             raise ValueError("This message has no attachments!")

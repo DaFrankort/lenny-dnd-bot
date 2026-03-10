@@ -2,8 +2,7 @@ from typing import Literal
 
 import discord
 
-from components.items import BaseSeparator
-from components.paginated_view import PaginatedLayoutView
+from embeds.components import BaseSeparator, PaginatedLayoutView
 from embeds.config.config import ConfigAllowButton
 from logic.config import Config
 

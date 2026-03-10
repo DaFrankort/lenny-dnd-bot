@@ -4,8 +4,7 @@ from collections.abc import Sequence
 import discord
 from discord import ui
 
-from components.items import BaseSeparator, TitleTextDisplay
-from components.paginated_view import PaginatedLayoutView
+from embeds.components import BaseSeparator, PaginatedLayoutView, TitleTextDisplay
 from embeds.dnd.action import ActionEmbed
 from embeds.dnd.background import BackgroundEmbed
 from embeds.dnd.boons import BoonEmbed
@@ -88,7 +87,7 @@ def get_dnd_embed(itr: discord.Interaction, dnd_entry: DNDEntry):  # pylint: dis
         case Boon():
             return BoonEmbed(dnd_entry)
         case _:
-            raise LookupError(f"D&D entry '{type(DNDEntry).__name__}' not supported")
+            raise NotImplementedError(f"D&D entry '{type(DNDEntry).__name__}' not supported")
 
 
 async def send_dnd_embed(itr: discord.Interaction, dnd_entry: DNDEntry):

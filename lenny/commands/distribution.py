@@ -6,6 +6,7 @@ from embeds.distribution import DistributionEmbed
 from logic.color import UserColor
 from logic.distribution import distribution
 from logic.roll import Advantage
+from methods import call_with_timeout
 
 
 class DistributionCommand(BaseCommand):
@@ -26,9 +27,17 @@ class DistributionCommand(BaseCommand):
         advantage: str = Advantage.NORMAL,
         min_to_beat: int | None = None,
     ):
-        self.log(itr)
+        timeout = 5  # seconds
+
         await itr.response.defer()
         color = UserColor.get(itr)
-        result = distribution(expression, Advantage(advantage), color, min_to_beat)
+        result = call_with_timeout(
+            timeout=timeout,
+            func=distribution,
+            args=[expression, Advantage(advantage), color, min_to_beat],
+        )
+        if result is None:
+            raise TimeoutError("Distribution took too long to calculate! For more information, see `/help distribution`.")
+
         embed = DistributionEmbed(itr, result)
         await itr.followup.send(embed=embed, file=embed.chart)

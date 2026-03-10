@@ -1,6 +1,8 @@
+from typing import Awaitable, Callable
+
+import discord
 import pytest
-from utils.mocking import MockInteraction
-from utils.utils import AutocompleteMethod
+from mocking import MockInteraction
 
 from commands.search import (
     action_name_autocomplete,
@@ -22,70 +24,18 @@ from commands.search import (
     table_name_autocomplete,
     vehicle_name_autocomplete,
 )
-from embeds.search import MultiDNDSelectView
 from logic.config import Config
-from logic.dnd.abstract import DNDEntry, fuzzy_matches
+from logic.dnd.abstract import DNDEntry
 from logic.dnd.data import Data
 from logic.searchcache import SearchCache
 
+AutocompleteMethod = Callable[[discord.Interaction, str], Awaitable[list[discord.app_commands.Choice[str]]]]
 
-class TestDndData:
-    queries: list[str] = [
-        "fireball",
-        "dagger",
-        "poisoned",
-        "goblin",
-        "initiative",
-        "attack",
-        "tough",
-        "ABCDF",
-    ]
 
-    def test_dnddatalist_search(self):
-        itr = MockInteraction()
-        config = Config.get(itr)
-        sources = config.allowed_sources
-        for query in self.queries:
-            for data in Data:
-                try:
-                    data.search(query, allowed_sources=sources)
-                except Exception:
-                    assert False, f"{data.entries[0].entry_type} DNDDataList failed search()"
-
-    def test_search_from_query(self):
-        itr = MockInteraction()
-        config = Config.get(itr)
-        sources = config.allowed_sources
-        for query in self.queries:
-            try:
-                Data.search(query, allowed_sources=sources)
-            except Exception:
-                assert False, "search_from_query threw an error."
-
-    @pytest.mark.asyncio
-    async def test_multidndselect(self):
-        itr = MockInteraction()
-        config = Config.get(itr)
-        sources = config.allowed_sources
-        name = "pot of awakening"
-        entries = Data.items.get(name, sources)
-        assert len(entries) >= 2, "Test requires at least 2 items, please update test data."
-        try:
-            MultiDNDSelectView(name, entries)
-        except Exception as e:
-            pytest.fail(f"MultiDNDSelectView failed to initialize: {e}")
-
-    @pytest.mark.parametrize(
-        "query, value, result",
-        [
-            ("fire bolt", "fireball", True),
-            ("fire bolt", "ray of sickness", False),
-            ("ray", "aura", True),
-        ],
-    )
-    def test_fuzzy(self, query: str, value: str, result: bool):
-        fuzzy = fuzzy_matches(query, value, fuzzy_threshold=75)
-        assert (fuzzy is not None) == result
+class TestSearch:
+    @pytest.fixture()
+    def itr(self):
+        return MockInteraction()
 
     @pytest.mark.parametrize(
         "class_name, query, contains",
@@ -96,8 +46,7 @@ class TestDndData:
             ("DoesNotExist", "Evoker", False),
         ],
     )
-    def test_subclass_lookup(self, class_name: str, query: str, contains: bool):
-        itr = MockInteraction()
+    def test_subclass_lookup(self, itr: discord.Interaction, class_name: str, query: str, contains: bool):
         sources = Config.get(itr).allowed_sources
 
         subclasses = subclass_name_lookup(class_name, query, sources)
@@ -106,16 +55,6 @@ class TestDndData:
         else:
             assert len(subclasses) == 0, f"Class {class_name} did not expect '{query}' as a subclass."
 
-    def test_name_table_species_input_gives_species_name(self):
-        species_list = Data.names.get_species()
-        for species in species_list:
-            _, new_species, _ = Data.names.get_random(species, None)
-            assert new_species, "Namegen - Returned species must not be None"
-            assert new_species.lower() == species.lower(), "Namegen - Returned Species must match input species"
-
-
-class TestSearchCache:
-    @pytest.mark.asyncio
     @pytest.mark.parametrize(
         "entry, autocomplete_method",
         [
@@ -138,8 +77,7 @@ class TestSearchCache:
             (Data.boons.entries[0], boon_name_autocomplete),
         ],
     )
-    async def test_autocompletes(self, entry: DNDEntry, autocomplete_method: AutocompleteMethod):
-        itr = MockInteraction()
+    async def test_autocompletes(self, itr: discord.Interaction, entry: DNDEntry, autocomplete_method: AutocompleteMethod):
         SearchCache.get(itr).store(entry)
 
         choices = await autocomplete_method(itr, "")

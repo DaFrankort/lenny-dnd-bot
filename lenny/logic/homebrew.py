@@ -95,7 +95,7 @@ class HomebrewGuildData(JsonHandler[list[HomebrewEntry]]):
         if not itr.guild:
             raise ValueError("Can only add homebrew content to a server!")
         if self._find(name):
-            raise ValueError(f"A homebrew entry with the name '{name}' already exists!")
+            raise KeyError(f"A homebrew entry with the name '{name}' already exists!")
 
         if url is not None and not is_valid_url(url):
             url = None
@@ -118,9 +118,9 @@ class HomebrewGuildData(JsonHandler[list[HomebrewEntry]]):
     def delete(self, itr: discord.Interaction, name: str) -> HomebrewEntry:
         entry_to_delete = self._find(name)
         if entry_to_delete is None:
-            raise ValueError(f"Could not delete homebrew entry '{name}', entry does not exist.")
+            raise KeyError(f"Could not delete homebrew entry '{name}', entry does not exist.")
         if not entry_to_delete.can_manage(itr):
-            raise ValueError("You do not have permission to remove this homebrew entry.")
+            raise PermissionError("You do not have permission to remove this homebrew entry.")
 
         key = entry_to_delete.entry_type
         self.data[key].remove(entry_to_delete)
@@ -137,7 +137,7 @@ class HomebrewGuildData(JsonHandler[list[HomebrewEntry]]):
         description: str,
     ) -> HomebrewEntry:
         if not entry.can_manage(itr):
-            raise ValueError("You do not have permission to edit this homebrew entry.")
+            raise PermissionError("You do not have permission to edit this homebrew entry.")
 
         if url is not None and url != entry.url and not is_valid_url(url):
             url = entry.url or None
@@ -159,7 +159,7 @@ class HomebrewGuildData(JsonHandler[list[HomebrewEntry]]):
     def get(self, entry_name: str) -> HomebrewEntry:
         entry = self._find(entry_name)
         if entry is None:
-            raise ValueError(f"No homebrew entry with the name '{entry_name}' found!")
+            raise KeyError(f"No homebrew entry with the name '{entry_name}' found!")
         return entry
 
     def get_all(self, type_filter: DNDEntryType | None) -> list[HomebrewEntry]:
@@ -174,6 +174,7 @@ class HomebrewGuildData(JsonHandler[list[HomebrewEntry]]):
         self,
         itr: discord.Interaction,
         query: str,
+        show_manageable_only: bool,
         fuzzy_threshold: float = 75,
         limit: int = 25,
     ) -> list[Choice[str]]:
@@ -185,7 +186,7 @@ class HomebrewGuildData(JsonHandler[list[HomebrewEntry]]):
         choices: list[FuzzyMatchResult] = []
         for entries in self.data.values():
             for entry in entries:
-                if not entry.can_manage(itr):
+                if show_manageable_only and not entry.can_manage(itr):
                     continue
 
                 choice = fuzzy_matches(query, entry.name, fuzzy_threshold)
@@ -202,7 +203,7 @@ class GlobalHomebrewData(JsonFolderHandler[HomebrewGuildData]):
 
     def _itr_key(self, itr: discord.Interaction) -> int:
         if not itr.guild_id:
-            raise ValueError("Can only get homebrew content in a server!")
+            raise RuntimeError("Can only get homebrew content in a server!")
         return itr.guild_id
 
 

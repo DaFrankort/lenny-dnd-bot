@@ -1,7 +1,8 @@
 import discord
 from discord.app_commands import Choice, CommandTree, Group
 
-from commands.command import BaseCommand, BaseCommandGroup, BaseContextMenu
+from commands.command import BaseCommand, BaseCommandGroup
+from context_menus.context_menu import BaseContextMenu
 from logic.help import HelpSelectOption, HelpTab, HelpTabs
 
 

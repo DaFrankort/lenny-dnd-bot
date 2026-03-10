@@ -1,6 +1,6 @@
 import discord
 import pytest
-from utils.mocking import MockInteraction, MockUser
+from mocking import MockInteraction, MockUser
 
 from logic.initiative import GlobalInitiativeTracker, Initiative
 from logic.roll import Advantage

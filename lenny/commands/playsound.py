@@ -17,7 +17,6 @@ class PlaySoundCommand(BaseCommand):
 
     @describe(sound="The sound file you want to play in voice-chat.")
     async def handle(self, itr: discord.Interaction, sound: discord.Attachment):
-        self.log(itr)
         await VC.play_attachment(itr, sound)
 
         mention: str = itr.user.voice.channel.mention  # type: ignore At this point, VC.play_attachment should have done all the proper checks

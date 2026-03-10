@@ -24,6 +24,5 @@ class PlanSessionCommand(BaseCommand):
         in_weeks: discord.app_commands.Range[int, 0, 48],
         poll_duration: discord.app_commands.Range[int, 1, 168] = 24,
     ):
-        self.log(itr)
         poll = SessionPlanPoll(in_weeks, poll_duration)
         await itr.response.send_message(poll=poll)

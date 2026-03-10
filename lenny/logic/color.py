@@ -1,38 +1,112 @@
 import dataclasses
 import io
 import re
+import warnings
 
+import colornames  # type: ignore
 import discord
+import numpy as np
+import skimage
 from PIL import Image, ImageDraw
 
 from logic.jsonhandler import JsonHandler
-from methods import FontType, get_font, when
+from logic.tokengen import open_image_from_attachment, open_image_from_url
+from methods import ChoicedEnum, FontType, get_font
+
+
+class BasicColors(ChoicedEnum):
+    RED = discord.Color.red().value
+    DARK_RED = discord.Color.dark_red().value
+    BRAND_RED = discord.Color.brand_red().value
+    ORANGE = discord.Color.orange().value
+    DARK_ORANGE = discord.Color.dark_orange().value
+    GOLD = discord.Color.gold().value
+    DARK_GOLD = discord.Color.dark_gold().value
+    YELLOW = discord.Color.yellow().value
+    GREEN = discord.Color.green().value
+    DARK_GREEN = discord.Color.dark_green().value
+    BRAND_GREEN = discord.Color.brand_green().value
+    TEAL = discord.Color.teal().value
+    DARK_TEAL = discord.Color.dark_teal().value
+    BLUE = discord.Color.blue().value
+    DARK_BLUE = discord.Color.dark_blue().value
+    BLURPLE = discord.Color.blurple().value
+    OG_BLURPLE = discord.Color.og_blurple().value
+    PURPLE = discord.Color.purple().value
+    DARK_PURPLE = discord.Color.dark_purple().value
+    MAGENTA = discord.Color.magenta().value
+    DARK_MAGENTA = discord.Color.dark_magenta().value
+    PINK = discord.Color.pink().value
+    FUCHSIA = discord.Color.fuchsia().value
+    GREYPLE = discord.Color.greyple().value
+
+
+def _adjust_rgb_color_lightness(rgb: tuple[int, int, int], new_lightness: float) -> tuple[int, int, int]:
+    """
+    Adjust the perceived lightness (CIELAB L*) of an sRGB color.
+
+    The input RGB color is converted to CIELAB, its L* channel is replaced
+    with `new_lightness` (clamped to [0, 100]), and the color is converted
+    back to sRGB. The a* and b* channels (hue and chroma) are preserved.
+    """
+    lab = skimage.color.rgb2lab([[[rgb[0] / 255, rgb[1] / 255, rgb[2] / 255]]])[0, 0]  # type: ignore
+    lab[0] = np.clip(new_lightness, 0.0, 100.0)
+
+    with warnings.catch_warnings():
+        # Converting LAB to RGB can sometimes generate negative RGB values.
+        # skimage handles this for us by clipping the value to 0 in those cases.
+        # This raises a warning, which doesn't really matter for our use-case.
+        warnings.simplefilter("ignore", UserWarning)
+        rgb_float = skimage.color.lab2rgb([[lab]])[0, 0]  # type: ignore
+
+    return tuple(int(x * 255) for x in rgb_float)  # type: ignore
+
+
+def _get_luminance_font_color(rgb: tuple[int, int, int]) -> tuple[int, int, int]:
+    """
+    Returns a brighter font color based on the given background rgb values.
+    Has a fallback to pure white or black if the adjusted color is too similar to the background color.
+    """
+    r, g, b = rgb
+    luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255
+    if luminance > 0.5:
+        adjusted_rgb = _adjust_rgb_color_lightness(rgb, 20.0)
+        fallback = (0, 0, 0)  # Black
+    else:
+        adjusted_rgb = _adjust_rgb_color_lightness(rgb, 90.0)
+        fallback = (255, 255, 255)  # White
+
+    if _get_perceived_color_delta(rgb, adjusted_rgb) < 30:
+        # 30 is based on the delta we get when we run red (255, 0, 0) through this method.
+        # The result for red is hard to read and results in a delta of 24.
+        return fallback
+    return adjusted_rgb
 
 
 def get_palette_image(color: discord.Color | int) -> discord.File:
     if isinstance(color, discord.Color):
         color = color.value
     r, g, b = UserColor.to_rgb(color)
-    hex_str = f"#{color:06X}"
 
     # Draw square
-    image = Image.new("RGBA", (256, 64), (r, g, b, 255))
+    image = Image.new("RGB", (256, 64), (r, g, b, 255))
     draw = ImageDraw.Draw(image)
 
     # Draw text
-    font_size = 16
-    luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255
-    font_color = when(luminance > 0.5, "black", "white")
-    font = get_font(FontType.MONOSPACE, font_size)
+    font = get_font(FontType.MONOSPACE, size=16)
+    lines = [UserColor.to_name(color), UserColor.to_hex(color)]
+    spacing = 6
+    line_heights = [font.getbbox(line)[3] - font.getbbox(line)[1] for line in lines]
+    total_height = sum(line_heights) + spacing * (len(lines) - 1)
 
-    bbox = draw.textbbox((0, 0), hex_str, font=font)
-    text_w = bbox[2] - bbox[0]
-    text_h = bbox[3] - bbox[1]
-
-    x = (image.width - text_w) // 2
-    y = (image.height - text_h) // 2 - (font_size // 4)
-
-    draw.text((x, y), hex_str, font=font, fill=font_color)
+    y = (image.height - total_height) // 2 - 4
+    for i, line in enumerate(lines):
+        line_bbox = draw.textbbox((0, 0), line, font=font)
+        line_w = line_bbox[2] - line_bbox[0]
+        # Center horizontally
+        x = (image.width - line_w) // 2
+        draw.text((x, y), line, font=font, fill=_get_luminance_font_color((r, g, b)))
+        y += line_heights[i] + spacing
 
     # Buffer and send
     buffer = io.BytesIO()
@@ -44,7 +118,7 @@ def get_palette_image(color: discord.Color | int) -> discord.File:
 @dataclasses.dataclass
 class UserColorSaveResult:
     old_color: int
-    color: int
+    color: list[int]
 
 
 def save_hex_color(itr: discord.Interaction, hex_color: str) -> UserColorSaveResult:
@@ -57,7 +131,7 @@ def save_hex_color(itr: discord.Interaction, hex_color: str) -> UserColorSaveRes
     color = UserColor.parse(hex_color)
     UserColor.add(itr, color)
 
-    return UserColorSaveResult(old_color, color)
+    return UserColorSaveResult(old_color, [color])
 
 
 def save_rgb_color(itr: discord.Interaction, r: int, g: int, b: int) -> UserColorSaveResult:
@@ -65,7 +139,113 @@ def save_rgb_color(itr: discord.Interaction, r: int, g: int, b: int) -> UserColo
     color = discord.Color.from_rgb(r, g, b).value
     UserColor.add(itr, color)
 
-    return UserColorSaveResult(old_color, color)
+    return UserColorSaveResult(old_color, [color])
+
+
+def save_base_color(itr: discord.Interaction, color: int):
+    old_color = UserColor.get(itr)
+    UserColor.add(itr, color)
+
+    return UserColorSaveResult(old_color, [color])
+
+
+def _get_perceived_color_delta(rgb1: tuple[int, int, int], rgb2: tuple[int, int, int]) -> float:
+    """
+    Calculates ΔE between two rgb values.
+
+    ΔE is a way to measure how different two colors are in human perception.
+    It's represented as a value from 0 to 100 where:
+    - <1 = Not perceptible
+    - 1-2  = Perceptible through close observation
+    - 2-10 = Perceptible at a glance
+    - 11-49 = Colors are more similar than opposite.
+    - 100 = Colors are exact opposite.
+
+    Source: https://zschuessler.github.io/DeltaE/learn/
+    """
+    # Convert RGB 0-255 to 0-1 and wrap as 1x1x3 arrays for skimage
+    lab1 = skimage.color.rgb2lab([[[rgb1[0] / 255, rgb1[1] / 255, rgb1[2] / 255]]])[0, 0]  # type: ignore
+    lab2 = skimage.color.rgb2lab([[[rgb2[0] / 255, rgb2[1] / 255, rgb2[2] / 255]]])[0, 0]  # type: ignore
+    return skimage.color.deltaE_ciede2000(lab1, lab2)  # type: ignore
+
+
+def _get_rgb_chroma(rgb: tuple[float, float, float]) -> float:
+    """
+    Compute the chroma (vibrancy) of an RGB color.
+    """
+    lab = skimage.color.rgb2lab([[[rgb[0] / 255, rgb[1] / 255, rgb[2] / 255]]])[0, 0]  # type: ignore
+    a, b = lab[1], lab[2]  # type: ignore
+    return (a * a + b * b) ** 0.5  # type: ignore
+
+
+class ImageColorStyle(ChoicedEnum):
+    REALISTIC = Image.Quantize.FASTOCTREE.value
+    COLORFUL = Image.Quantize.MAXCOVERAGE.value
+    FADED = Image.Quantize.MEDIANCUT.value
+
+
+def _get_image_colors(image: Image.Image) -> list[tuple[int, int, int]]:
+    """Gets the colors from an image, returns a list of RGB values."""
+    color_counts = image.getcolors()
+    palette = image.getpalette()
+
+    if not color_counts or not palette:
+        raise ValueError("Could not retrieve colors from that image!")
+
+    result: list[tuple[int, int, int]] = []
+    for _, index in color_counts:
+        i: int = index * 3  # type: ignore
+        result.append(((palette[i], palette[i + 1], palette[i + 2])))
+    return result
+
+
+def _filter_most_unique_colors(
+    colors: list[tuple[int, int, int]], min_delta_e: float, min_rgb_chroma: float
+) -> list[tuple[int, int, int]]:
+    """
+    Filters a list of RGB colors to keep only visually distinct and sufficiently vibrant ones.
+    Args:
+        colors: List of RGB color tuples (R, G, B).
+        min_delta_e: Minimum perceptual distance (Delta E) required for two colors to be considered visually distinct.
+        min_rgb_chroma: Minimum chroma threshold; colors below this value (dark or low-saturation) are discarded.
+
+    Returns:
+        A list of RGB tuples representing the most perceptually unique colors.
+        If all colors were filtered out, the first five prominent colors are returned instead.
+    """
+    result: list[tuple[int, int, int]] = []
+    for rgb in colors:
+        if any(_get_perceived_color_delta(rgb, rgb2) <= min_delta_e for rgb2 in result):
+            continue
+        if _get_rgb_chroma(rgb) < min_rgb_chroma:
+            continue
+        result.append(rgb)
+
+    if not result:
+        return colors[:5]
+    return result
+
+
+async def save_image_color(
+    itr: discord.Interaction, attachment: discord.Attachment | None, style: ImageColorStyle
+) -> UserColorSaveResult:
+    avatar = itr.user.display_avatar or itr.user.avatar
+    if attachment:
+        image = await open_image_from_attachment(attachment)
+    elif avatar:
+        image = await open_image_from_url(avatar.url)
+    else:
+        raise RuntimeError("You don't have a profile picture set!")
+
+    image = image.convert("RGB")
+    quantized = image.quantize(colors=32, method=style.value)
+    colors = _get_image_colors(quantized)
+    filtered = _filter_most_unique_colors(colors, 8, 8)[:10]  # The values 8 & 8 gave the best results during testing.
+    best_colors = [discord.Color.from_rgb(r, g, b).value for r, g, b in filtered]
+
+    old_color = UserColor.get(itr)
+    UserColor.add(itr, best_colors[0])
+    return UserColorSaveResult(old_color=old_color, color=best_colors)
 
 
 class UserColorFileHandler(JsonHandler[int]):
@@ -148,6 +328,14 @@ class UserColorFileHandler(JsonHandler[int]):
 
     def to_hex(self, color: int) -> str:
         return f"#{color:06X}".upper()
+
+    def to_name(self, color: int) -> str:
+        hex_val = self.to_hex(color)
+        # pylint: disable=no-value-for-parameter
+        name = colornames.find(hex_val)  # type: ignore
+        if isinstance(name, str):
+            return name
+        return hex_val
 
 
 UserColor = UserColorFileHandler()

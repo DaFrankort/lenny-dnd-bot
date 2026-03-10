@@ -1,6 +1,6 @@
 import discord
 
-from commands.command import BaseContextMenu
+from context_menus.context_menu import BaseContextMenu
 from embeds.roll import MultiRollEmbed, RollEmbed
 from logic.dicecache import DiceCache
 from logic.roll import Advantage, multi_roll, roll
@@ -8,7 +8,7 @@ from logic.voice_chat import VC, SoundType
 
 
 class RerollContextMenu(BaseContextMenu):
-    name = "Re-roll"
+    name = "🎲 Re-roll"
     help = "Will repeat a roll done with the __/roll__ or __/multiroll__ commands."
 
     @staticmethod
@@ -70,10 +70,8 @@ class RerollContextMenu(BaseContextMenu):
         await VC.play_dice_roll(interaction, result, reason)
 
     async def handle(self, interaction: discord.Interaction, message: discord.Message):
-        self.log(interaction)
-
         if interaction.client.user is None:
-            raise ValueError("The bot is not associated with a user account!")
+            raise RuntimeError("The bot is not associated with a user account!")
 
         if message.author.id != interaction.client.user.id:
             raise PermissionError(f"Only works on dice-roll messages sent by {interaction.client.user.name}")

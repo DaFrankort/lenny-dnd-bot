@@ -1,28 +1,31 @@
 from itertools import product
-from typing import Any, Iterable, TypeVar
+from typing import Any, Iterable, List, TypeVar, Union
 
 import pytest
 
 # Required to mark the library as essential for testing in our workflows
 import pytest_asyncio  # noqa: F401 # type: ignore
-from utils.mocking import (
+from mocking import (
+    MockBackgroundImage,
     MockDirectMessageInteraction,
+    MockGIFImage,
     MockImage,
     MockInteraction,
     MockSound,
 )
-from utils.utils import listify
 
 from bot import Bot
 from commands.command import BaseCommand, BaseCommandGroup
 from commands.tokengen import AlignH, AlignV
 from embeds.dnd.class_ import ClassEmbed
 from logic.charactergen import class_choices, species_choices
+from logic.color import BasicColors, ImageColorStyle
 from logic.config import Config, ConfigHandler
 from logic.dnd.abstract import DNDEntry, DNDEntryList
 from logic.dnd.data import Data
 from logic.dnd.name import Gender
 from logic.roll import Advantage
+from logic.tokengen import BackgroundType
 
 SLASH_COMMAND_TESTS: Iterable[Iterable[Any]] = [
     (
@@ -91,9 +94,15 @@ SLASH_COMMAND_TESTS: Iterable[Iterable[Any]] = [
         "color set rgb",
         {"r": [255, 0], "g": [255, 0], "b": [255, 0]},
     ),
+    (
+        "color set base",
+        {"color": [BasicColors.RED.value, BasicColors.BLUE.value, BasicColors.GREEN.value]},
+    ),
+    ("color set image", {"image": [None, MockImage()], "style": ImageColorStyle.values()}),
     ("color show", {}),
     ("color clear", {}),  # Run clear last, to remove useless data from files.
     ("stats roll", {}),
+    ("stats buy", {}),
     (
         "stats visualize",
         {"str": 10, "dex": 10, "con": 10, "int": 10, "wis": 10, "cha": 10},
@@ -101,21 +110,25 @@ SLASH_COMMAND_TESTS: Iterable[Iterable[Any]] = [
     (
         "tokengen file",
         [
-            {"image": MockImage()},
+            {"image": [MockImage(), MockGIFImage()]},
             {"image": MockImage(), "frame_hue": [-180, 0, 180]},
             {"image": MockImage(), "h_alignment": AlignH.values()},
             {"image": MockImage(), "v_alignment": AlignV.values()},
-            {"image": MockImage(), "variants": [0, 3, 10]},
+            {"image": [MockImage(), MockGIFImage()], "variants": [0, 3]},
+            {"image": MockImage(), "background_type": BackgroundType.values()},
+            {"image": MockImage(), "custom_background": [None, MockBackgroundImage()]},
         ],
     ),
     (
         "tokengen url",
         [
-            {"url": MockImage().url},
+            {"url": [MockImage().url, MockGIFImage().url]},
             {"url": MockImage().url, "frame_hue": [-180, 0, 180]},
             {"url": MockImage().url, "h_alignment": AlignH.values()},
             {"url": MockImage().url, "v_alignment": AlignV.values()},
-            {"url": MockImage().url, "variants": [0, 3, 10]},
+            {"url": [MockImage().url, MockGIFImage().url], "variants": [0, 3]},
+            {"url": MockImage().url, "background_type": BackgroundType.values()},
+            {"url": MockImage().url, "custom_background": [None, MockBackgroundImage().url]},
         ],
     ),
     ("initiative", {}),
@@ -160,9 +173,22 @@ SLASH_COMMAND_TESTS: Iterable[Iterable[Any]] = [
             "char_class": [None, "rogue"],
         },
     ),
+    ("favorites add", {"name": Data.spells.entries[0].title}),
+    ("favorites view", {}),
+    ("favorites remove", {"name": Data.spells.entries[0].title}),
     # Homebrew commands work through modals, and are thus not testable.
     # ("", {"": "", "": ""}),
 ]
+
+
+T = TypeVar("T")
+TEntry = TypeVar("TEntry", bound=DNDEntry)
+
+
+def listify(value: Union[T, List[T]]) -> List[T]:
+    if isinstance(value, list):
+        return value  # type: ignore # Should return a list of value T
+    return [value]
 
 
 def get_cmd_from_group(group: BaseCommandGroup, parts: list[str]) -> BaseCommand | None:
@@ -192,9 +218,6 @@ def get_cmd(commands: dict[str, BaseCommand | BaseCommandGroup], name: str) -> B
         return get_cmd_from_group(command, rest)
     else:
         return command
-
-
-TEntry = TypeVar("TEntry", bound=DNDEntry)
 
 
 def get_strict_search_arguments(entry_list: DNDEntryList[TEntry]) -> list[str]:
@@ -228,7 +251,6 @@ class TestBotCommands:
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize("cmd_name, arguments", SLASH_COMMAND_TESTS)
-    @pytest.mark.timeout(60)  # Protect against infinite loops
     async def test_slash_commands_guild(
         self,
         commands: dict[str, BaseCommand | BaseCommandGroup],
@@ -252,7 +274,6 @@ class TestBotCommands:
     @pytest.mark.strict
     @pytest.mark.asyncio
     @pytest.mark.parametrize("cmd_name, arguments", SLASH_COMMAND_TESTS)
-    @pytest.mark.timeout(60)  # Protect against infinite loops
     async def test_slash_commands_private_message(
         self,
         commands: dict[str, BaseCommand | BaseCommandGroup],

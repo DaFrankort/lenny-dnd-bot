@@ -106,7 +106,7 @@ Look up various D&D data from [5e.tools](https://5e.tools/).
 - `/search item <item-name>` - Look up a D&D Item (e.g. Dagger).
 - `/search condition <condition-name>` - Look up a D&D Condition (e.g. Blinded).
 - `/search creature <creature-name>` – Look up a D&D Creature (e.g. Orc).
-- `/search class <class-name>` – Look up a D&D Class (e.g. Wizard).
+- `/search class <class-name> [level] [subclass]` – Look up a D&D Class (e.g. Wizard).
 - `/search rule <rule-name>` – Look up a D&D Rule (e.g. Saving Throw).
 - `/search action <action-name>` – Look up a D&D Action (e.g. Dash).
 - `/search feat <feat-name>` – Look up a D&D Feat (e.g. Savage Attacker).
@@ -119,6 +119,16 @@ Look up various D&D data from [5e.tools](https://5e.tools/).
 - `/search hazard <hazard-name>` - Look up a D&D Trap or Hazard (e.g. Spiked Pit).
 - `/search deity <deity-name>` - Look up a D&D Deity (e.g. Bahamut).
 - `/search all <query>` - Look for many related results regarding D&D data. Example: `/search all fire` would return any data with 'fire' in the name.
+
+#### Favorite Entries
+
+You can mark certain D&D data entries as your favorite, making it easy to quickly look them up again later.
+
+- `/favorites add <entry>` - Mark a D&D data entry as your favorite.
+- `/favorites remove <entry>` - Remove a D&D data entry from your favorites.
+- `/favorites view [type_filter]` - List all your favorite D&D data entries.
+
+You can also right-click on an embed and select "Add to Favorites" to manage your favorites quickly.
 
 ### D&D Homebrew Data
 
@@ -134,8 +144,9 @@ Entries can be added straight from a markdown file, any formatting will be conve
 
 ### Character Tools
 
-- `/stats roll` – Automatically roll stats for a new character's skills, using the 4d6 drop lowest method. Also generates a radar-graph to visualize the stats.
-- `/stats visualize <str> <dex> <con> <int> <wis> <cha>` – Visualizes character stats in a radar-graph.
+- `/stats roll` – Automatically roll stats for a new character's ability scores, using the 4d6 drop lowest method. Also generates a radar-graph to visualize the stats.
+- `/stats buy` - Generate stats using the point-buy method, where you have 27 points to spend on your ability scores. Also generates a radar-graph to visualize the stats.
+- `/stats visualize <str> <dex> <con> <int> <wis> <cha>` – Visualizes ability scores in a radar-graph.
 - `/namegen [race] [gender]` - Generate a random name, race and/or gender can be specified but will default to random.
 - `/charactergen [gender] [species] [char_class]` - Generates a character with name, class, species, background and stats. Ensures that the build that is generated is somewhat optimal for your class; automatically selecting fitting backgrounds and assigning stats optimally. Preferred gender, species or class can be provided.
 
@@ -143,9 +154,10 @@ Entries can be added straight from a markdown file, any formatting will be conve
 
 Create 5e.tools-style token images quickly, [like this example](https://5e.tools/img/bestiary/tokens/MM/Goblin.webp).
 Optionally adjust the frame's color with `hue-shift` (default: gold), control image alignment using `h_alignment` and `v_alignment` (default: center), and `variants` for generating up to 10 numbered variants of your tokens.
+Additionally supports gif images as input, which will be preserved in the output tokens.
 
-- `/tokengen file <image-attachment> [hue-shift] [h_alignment] [v_alignment] [variants]` - Generate a token from an image attachment.
-- `/tokengen url <image-url> [hue-shift] [h_alignment] [v_alignment] [variants]` - Generate a token from an image URL.
+- `/tokengen file <image-attachment> [hue-shift] [background_type] [custom_background] [h_alignment] [v_alignment] [variants]` - Generate a token from an image attachment.
+- `/tokengen url <image-url> [hue-shift] [background_type] [custom_background] [h_alignment] [v_alignment] [variants]` - Generate a token from an image URL.
 
 ### Discord utilities
 
@@ -155,11 +167,16 @@ Optionally adjust the frame's color with `hue-shift` (default: gold), control im
 - `/timestamp date <time> <timezone> [date]` - Generates all possible timestamps for a specific date & time. Date defaults to the current day.
 
 #### User Colors
+
 Commands that resemble user-actions are highlighted with colors that are unique per user. This makes it easy to discern different user's actions.
 By default the user's color is automatically generated based on their display name. Users can adjust their colors using following commands:
 
+- `/color set base <color>` - Set your color from a selection of basic colors.
 - `/color set hex <hex_color>` - Set your color using a hexadecimal color value.
 - `/color set rgb <r> <g> <b>` - Set your color using a RGB value.
+- `/color set image [image] [style]` - Generates color suggestions based on your profile picture.
+  - ``[image]`` - You can optionally upload a different image instead.
+  - ``[style]`` - Apply a different color-selection algorithm, changing the overall mood of the generated colors.
 - `/color clear` - Clears your set color and enforces use of an auto-generated color.
 - `/color show` - Shows the color you've set to everyone.
 

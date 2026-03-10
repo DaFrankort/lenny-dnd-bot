@@ -59,7 +59,7 @@ def _get_optimal_background(char_class: Class) -> Background:
     table_name = "Choose a Background; Ability Scores and Backgrounds"
     background_table = _get_dnd_table(table_name)
     if background_table is None:
-        raise LookupError("Background table is required for CharacterGen, but it could not be found!")
+        raise KeyError("Background table is required for CharacterGen, but it could not be found!")
 
     # If the primary ability of the class cannot be determined, choose randomly
     if char_class.primary_ability is None:
@@ -68,9 +68,9 @@ def _get_optimal_background(char_class: Class) -> Background:
         recommended: set[str] = set()
         for ability, background_string in background_table.table["table"]["rows"]:
             if not isinstance(ability, str):
-                raise ValueError(f"Background table entry is not a string, instead received {str(background_string)}.")
+                raise TypeError(f"Background table entry is not a string, instead received {str(background_string)}.")
             if not isinstance(background_string, str):
-                raise ValueError(f"Background table entry is not a string, instead received {str(background_string)}.")
+                raise TypeError(f"Background table entry is not a string, instead received {str(background_string)}.")
 
             backgrounds = background_string.split(",")
             if ability.lower() in char_class.primary_ability.lower():
@@ -91,7 +91,7 @@ def _get_optimal_stats(char_class: Class) -> list[tuple[int, str]]:
     table_name = "Assign Ability Scores; Standard Array by Class"
     ability_table = _get_dnd_table(table_name)
     if ability_table is None:
-        raise LookupError("Ability table is required for CharacterGen, but it could not be found!")
+        raise KeyError("Ability table is required for CharacterGen, but it could not be found!")
 
     headers = ability_table.table["table"]["headers"]
     if headers is None:
@@ -104,7 +104,7 @@ def _get_optimal_stats(char_class: Class) -> list[tuple[int, str]]:
     for row in rows:
         for cell in row:
             if not isinstance(cell, (str, int)):
-                raise ValueError("Ability table is only allowed to have string values.")
+                raise TypeError("Ability table is only allowed to have string values.")
 
         if row[0].lower() == char_class.name.lower():  # type: ignore
             values = row[1:]
@@ -113,7 +113,7 @@ def _get_optimal_stats(char_class: Class) -> list[tuple[int, str]]:
             break
 
     if optimal_stats is None:
-        raise LookupError(f"Class '{char_class.name}' does not exist in CharacterGen Standard Array table!")
+        raise KeyError(f"Class '{char_class.name}' does not exist in CharacterGen Standard Array table!")
 
     stats = Stats()
     rolled_stats = [val for _, val in stats.stats]
@@ -193,7 +193,7 @@ def generate_dnd_character(gender_str: str | None, species_str: str | None, char
     name, _, gender = Data.names.get_random(species.name, gender)
 
     if name is None or gender is None:
-        raise LookupError("Could not determine name and gender for generated character.")
+        raise KeyError("Could not determine name and gender for generated character.")
 
     if char_class_str is None:
         char_class: Class = _get_random_xphb_entry(Data.classes.entries)

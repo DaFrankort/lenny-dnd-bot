@@ -11,7 +11,7 @@ class ConditionEmbed(DNDEntryEmbed):
 
         description = condition.description[0]
         if description["type"] != "text":
-            raise ValueError(f"Condition description should be a string, but it is a {description['type']}!")
+            raise TypeError(f"Condition description should be a string, but it is a {description['type']}!")
 
         self.description = description["value"]
         self.add_description_fields(condition.description[1:])

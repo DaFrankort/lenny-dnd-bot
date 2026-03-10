@@ -45,7 +45,6 @@ class HelpTabList:
             "roll",
             "d20",
             "multiroll",
-            "distribution",
         ],
         text="You can roll dice using the following commands:",
         info=[
@@ -78,6 +77,35 @@ class HelpTabList:
                     "- *Magic* and *spell*",
                     "- *Archery* and *ranged*",
                     "- *Stealth* and *sneak*",
+                ],
+            ),
+        ],
+    )
+
+    Distribution = HelpTab(
+        tab="distribution",
+        name="Distribution",
+        commands=["distribution"],
+        text="You can generate the image of a dice distribution using the following command:",
+        info=[
+            (
+                "Generating Distributions",
+                [
+                    "The expression of the distribution must follow the same syntax as described on the `Roll` section. Additionally, due to limitations in [the distribution library](https://github.com/pipieter/d20distribution), the `rr` modifier is (currently) not supported."
+                ],
+            ),
+            (
+                "Advantage and Minimum Chances",
+                [
+                    "You can simulate advantages and disadvantages with the command. Additionally, you can supply a `min_to_beat` value to calculate the chances of rolling at least that value."
+                ],
+            ),
+            (
+                "Timeouts",
+                [
+                    "Generating the distributions can take a while. Specifically, if your expression uses the 'e' and 'ra' modifiers or it uses the 'l' and 'h' selectors, a slower algorithm is used to calculate the distributions. In these cases, even for small dice, it can take some time to calculate the end result.",
+                    "",
+                    "A five second limit was put in place to prevent calculating overly difficult or big expressions. If the calculations takes longer than five seconds, a timeout is raised.",
                 ],
             ),
         ],
@@ -150,6 +178,21 @@ class HelpTabList:
         ],
     )
 
+    Favorites = HelpTab(
+        tab="favorites",
+        name="Favorites",
+        commands=["favorites"],
+        text="Add D&D lookup entries to your favorites for quick and easy access.",
+        info=[
+            (
+                "Context Menu",
+                [
+                    "By right clicking a lookup result from a ``/search`` command, you can use the ``Add to Favorites`` option under ``Apps`` to easily add an entry to your favorites."
+                ],
+            )
+        ],
+    )
+
     Initiative = HelpTab(
         tab="initiative",
         name="Initiative",
@@ -197,6 +240,8 @@ class HelpTabList:
                     "There are a few options to adjust the way a token image is generated, by default it will provide a golden border and center the provided image.",
                     "However you can use the following options to adjust the way the token is generated:",
                     "- ``hue-shift`` - Allows you to shift the color of the token's border, this is a number between -360 and 360. By default a shift of 0 is used, which results in a golden border.",
+                    "- ``background_type`` - Only affects transparent images. Allows you to set either a fancy red background, pure white, or transparent background.",
+                    "- ``custom_background`` - Allows you to add custom background images for the token. If given, it will overwrite background_type."
                     "- ``h_alignment`` - Adjusts the horizontal alignment of the image, this can be `left`, `center`, `right`, or `face`.",
                     "- ``v_alignment`` - Adjusts the vertical alignment of the image, this can be `top`, `center`, `bottom`, or `face`.",
                     "- ``variants`` - Creates up to 10 variants of the token image, to easily discern similar tokens from each other.",
@@ -209,6 +254,15 @@ class HelpTabList:
                     "This is experimental; results are most accurate for portraits with clear, front-facing features.",
                     "The algorithm searches for human faces first, falling back to profile views, feline features, eyes, or full-body silhouettes if needed.",
                     "If no features were detected at all this will return an error-message.",
+                ],
+            ),
+            (
+                "Supported Formats",
+                [
+                    "You can upload both static and moving images.",
+                    "- Static images will be returned as a `.png` file.",
+                    "- Moving images will be returned as a `.webp` file.",
+                    "*Download the original image for the highest quality, otherwise it will be a compressed `.webp`.*",
                 ],
             ),
         ],
@@ -239,6 +293,7 @@ class HelpTabList:
             self.Overview,
             self.ContextMenus,
             self.Roll,
+            self.Distribution,
             self.Utility,
             self.Character,
             self.DND,
@@ -246,6 +301,7 @@ class HelpTabList:
             self.Initiative,
             self.TokenGen,
             self.Config,
+            self.Favorites,
         ]
 
     @property
@@ -258,7 +314,7 @@ class HelpTabList:
         for t in self.tabs:
             if t.tab == tab:
                 return t
-        raise ValueError(f"help: tab '{tab}' not found.")
+        raise KeyError(f"help: tab '{tab}' not found.")
 
 
 HelpTabs = HelpTabList()

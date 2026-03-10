@@ -3,6 +3,7 @@ name: MAIN
 on:
   pull_request:
     paths-ignore:
+      - "benchmarks/**"
       - "*.md"
       - "*.bat"
       - ".env.example"
@@ -23,7 +24,7 @@ jobs:
       - uses: ./.github/actions/setup
 
       - name: Run pytest
-        run: python -m pytest --ignore=test/bot_test.py
+        run: python -m pytest --ignore=test/test_bot.py
 
   unit-test-bot:
     runs-on: ubuntu-latest
@@ -36,8 +37,8 @@ jobs:
 
       - uses: ./.github/actions/setup
 
-      - name: Run pytest on bot_test.py
-        run: python -m pytest test/bot_test.py
+      - name: Run pytest on test_bot.py
+        run: python -m pytest test/test_bot.py
 
   requirements:
     runs-on: ubuntu-latest
@@ -54,7 +55,7 @@ jobs:
           pip install pip-check-reqs
 
       - name: Check for imports missing from requirements.txt
-        run: pip-missing-reqs lenny test --ignore-file=requirements.txt
+        run: pip-missing-reqs lenny test benchmarks --ignore-file=requirements.txt
 
       - name: Check for unused packages in requirements.txt
-        run: pip-extra-reqs lenny test --ignore-file=requirements.txt
+        run: pip-extra-reqs lenny test benchmarks --ignore-file=requirements.txt

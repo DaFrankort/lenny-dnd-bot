@@ -1,8 +1,10 @@
 import logging
+from collections.abc import Callable
 from enum import Enum
 from typing import Any, TypeVar
 
 import discord
+import thread
 import validators
 from PIL import ImageFont
 
@@ -31,7 +33,7 @@ def get_font(font: FontType, size: float):
 class ChoicedEnum(Enum):
     @classmethod
     def choices(cls) -> list[discord.app_commands.Choice[str]]:
-        return [discord.app_commands.Choice(name=e.value.title(), value=e.value) for e in cls]
+        return [discord.app_commands.Choice(name=e.name.replace("_", " ").title(), value=e.value) for e in cls]
 
     @classmethod
     def options(cls) -> list[discord.SelectOption]:
@@ -42,21 +44,20 @@ class ChoicedEnum(Enum):
         return [e.value for e in cls]
 
 
-class Boolean(ChoicedEnum):
-    TRUE = "true"
-    FALSE = "false"
-
-    @property
-    def bool(self) -> bool:
-        return self.value == "true"
-
-
-def log_button_press(itr: discord.Interaction, button: discord.ui.Button[discord.ui.LayoutView], location: str):
-    logging.info("%s pressed '%s' in %s", itr.user.name, button.label, location)
-
-
 def is_valid_url(url: str) -> bool:
     try:
         return bool(validators.url(url))
     except validators.utils.ValidationError:
         return False
+
+
+def call_with_timeout(timeout: int, func: Callable[..., T], args: list[Any]) -> T | None:
+    proc = thread.Thread(target=func, args=args)
+    proc.start()
+    proc.join(timeout=timeout)
+
+    if proc.is_alive():
+        proc.kill()
+        return None
+
+    return proc.result

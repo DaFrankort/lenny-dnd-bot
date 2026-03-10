@@ -25,7 +25,6 @@ class CharacterGenCommand(BaseCommand):
         species: str | None = None,
         char_class: str | None = None,
     ):
-        self.log(itr)
         result = generate_dnd_character(gender, species, char_class)
         view = CharacterGenContainerView(result)
         await itr.response.send_message(view=view, file=view.chart)

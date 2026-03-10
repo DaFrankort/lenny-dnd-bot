@@ -1,6 +1,6 @@
 import discord
 
-from components.items import TitleTextDisplay
+from embeds.components import TitleTextDisplay
 from embeds.embed import BaseEmbed
 
 

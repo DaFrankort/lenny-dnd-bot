@@ -1,6 +1,5 @@
-from mocking import MockInteraction, MockUser
-
 import pytest
+from mocking import MockInteraction, MockUser
 
 from logic.stats import POINT_BUY_COST, BoughtStats, Stats
 

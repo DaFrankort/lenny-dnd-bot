@@ -35,7 +35,7 @@ class TestBoughtStats:
 
     def test_add_score(self, stats: BoughtStats):
         key = "STR"
-        assert stats.can_add(key) is True
+        assert stats.can_add(key)
         stats.add_score(key)
         assert stats.stats[key] == 9
         expected_cost = POINT_BUY_COST[9] - POINT_BUY_COST[8]
@@ -45,7 +45,7 @@ class TestBoughtStats:
         """Stats cannot exceed 15."""
         key = "DEX"
         stats.stats[key] = 15
-        assert stats.can_add(key) is False
+        assert not stats.can_add(key)
         stats.add_score(key)
         assert stats.stats[key] == 15
 
@@ -54,7 +54,7 @@ class TestBoughtStats:
         stats.stats[key] = 10
         stats.points = stats.max_points - 2  # simulate prior spending
 
-        assert stats.can_take(key) is True
+        assert stats.can_take(key)
         stats.take_score(key)
         assert stats.stats[key] == 9
         refund = POINT_BUY_COST[10] - POINT_BUY_COST[9]
@@ -63,7 +63,7 @@ class TestBoughtStats:
     def test_cannot_take_below_8(self, stats: BoughtStats):
         key = "INT"
         assert stats.stats[key] == 8
-        assert stats.can_take(key) is False
+        assert not stats.can_take(key)
         stats.take_score(key)
         assert stats.stats[key] == 8
 
@@ -77,5 +77,5 @@ class TestBoughtStats:
         user_same = MockUser("Owner")
         user_same.id = stats.owner_id
         user_other = MockUser("Other")
-        assert stats.is_owner(user_same) is True
-        assert stats.is_owner(user_other) is False
+        assert stats.is_owner(user_same)
+        assert not stats.is_owner(user_other)

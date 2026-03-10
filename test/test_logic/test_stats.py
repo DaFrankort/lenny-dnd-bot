@@ -1,4 +1,4 @@
-from test.mocking import MockInteraction, MockUser
+from mocking import MockInteraction, MockUser
 
 import pytest
 

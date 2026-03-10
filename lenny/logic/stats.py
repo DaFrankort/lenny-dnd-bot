@@ -47,21 +47,14 @@ class Stats:
 
 class BoughtStats:
     stats: dict[str, int]
-    max_points: int
+    points: int
+    max_points: int = 27
     owner_id: int
 
     def __init__(self, itr: discord.Interaction):
-        self.max_points = 27
+        self.points = self.max_points
         self.owner_id = itr.user.id
         self.stats = {"STR": 8, "DEX": 8, "CON": 8, "INT": 8, "WIS": 8, "CHA": 8}
-
-    @property
-    def spent(self) -> int:
-        return sum(self.values) - (8 * 6)
-
-    @property
-    def points_left(self) -> int:
-        return self.max_points - self.spent
 
     @property
     def values(self) -> list[int]:
@@ -73,21 +66,33 @@ class BoughtStats:
     def can_add(self, key: str) -> bool:
         if self.stats[key] >= 15:
             return False
-        if self.points_left <= 0:
+        if self.points <= 0:
+            return False
+        if self.stats[key] >= 13 and self.points < 2:  # 14 & 15 cost 2 points
             return False
         return True
 
     def can_take(self, key: str) -> bool:
+        if self.points >= self.max_points:
+            return False
         return self.stats[key] > 8
 
-    def add_point(self, key: str):
+    def add_score(self, key: str):
         if not self.can_add(key):
             return
-        self.stats[key] += 1
 
-    def take_point(self, key: str):
+        self.points -= 1
+        self.stats[key] += 1
+        if self.stats[key] >= 14:  # 14 & 15 cost 2 points
+            self.points -= 1
+
+    def take_score(self, key: str):
         if not self.can_take(key):
             return
+
+        if self.stats[key] >= 14:  # 14 & 15 cost 2 points
+            self.points += 1
+        self.points += 1
         self.stats[key] -= 1
 
     def is_owner(self, user: discord.User | discord.Member):

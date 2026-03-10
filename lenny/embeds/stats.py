@@ -80,7 +80,7 @@ class PointBuyActionRow(discord.ui.ActionRow[discord.ui.LayoutView]):
             await interaction.response.send_message("These stats don't belong to you!", ephemeral=True)
             return
 
-        self.stats.add_point(self.key)
+        self.stats.add_score(self.key)
         await self.update_message(interaction)
 
     async def take_point(self, interaction: discord.Interaction):
@@ -88,7 +88,7 @@ class PointBuyActionRow(discord.ui.ActionRow[discord.ui.LayoutView]):
             await interaction.response.send_message("These stats don't belong to you!", ephemeral=True)
             return
 
-        self.stats.take_point(self.key)
+        self.stats.take_score(self.key)
         await self.update_message(interaction)
 
     async def update_message(self, interaction: discord.Interaction):
@@ -114,7 +114,7 @@ class BoughtStatsLayoutView(discord.ui.LayoutView):
         container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(accent_color=color)
 
         container.add_item(TitleTextDisplay(name=title))
-        container.add_item(discord.ui.TextDisplay(f"{stats.points_left} Points left. ({stats.spent} / {stats.max_points})"))
+        container.add_item(discord.ui.TextDisplay(f"{stats.points} / {stats.max_points} Points left."))
         container.add_item(BaseSeparator())
 
         container.add_item(PointBuyActionRow("STR", stats))
@@ -123,7 +123,9 @@ class BoughtStatsLayoutView(discord.ui.LayoutView):
         container.add_item(PointBuyActionRow("INT", stats))
         container.add_item(PointBuyActionRow("WIS", stats))
         container.add_item(PointBuyActionRow("CHA", stats))
+        container.add_item(discord.ui.TextDisplay("-# *Scores 14 & 15 cost two points"))
 
+        container.add_item(BaseSeparator())
         container.add_item(discord.ui.MediaGallery(discord.MediaGalleryItem(self.chart)))
 
         self.add_item(container)

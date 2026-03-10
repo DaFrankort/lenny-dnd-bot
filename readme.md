@@ -145,6 +145,7 @@ Entries can be added straight from a markdown file, any formatting will be conve
 ### Character Tools
 
 - `/stats roll` – Automatically roll stats for a new character's ability scores, using the 4d6 drop lowest method. Also generates a radar-graph to visualize the stats.
+- `/stats buy` - Generate stats using the point-buy method, where you have 27 points to spend on your ability scores. Also generates a radar-graph to visualize the stats.
 - `/stats visualize <str> <dex> <con> <int> <wis> <cha>` – Visualizes ability scores in a radar-graph.
 - `/namegen [race] [gender]` - Generate a random name, race and/or gender can be specified but will default to random.
 - `/charactergen [gender] [species] [char_class]` - Generates a character with name, class, species, background and stats. Ensures that the build that is generated is somewhat optimal for your class; automatically selecting fitting backgrounds and assigning stats optimally. Preferred gender, species or class can be provided.

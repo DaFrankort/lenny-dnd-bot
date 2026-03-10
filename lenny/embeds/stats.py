@@ -59,7 +59,9 @@ class PointBuyActionRow(discord.ui.ActionRow[discord.ui.LayoutView]):
         super().__init__()
 
         stat = stats.stats[key]
-        self.label_button = discord.ui.Button(style=discord.ButtonStyle.gray, label=f"{key} | {stat} ({get_stat_mod(stat)})")
+        self.label_button = discord.ui.Button(
+            style=discord.ButtonStyle.gray, custom_id=f"{self.key}_btn", label=f"{key} | {stat} ({get_stat_mod(stat)})"
+        )
         self.label_button.callback = self.open_modal
         self.label_button.disabled = not stats.can_add(key) and not stats.can_take(key)
 

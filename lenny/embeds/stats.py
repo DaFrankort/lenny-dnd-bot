@@ -1,6 +1,11 @@
 import discord
 
-from embeds.components import BaseModal, BaseSeparator, TitleTextDisplay, BaseLabelTextInput
+from embeds.components import (
+    BaseLabelTextInput,
+    BaseModal,
+    BaseSeparator,
+    TitleTextDisplay,
+)
 from embeds.embed import UserActionEmbed
 from logic.color import UserColor
 from logic.stats import BoughtStats, Stats, get_stat_mod

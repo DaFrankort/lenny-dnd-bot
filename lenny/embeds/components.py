@@ -6,7 +6,6 @@ from typing import Any, TypeVar
 import discord
 import discord.ui
 
-from commands.command import get_error_embed
 from methods import when
 
 T = TypeVar("T")
@@ -144,6 +143,8 @@ class BaseModal(discord.ui.Modal):
         self.itr = itr
 
     async def on_error(self, itr: discord.Interaction, error: Exception):
+        from commands.command import get_error_embed
+
         embed = get_error_embed(error)
         await itr.response.send_message(embed=embed, ephemeral=True)
 

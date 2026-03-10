@@ -3,7 +3,7 @@ from typing import Any
 
 import discord
 
-from components.items import TitleTextDisplay
+from embeds.components import TitleTextDisplay
 from embeds.dnd.abstract import build_list
 from logic.color import UserColor
 from logic.dnd.abstract import Description, DNDEntry, build_table

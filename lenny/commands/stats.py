@@ -39,8 +39,8 @@ class StatsRollCommand(BaseCommand):
 
 class StatsBuyCommand(BaseCommand):
     name = "buy"
-    desc = "Set stats for a character using point-buy!"
-    help = "Allows you to set up points for your character by buying points."
+    desc = "Set stats for a new character, using the point-buy system."
+    help = "Generate stats using the point-buy method, where you have 27 points to spend on your ability scores."
 
     async def handle(self, itr: discord.Interaction):
         await itr.response.defer()
@@ -48,7 +48,6 @@ class StatsBuyCommand(BaseCommand):
         view = BoughtStatsLayoutView(itr, stats)
         chart = view.chart
 
-        # view.set_image(url=f"attachment://{chart.filename}")
         await itr.followup.send(view=view, file=chart)
 
 

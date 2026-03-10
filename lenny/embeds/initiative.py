@@ -1,10 +1,14 @@
+import typing
+
 import discord
-from discord import Interaction, SelectOption, ui
+from discord import Interaction, ui
 
 from embeds.components import (
     BaseLabelTextInput,
     BaseModal,
     BaseSeparator,
+    ModalCheckboxComponent,
+    ModalCheckboxGroupComponent,
     ModalSelectComponent,
 )
 from embeds.embed import BaseEmbed, UserActionEmbed
@@ -12,7 +16,7 @@ from logic.dicecache import DiceCache
 from logic.initiative import Initiative, Initiatives
 from logic.roll import Advantage
 from logic.voice_chat import VC, SoundType
-from methods import Boolean, when
+from methods import when
 
 
 class InitiativeRollModal(BaseModal):
@@ -21,10 +25,10 @@ class InitiativeRollModal(BaseModal):
     advantage = ModalSelectComponent(label="Roll Mode", placeholder="Normal", options=Advantage.options(), required=False)
 
     def __init__(self, itr: Interaction):
-        self.name.input.placeholder = itr.user.display_name.title().strip()
+        self.name.placeholder = itr.user.display_name.title().strip()
         prev_initiative = str(DiceCache.get(itr).get_last_initiative())
-        self.modifier.input.default = prev_initiative
-        self.modifier.input.placeholder = prev_initiative
+        self.modifier.default = prev_initiative
+        self.modifier.placeholder = prev_initiative
         super().__init__(itr, title="Rolling for Initiative")
 
     async def on_submit(self, itr: Interaction):
@@ -64,12 +68,18 @@ class InitiativeRollModal(BaseModal):
 
 
 class InitiativeSetModal(BaseModal):
-    value = BaseLabelTextInput(label="Initiative value", placeholder="20", max_length=3)
-    name = BaseLabelTextInput(label="Name", placeholder="Goblin", required=False, max_length=128)
+    value = BaseLabelTextInput(label="Initiative value", max_length=3)
+    name = BaseLabelTextInput(label="Name", required=False, max_length=128)
 
     def __init__(self, itr: Interaction):
-        self.name.input.placeholder = itr.user.display_name.title().strip()
         super().__init__(itr, title="Setting your Initiative value")
+
+        self.name.placeholder = itr.user.display_name.title().strip()
+        for initiative in Initiatives.get(itr):
+            if initiative.is_owner(itr.user) and not initiative.is_npc:
+                self.value.placeholder = str(initiative.get_total())
+                self.value.default = str(initiative.get_total())
+                break
 
     async def on_submit(self, itr: Interaction):
         name = self.get_str(self.name)
@@ -94,28 +104,41 @@ class InitiativeSetModal(BaseModal):
 
 
 class InitiativeDeleteModal(BaseModal):
-    name = ModalSelectComponent(label="Roll to delete", options=[], placeholder="Goblin", required=True)
-
     def __init__(self, itr: Interaction):
-        self.name.input.placeholder = itr.user.display_name.title().strip()
-        self.name.input.options.clear()
+        super().__init__(itr, title="Remove initiative rolls")
+
+        checkboxes: list[ModalCheckboxGroupComponent] = [ModalCheckboxGroupComponent("Rolls to delete", options=[])]
         for initiative in Initiatives.get(itr):
+            if len(checkboxes[-1].options) >= 10:
+                if len(checkboxes) >= 5:
+                    break
+                checkboxes.append(ModalCheckboxGroupComponent(label="‎ ", options=[]))
+
             emoji = when(initiative.is_npc, "🐉", "🧝")
             default = initiative.is_owner(itr.user) and not initiative.is_npc
-            option = SelectOption(label=initiative.name, value=initiative.name, emoji=emoji, default=default)
-            self.name.input.options.append(option)
+            label = f"{emoji} {initiative.name}"
+            checkbox_option = discord.CheckboxGroupOption(label=label, value=initiative.name, default=default)
 
-        super().__init__(itr, title="Remove an Initiative")
+            checkboxes[-1].options.append(checkbox_option)
+
+        for checkbox in checkboxes:
+            self.add_item(checkbox)
 
     async def on_submit(self, itr: Interaction) -> None:
-        name = self.get_choice(self.name, result_type=str)
-        initiative = Initiatives.remove(itr, name)
+        deleted_initiatives: list[str] = []
+        for child in self.children:
+            group = typing.cast(ModalCheckboxGroupComponent, child)
+            for name in group.values:
+                initiative = Initiatives.remove(itr, name)
+                deleted_initiatives.append(initiative.name)
+
         view = InitiativeContainerView(itr)
 
         await VC.play(itr, SoundType.DELETE, True)
         await itr.response.edit_message(view=view)
 
-        embed = BaseEmbed(title="Removed initiative", description=f"Initiative removed for {initiative.name}!")
+        description = "\n- ".join(deleted_initiatives)
+        embed = BaseEmbed(title="Removed initiative", description=f"- {description}")
         await itr.followup.send(embed=embed, ephemeral=True)
 
 
@@ -126,10 +149,10 @@ class InitiativeBulkModal(BaseModal):
         max_length=3,
         required=False,
     )
-    name = BaseLabelTextInput(label="Creature's Name", placeholder="Goblin", max_length=128)
-    amount = BaseLabelTextInput(label="Amount of creatures to add", placeholder="1", max_length=2)
+    name = BaseLabelTextInput(label="Creature's Name", max_length=128)
+    amount = BaseLabelTextInput(label="Amount of creatures to add", placeholder="1 - 25", max_length=2)
     advantage = ModalSelectComponent(label="Roll Mode", placeholder="Normal", options=Advantage.options(), required=False)
-    shared = ModalSelectComponent(label="Share Initiative", placeholder="False", options=Boolean.options(), required=False)
+    shared = ModalCheckboxComponent(label="Share Initiative")
 
     def __init__(self, itr: Interaction):
         super().__init__(itr, title="Adding Initiatives in bulk!")
@@ -153,8 +176,8 @@ class InitiativeBulkModal(BaseModal):
             return
 
         advantage = self.get_choice(self.advantage, Advantage) or Advantage.NORMAL
-        shared: Boolean = self.get_choice(self.shared, Boolean) or Boolean.FALSE
-        initiatives = Initiatives.add_bulk(itr, modifier, name, amount, advantage, shared.bool)
+        shared: bool = self.shared.component.value  # type: ignore
+        initiatives = Initiatives.add_bulk(itr, modifier, name, amount, advantage, shared)  # type: ignore
 
         title = f"{itr.user.display_name} rolled Initiative for {amount} {name.strip().title()}(s)!"
         descriptions: list[str] = []
@@ -172,16 +195,16 @@ class InitiativeBulkModal(BaseModal):
 
 
 class InitiativeClearConfirmModal(BaseModal):
-    confirm = BaseLabelTextInput(label="Type 'CLEAR' to confirm", placeholder="CLEAR")
+    confirm = ModalCheckboxComponent(label="Yes, I want to clear all initiatives.")
 
     def __init__(self, itr: Interaction):
         super().__init__(itr, title="Are you sure you want to clear?")
 
     async def on_submit(self, itr: Interaction):
-        confirm = str(self.confirm.input)
-        if confirm != "CLEAR":
+        confirmed = self.confirm.value
+        if not confirmed:
             await itr.response.send_message(
-                embed=BaseEmbed("Clearing cancelled!", "Type 'CLEAR' in all caps to confirm."),
+                embed=BaseEmbed("Clearing cancelled!", "You did not verify that you wanted to clear."),
                 ephemeral=True,
             )
             return
@@ -200,15 +223,17 @@ class InitiativePlayerRow(ui.ActionRow["InitiativeContainerView"]):
     def __init__(self, itr: discord.Interaction):
         super().__init__()
 
-        roll_btn = ui.Button["InitiativeContainerView"](style=discord.ButtonStyle.success, label="Roll")
+        roll_btn = ui.Button["InitiativeContainerView"](style=discord.ButtonStyle.success, custom_id="roll_btn", label="Roll")
         roll_btn.callback = self.roll_initiative
         self.add_item(roll_btn)
 
-        set_btn = ui.Button["InitiativeContainerView"](style=discord.ButtonStyle.success, label="Set")
+        set_btn = ui.Button["InitiativeContainerView"](style=discord.ButtonStyle.success, custom_id="set_btn", label="Set")
         set_btn.callback = self.set_initiative
         self.add_item(set_btn)
 
-        delete_btn = ui.Button["InitiativeContainerView"](style=discord.ButtonStyle.danger, label="Delete Roll")
+        delete_btn = ui.Button["InitiativeContainerView"](
+            style=discord.ButtonStyle.danger, custom_id="delete_btn", label="Delete Roll"
+        )
         delete_btn.callback = self.remove_initiative
         delete_btn.disabled = len(Initiatives.get(itr)) <= 0
         self.add_item(delete_btn)

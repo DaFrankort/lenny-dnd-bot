@@ -1,6 +1,6 @@
 import discord
 
-from embeds.components import BaseSeparator, TitleTextDisplay
+from embeds.components import BaseModal, BaseSeparator, TitleTextDisplay, BaseLabelTextInput
 from embeds.embed import UserActionEmbed
 from logic.color import UserColor
 from logic.stats import BoughtStats, Stats, get_stat_mod
@@ -54,9 +54,9 @@ class PointBuyActionRow(discord.ui.ActionRow[discord.ui.LayoutView]):
         super().__init__()
 
         stat = stats.stats[key]
-        self.label_button = discord.ui.Button(
-            style=discord.ButtonStyle.gray, label=f"{key} | {stat} ({get_stat_mod(stat)})", disabled=True
-        )
+        self.label_button = discord.ui.Button(style=discord.ButtonStyle.gray, label=f"{key} | {stat} ({get_stat_mod(stat)})")
+        self.label_button.callback = self.open_modal
+        self.label_button.disabled = not stats.can_add(key) and not stats.can_take(key)
 
         self.minus_button = discord.ui.Button(
             style=discord.ButtonStyle.red, label="-", custom_id=f"{self.key}_min_btn", disabled=not self.stats.can_take(key)
@@ -95,6 +95,49 @@ class PointBuyActionRow(discord.ui.ActionRow[discord.ui.LayoutView]):
         view = BoughtStatsLayoutView(interaction, self.stats)
         await interaction.response.edit_message(view=view, attachments=[view.chart])
 
+    async def open_modal(self, interaction: discord.Interaction):
+        if not self.stats.is_owner(interaction.user):
+            await interaction.response.send_message("These stats don't belong to you!", ephemeral=True)
+            return
+        await interaction.response.send_modal(PointBuyModal(interaction, self.key, self.stats))
+
+
+class PointBuyModal(BaseModal):
+    score = BaseLabelTextInput(label="Stat")
+
+    def __init__(self, itr: discord.Interaction, key: str, stats: BoughtStats):
+        self.stats = stats
+        self.key = key
+
+        super().__init__(itr=itr, title=f"Adjusting Ability score - {key}")
+        current_score = stats.stats[key]
+        self.score.default = str(current_score)
+
+        valid = stats.viable_scores(key)
+        self.min_score = min(valid)
+        self.max_score = max(valid)
+
+        self.score.placeholder = f"{self.min_score} - {self.max_score}"
+
+    async def on_submit(self, interaction: discord.Interaction):
+        score = self.get_int(self.score)
+        if not score:
+            raise ValueError("Score must be a numerical input!")
+
+        score = max(self.min_score, min(score, self.max_score))
+        current = self.stats.stats[self.key]
+
+        while current < score:
+            self.stats.add_score(self.key)
+            current += 1
+
+        while current > score:
+            self.stats.take_score(self.key)
+            current -= 1
+
+        view = BoughtStatsLayoutView(interaction, self.stats)
+        await interaction.response.edit_message(view=view, attachments=[view.chart])
+
 
 class BoughtStatsLayoutView(discord.ui.LayoutView):
     itr: discord.Interaction
@@ -123,7 +166,7 @@ class BoughtStatsLayoutView(discord.ui.LayoutView):
         container.add_item(PointBuyActionRow("INT", stats))
         container.add_item(PointBuyActionRow("WIS", stats))
         container.add_item(PointBuyActionRow("CHA", stats))
-        container.add_item(discord.ui.TextDisplay("-# *Scores 14 & 15 cost two points"))
+        container.add_item(discord.ui.TextDisplay("-# *Scores 14 and 15 cost two points"))
 
         container.add_item(BaseSeparator())
         container.add_item(discord.ui.MediaGallery(discord.MediaGalleryItem(self.chart)))

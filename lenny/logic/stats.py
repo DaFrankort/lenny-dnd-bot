@@ -45,6 +45,18 @@ class Stats:
         return get_radar_chart(values=values, color=color)
 
 
+POINT_BUY_COST = {
+    8: 0,
+    9: 1,
+    10: 2,
+    11: 3,
+    12: 4,
+    13: 5,
+    14: 7,
+    15: 9,
+}
+
+
 class BoughtStats:
     stats: dict[str, int]
     points: int
@@ -58,42 +70,64 @@ class BoughtStats:
 
     @property
     def values(self) -> list[int]:
-        return [val for _, val in self.stats.items()]  # Sorry about this, I forgot how to get the direct values
+        return list(self.stats.values())
 
     def get_radar_chart(self, color: int = discord.Color.dark_green().value) -> discord.File:
         return get_radar_chart(values=self.values, labels=list(self.stats), color=color)
 
+    def _cost_between(self, old: int, new: int) -> int:
+        return POINT_BUY_COST[new] - POINT_BUY_COST[old]
+
     def can_add(self, key: str) -> bool:
-        if self.stats[key] >= 15:
+        current = self.stats[key]
+        if current >= 15:
             return False
-        if self.points <= 0:
-            return False
-        if self.stats[key] >= 13 and self.points < 2:  # 14 & 15 cost 2 points
-            return False
-        return True
+        new = current + 1
+        cost = self._cost_between(current, new)
+
+        return self.points >= cost
 
     def can_take(self, key: str) -> bool:
-        if self.points >= self.max_points:
+        current = self.stats[key]
+        if current <= 8:
             return False
-        return self.stats[key] > 8
+
+        refund = -self._cost_between(current, current - 1)
+        return (self.points + refund) <= self.max_points
 
     def add_score(self, key: str):
         if not self.can_add(key):
             return
 
-        self.points -= 1
-        self.stats[key] += 1
-        if self.stats[key] >= 14:  # 14 & 15 cost 2 points
-            self.points -= 1
+        current = self.stats[key]
+        new = current + 1
+        cost = self._cost_between(current, new)
+
+        self.points -= cost
+        self.stats[key] = new
 
     def take_score(self, key: str):
         if not self.can_take(key):
             return
 
-        if self.stats[key] >= 14:  # 14 & 15 cost 2 points
-            self.points += 1
-        self.points += 1
-        self.stats[key] -= 1
+        current = self.stats[key]
+        new = current - 1
+        refund = -self._cost_between(current, new)
+
+        self.points += refund
+        self.stats[key] = new
+
+    def viable_scores(self, key: str) -> list[int]:
+        """All scores the user could set this stat to."""
+        current = self.stats[key]
+        current_cost = POINT_BUY_COST[current]
+
+        valid: list[int] = []
+        for score in range(8, 16):
+            diff = POINT_BUY_COST[score] - current_cost
+            if diff <= self.points:
+                valid.append(score)
+        return valid
 
     def is_owner(self, user: discord.User | discord.Member):
         return self.owner_id == user.id

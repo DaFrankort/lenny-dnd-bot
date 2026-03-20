@@ -5,6 +5,7 @@ from embeds.dnd.table import DNDTableEntryView
 from embeds.embed import UserActionEmbed
 from logic.dnd.table import DNDTable, roll_table
 from logic.roll import MultiRollResult, RollResult, SingleRollResult
+from logic.voice_chat import VC, SoundType
 from methods import when
 
 
@@ -140,5 +141,6 @@ class TableRollMultiselectModal(BaseModal):
             if t.title == self.checkboxes.value:
                 row, result = roll_table(itr, t, self.roll_result)
                 await itr.response.send_message(view=DNDTableEntryView(itr, t, row, result))
+                await VC.play(itr, SoundType.ROLL)
                 return
         raise LookupError(f"Failed to find {self.checkboxes.value}")

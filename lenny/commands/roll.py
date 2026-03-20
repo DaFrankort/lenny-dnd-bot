@@ -128,4 +128,6 @@ class TableRollCommand(BaseCommand):
             return
 
         row, result = roll_table(itr, tables[0], roll_result)
+
+        await VC.play(itr, SoundType.ROLL)
         await itr.response.send_message(view=DNDTableEntryView(itr, tables[0], row, result))

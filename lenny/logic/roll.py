@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Any
 
 # The usage of d20 requires many type: ignore comments, as d20 does not use any form of typing internally
-import d20  # type: ignore
+import d20
 
 from methods import ChoicedEnum
 

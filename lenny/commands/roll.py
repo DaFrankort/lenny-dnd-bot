@@ -7,7 +7,7 @@ from embeds.roll import MultiRollEmbed, RollEmbed, TableRollMultiselectModal
 from logic.config import Config
 from logic.dicecache import DiceCache
 from logic.dnd.data import Data
-from logic.dnd.table import DNDTable
+from logic.dnd.table import roll_table
 from logic.roll import Advantage, multi_roll, roll
 from logic.searchcache import SearchCache
 from logic.voice_chat import VC, SoundType
@@ -126,16 +126,6 @@ class TableRollCommand(BaseCommand):
         if len(tables) > 1:
             await itr.response.send_modal(TableRollMultiselectModal(itr, tables, roll_result))
             return
-        await roll_and_send_table(itr, tables[0], roll_result)
 
-
-async def roll_and_send_table(itr: discord.Interaction, table: DNDTable, roll_result: int | None):
-    if not roll_result:
-        result = table.roll()
-        view = DNDTableEntryView(itr, table, result[0], result[1])
-    else:
-        row = table.get_rollable_row(roll_result)
-        view = DNDTableEntryView(itr, table, row, roll_result)
-
-    SearchCache.get(itr).store(table)
-    await itr.response.send_message(view=view)
+        row, result = roll_table(itr, tables[0], roll_result)
+        await itr.response.send_message(view=DNDTableEntryView(itr, tables[0], row, result))

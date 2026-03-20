@@ -1,9 +1,9 @@
 import discord
 
-from commands.roll import roll_and_send_table
 from embeds.components import BaseModal, ModalRadioGroupComponent
+from embeds.dnd.table import DNDTableEntryView
 from embeds.embed import UserActionEmbed
-from logic.dnd.table import DNDTable
+from logic.dnd.table import DNDTable, roll_table
 from logic.roll import MultiRollResult, RollResult, SingleRollResult
 from methods import when
 
@@ -122,22 +122,23 @@ class MultiRollEmbed(UserActionEmbed):
 
 class TableRollMultiselectModal(BaseModal):
     checkboxes = ModalRadioGroupComponent("Which entry did you mean?", options=[])
-    entries: list[DNDTable]
+    tables: list[DNDTable]
     roll_result: int | None
 
-    def __init__(self, itr: discord.Interaction, entries: list[DNDTable], roll_result: int | None):
-        self.entries = entries[:10]
+    def __init__(self, itr: discord.Interaction, tables: list[DNDTable], roll_result: int | None):
+        self.tables = tables[:10]
         self.roll_result = roll_result
         super().__init__(itr, "Multiple results found")
 
-        for e in self.entries:
-            self.checkboxes.options.append(discord.RadioGroupOption(label=e.title, value=e.title))
+        for t in self.tables:
+            self.checkboxes.options.append(discord.RadioGroupOption(label=t.title, value=t.title))
 
     async def on_submit(self, itr: discord.Interaction):
         if not self.checkboxes.value:
             return
-        for e in self.entries:
-            if e.title == self.checkboxes.value:
-                await roll_and_send_table(itr, e, self.roll_result)
-                break
+        for t in self.tables:
+            if t.title == self.checkboxes.value:
+                row, result = roll_table(itr, t, self.roll_result)
+                await itr.response.send_message(view=DNDTableEntryView(itr, t, row, result))
+                return
         raise LookupError(f"Failed to find {self.checkboxes.value}")

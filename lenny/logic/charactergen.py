@@ -171,8 +171,9 @@ def _get_backstory(table_name: str, entry: DNDEntry) -> str:
     if table.table["table"]["headers"] is None:
         return ""
 
-    roll = table.roll()
-    if roll is None:
+    try:
+        roll = table.roll()
+    except PermissionError | LookupError:
         return ""
 
     reason = roll[0][1]

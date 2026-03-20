@@ -274,7 +274,7 @@ def build_table(value: str | DescriptionTableTable, width: int | None = 56, show
 
     def format_cell_value(value: int | str | DescriptionRowRange | None) -> str:
         if value is None:
-            return "None"
+            return "—"
         if isinstance(value, int):
             return str(value)
         if isinstance(value, str):

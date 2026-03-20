@@ -68,7 +68,7 @@ class DNDTableRollButton(ui.Button[DNDTableEntryView]):
     async def callback(self, interaction: discord.Interaction):
         try:
             result = self.table.roll()
-        except Exception:
+        except PermissionError | LookupError:
             # Disable button to prevent further attempts, since it will keep failing.
             self.disabled = True
             self.style = discord.ButtonStyle.gray

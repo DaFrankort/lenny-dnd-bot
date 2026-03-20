@@ -1,10 +1,10 @@
 import pytest
-from logic.dnd.table import DNDTable
 from mocking import MockInteraction
 
 from logic.config import Config
 from logic.dnd.abstract import fuzzy_matches
 from logic.dnd.data import Data
+from logic.dnd.table import DNDTable
 
 
 class TestDNDData:

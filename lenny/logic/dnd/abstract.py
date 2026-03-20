@@ -283,6 +283,7 @@ def build_table(value: str | DescriptionTableTable, width: int | None = 56, show
             if value["min"] == value["max"]:
                 return str(value["min"])
             return f"{value['min']}-{value['max']}"
+        raise ValueError(f"Invalid cell value {str(value)}")
 
     headers = value["headers"]
     rows = value["rows"]
@@ -310,7 +311,7 @@ def build_table(value: str | DescriptionTableTable, width: int | None = 56, show
 
 def build_table_from_rows(
     headers: list[str] | None,
-    rows: Sequence[Sequence[str | DescriptionRowRange]],
+    rows: Sequence[Sequence[str | DescriptionRowRange | int | None]],
     width: int | None = 56,
     show_lines: bool = False,
 ) -> str:

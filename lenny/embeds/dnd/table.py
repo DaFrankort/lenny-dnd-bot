@@ -13,7 +13,6 @@ from embeds.embed import BaseEmbed
 from logic.color import UserColor
 from logic.dnd.abstract import build_table_from_rows
 from logic.dnd.table import DNDTable
-from logic.roll import RollResult
 from logic.voice_chat import VC, SoundType
 
 
@@ -23,7 +22,7 @@ class DNDTableEntryView(discord.ui.LayoutView):
         itr: discord.Interaction,
         table: DNDTable,
         row: Any,
-        result: RollResult,
+        result: int,
     ):
         super().__init__(timeout=None)
 
@@ -31,7 +30,7 @@ class DNDTableEntryView(discord.ui.LayoutView):
         container = ui.Container[DNDTableEntryView](accent_color=color)
 
         title_display = TitleTextDisplay(
-            name=f"{table.name} - Rolled {result.roll.total}!",
+            name=f"{table.name} - Rolled {result}!",
             url=table.url,
         )
         reroll_button = DNDTableRollButton(table)
@@ -67,8 +66,9 @@ class DNDTableRollButton(ui.Button[DNDTableEntryView]):
         self.table = table
 
     async def callback(self, interaction: discord.Interaction):
-        result = self.table.roll()
-        if result is None:
+        try:
+            result = self.table.roll()
+        except (PermissionError, LookupError):
             # Disable button to prevent further attempts, since it will keep failing.
             self.disabled = True
             self.style = discord.ButtonStyle.gray

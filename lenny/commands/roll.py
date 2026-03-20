@@ -2,9 +2,14 @@ import discord
 from discord.app_commands import autocomplete, choices, describe
 
 from commands.command import BaseCommand
-from embeds.roll import MultiRollEmbed, RollEmbed
+from embeds.dnd.table import DNDTableEntryView
+from embeds.roll import MultiRollEmbed, RollEmbed, TableRollMultiselectModal
+from logic.config import Config
 from logic.dicecache import DiceCache
+from logic.dnd.data import Data
+from logic.dnd.table import roll_table
 from logic.roll import Advantage, multi_roll, roll
+from logic.searchcache import SearchCache
 from logic.voice_chat import VC, SoundType
 
 
@@ -95,3 +100,34 @@ class MultiRollCommand(BaseCommand):
 
         await itr.response.send_message(embed=embed)
         await VC.play(itr, SoundType.ROLL)
+
+
+async def table_roll_autocomplete(itr: discord.Interaction, current: str):
+    sources = Config.get(itr).allowed_sources
+    if not current.strip():
+        return SearchCache.get(itr).get_choices("table")
+    return Data.tables.get_autocomplete_suggestions(current, sources)
+
+
+class TableRollCommand(BaseCommand):
+    name = "tableroll"
+    desc = "Roll a result from a table!"
+    help = "Rolls a dice associated to a table and returns the result."
+
+    @autocomplete(name=table_roll_autocomplete)
+    @describe(name="Name of the table to roll.", roll_result="Get a specific result.")
+    async def handle(self, itr: discord.Interaction, name: str, roll_result: int | None = None):
+        sources = Config.get(itr).allowed_sources
+        tables = Data.tables.get(name, sources)
+
+        if not tables:
+            raise LookupError(f"Could not find a table by the name '{name}'.")
+
+        if len(tables) > 1:
+            await itr.response.send_modal(TableRollMultiselectModal(itr, tables, roll_result))
+            return
+
+        row, result = roll_table(itr, tables[0], roll_result)
+
+        await VC.play(itr, SoundType.ROLL)
+        await itr.response.send_message(view=DNDTableEntryView(itr, tables[0], row, result))

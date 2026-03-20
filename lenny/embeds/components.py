@@ -138,6 +138,28 @@ class ModalCheckboxGroupComponent(discord.ui.Label[discord.ui.LayoutView]):
         return component.options
 
 
+class ModalRadioGroupComponent(discord.ui.Label[discord.ui.LayoutView]):
+    def __init__(
+        self,
+        label: str,
+        options: list[discord.RadioGroupOption],
+        description: str | None = None,
+        required: bool = False,
+    ):
+        checkbox_group: discord.ui.RadioGroup[discord.ui.LayoutView] = discord.ui.RadioGroup(required=required, options=options)
+        super().__init__(text=label, description=description, component=checkbox_group)
+
+    @property
+    def value(self) -> str | None:
+        component = typing.cast(discord.ui.RadioGroup[discord.ui.LayoutView], self.component)
+        return component.value
+
+    @property
+    def options(self) -> list[discord.RadioGroupOption]:
+        component = typing.cast(discord.ui.RadioGroup[discord.ui.LayoutView], self.component)
+        return component.options
+
+
 class BaseModal(discord.ui.Modal):
     def __init__(self, itr: discord.Interaction, title: str):
         super().__init__(title=title)

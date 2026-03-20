@@ -46,6 +46,7 @@ SLASH_COMMAND_TESTS: Iterable[Iterable[Any]] = [
             "reason": [None, "Attack"],
         },
     ),
+    ("tableroll", {"name": "Wild Magic Surge", "roll_result": [None, 37]}),
     ("search spell", {"name": ["Fire Bolt", "abcdef"]}),
     ("search item", {"name": ["Sword", "abcdef"]}),
     ("search condition", {"name": ["Poisoned", "abcdef"]}),
@@ -317,6 +318,10 @@ class TestBotCommands:
                 },
             ),
             (
+                "tableroll",
+                [{"name": "Wild Magic Surge", "roll_result": [-1, 999]}, {"name": "Actions"}],
+            ),
+            (
                 "timestamp date",
                 [
                     {"time": "Wrong", "timezone": 0},
@@ -376,6 +381,7 @@ class TestBotCommands:
             ("multiroll", "diceroll", ["", "1d20"]),
             ("roll", "reason", ["", "Att"]),
             ("multiroll", "reason", ["", "Att"]),
+            ("tableroll", "name", ["", "Wild"]),
             ("search spell", "name", ["", "Fireb"]),
             ("search item", "name", ["", "Dag"]),
             ("search condition", "name", ["", "Poi"]),

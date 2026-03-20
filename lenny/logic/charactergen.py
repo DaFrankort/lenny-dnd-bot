@@ -171,11 +171,15 @@ def _get_backstory(table_name: str, entry: DNDEntry) -> str:
     if table.table["table"]["headers"] is None:
         return ""
 
-    roll = table.roll()
-    if roll is None:
+    try:
+        roll = table.roll()
+    except (PermissionError, LookupError):
         return ""
 
     reason = roll[0][1]
+    if not isinstance(reason, str):
+        raise NotImplementedError("New backstory table is not supported.")
+
     if not reason.startswith("I "):
         reason = reason[0].lower() + reason[1:]
 

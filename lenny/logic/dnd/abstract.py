@@ -134,7 +134,7 @@ class DescriptionTableTable(TypedDict):
     type: Literal["table"]
     title: str
     headers: list[str] | None
-    rows: Sequence[Sequence[str | DescriptionRowRange]]
+    rows: Sequence[Sequence[str | DescriptionRowRange | int | None]]
 
 
 class DescriptionTable(TypedDict):
@@ -272,7 +272,9 @@ def build_table(value: str | DescriptionTableTable, width: int | None = 56, show
     if isinstance(value, str):
         return value
 
-    def format_cell_value(value: int | str | DescriptionRowRange) -> str:
+    def format_cell_value(value: int | str | DescriptionRowRange | None) -> str:
+        if value is None:
+            return "—"
         if isinstance(value, int):
             return str(value)
         if isinstance(value, str):
@@ -309,7 +311,7 @@ def build_table(value: str | DescriptionTableTable, width: int | None = 56, show
 
 def build_table_from_rows(
     headers: list[str] | None,
-    rows: Sequence[Sequence[str | DescriptionRowRange]],
+    rows: Sequence[Sequence[str | DescriptionRowRange | int | None]],
     width: int | None = 56,
     show_lines: bool = False,
 ) -> str:

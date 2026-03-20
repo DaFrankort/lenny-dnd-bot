@@ -1,6 +1,9 @@
 import discord
 
+from commands.roll import roll_and_send_table
+from embeds.components import BaseModal, ModalRadioGroupComponent
 from embeds.embed import UserActionEmbed
+from logic.dnd.table import DNDTable
 from logic.roll import MultiRollResult, RollResult, SingleRollResult
 from methods import when
 
@@ -115,3 +118,26 @@ class MultiRollEmbed(UserActionEmbed):
                 roll_message += " ⚔️"
             results.append(roll_message)
         return "\n".join(results)
+
+
+class TableRollMultiselectModal(BaseModal):
+    checkboxes = ModalRadioGroupComponent("Which entry did you mean?", options=[])
+    entries: list[DNDTable]
+    roll_result: int | None
+
+    def __init__(self, itr: discord.Interaction, entries: list[DNDTable], roll_result: int | None):
+        self.entries = entries[:10]
+        self.roll_result = roll_result
+        super().__init__(itr, "Multiple results found")
+
+        for e in self.entries:
+            self.checkboxes.options.append(discord.RadioGroupOption(label=e.title, value=e.title))
+
+    async def on_submit(self, itr: discord.Interaction):
+        if not self.checkboxes.value:
+            return
+        for e in self.entries:
+            if e.title == self.checkboxes.value:
+                await roll_and_send_table(itr, e, self.roll_result)
+                break
+        raise LookupError(f"Failed to find {self.checkboxes.value}")

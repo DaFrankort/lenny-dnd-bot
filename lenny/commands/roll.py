@@ -2,9 +2,13 @@ import discord
 from discord.app_commands import autocomplete, choices, describe
 
 from commands.command import BaseCommand
+from embeds.dnd.table import DNDTableEntryView
 from embeds.roll import MultiRollEmbed, RollEmbed
+from logic.config import Config
 from logic.dicecache import DiceCache
+from logic.dnd.data import Data
 from logic.roll import Advantage, multi_roll, roll
+from logic.searchcache import SearchCache
 from logic.voice_chat import VC, SoundType
 
 
@@ -95,3 +99,33 @@ class MultiRollCommand(BaseCommand):
 
         await itr.response.send_message(embed=embed)
         await VC.play(itr, SoundType.ROLL)
+
+
+async def table_roll_autocomplete(itr: discord.Interaction, current: str):
+    sources = Config.get(itr).allowed_sources
+    if not current.strip():
+        return SearchCache.get(itr).get_choices("table")
+    return Data.tables.get_autocomplete_suggestions(current, sources)
+
+
+class TableRollCommand(BaseCommand):
+    name = "tableroll"
+    desc = "Roll a result from a table!"
+    help = "Rolls a dice associated to a table and returns the result."
+
+    @autocomplete(name=table_roll_autocomplete)
+    @describe(name="Name of the table to roll.")
+    async def handle(self, itr: discord.Interaction, name: str):
+        sources = Config.get(itr).allowed_sources
+        table = Data.tables.get(name, sources)[0]
+
+        if not table:
+            raise LookupError(f"Could not find a table by the name '{name}'.")
+
+        roll = table.roll()
+        if not roll:
+            raise ValueError("You can't roll that table!")
+
+        SearchCache.get(itr).store(table)
+        view = DNDTableEntryView(itr, table, roll[0], roll[1])
+        await itr.response.send_message(view=view)

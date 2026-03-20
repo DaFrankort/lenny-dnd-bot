@@ -1,4 +1,5 @@
 import pytest
+from logic.dnd.table import DNDTable
 from mocking import MockInteraction
 
 from logic.config import Config
@@ -57,3 +58,29 @@ class TestDNDData:
             _, new_species, _ = Data.names.get_random(species, None)
             assert new_species, "Namegen - Returned species must not be None"
             assert new_species.lower() == species.lower(), "Namegen - Returned Species must match input species"
+
+    @pytest.mark.strict
+    @pytest.mark.parametrize("table", [t for t in Data.tables.entries if t.is_rollable])
+    def test_rollable_table_rows(self, table: DNDTable):
+        for row in table.table["table"]["rows"]:
+            for val in row:
+                if isinstance(val, str):
+                    continue
+
+                elif val is None:
+                    continue
+
+                elif isinstance(val, int):
+                    value = val
+
+                else:
+                    assert isinstance(
+                        val["min"], int
+                    ), f"Table '{table.name}' row-range minimum in {val} is not an integer, but is: {val['min']} (type: {type(val['min'])})"
+                    assert isinstance(
+                        val["max"], int
+                    ), f"Table '{table.name}' row-range maximum in {val} is not an integer, but is: {val['max']} (type: {type(val['max'])})"
+
+                    value = val["min"]
+
+                table.get_rollable_row(value)

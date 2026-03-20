@@ -122,10 +122,10 @@ class TableRollCommand(BaseCommand):
         if not table:
             raise LookupError(f"Could not find a table by the name '{name}'.")
 
-        roll = table.roll()
-        if not roll:
+        result = table.roll()
+        if not result:
             raise ValueError("You can't roll that table!")
 
         SearchCache.get(itr).store(table)
-        view = DNDTableEntryView(itr, table, roll[0], roll[1])
+        view = DNDTableEntryView(itr, table, result[0], result[1])
         await itr.response.send_message(view=view)

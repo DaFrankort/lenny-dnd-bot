@@ -177,6 +177,9 @@ def _get_backstory(table_name: str, entry: DNDEntry) -> str:
         return ""
 
     reason = roll[0][1]
+    if not isinstance(reason, str):
+        raise NotImplementedError("New backstory table is not supported.")
+
     if not reason.startswith("I "):
         reason = reason[0].lower() + reason[1:]
 

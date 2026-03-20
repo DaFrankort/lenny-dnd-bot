@@ -38,7 +38,7 @@ class DNDTable(DNDEntry):
         row = self.get_rollable_row(result)
         return row, result
 
-    def get_rollable_row(self, value: int) -> Sequence[str | DescriptionRowRange]:
+    def get_rollable_row(self, value: int) -> Sequence[str | DescriptionRowRange | int | None]:
         if not self.is_rollable:
             raise PermissionError("This table is not rollable.")
 
@@ -49,6 +49,14 @@ class DNDTable(DNDEntry):
             if isinstance(row_range, str):
                 # A row is only a string if it's a non-rollable table
                 raise TypeError(f"Unexpected string found in D&D table rolling range: '{row_range}'.")
+
+            if row_range is None:
+                continue
+
+            if isinstance(row_range, int):
+                if row_range == value:
+                    return row
+                continue
 
             if row_range["min"] <= value <= row_range["max"]:
                 return row

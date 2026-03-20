@@ -134,7 +134,7 @@ class DescriptionTableTable(TypedDict):
     type: Literal["table"]
     title: str
     headers: list[str] | None
-    rows: Sequence[Sequence[str | DescriptionRowRange]]
+    rows: Sequence[Sequence[str | DescriptionRowRange | int | None]]
 
 
 class DescriptionTable(TypedDict):
@@ -272,7 +272,9 @@ def build_table(value: str | DescriptionTableTable, width: int | None = 56, show
     if isinstance(value, str):
         return value
 
-    def format_cell_value(value: int | str | DescriptionRowRange) -> str:
+    def format_cell_value(value: int | str | DescriptionRowRange | None) -> str:
+        if value is None:
+            return "None"
         if isinstance(value, int):
             return str(value)
         if isinstance(value, str):
@@ -281,7 +283,6 @@ def build_table(value: str | DescriptionTableTable, width: int | None = 56, show
             if value["min"] == value["max"]:
                 return str(value["min"])
             return f"{value['min']}-{value['max']}"
-        raise NotImplementedError("Unsupported cell type")
 
     headers = value["headers"]
     rows = value["rows"]

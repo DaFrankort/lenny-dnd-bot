@@ -283,7 +283,7 @@ def build_table(value: str | DescriptionTableTable, width: int | None = 56, show
             if value["min"] == value["max"]:
                 return str(value["min"])
             return f"{value['min']}-{value['max']}"
-        raise ValueError(f"Invalid cell value {str(value)}")
+        raise NotImplementedError("Unsupported cell type")
 
     headers = value["headers"]
     rows = value["rows"]

@@ -96,7 +96,7 @@ Roll D&D dice using dice-expressions (e.g. `2d6` / `1d20+2`).
 - `/roll <dice-expression> [advantage] [reason]` – Roll a single dice expression, optionally specify a reason for the roll (e.g. Acrobatics) and the advantage on the roll.
 - `/d20` - Rolls a basic 1d20 without any modifiers.
 - `/multiroll <dice-expression> <amount> [advantage] [reason]` – Roll a dice expression multiple times, shows the individual results as well as the total.
-- `/tableroll <table-name>` - Rolls on a D&D table from 5e.tools, showing the result and it's description.
+- `/tableroll <table-name> <roll-result>` - Rolls on a D&D table from 5e.tools, showing the result and it's description.
 - `/distribution <expression> [advantage] [min-to-beat]` - Creates a graph showing likeliness of your dice expression's roll results.
 
 ### D&D Data lookup

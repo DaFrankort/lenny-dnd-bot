@@ -114,18 +114,20 @@ class TableRollCommand(BaseCommand):
     help = "Rolls a dice associated to a table and returns the result."
 
     @autocomplete(name=table_roll_autocomplete)
-    @describe(name="Name of the table to roll.")
-    async def handle(self, itr: discord.Interaction, name: str):
+    @describe(name="Name of the table to roll.", roll_result="Get a specific result.")
+    async def handle(self, itr: discord.Interaction, name: str, roll_result: int | None = None):
         sources = Config.get(itr).allowed_sources
         table = Data.tables.get(name, sources)[0]
 
         if not table:
             raise LookupError(f"Could not find a table by the name '{name}'.")
 
-        result = table.roll()
-        if not result:
-            raise ValueError("You can't roll that table!")
+        if not roll_result:
+            result = table.roll()
+            view = DNDTableEntryView(itr, table, result[0], result[1])
+        else:
+            row = table.get_rollable_row(roll_result)
+            view = DNDTableEntryView(itr, table, row, roll_result)
 
         SearchCache.get(itr).store(table)
-        view = DNDTableEntryView(itr, table, result[0], result[1])
         await itr.response.send_message(view=view)

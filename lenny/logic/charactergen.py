@@ -173,7 +173,7 @@ def _get_backstory(table_name: str, entry: DNDEntry) -> str:
 
     try:
         roll = table.roll()
-    except PermissionError | LookupError:
+    except (PermissionError, LookupError):
         return ""
 
     reason = roll[0][1]

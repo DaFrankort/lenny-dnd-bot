@@ -2,7 +2,7 @@ aiohttp==3.13.4
 discord.py==2.7.1
 davey==0.1.5
 opencv-python==4.13.0.92
-numpy==2.4.3
+numpy==2.4.4
 python-dotenv==1.2.2
 pycolornames==1.1.0
 RapidFuzz==3.14.3

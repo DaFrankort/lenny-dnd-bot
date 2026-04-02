@@ -249,27 +249,36 @@ class InitiativePlayerRow(ui.ActionRow["InitiativeContainerView"]):
 
 
 class InitiativeDMRow(ui.ActionRow["InitiativeContainerView"]):
-    @ui.button(label="Bulk", style=discord.ButtonStyle.primary, custom_id="bulk_btn", row=1)
-    async def bulk_roll_initiative(
-        self, itr: Interaction, button: ui.Button["InitiativeContainerView"]
-    ):  # pylint: disable=unused-argument
-        await itr.response.send_modal(InitiativeBulkModal(itr))
 
-    @ui.button(label="Lock", style=discord.ButtonStyle.primary, custom_id="lock_btn", row=1)
-    async def lock(self, itr: Interaction, button: ui.Button["InitiativeContainerView"]):  # pylint: disable=unused-argument
-        await VC.play(itr, SoundType.LOCK, True)
-        await itr.response.edit_message(view=InitiativeContainerView(itr, True))
+    def __init__(self, itr: discord.Interaction):
+        super().__init__()
 
-    @ui.button(
-        label="Clear Rolls",
-        style=discord.ButtonStyle.danger,
-        custom_id="clear_btn",
-        row=1,
-    )
-    async def clear_initiative(
-        self, itr: Interaction, button: ui.Button["InitiativeContainerView"]
-    ):  # pylint: disable=unused-argument
-        await itr.response.send_modal(InitiativeClearConfirmModal(itr))
+        bulk_btn = ui.Button["InitiativeContainerView"](label="Bulk", style=discord.ButtonStyle.primary, custom_id="bulk_btn")
+        bulk_btn.callback = self.bulk_roll_initiative
+        self.add_item(bulk_btn)
+
+        lock_btn = ui.Button["InitiativeContainerView"](label="Lock", style=discord.ButtonStyle.primary, custom_id="lock_btn")
+        lock_btn.callback = self.lock
+        self.add_item(lock_btn)
+
+        clear_btn = ui.Button["InitiativeContainerView"](
+            label="Clear Rolls",
+            style=discord.ButtonStyle.danger,
+            custom_id="clear_btn",
+        )
+        clear_btn.callback = self.clear_initiative
+        clear_btn.disabled = len(Initiatives.get(itr)) <= 0
+        self.add_item(clear_btn)
+
+    async def bulk_roll_initiative(self, interaction: Interaction):
+        await interaction.response.send_modal(InitiativeBulkModal(interaction))
+
+    async def lock(self, interaction: Interaction):
+        await VC.play(interaction, SoundType.LOCK, True)
+        await interaction.response.edit_message(view=InitiativeContainerView(interaction, True))
+
+    async def clear_initiative(self, interaction: Interaction):
+        await interaction.response.send_modal(InitiativeClearConfirmModal(interaction))
 
 
 class InitiativeUnlockButton(ui.Button["InitiativeContainerView"]):
@@ -301,6 +310,6 @@ class InitiativeContainerView(ui.LayoutView):
             container.add_item(unlock_section)
         else:
             container.add_item(InitiativePlayerRow(itr))
-            container.add_item(InitiativeDMRow())
+            container.add_item(InitiativeDMRow(itr))
 
         self.add_item(container)

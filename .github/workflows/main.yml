@@ -51,7 +51,11 @@ jobs:
           submodules: true
           fetch-depth: 1
 
-      - uses: ./.github/actions/setup
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        id: setup-python
+        with:
+          python-version: "3.11.5"
 
       - name: Install pip-check-reqs
         run: |

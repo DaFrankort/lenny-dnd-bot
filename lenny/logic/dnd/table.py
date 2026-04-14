@@ -1,6 +1,8 @@
 from collections.abc import Sequence
 from typing import Any
 
+import discord
+
 from logic.dnd.abstract import (
     DescriptionRowRange,
     DescriptionTable,
@@ -9,6 +11,7 @@ from logic.dnd.abstract import (
     DNDEntryType,
 )
 from logic.roll import roll
+from logic.searchcache import SearchCache
 
 
 class DNDTable(DNDEntry):
@@ -31,7 +34,7 @@ class DNDTable(DNDEntry):
     def is_rollable(self) -> bool:
         return self.dice_notation is not None
 
-    def roll(self) -> tuple[Any, int]:
+    def roll(self) -> tuple[Sequence[str | DescriptionRowRange | int | None], int]:
         if self.dice_notation is None:
             raise PermissionError("This table is not rollable.")
 
@@ -68,3 +71,15 @@ class DNDTable(DNDEntry):
 class DNDTableList(DNDEntryList[DNDTable]):
     type = DNDTable
     paths = ["tables.json"]
+
+
+def roll_table(
+    itr: discord.Interaction, table: DNDTable, roll_result: int | None
+) -> tuple[Sequence[str | DescriptionRowRange | int | None], int]:
+    if not roll_result:
+        row, result = table.roll()
+    else:
+        row = table.get_rollable_row(roll_result)
+        result = roll_result
+    SearchCache.get(itr).store(table)
+    return row, result

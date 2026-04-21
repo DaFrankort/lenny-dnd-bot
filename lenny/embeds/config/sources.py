@@ -39,12 +39,25 @@ class ConfigSourcesView(PaginatedLayoutView):
     allow_configuration: bool
     itr: discord.Interaction
     content: ContentChoice
+    search: str | None
 
-    def __init__(self, itr: discord.Interaction, allow_configuration: bool, content: ContentChoice):
+    def __init__(self, itr: discord.Interaction, allow_configuration: bool, content: ContentChoice, search: str | None):
         super().__init__()
         self.itr = itr
         self.allow_configuration = allow_configuration
         self.content = content
+        self.search = search
+
+        if self.search:
+            all_sources = SourceList(self.content)
+            sorted_entries = sorted(all_sources.entries, key=lambda s: s.name)
+
+            try:
+                found_index = next(i for i, s in enumerate(sorted_entries) if s.id == self.search)
+                self.page = found_index // self.per_page
+            except StopIteration:
+                self.page = 0
+
         self.build()
 
     def build(self) -> None:
@@ -62,7 +75,8 @@ class ConfigSourcesView(PaginatedLayoutView):
         sources = SourceList(self.content)
         sources = sorted(sources.entries, key=lambda s: s.name)
         for source in self.viewed_sources:
-            text = discord.ui.TextDisplay[discord.ui.LayoutView](source.name)
+            name = f"**{source.name}**" if source.id == self.search else source.name
+            text = discord.ui.TextDisplay[discord.ui.LayoutView](name)
             button = ConfigManageSourcesButton(self, self.itr, source, self.allow_configuration)
             container.add_item(discord.ui.Section[discord.ui.LayoutView](text, accessory=button))
 

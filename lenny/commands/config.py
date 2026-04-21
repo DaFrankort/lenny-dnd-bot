@@ -1,12 +1,27 @@
 import discord
-from discord.app_commands import choices
+from discord.app_commands import autocomplete, choices
 
 from commands.command import BaseCommand, BaseCommandGroup
 from embeds.config.permissions import ConfigPermissionsView
 from embeds.config.sources import ConfigSourcesView
 from embeds.embed import ErrorEmbed
-from logic.config import Config
+from logic.config import OFFICIAL_SOURCES, PARTNERED_SOURCES, Config
 from logic.dnd.source import ContentChoice
+
+
+async def source_autocomplete(itr: discord.Interaction, current: str) -> list[discord.app_commands.Choice[str]]:
+    current = current.strip().upper()
+    if not current:
+        return []
+
+    # TODO use fuzzy matching instead.
+    result: list[discord.app_commands.Choice[str]] = []
+    for src in OFFICIAL_SOURCES.entries + PARTNERED_SOURCES.entries:
+        if current in src.id.upper() or current in src.name.upper():
+            name = src.id if src.id == src.name else f"{src.id} - {src.name}"
+            result.append(discord.app_commands.Choice(name=name, value=src.id))
+
+    return result[:25]
 
 
 class ConfigSourcesCommand(BaseCommand):
@@ -15,17 +30,18 @@ class ConfigSourcesCommand(BaseCommand):
     help = "Open up an overview you can use to configure the bot's sources in your server."
 
     @choices(content=ContentChoice.choices())
-    async def handle(self, itr: discord.Interaction, content: str):
+    @autocomplete(search=source_autocomplete)
+    async def handle(self, itr: discord.Interaction, content: str, search: str | None = None):
         config = Config.get(itr)
         content_choice = ContentChoice(content)
         if itr.guild is None:
             embed = ErrorEmbed("Sources can only be managed in a server!")
             await itr.response.send_message(embed=embed, ephemeral=True)
         elif config.user_is_admin_or_has_config_permissions(itr.user):
-            view = ConfigSourcesView(itr=itr, allow_configuration=True, content=content_choice)
+            view = ConfigSourcesView(itr=itr, allow_configuration=True, content=content_choice, search=search)
             await itr.response.send_message(view=view, ephemeral=True)
         else:
-            view = ConfigSourcesView(itr=itr, allow_configuration=False, content=content_choice)
+            view = ConfigSourcesView(itr=itr, allow_configuration=False, content=content_choice, search=search)
             await itr.response.send_message(view=view, ephemeral=True)
 
 

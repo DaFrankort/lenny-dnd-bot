@@ -6,11 +6,13 @@ from embeds.config.permissions import ConfigPermissionsView
 from embeds.config.sources import ConfigSourcesView
 from embeds.embed import ErrorEmbed
 from logic.config import OFFICIAL_SOURCES, PARTNERED_SOURCES, Config
+from logic.dnd.abstract import fuzzy_matches_list
 from logic.dnd.source import ContentChoice
 
 
 async def source_autocomplete(itr: discord.Interaction, current: str) -> list[discord.app_commands.Choice[str]]:
-    current = current.strip().upper().replace(" ", "")
+    sep = "###"
+    current = current.replace(sep, "")
     if not current:
         return []
 
@@ -29,14 +31,13 @@ async def source_autocomplete(itr: discord.Interaction, current: str) -> list[di
     except Exception:
         return []  # If user fills in `search` before `content`, return nothing.
 
-    # TODO use fuzzy matching instead.
-    result: list[discord.app_commands.Choice[str]] = []
-    for src in entries:
-        if current in src.id.upper() or current in src.name.upper().replace(" ", ""):
-            name = src.id if src.id == src.name else f"{src.id} - {src.name}"
-            result.append(discord.app_commands.Choice(name=name, value=src.id))
+    results = fuzzy_matches_list(current, [f"{e.id}{sep}{e.name}" for e in entries])
+    choices: list[discord.app_commands.Choice[str]] = []
+    for result in results[:25]:
+        src, name = result.choice.name.split(sep)
+        choices.append(discord.app_commands.Choice(name=f"{src} - {name}", value=src))
 
-    return result[:25]
+    return choices
 
 
 class ConfigSourcesCommand(BaseCommand):

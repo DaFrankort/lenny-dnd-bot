@@ -1,5 +1,5 @@
 import discord
-from discord.app_commands import autocomplete, choices
+from discord.app_commands import autocomplete, choices, describe
 
 from commands.command import BaseCommand, BaseCommandGroup
 from embeds.config.permissions import ConfigPermissionsView
@@ -47,6 +47,9 @@ class ConfigSourcesCommand(BaseCommand):
 
     @choices(content=ContentChoice.choices())
     @autocomplete(search=source_autocomplete)
+    @describe(
+        content="Which 5e.tools tools content to filter for", search="Quickly search for an exact source in the config-list."
+    )
     async def handle(self, itr: discord.Interaction, content: str, search: str | None = None):
         config = Config.get(itr)
         content_choice = ContentChoice(content)

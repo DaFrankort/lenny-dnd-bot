@@ -76,14 +76,8 @@ def _distribution_chart(
     return discord.File(fp=buf, filename="distribution.png")
 
 
-def distribution(
-    expression: str,
-    advantage: Advantage,
-    color: int,
-    min_to_beat: float | None = None,
-):
+def dice_distribution(expression: str, advantage: Advantage = Advantage.NORMAL):
     dist = d20distribution.parse(expression)
-    expression = str(d20.parse(expr=expression))
 
     if advantage == Advantage.ADVANTAGE:
         dist = dist.advantage()
@@ -91,6 +85,18 @@ def distribution(
         dist = dist.disadvantage()
     elif advantage == Advantage.ELVEN_ACCURACY:
         dist = dist.advantage(count=3)
+
+    return dist
+
+
+def distribution(
+    expression: str,
+    advantage: Advantage,
+    color: int,
+    min_to_beat: float | None = None,
+):
+    expression = str(d20.parse(expr=expression))
+    dist = dice_distribution(expression, advantage)
 
     if min_to_beat is None:
         min_to_beat = 0

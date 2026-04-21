@@ -1,7 +1,6 @@
 import dataclasses
 import re
 
-
 from logic.distribution import dice_distribution
 from logic.roll import Advantage
 

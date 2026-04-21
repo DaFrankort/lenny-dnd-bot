@@ -1,8 +1,8 @@
 from discord import Interaction
 
 from commands.command import BaseCommand
+from embeds.average import AverageDamageEmbed
 from logic.average import AverageDamageResults
-from logic.dnd.abstract import build_table_from_rows
 
 
 class AverageDamageCommand(BaseCommand):
@@ -21,14 +21,5 @@ class AverageDamageCommand(BaseCommand):
         miss_damage: str = "0",
     ) -> None:
         results = AverageDamageResults(hit, damage, min_ac, max_ac, crit_min, miss_damage)
-
-        acs = results.acs
-        advantages = results.advantages
-
-        headers = ["AC", *[str(adv).capitalize() for adv in advantages]]
-        rows = [(str(ac), *[results.get(ac, adv) for adv in advantages]) for ac in acs]
-
-        table = build_table_from_rows(headers, rows, align_right=True)
-
-        # TODO add a nice embed
-        await itr.response.send_message(table)
+        embed = AverageDamageEmbed(itr, results)
+        await itr.response.send_message(embed=embed)

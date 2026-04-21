@@ -10,14 +10,29 @@ from logic.dnd.source import ContentChoice
 
 
 async def source_autocomplete(itr: discord.Interaction, current: str) -> list[discord.app_commands.Choice[str]]:
-    current = current.strip().upper()
+    current = current.strip().upper().replace(" ", "")
     if not current:
         return []
 
+    entries = []
+    try:
+        value = itr.data["options"][0]["options"][0]["value"]  # type: ignore
+        content = ContentChoice(value)
+
+        if content is ContentChoice.OFFICIAL:
+            entries = OFFICIAL_SOURCES.entries
+        elif content is ContentChoice.PARTNERED:
+            entries = PARTNERED_SOURCES.entries
+        else:
+            entries = OFFICIAL_SOURCES.entries + PARTNERED_SOURCES.entries
+
+    except Exception:
+        return []  # If user fills in `search` before `content`, return nothing.
+
     # TODO use fuzzy matching instead.
     result: list[discord.app_commands.Choice[str]] = []
-    for src in OFFICIAL_SOURCES.entries + PARTNERED_SOURCES.entries:
-        if current in src.id.upper() or current in src.name.upper():
+    for src in entries:
+        if current in src.id.upper() or current in src.name.upper().replace(" ", ""):
             name = src.id if src.id == src.name else f"{src.id} - {src.name}"
             result.append(discord.app_commands.Choice(name=name, value=src.id))
 

@@ -11,15 +11,16 @@ from logic.dnd.source import ContentChoice
 
 
 async def source_autocomplete(itr: discord.Interaction, current: str) -> list[discord.app_commands.Choice[str]]:
-    sep = "###"
+    sep = "###"  # Required for a fuzzy match of two separate strings that we want to split later.
     current = current.replace(sep, "")
     if not current:
         return []
 
     entries = []
     try:
-        value = itr.data["options"][0]["options"][0]["value"]  # type: ignore
-        content = ContentChoice(value)
+        # Value that the user filled in in the `content`-field.
+        content_value = itr.data["options"][0]["options"][0]["value"]  # type: ignore
+        content = ContentChoice(content_value)
 
         if content is ContentChoice.OFFICIAL:
             entries = OFFICIAL_SOURCES.entries
@@ -28,16 +29,16 @@ async def source_autocomplete(itr: discord.Interaction, current: str) -> list[di
         else:
             entries = OFFICIAL_SOURCES.entries + PARTNERED_SOURCES.entries
 
-    except Exception:
+    except ValueError:
         return []  # If user fills in `search` before `content`, return nothing.
 
-    results = fuzzy_matches_list(current, [f"{e.id}{sep}{e.name}" for e in entries])
-    choices: list[discord.app_commands.Choice[str]] = []
-    for result in results[:25]:
+    matches = fuzzy_matches_list(current, [f"{e.id}{sep}{e.name}" for e in entries])
+    results: list[discord.app_commands.Choice[str]] = []
+    for result in matches[:25]:
         src, name = result.choice.name.split(sep)
-        choices.append(discord.app_commands.Choice(name=f"{src} - {name}", value=src))
+        results.append(discord.app_commands.Choice(name=f"{src} - {name}", value=src))
 
-    return choices
+    return results
 
 
 class ConfigSourcesCommand(BaseCommand):

@@ -81,7 +81,7 @@ class HelpTabList:
     Distribution = HelpTab(
         tab="distribution",
         name="Distribution",
-        commands=["distribution"],
+        commands=["distribution", "average"],
         text="You can generate the image of a dice distribution using the following command:",
         info=[
             (

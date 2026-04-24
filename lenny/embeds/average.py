@@ -25,8 +25,7 @@ class AverageDamageLayoutView(discord.ui.LayoutView):
 
         container.add_item(TitleTextDisplay("Average Damage per Attack"))
 
-        details = ""
-        details += f"**Hit:** {self.results.hit}"
+        details = f"**Hit:** {self.results.hit}"
         details += f"\n**Damage:** {self.results.damage}"
 
         if self.results.miss_damage != "0":

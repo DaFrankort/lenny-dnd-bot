@@ -37,14 +37,7 @@ def double_dice_in_expression(expression: str) -> str:
     return re.sub(r"(\d+)d(\d+)", double, expression)
 
 
-def _average_damage_per_attack(
-    hit: str,
-    damage: str,
-    ac: int,
-    advantage: Advantage,
-    crit_min: int,
-    miss_damage_expr: str = "0",
-) -> AverageDamageResult:
+def _calculate_hit_chances(hit: str, ac: int, advantage: Advantage, crit_min: int) -> tuple[float, float, float]:
     d20_hit = dice_distribution("1d20", advantage)
     hit_bonus = dice_distribution(hit)
 
@@ -72,8 +65,20 @@ def _average_damage_per_attack(
     miss_chance = normal_miss_chance + crit_miss_chance
     crit_chance = crit_hit_chance
 
-    # Ensure hit, miss, and crit have a 100% total chance
     assert abs(hit_chance + miss_chance + crit_chance - 1) < 1e-6
+
+    return hit_chance, miss_chance, crit_chance
+
+
+def _average_damage_per_attack(
+    hit: str,
+    damage: str,
+    ac: int,
+    advantage: Advantage,
+    crit_min: int,
+    miss_damage_expr: str = "0",
+) -> AverageDamageResult:
+    hit_chance, miss_chance, crit_chance = _calculate_hit_chances(hit, ac, advantage, crit_min)
 
     hit_damage = dice_distribution(damage)
     miss_damage = dice_distribution(miss_damage_expr)

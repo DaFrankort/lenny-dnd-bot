@@ -6,6 +6,7 @@ from discord import InteractionType, app_commands
 from discord.ext import tasks
 from dotenv import load_dotenv
 
+from commands.average import AverageDamageCommand
 from commands.charactergen import CharacterGenCommand
 from commands.color import ColorCommandGroup
 from commands.config import ConfigCommand
@@ -96,6 +97,7 @@ class Bot(discord.Client):
         self.tree.add_command(TimestampCommandGroup())
         self.tree.add_command(HomebrewCommandGroup())
         self.tree.add_command(FavoritesCommandGroup())
+        self.tree.add_command(AverageDamageCommand())
 
         # Context menus
         self.tree.add_command(DeleteContextMenu())

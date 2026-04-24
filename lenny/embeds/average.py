@@ -25,11 +25,14 @@ class AverageDamageLayoutView(discord.ui.LayoutView):
 
         container.add_item(TitleTextDisplay("Average Damage per Attack"))
 
-        details = f"- Hit-roll: ``{self.results.hit}``\n- Damage-roll: ``{self.results.damage}``"
-        if self.results.crit_min != 20:
-            details += f"\n- Crit on: ``{self.results.crit_min}``"
+        details = ""
+        details += f"**Hit:** {self.results.hit}"
+        details += f"\n**Damage:** {self.results.damage}"
+
         if self.results.miss_damage != "0":
-            details += f"\n- Miss damage: ``{self.results.miss_damage}``"
+            details += f"\n**Miss damage:** {self.results.miss_damage}"
+        if self.results.crit_min < 20:
+            details += f"\n**Critical range:** {self.results.crit_min}-20"
         container.add_item(discord.ui.TextDisplay(details))
 
         container.add_item(

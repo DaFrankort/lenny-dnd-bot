@@ -2,7 +2,7 @@ from discord import Interaction
 from discord.app_commands import Range, describe
 
 from commands.command import BaseCommand
-from embeds.average import AverageDamageEmbed
+from embeds.average import AverageDamageLayoutView
 from logic.average import AverageDamageResults
 
 
@@ -24,11 +24,11 @@ class AverageDamageCommand(BaseCommand):
         itr: Interaction,
         hit: str,
         damage: str,
-        min_ac: int = 8,
-        max_ac: int = 30,
+        min_ac: Range[int, 0, 30] = 8,
+        max_ac: Range[int, 0, 30] = 30,
         crit_min: Range[int, 0, 20] = 20,
         miss_damage: str = "0",
     ) -> None:
         results = AverageDamageResults(hit, damage, min_ac, max_ac, crit_min, miss_damage)
-        embed = AverageDamageEmbed(itr, results)
-        await itr.response.send_message(embed=embed, file=results.chart)
+        view = AverageDamageLayoutView(itr, results)
+        await itr.response.send_message(view=view, file=results.chart)

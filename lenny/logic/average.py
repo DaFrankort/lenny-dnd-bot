@@ -105,6 +105,10 @@ class AverageDamageResults:
     advantages: list[Advantage]
     data: dict[tuple[int, Advantage], str]
     chart: discord.File
+    hit: str
+    damage: str
+    crit_min: int
+    miss_damage: str
 
     def __init__(
         self,
@@ -122,19 +126,25 @@ class AverageDamageResults:
         self.advantages = Advantage.values()
         self.data = {}
 
+        self.hit = hit.strip().replace(" ", "").lower()
+        self.hit = f"1d20+{hit}" if not hit.startswith("-") else f"1d20{hit}"
+        self.damage = damage.strip().replace(" ", "").lower()
+        self.crit_min = crit_min
+        self.miss_damage = miss_damage.strip().replace(" ", "").lower()
+
         for ac in self.acs:
             for advantage in self.advantages:
                 result = _average_damage_per_attack(hit, damage, ac, advantage, crit_min, miss_damage)
                 self.data[(ac, advantage)] = f"{result.avg_damage:.2f}"
 
-        self.chart = self.generate_chart(damage)
+        self.chart = self.generate_chart()
 
     def get(self, ac: int, advantage: Advantage) -> str:
         if (ac, advantage) in self.data:
             return self.data[(ac, advantage)]
         return "0.00"
 
-    def generate_chart(self, damage: str) -> discord.File:
+    def generate_chart(self) -> discord.File:
         plt.style.use("dark_background")  # Looks better in Discord
         plt.figure(figsize=(10, 6))  # type: ignore
 
@@ -144,7 +154,7 @@ class AverageDamageResults:
 
         plt.title("Average Damage vs Armor Class")  # type: ignore
         plt.xlabel("Armor Class (AC)")  # type: ignore
-        plt.ylabel(f"Average Damage ({damage})")  # type: ignore
+        plt.ylabel(f"Avg. Damage ({self.hit} -> {self.damage})")  # type: ignore
         plt.grid(True, linestyle="--", alpha=0.6)  # type: ignore
         plt.legend(title="Advantage Type")  # type: ignore
 

@@ -87,7 +87,7 @@ class HelpTabList:
             (
                 "Generating Distributions",
                 [
-                    "The expression of the distribution must follow the same syntax as described on the `Roll` section. Additionally, due to limitations in [the distribution library](https://github.com/pipieter/d20distribution), the `rr` modifier is (currently) not supported."
+                    "The expression of the distribution must follow the same syntax as described on the `Roll` section. Additionally, due to limitations in [the distribution library](https://github.com/pipieter/d20distribution), the `red` modifier is (currently) not supported."
                 ],
             ),
             (

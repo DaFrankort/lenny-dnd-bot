@@ -12,12 +12,12 @@ class AverageDamageCommand(BaseCommand):
     help = "Calculates the average damage of an attack against various armor classes, taking critical hits and critical misses into account."
 
     @describe(
-        hit="Your hit-modifier on your attack-roll, (e.g. '8' / '4+1d4').",
-        damage="Your damage-expression on a hit (e.g. '1d8+3' / '8d6')",
+        hit="Your hit modifier on your attack roll, (e.g. '8', '4+1d4').",
+        damage="Your damage expression on a hit (e.g. '1d8+3', '8d6')",
         min_ac="The minimum AC to compare against, default = 8.",
         max_ac="The maximum AC to compare against, default = 30.",
-        crit_min="Min. attack-roll result for you to crit, default = 20",
-        miss_damage="Damage applied on a miss, default = 0.",
+        crit_min="The minimum roll required on the d20 to land a critical hit, default = 20",
+        miss_damage="The damage rolled on a miss, default = 0.",
     )
     async def handle(
         self,

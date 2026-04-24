@@ -1,5 +1,9 @@
 import dataclasses
+import io
 import re
+
+import discord
+import matplotlib.pyplot as plt
 
 from logic.distribution import dice_distribution
 from logic.roll import Advantage
@@ -100,6 +104,7 @@ class AverageDamageResults:
     acs: list[int]
     advantages: list[Advantage]
     data: dict[tuple[int, Advantage], str]
+    chart: discord.File
 
     def __init__(
         self,
@@ -122,7 +127,32 @@ class AverageDamageResults:
                 result = _average_damage_per_attack(hit, damage, ac, advantage, crit_min, miss_damage)
                 self.data[(ac, advantage)] = f"{result.avg_damage:.2f}"
 
+        self.chart = self.generate_chart(damage)
+
     def get(self, ac: int, advantage: Advantage) -> str:
         if (ac, advantage) in self.data:
             return self.data[(ac, advantage)]
         return "0.00"
+
+    def generate_chart(self, damage: str) -> discord.File:
+        plt.style.use("dark_background")  # Looks better in Discord
+        plt.figure(figsize=(10, 6))  # type: ignore
+
+        for adv in self.advantages:
+            y_values = [float(self.get(ac, adv)) for ac in self.acs]
+            plt.plot(self.acs, y_values, label=adv, marker="o", markersize=4)  # type: ignore
+
+        plt.title("Average Damage vs Armor Class")  # type: ignore
+        plt.xlabel("Armor Class (AC)")  # type: ignore
+        plt.ylabel(f"Average Damage ({damage})")  # type: ignore
+        plt.grid(True, linestyle="--", alpha=0.6)  # type: ignore
+        plt.legend(title="Advantage Type")  # type: ignore
+
+        plt.xticks(self.acs)  # type: ignore
+
+        buffer = io.BytesIO()
+        plt.savefig(buffer, format="png", bbox_inches="tight")  # type: ignore
+        plt.close()
+        buffer.seek(0)
+
+        return discord.File(fp=buffer, filename="damage_chart.png")

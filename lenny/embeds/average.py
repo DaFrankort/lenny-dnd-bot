@@ -41,7 +41,7 @@ class AverageDamageLayoutView(discord.ui.LayoutView):
         if self.show_table:
             container.add_item(discord.ui.TextDisplay(self._get_table()))
 
-        btn_label = "Hide result-table" if self.show_table else "Show result-table"
+        btn_label = "Hide result table" if self.show_table else "Show result table"
         toggle_button = discord.ui.Button(label=btn_label, style=discord.ButtonStyle.secondary, custom_id="table_toggle_btn")  # type: ignore
         toggle_button.callback = self.toggle_table
         container.add_item(discord.ui.ActionRow(toggle_button))  # type: ignore

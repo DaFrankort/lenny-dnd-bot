@@ -57,7 +57,7 @@ async def miss_damage_dc_autocomplete(itr: discord.Interaction, current: str):
 class AverageDamageDCCommand(BaseCommand):
     name = "dc"
     desc = "Calculate the average damage of a DC-based attack!"
-    help = "Calculates the average damage of a DC-based attack against various save modifiers, taking critical hits and critical misses into account."
+    help = "Calculates the average damage of a DC-based attack against various saving throw modifiers."
 
     @describe(
         dc="Your DC value, usually your Spell Save DC.",

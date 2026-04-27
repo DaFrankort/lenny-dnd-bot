@@ -74,8 +74,8 @@ class AverageDamageDCCommand(BaseCommand):
         dc: Range[int, 0, 30],
         damage: str,
         miss_damage: str,
-        min_mod: Range[int, -20, 20] = -4,
-        max_mod: Range[int, -20, 20] = 12,
+        min_mod: Range[int, -20, 40] = -4,
+        max_mod: Range[int, -20, 40] = 12,
     ) -> None:
         results = AverageDamageDCResults(dc, damage, miss_damage, min_mod, max_mod)
         view = AverageDamageLayoutView(itr, results)

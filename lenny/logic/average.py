@@ -37,6 +37,16 @@ def double_dice_in_expression(expression: str) -> str:
     return re.sub(r"(\d+)d(\d+)", double, expression)
 
 
+def half_dice_in_expression(expression: str) -> str:
+    """halves the dice-count of a dice-expression, e.g. 2d6+5 -> 1d6+5"""
+
+    def half(match: re.Match[str]):
+        count = int(match.group(1))
+        return f"{count // 2}d{match.group(2)}"
+
+    return re.sub(r"(\d+)d(\d+)", half, expression)
+
+
 def _calculate_hit_chances(hit: str, ac: int, advantage: Advantage, crit_min: int) -> tuple[float, float, float]:
     d20_hit = dice_distribution("1d20", advantage)
     hit_bonus = dice_distribution(hit)
@@ -82,7 +92,7 @@ def _average_damage_per_attack(
 
     hit_damage = dice_distribution(damage)
     miss_damage = dice_distribution(miss_damage_expr)
-    crit_damage = dice_distribution(double_dice_in_expression(damage))
+    crit_damage = dice_distribution(double_dice_in_expression(damage))  # TODO Crits in DC attacks are handled differently.
 
     hit_avg = hit_damage.mean()
     miss_avg = miss_damage.mean()
@@ -105,7 +115,7 @@ def _average_damage_per_attack(
     )
 
 
-class AverageDamageResults:
+class AverageDamageACResults:
     acs: list[int]
     advantages: list[Advantage]
     data: dict[tuple[int, Advantage], str]
@@ -164,6 +174,73 @@ class AverageDamageResults:
         plt.legend(title="Advantage Type")  # type: ignore
 
         plt.xticks(self.acs)  # type: ignore
+
+        buffer = io.BytesIO()
+        plt.savefig(buffer, format="png", bbox_inches="tight")  # type: ignore
+        plt.close()
+        buffer.seek(0)
+
+        return discord.File(fp=buffer, filename="damage_chart.png")
+
+
+# TODO compact this, a lot of duplicate logic.
+class AverageDamageDCResults:
+    mods: list[int]
+    advantages: list[Advantage]
+    data: dict[tuple[int, Advantage], str]
+    chart: discord.File
+    dc: int
+    damage: str
+    miss_damage: str
+
+    def __init__(
+        self,
+        dc: int,
+        damage: str,
+        miss_damage: str,
+        min_mod: int,
+        max_mod: int,
+    ) -> None:
+        if min_mod > max_mod:
+            min_mod, max_mod = max_mod, min_mod
+
+        self.mods = list(range(min_mod, max_mod + 1))
+        self.advantages = Advantage.values()
+        self.data = {}
+
+        self.dc = dc
+        self.damage = damage.strip().replace(" ", "").lower()
+        self.miss_damage = miss_damage.strip().replace(" ", "").lower()
+
+        for mod in self.mods:
+            for advantage in self.advantages:
+                result = _average_damage_per_attack(
+                    str(mod), miss_damage, dc, advantage, 20, damage
+                )  # Miss damage and damage are swapped
+                self.data[(mod, advantage)] = f"{result.avg_damage:.2f}"
+
+        self.chart = self.generate_chart()
+
+    def get(self, mod: int, advantage: Advantage) -> str:
+        if (mod, advantage) in self.data:
+            return self.data[(mod, advantage)]
+        return "0.00"
+
+    def generate_chart(self) -> discord.File:
+        plt.style.use("dark_background")  # Looks better in Discord
+        plt.figure(figsize=(10, 6))  # type: ignore
+
+        for adv in self.advantages:
+            y_values = [float(self.get(mod, adv)) for mod in self.mods]
+            plt.plot(self.mods, y_values, label=adv, marker="o", markersize=4)  # type: ignore
+
+        plt.title("Average Damage vs Save Modifiers")  # type: ignore
+        plt.xlabel("Save Modifier (DC)")  # type: ignore
+        plt.ylabel(f"Avg. Damage (DC {self.dc} -> {self.damage})")  # type: ignore
+        plt.grid(True, linestyle="--", alpha=0.6)  # type: ignore
+        plt.legend(title="Advantage Type")  # type: ignore
+
+        plt.xticks(self.mods)  # type: ignore
 
         buffer = io.BytesIO()
         plt.savefig(buffer, format="png", bbox_inches="tight")  # type: ignore

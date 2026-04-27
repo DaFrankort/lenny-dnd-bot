@@ -1,10 +1,14 @@
-from discord import Interaction
 import discord
-from discord.app_commands import Range, describe, autocomplete
+from discord import Interaction
+from discord.app_commands import Range, autocomplete, describe
 
 from commands.command import BaseCommand, BaseCommandGroup
 from embeds.average import AverageDamageACLayoutView, AverageDamageDCLayoutView
-from logic.average import AverageDamageACResults, AverageDamageDCResults, half_dice_in_expression
+from logic.average import (
+    AverageDamageACResults,
+    AverageDamageDCResults,
+    half_dice_in_expression,
+)
 
 
 class AverageDamageACCommand(BaseCommand):
@@ -44,7 +48,7 @@ async def miss_damage_dc_autocomplete(itr: discord.Interaction, current: str):
 
     damage_value = getattr(itr.namespace, "damage", None)
     if damage_value:
-        half_damage = half_dice_in_expression("8d6")
+        half_damage = half_dice_in_expression(damage_value)
         choices.append(discord.app_commands.Choice(name=f"Half-damage ({half_damage})", value=half_damage))
 
     choices.append(discord.app_commands.Choice(name="No damage", value="0"))
@@ -57,9 +61,9 @@ class AverageDamageDCCommand(BaseCommand):
     help = "Calculates the average damage of a DC-based attack against various save modifiers, taking critical hits and critical misses into account."
 
     @describe(
-        dc="Your DC value, ",
+        dc="Your DC value, usually your Spell Save DC.",
         damage="Your damage expression on a hit (e.g. '1d8+3', '8d6')",
-        miss_damage="The damage rolled on a miss, default = 0.",
+        miss_damage="The damage rolled on a miss.",
         min_mod="The minimum mod to compare against, default = -6",
         max_mod="The maximum mod to compare against, default = 12",
     )
@@ -69,7 +73,7 @@ class AverageDamageDCCommand(BaseCommand):
         itr: Interaction,
         dc: Range[int, 0, 30],
         damage: str,
-        miss_damage: str,  # TODO often times the miss damage is half of the normal damage, an autocomplete for this would be nice.
+        miss_damage: str,
         min_mod: Range[int, -20, 20] = -6,
         max_mod: Range[int, -20, 20] = 12,
     ) -> None:

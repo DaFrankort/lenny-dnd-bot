@@ -13,7 +13,7 @@ from logic.average import (
 
 class AverageDamageACCommand(BaseCommand):
     name = "ac"
-    desc = "Calculate the average damage of a melee attack vs various AC's!"
+    desc = "Calculate the average damage of an attack vs various ACs!"
     help = "Calculates the average damage of an attack against various armor classes, taking critical hits and critical misses into account."
 
     @describe(

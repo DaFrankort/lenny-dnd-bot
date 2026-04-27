@@ -33,7 +33,7 @@ class Initiative:
 
     @property
     def rolls(self) -> list[int]:
-        return list(self.raw_d20)[: self.advantage.roll_count]
+        return list(self.raw_d20)[: self.advantage.advantage.rolls]
 
     def get_total(self):
         roll = self.raw_d20[0]

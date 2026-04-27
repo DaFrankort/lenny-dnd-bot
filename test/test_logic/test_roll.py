@@ -1,6 +1,7 @@
 import math
 
 import pytest
+from d20.enums import Critical  # type: ignore
 
 from logic.roll import Advantage, roll
 
@@ -87,22 +88,22 @@ class TestDiceExpression:
 
     def test_is_nat_one(self):
         dice = roll("1d20ma1+5+5+5")
-        assert dice.roll.is_natural_one, "Dice roll should be natural one."
+        assert dice.roll.crit == Critical.FAIL, "Dice roll should be natural one."
 
     def test_is_nat_twenty(self):
         dice = roll("1d20mi20+5+5+5")
-        assert dice.roll.is_natural_twenty, "Dice roll should be natural twenty."
+        assert dice.roll.crit == Critical.CRIT, "Dice roll should be natural twenty."
 
     def test_is_dirty_twenty(self):
         dice = roll("1d20mi17ma17+3")
-        assert dice.roll.is_dirty_twenty, "Dice roll should be dirty twenty."
+        assert dice.roll.crit == Critical.DIRTY, "Dice roll should be dirty twenty."
 
     def test_contains_dice(self):
         dice1 = roll("1d20+5")
         dice2 = roll("120 + 5")
 
-        assert dice1.roll.contains_dice
-        assert not dice2.roll.contains_dice
+        assert len(dice1.warnings) == 0
+        assert len(dice2.warnings) == 1
 
     @pytest.mark.parametrize(
         "expected, expr",
@@ -133,5 +134,5 @@ class TestDiceExpression:
         ],
     )
     def test_has_comparison_result(self, expected: bool, expr: str):
-        result = roll(expr).roll.has_comparison_result
+        result = roll(expr).roll.is_comparison
         assert result == expected, f"expression '{expr}' expected {expected} but got {result}"

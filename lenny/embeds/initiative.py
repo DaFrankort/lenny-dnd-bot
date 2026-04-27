@@ -249,7 +249,6 @@ class InitiativePlayerRow(ui.ActionRow["InitiativeContainerView"]):
 
 
 class InitiativeDMRow(ui.ActionRow["InitiativeContainerView"]):
-
     def __init__(self, itr: discord.Interaction):
         super().__init__()
 

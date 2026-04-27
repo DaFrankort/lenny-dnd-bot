@@ -46,6 +46,8 @@ async def miss_damage_dc_autocomplete(itr: discord.Interaction, current: str):
     if damage_value:
         half_damage = half_dice_in_expression("8d6")
         choices.append(discord.app_commands.Choice(name=f"Half-damage ({half_damage})", value=half_damage))
+
+    choices.append(discord.app_commands.Choice(name="No damage", value="0"))
     return choices
 
 

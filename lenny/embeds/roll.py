@@ -80,7 +80,7 @@ class MultiRollEmbed(UserActionEmbed):
         footer = f"\n🎲 **{reason}: {result.total}**"
         if all(roll.is_comparison for roll in result.rolls):
             length = len(result.rolls)
-            succeeded = length - sum(r.total == 0 and r.is_comparison for r in result.rolls)
+            succeeded = length - sum(r.total == 0 for r in result.rolls)
             if succeeded == 0:
                 reason_result = "Failure"
             elif succeeded == length:

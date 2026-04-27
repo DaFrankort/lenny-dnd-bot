@@ -75,10 +75,10 @@ class MultiRollResult:
         return sum(r.total for r in self.rolls)
 
 
-def _validate_expression(expr: str) -> RollResult:
+def _validate_expression(expr: str, advantage: Advantage) -> RollResult:
     # Roll an expression once, to check for errors
     try:
-        return d20.roll(expr)
+        return d20.roll(expr, advantage=advantage.advantage)
     except d20.errors.RollSyntaxError as exception:
         raise SyntaxError(f"Expression '{expr}' has an invalid syntax!") from exception
     except d20.errors.TooManyRolls as exception:
@@ -94,7 +94,7 @@ def roll(expr: str, advantage: Advantage = Advantage.NORMAL) -> RollResult:
 
 def multi_roll(expr: str, amount: int, advantage: Advantage) -> MultiRollResult:
     stringifier = DiceStringifier()
-    validation = _validate_expression(expr)
+    validation = _validate_expression(expr, advantage)
     expr = str(d20.parse(expr))
 
     rolls_win: list[SingleRollResult] = []
@@ -107,9 +107,9 @@ def multi_roll(expr: str, amount: int, advantage: Advantage) -> MultiRollResult:
         rolls = list(sorted(rolls, key=lambda r: r.total, reverse=reverse))
 
         rolls_win.append(rolls[-1])
-        if advantage.advantage.rolls >= 2:
+        if len(rolls) >= 2:
             rolls_lose_1.append(rolls[0])
-        if advantage.advantage.rolls >= 3:
+        if len(rolls) >= 3:
             rolls_lose_2.append(rolls[1])
 
     return MultiRollResult(

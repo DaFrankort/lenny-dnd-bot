@@ -4,7 +4,7 @@ import dataclasses
 import d20  # type: ignore
 from d20.enums import Advantage as D20Advantage  # type: ignore
 from d20.roll import RollResult, SingleRollResult # type: ignore
-from d20.roll import expression as expression  # type: ignore
+from d20.roll import expression # type: ignore
 from d20.roll.stringifier import SimpleStringifier  # type: ignore
 
 from methods import ChoicedEnum
@@ -76,27 +76,27 @@ class MultiRollResult:
         return sum(r.total for r in self.rolls)
 
 
-def _validate_expression(expression: str) -> RollResult:
+def _validate_expression(expr: str) -> RollResult:
     # Roll an expression once, to check for errors
     try:
-        return d20.roll(expression)
+        return d20.roll(expr)
     except d20.errors.RollSyntaxError as exception:
-        raise SyntaxError(f"Expression '{expression}' has an invalid syntax!") from exception
+        raise SyntaxError(f"Expression '{expr}' has an invalid syntax!") from exception
     except d20.errors.TooManyRolls as exception:
-        raise TimeoutError(f"Expression '{expression}' has too many dice rolls!") from exception
+        raise TimeoutError(f"Expression '{expr}' has too many dice rolls!") from exception
     except Exception as exception:
         raise exception
 
 
-def roll(expression: str, advantage: Advantage = Advantage.NORMAL) -> RollResult:
+def roll(expr: str, advantage: Advantage = Advantage.NORMAL) -> RollResult:
     stringifier = DiceStringifier()
-    return d20.roll(expression, stringifier, advantage.advantage)
+    return d20.roll(expr, stringifier, advantage.advantage)
 
 
-def multi_roll(expression: str, amount: int, advantage: Advantage) -> MultiRollResult:
+def multi_roll(expr: str, amount: int, advantage: Advantage) -> MultiRollResult:
     stringifier = DiceStringifier()
-    validation = _validate_expression(expression)
-    expression = str(d20.parse(expression))
+    validation = _validate_expression(expr)
+    expr = str(d20.parse(expr))
 
     rolls_win: list[SingleRollResult] = []
     rolls_lose_1: list[SingleRollResult] = []
@@ -104,7 +104,7 @@ def multi_roll(expression: str, amount: int, advantage: Advantage) -> MultiRollR
 
     for _ in range(amount):
         reverse = advantage == Advantage.DISADVANTAGE
-        rolls = d20.roll(expression, stringifier, advantage.advantage).rolls
+        rolls = d20.roll(expr, stringifier, advantage.advantage).rolls
         rolls = list(sorted(rolls, key=lambda r: r.total, reverse=reverse))
 
         rolls_win.append(rolls[-1])
@@ -114,7 +114,7 @@ def multi_roll(expression: str, amount: int, advantage: Advantage) -> MultiRollR
             rolls_lose_2.append(rolls[1])
 
     return MultiRollResult(
-        expression,
+        expr,
         advantage,
         warnings=validation.warnings,
         rolls=rolls_win,

@@ -181,7 +181,7 @@ SLASH_COMMAND_TESTS: Iterable[Iterable[Any]] = [
     (
         "average dc",
         {
-            "dc": "17",
+            "dc": 17,
             "damage": "8d6",
             "miss_damage": "4d6",
             "min_mod": -2,

@@ -1,10 +1,9 @@
 import math
 
 import pytest
+from d20.enums import Critical  # type: ignore
 
 from logic.roll import Advantage, roll
-
-from d20.enums import Critical  # type: ignore
 
 
 class TestDiceExpression:

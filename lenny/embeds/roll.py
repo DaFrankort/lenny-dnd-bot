@@ -1,4 +1,5 @@
 import discord
+from d20.enums import Critical  # type: ignore
 
 from embeds.components import BaseModal, ModalRadioGroupComponent
 from embeds.dnd.table import DNDTableEntryView
@@ -7,7 +8,6 @@ from logic.dnd.table import DNDTable, roll_table
 from logic.roll import Advantage, MultiRollResult, RollResult, SingleRollResult
 from logic.voice_chat import VC, SoundType
 from methods import when
-from d20.enums import Critical  # type: ignore
 
 
 class RollEmbed(UserActionEmbed):

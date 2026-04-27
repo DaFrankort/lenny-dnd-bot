@@ -8,10 +8,10 @@ from pathlib import Path
 
 import davey  # noqa: F401 # pylint: disable=unused-import # type: ignore
 import discord
+from d20.enums import Critical  # type: ignore
 from discord import Interaction
 
 from logic.roll import RollResult
-from d20.enums import Critical  # type: ignore
 
 
 class SoundType(str, Enum):

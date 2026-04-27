@@ -3,8 +3,7 @@ import dataclasses
 # The usage of d20 requires many type: ignore comments, as d20 does not use any form of typing internally
 import d20  # type: ignore
 from d20.enums import Advantage as D20Advantage  # type: ignore
-from d20.roll import RollResult, SingleRollResult # type: ignore
-from d20.roll import expression # type: ignore
+from d20.roll import RollResult, SingleRollResult, expression  # type: ignore
 from d20.roll.stringifier import SimpleStringifier  # type: ignore
 
 from methods import ChoicedEnum

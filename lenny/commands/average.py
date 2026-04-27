@@ -1,9 +1,10 @@
 from discord import Interaction
-from discord.app_commands import Range, describe
+import discord
+from discord.app_commands import Range, describe, autocomplete
 
 from commands.command import BaseCommand, BaseCommandGroup
 from embeds.average import AverageDamageACLayoutView, AverageDamageDCLayoutView
-from logic.average import AverageDamageACResults, AverageDamageDCResults
+from logic.average import AverageDamageACResults, AverageDamageDCResults, half_dice_in_expression
 
 
 class AverageDamageACCommand(BaseCommand):
@@ -34,6 +35,20 @@ class AverageDamageACCommand(BaseCommand):
         await itr.response.send_message(view=view, file=results.chart)
 
 
+async def miss_damage_dc_autocomplete(itr: discord.Interaction, current: str):
+    choices: list[discord.app_commands.Choice[str]] = []
+
+    current = current.strip().lower()
+    if current:
+        choices.append(discord.app_commands.Choice(name=current, value=current))
+
+    damage_value = getattr(itr.namespace, "damage", None)
+    if damage_value:
+        half_damage = half_dice_in_expression("8d6")
+        choices.append(discord.app_commands.Choice(name=f"Half-damage ({half_damage})", value=half_damage))
+    return choices
+
+
 class AverageDamageDCCommand(BaseCommand):
     name = "dc"
     desc = "Calculate the average damage of a DC-based attack!"
@@ -46,6 +61,7 @@ class AverageDamageDCCommand(BaseCommand):
         min_mod="The minimum mod to compare against, default = -6",
         max_mod="The maximum mod to compare against, default = 12",
     )
+    @autocomplete(miss_damage=miss_damage_dc_autocomplete)
     async def handle(
         self,
         itr: Interaction,

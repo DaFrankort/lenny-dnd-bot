@@ -2,7 +2,7 @@ import dataclasses
 import io
 import re
 from abc import ABC, abstractmethod
-from typing import Callable
+from collections.abc import Callable
 
 import discord
 import matplotlib.pyplot as plt
@@ -79,13 +79,9 @@ def _calculate_hit_chances(
             else:
                 normal_miss_chance += odds
 
-    hit_chance = normal_hit_chance
     miss_chance = normal_miss_chance + crit_miss_chance
-    crit_chance = crit_hit_chance
-
-    assert abs(hit_chance + miss_chance + crit_chance - 1) < 1e-6
-
-    return hit_chance, miss_chance, crit_chance
+    assert abs(normal_hit_chance + miss_chance + crit_hit_chance - 1) < 1e-6
+    return normal_hit_chance, miss_chance, crit_hit_chance
 
 
 def _average_damage_per_attack(
@@ -194,19 +190,16 @@ class AverageDamageResultsBase(ABC):
     @abstractmethod
     def label(self) -> str:
         """The column-header for the X-axis values in the table"""
-        pass
 
     @property
     @abstractmethod
     def title(self) -> str:
         """The embed-title shown to users"""
-        pass
 
     @property
     @abstractmethod
     def details(self) -> str:
         """The formatted string showing the input of the user."""
-        pass
 
 
 class AverageDamageACResults(AverageDamageResultsBase):

@@ -47,13 +47,18 @@ def half_dice_in_expression(expression: str) -> str:
     return re.sub(r"(\d+)d(\d+)", half, expression)
 
 
-def _calculate_hit_chances(hit: str, ac: int, advantage: Advantage, crit_min: int) -> tuple[float, float, float]:
+def _calculate_hit_chances(
+    hit: str, ac: int, advantage: Advantage, crit_min: int, ignore_crit: bool
+) -> tuple[float, float, float]:
     d20_hit = dice_distribution("1d20", advantage)
     hit_bonus = dice_distribution(hit)
 
     # Calculate the hit chances
-    crit_miss_values = set([1])  # Always crit fail on a 1
-    crit_hit_values = set(range(crit_min, 21))
+    crit_miss_values: set[int] = set([1])  # Always crit fail on a 1
+    crit_hit_values: set[int] = set(range(crit_min, 21))
+    if ignore_crit:
+        crit_miss_values = set()
+        crit_hit_values = set()
     other_roll_values = set(range(1, 21)) - crit_miss_values - crit_hit_values
 
     crit_miss_chance = sum(d20_hit.get(r) for r in crit_miss_values)
@@ -87,12 +92,13 @@ def _average_damage_per_attack(
     advantage: Advantage,
     crit_min: int,
     miss_damage_expr: str = "0",
+    ignore_crit: bool = False,
 ) -> AverageDamageResult:
-    hit_chance, miss_chance, crit_chance = _calculate_hit_chances(hit, ac, advantage, crit_min)
+    hit_chance, miss_chance, crit_chance = _calculate_hit_chances(hit, ac, advantage, crit_min, ignore_crit)
 
     hit_damage = dice_distribution(damage)
     miss_damage = dice_distribution(miss_damage_expr)
-    crit_damage = dice_distribution(double_dice_in_expression(damage))  # TODO Crits in DC attacks are handled differently.
+    crit_damage = dice_distribution(double_dice_in_expression(damage))
 
     hit_avg = hit_damage.mean()
     miss_avg = miss_damage.mean()
@@ -215,7 +221,7 @@ class AverageDamageDCResults:
         for mod in self.mods:
             for advantage in self.advantages:
                 result = _average_damage_per_attack(
-                    str(mod), miss_damage, dc, advantage, 20, damage
+                    str(mod), miss_damage, dc, advantage, 20, damage, True
                 )  # Miss damage and damage are swapped
                 self.data[(mod, advantage)] = f"{result.avg_damage:.2f}"
 

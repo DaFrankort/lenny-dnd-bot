@@ -40,16 +40,6 @@ def double_dice_in_expression(expression: str) -> str:
     return re.sub(r"(\d+)d(\d+)", double, expression)
 
 
-def half_dice_in_expression(expression: str) -> str:
-    """halves the dice-count of a dice-expression, e.g. 2d6+5 -> 1d6+5"""
-
-    def half(match: re.Match[str]):
-        count = int(match.group(1))
-        return f"{count // 2}d{match.group(2)}"
-
-    return re.sub(r"(\d+)d(\d+)", half, expression)
-
-
 def _calculate_hit_chances(
     hit: str, ac: int, advantage: Advantage, crit_min: int, ignore_crit: bool
 ) -> tuple[float, float, float]:

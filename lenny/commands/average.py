@@ -7,7 +7,6 @@ from embeds.average import AverageDamageLayoutView
 from logic.average import (
     AverageDamageACResults,
     AverageDamageDCResults,
-    half_dice_in_expression,
 )
 
 
@@ -48,8 +47,8 @@ async def miss_damage_dc_autocomplete(itr: discord.Interaction, current: str):
 
     damage_value = getattr(itr.namespace, "damage", None)
     if damage_value:
-        half_damage = half_dice_in_expression(damage_value)
-        choices.append(discord.app_commands.Choice(name=f"Half-damage ({half_damage})", value=half_damage))
+        half_damage = f"({damage_value})/2"
+        choices.append(discord.app_commands.Choice(name="Half damage", value=half_damage))
 
     choices.append(discord.app_commands.Choice(name="No damage", value="0"))
     return choices

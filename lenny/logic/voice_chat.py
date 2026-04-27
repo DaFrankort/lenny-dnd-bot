@@ -11,6 +11,7 @@ import discord
 from discord import Interaction
 
 from logic.roll import RollResult
+from d20.enums import Critical  # type: ignore
 
 
 class SoundType(str, Enum):
@@ -157,9 +158,9 @@ class VC:
                 sound_type = SPECIAL_ROLL_REASONS.get(key, SoundType.ROLL)
                 break
 
-        if roll.is_natural_twenty:
+        if roll.crit == Critical.CRIT:
             sound_type = SoundType.NAT_20
-        elif roll.is_natural_one:
+        elif roll.crit == Critical.FAIL:
             sound_type = SoundType.NAT_1
 
         await VC.play(itr, sound_type)

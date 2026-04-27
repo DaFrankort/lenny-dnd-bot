@@ -4,9 +4,10 @@ from embeds.components import BaseModal, ModalRadioGroupComponent
 from embeds.dnd.table import DNDTableEntryView
 from embeds.embed import UserActionEmbed
 from logic.dnd.table import DNDTable, roll_table
-from logic.roll import MultiRollResult, RollResult, SingleRollResult
+from logic.roll import Advantage, MultiRollResult, RollResult, SingleRollResult
 from logic.voice_chat import VC, SoundType
 from methods import when
+from d20.enums import Critical  # type: ignore
 
 
 class RollEmbed(UserActionEmbed):
@@ -17,35 +18,36 @@ class RollEmbed(UserActionEmbed):
         reason: str | None,
         reroll: bool = False,
     ):
+        advantage = Advantage.from_advantage(result.advantage)
         if reroll:
-            title = f"Re-rolling {result.expression}{result.advantage.title_suffix}!"
+            title = f"Re-rolling {result.expression}{advantage.title_suffix}!"
         else:
-            title = f"Rolling {result.expression}{result.advantage.title_suffix}!"
+            title = f"Rolling {result.expression}{advantage.title_suffix}!"
 
         if reason is None:
             reason = "Result"
 
         descriptions: list[str] = []
 
-        if not result.roll.contains_dice:
-            descriptions.append("⚠️ Expression contains no dice. ⚠️")
+        for warning in result.warnings:
+            descriptions.append(f"⚠️ {warning} ⚠️")
 
         for roll in result.rolls:
-            descriptions.append(f"- `{roll.expression} -> {roll.total}`")
+            descriptions.append(f"- `{roll.expr} -> {roll.total}`")
 
         roll = result.roll
         descriptions.append("")
-        if roll.has_comparison_result:
+        if roll.is_comparison:
             success_status = when(roll.total == 0, "Failure", "Success")
             descriptions.append(f"🎲 **{reason}: {success_status}**")
         else:
             descriptions.append(f"🎲 **{reason}: {roll.total}**")
 
-        if roll.is_natural_twenty:
+        if roll.crit == Critical.CRIT:
             descriptions.append("🎯 **Critical Hit!**")
-        if roll.is_natural_one:
+        if roll.crit == Critical.FAIL:
             descriptions.append("💀 **Critical Fail!**")
-        if roll.is_dirty_twenty:
+        if roll.crit == Critical.DIRTY:
             descriptions.append("⚔️  **Dirty 20!**")
 
         description = "\n".join(descriptions)
@@ -76,9 +78,9 @@ class MultiRollEmbed(UserActionEmbed):
         losing_result_2 = self._get_roll_list(result.rolls_lose_2, True)
 
         footer = f"\n🎲 **{reason}: {result.total}**"
-        if all(roll.has_comparison_result for roll in result.rolls):
+        if all(roll.is_comparison for roll in result.rolls):
             length = len(result.rolls)
-            succeeded = length - sum(r.total == 0 and r.has_comparison_result for r in result.rolls)
+            succeeded = length - sum(r.total == 0 and r.is_comparison for r in result.rolls)
             if succeeded == 0:
                 reason_result = "Failure"
             elif succeeded == length:
@@ -93,8 +95,9 @@ class MultiRollEmbed(UserActionEmbed):
             return
 
         super().__init__(itr, title, "")
-        if not result.rolls[0].contains_dice:
-            self.description = "⚠️ Expression contains no dice. ⚠️"
+
+        if result.warnings:
+            self.description = "\n".join(f"⚠️ {warning} ⚠️" for warning in result.warnings)
 
         if losing_result_1:
             self.add_field(name="", value=losing_result_1, inline=True)
@@ -107,15 +110,15 @@ class MultiRollEmbed(UserActionEmbed):
     def _get_roll_list(self, rolls: list[SingleRollResult], strike_through: bool = False) -> str:
         results: list[str] = []
         for roll in rolls:
-            roll_message = f"`{roll.expression} -> {roll.total}`"
+            roll_message = f"`{roll.expr} -> {roll.total}`"
             if strike_through:
                 roll_message = f"~~{roll_message}~~"
 
-            if roll.is_natural_twenty:
+            if roll.crit == Critical.CRIT:
                 roll_message += " 🎯"
-            elif roll.is_natural_one:
+            elif roll.crit == Critical.FAIL:
                 roll_message += " 💀"
-            elif roll.is_dirty_twenty:
+            elif roll.crit == Critical.DIRTY:
                 roll_message += " ⚔️"
             results.append(roll_message)
         return "\n".join(results)

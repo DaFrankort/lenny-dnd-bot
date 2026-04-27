@@ -266,9 +266,9 @@ class AverageDamageDCResults(AverageDamageResultsBase):
             x_values=mods,
             damage=damage,
             miss_damage=miss_damage,
-            title="Average Damage vs Save Modifiers",
-            xlabel="Save Modifier",
-            ylabel=f"Avg. Damage (DC {dc} -> {damage})",
+            title=f"Average Damage using DC {self.dc}",
+            xlabel="Save Modifier (1d20+x)",
+            ylabel=f"Avg. Damage ({damage})",
             calc_func=lambda mod, adv: _average_damage_per_attack(
                 str(mod), miss_damage, dc, adv, 20, damage, True
             ),  # Swap damage/miss_damage and use ignore_crit for Save DCs

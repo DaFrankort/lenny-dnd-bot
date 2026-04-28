@@ -1,10 +1,10 @@
 import dataclasses
 
 # The usage of d20 requires many type: ignore comments, as d20 does not use any form of typing internally
-import d20  # type: ignore
-from d20.enums import Advantage as D20Advantage  # type: ignore
-from d20.roll import RollResult, SingleRollResult, expression  # type: ignore
-from d20.roll.stringifier import SimpleStringifier  # type: ignore
+import d20
+from d20.enums import Advantage as D20Advantage
+from d20.roll import RollResult, SingleRollResult, expression
+from d20.roll.stringifier import SimpleStringifier
 
 from methods import ChoicedEnum
 
@@ -51,7 +51,7 @@ class Advantage(str, ChoicedEnum):
 
 class DiceStringifier(SimpleStringifier):
     def _str_expression(self, node: expression.Expression):
-        return f"{self._stringify(node.roll)}"
+        return f"{self._stringify(node.value)}"
 
     def _str_dice(self, node: expression.Dice):
         dice = list(self._str_die(die, node.size) for die in node.keptset)

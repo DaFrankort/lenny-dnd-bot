@@ -1,5 +1,5 @@
 import discord
-from d20.enums import Critical  # type: ignore
+from d20.enums import Critical
 
 from embeds.components import BaseModal, ModalRadioGroupComponent
 from embeds.dnd.table import DNDTableEntryView

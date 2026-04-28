@@ -98,7 +98,8 @@ Roll D&D dice using dice-expressions (e.g. `2d6` / `1d20+2`).
 - `/multiroll <dice-expression> <amount> [advantage] [reason]` – Roll a dice expression multiple times, shows the individual results as well as the total.
 - `/tableroll <table-name> <roll-result>` - Rolls on a D&D table from 5e.tools, showing the result and it's description.
 - `/distribution <expression> [advantage] [min-to-beat]` - Creates a graph showing likeliness of your dice expression's roll results.
-- `/average <hit> <damage> [min_ac] [max_ac] [crit_min] [miss_damage]` - Calculate the average damage of an attack based on hit chance and critical range against various armor classes.
+- `/average ac <hit> <damage> [min_ac] [max_ac] [crit_min] [miss_damage]` - Calculate the average damage of an attack based on hit chance and critical range against various armor classes.
+- `/average dc <dc> <damage> <miss_damage> [min_mod] [max_mod]` - Calculate the average damage of a save-based attack based on save DC against various saving throw modifiers.
 
 ### D&D Data lookup
 

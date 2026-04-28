@@ -2,7 +2,7 @@ import dataclasses
 import io
 import math
 
-import d20 
+import d20
 import d20distribution  # type: ignore
 import discord
 import matplotlib

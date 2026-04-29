@@ -5,6 +5,7 @@ from typing import Any
 import discord
 from discord.app_commands import Choice
 
+from logic.dicetriecache import DiceTrieCache
 from logic.dnd.data import Data
 from logic.jsonhandler import JsonFolderHandler, JsonHandler
 from logic.voice_chat import SPECIAL_ROLL_REASONS
@@ -49,6 +50,7 @@ class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
         self.cache.rolls.append(expression)
 
         self.cache.rolls = self.cache.rolls[-5:]  # Store max 5 expressions
+        DiceTrieCache.add(expression)
         self.save()
 
     def store_reason(self, reason: str | None):
@@ -78,11 +80,29 @@ class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
 
         query = query.strip().lower().replace(" ", "")
         suggestions: list[str] = []
-        if query and re.compile(r"^\d+d\d+$", re.IGNORECASE).match(query):
-            suggestions.append(query)  # Suggest query if is clean dice
-        suggestions.extend([roll for roll in reversed(rolls) if query in roll.lower()])
+        seen: set[str] = set()
 
-        return [Choice(name=roll, value=roll) for roll in suggestions[:25]]
+        def add_suggestion(value: str) -> None:
+            normalized = value.strip().lower().replace(" ", "")
+            if not normalized:
+                return
+            if normalized in seen:
+                return
+
+            seen.add(normalized)
+            suggestions.append(value)
+
+        if query and re.compile(r"^\d+d\d+$", re.IGNORECASE).match(query):
+            add_suggestion(query)  # Suggest query if is clean dice
+
+        for roll in reversed(rolls):
+            if query in roll.lower():
+                add_suggestion(roll)
+
+        for roll in DiceTrieCache.get_suggestions(query, 5):
+            add_suggestion(roll)
+
+        return [Choice(name=roll, value=roll) for roll in suggestions[:5]]
 
     def get_autocomplete_reason_suggestions(self, query: str) -> list[Choice[str]]:
         """

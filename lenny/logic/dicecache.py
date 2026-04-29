@@ -1,5 +1,5 @@
-import re
 from dataclasses import dataclass
+import re
 from typing import Any
 
 import discord
@@ -9,16 +9,6 @@ from discord.app_commands import Choice
 from logic.dnd.data import Data
 from logic.jsonhandler import JsonFolderHandler, JsonHandler
 from logic.voice_chat import SPECIAL_ROLL_REASONS
-
-DEFAULT_TRIE = {
-    "1d10red": 5,  # Cyberpunk Red roll
-    "1d8e8": 5,  # Sorcerous Burst
-    "4d6kh3": 5,  # Stat rolling
-    "2d20kh1": 5,  # Advantage
-    "2d20kl1": 5,  # Disadvantage
-    "2d4+2": 5,  # Potion of Healing
-    "4d4+4": 5,  # Potion of Greater Healing
-}
 
 
 @dataclass
@@ -34,14 +24,19 @@ class DiceCacheInfo:
             rolls=obj.get("rolls", []),
             reasons=obj.get("reasons", []),
             initiative=obj.get("initiative", 0),
-            trie=obj.get("trie", DEFAULT_TRIE),
+            trie=obj.get(
+                "trie",
+                {
+                    "1d10red": 3,  # Cyberpunk Red roll
+                    "1d8e8": 3,  # Sorcerous Burst
+                    "4d6kh3": 3,  # Stat rolling
+                    "2d20kh1": 3,  # Advantage
+                    "2d20kl1": 3,  # Disadvantage
+                    "2d4+2": 3,  # Potion of Healing
+                    "4d4+4": 3,  # Potion of Greater Healing
+                },
+            ),
         )
-
-
-def normalize_expression(expression: str) -> str:
-    # TODO Sorting dice expressions and merging compatible dice and modifiers could be beneficial.
-    # e.g. 1d8+1d6+2d6+1+4 => 1d8+3d6+5
-    return expression.strip().lower().replace(" ", "")
 
 
 class DiceCacheTrie:
@@ -53,7 +48,7 @@ class DiceCacheTrie:
         self.clean()  # DiceCache is often reinitialized, we can use this behavior to periodically clean the user's trie.
 
     def add(self, expression: str):
-        expression = normalize_expression(expression)
+        expression = expression.strip().lower().replace(" ", "")
         if not expression:
             return
 
@@ -61,8 +56,8 @@ class DiceCacheTrie:
         self._trie[expression] = count + 1
         self._data.trie = dict(self._trie.items())  # type: ignore
 
-    def get_suggestions(self, expression: str, limit: int = 25) -> list[str]:
-        expression = normalize_expression(expression)
+    def get_suggestions(self, expression: str, limit: int) -> list[str]:
+        expression = expression.strip().lower().replace(" ", "")
         if not expression:
             return []
 
@@ -154,13 +149,9 @@ class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
         seen: set[str] = set()
 
         def add_suggestion(value: str) -> None:
-            normalized = value.strip().lower().replace(" ", "")
-            if not normalized:
+            if value in seen:
                 return
-            if normalized in seen:
-                return
-
-            seen.add(normalized)
+            seen.add(value)
             suggestions.append(value)
 
         if query and re.compile(r"^\d+d\d+$", re.IGNORECASE).match(query):
@@ -170,7 +161,7 @@ class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
             if query in roll.lower():
                 add_suggestion(roll)
 
-        for roll in self._trie.get_suggestions(query, 5):
+        for roll in self._trie.get_suggestions(query, 5 - len(suggestions)):
             add_suggestion(roll)
 
         return [Choice(name=roll, value=roll) for roll in suggestions[:5]]

@@ -14,10 +14,10 @@ DEFAULT_TRIE = {
     "1d10red": 5,  # Cyberpunk Red roll
     "1d8e8": 5,  # Sorcerous Burst
     "4d6kh3": 5,  # Stat rolling
-    "2d20kh1": 10,  # Advantage
-    "2d20kl1": 10,  # Disadvantage
-    "2d4+2": 10,  # Potion of Healing
-    "4d4+4": 10,  # Potion of Greater Healing
+    "2d20kh1": 5,  # Advantage
+    "2d20kl1": 5,  # Disadvantage
+    "2d4+2": 5,  # Potion of Healing
+    "4d4+4": 5,  # Potion of Greater Healing
 }
 
 
@@ -50,6 +50,7 @@ class DiceCacheTrie:
     def __init__(self, data: DiceCacheInfo):
         self._trie = pygtrie.CharTrie(data.trie)
         self._data = data
+        self.clean()  # DiceCache is often reinitialized, we can use this behavior to periodically clean the user's trie.
 
     def add(self, expression: str):
         expression = normalize_expression(expression)
@@ -74,10 +75,8 @@ class DiceCacheTrie:
 
     def clean(self, limit: int = 50, max_count: int = 100):
         items = list(self._trie.items())  # type: ignore
-        if len(items) <= limit:  # type: ignore
-            return
 
-        # If an expression has thousands of uses, it will just claim space and will
+        # If an expression has lots of uses, it will just claim space and will
         # likely never be removed from the trie, removing newer expressions instead.
         # To make it easier for a user to 'clear' an expression from the trie, we
         # limit the max count and halve all counts if that limit is exceeded.

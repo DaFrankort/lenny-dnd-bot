@@ -18,11 +18,10 @@ class TestDiceCacheTrie:
         trie_handler.add("1d20+5")
         trie_handler.add("1d20+5")
 
-        assert cache_info.trie["1d20+5"] == 2
+        assert cache_info.trie["1d20+5"] == 2, "double-added expression in trie should be 2."
 
-        # Ensure it normalizes input (lowercase, no spaces)
         trie_handler.add(" 2d6 + 2 ")
-        assert "2d6+2" in cache_info.trie
+        assert "2d6+2" in cache_info.trie, "dice expression should be normalized in trie."
 
     def test_get_suggestions_sorting(self, trie_handler: DiceCacheTrie):
         trie_handler.add("8d6")

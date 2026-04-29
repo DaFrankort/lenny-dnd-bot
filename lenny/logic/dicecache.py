@@ -11,6 +11,18 @@ from logic.jsonhandler import JsonFolderHandler, JsonHandler
 from logic.voice_chat import SPECIAL_ROLL_REASONS
 
 
+def default_dicecache_trie() -> dict[str, int]:
+    return {
+        "1d10red": 3,  # Cyberpunk Red roll
+        "1d8e8": 3,  # Sorcerous Burst
+        "4d6kh3": 3,  # Stat rolling
+        "2d20kh1": 3,  # Advantage
+        "2d20kl1": 3,  # Disadvantage
+        "2d4+2": 3,  # Potion of Healing
+        "4d4+4": 3,  # Potion of Greater Healing
+    }
+
+
 @dataclass
 class DiceCacheInfo:
     rolls: list[str]
@@ -24,18 +36,7 @@ class DiceCacheInfo:
             rolls=obj.get("rolls", []),
             reasons=obj.get("reasons", []),
             initiative=obj.get("initiative", 0),
-            trie=obj.get(
-                "trie",
-                {
-                    "1d10red": 3,  # Cyberpunk Red roll
-                    "1d8e8": 3,  # Sorcerous Burst
-                    "4d6kh3": 3,  # Stat rolling
-                    "2d20kh1": 3,  # Advantage
-                    "2d20kl1": 3,  # Disadvantage
-                    "2d4+2": 3,  # Potion of Healing
-                    "4d4+4": 3,  # Potion of Greater Healing
-                },
-            ),
+            trie=obj.get("trie", default_dicecache_trie()),
         )
 
 

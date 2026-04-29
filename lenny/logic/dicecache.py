@@ -82,8 +82,7 @@ class DiceCacheTrie:
 
         # Remove least used counts
         items.sort(key=lambda x: x[1], reverse=True)  # type: ignore
-        keys_to_remove = [expr for expr, _ in items[limit:]]  # type: ignore
-        for key in keys_to_remove:  # type: ignore
+        for key, _ in items[limit:]:  # type: ignore
             del self._trie[key]
 
         self._data.trie = dict(self._trie.items())  # type: ignore

@@ -23,17 +23,8 @@ class DiceTrieCacheHandler(JsonHandler[DiceTrie]):
     def _init_trie_values(self):
         """Default trie structure with commonly used expressions."""
         DEFAULT_DICE_EXPRESSIONS = {
-            "1d100": 10,
-            "1d20": 10,
-            "1d12": 10,
-            "1d10": 10,
-            "1d8": 10,
-            "1d6": 10,
-            "1d4": 10,
             "1d10red": 5,  # Cyberpunk Red roll
-            "2d6": 5,  # Sneak Damage
             "1d8e8": 5,  # Sorcerous Burst
-            "2d8e8": 5,  # Sorcerous Burst
             "4d6kh3": 5,  # Stat rolling
             "2d20kh1": 10,  # Advantage
             "2d20kl1": 10,  # Disadvantage

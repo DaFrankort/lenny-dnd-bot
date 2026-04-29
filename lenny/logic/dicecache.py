@@ -95,7 +95,7 @@ class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
     def __init__(self, user_id: int):
         super().__init__(str(user_id), "user_cache")
         if not self.data:
-            self.cache = DiceCacheInfo(rolls=[], reasons=[], initiative=0, trie={})  # TODO init trie data
+            self.cache = DiceCacheInfo(rolls=[], reasons=[], initiative=0, trie={})
         self._trie = DiceCacheTrie(self.cache)
 
     @property

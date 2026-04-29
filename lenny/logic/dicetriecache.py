@@ -15,8 +15,37 @@ class DiceTrieCacheHandler(JsonHandler[DiceTrie]):
     def __init__(self):
         super().__init__(filename="dice_trie")
 
-        # TODO some basic initialization logic would be nice, like knowledge of basic dice expressions.
-        self._trie = pygtrie.CharTrie(self.data.get("global", DiceTrie(trie={})).trie)
+        data = self.data.get("global", DiceTrie(trie={})).trie
+        self._trie = pygtrie.CharTrie(data)
+        if len(self._trie) <= 0:
+            self._init_trie_values()
+
+    def _init_trie_values(self):
+        """Default trie structure with commonly used expressions."""
+        DEFAULT_DICE_EXPRESSIONS = {
+            "1d100": 10,
+            "1d20": 10,
+            "1d12": 10,
+            "1d10": 10,
+            "1d8": 10,
+            "1d6": 10,
+            "1d4": 10,
+            "1d10red": 5,  # Cyberpunk Red roll
+            "2d6": 5,  # Sneak Damage
+            "1d8e8": 5,  # Sorcerous Burst
+            "2d8e8": 5,  # Sorcerous Burst
+            "4d6kh3": 5,  # Stat rolling
+            "2d20kh1": 10,  # Advantage
+            "2d20kl1": 10,  # Disadvantage
+            "2d4+2": 10,  # Potion of Healing
+            "4d4+4": 10,  # Potion of Greater Healing
+        }
+
+        for expr, count in DEFAULT_DICE_EXPRESSIONS.items():
+            self._trie[expr] = count
+
+        self.data["global"] = DiceTrie(trie=dict(self._trie.items()))  # type: ignore
+        self.save()
 
     def deserialize(self, obj: Any) -> DiceTrie:
         if isinstance(obj, dict):
@@ -48,6 +77,19 @@ class DiceTrieCacheHandler(JsonHandler[DiceTrie]):
             return [expression for expression, _ in matches[:limit]]  # type: ignore
         except KeyError:
             return []
+
+    def clean(self, limit: int = 512):
+        all_items = list(self._trie.items())  # type: ignore
+        if len(all_items) <= limit:  # type: ignore
+            return
+
+        all_items.sort(key=lambda x: x[1], reverse=True)  # type: ignore
+        keys_to_remove = [expr for expr, count in all_items[limit:]]  # type: ignore
+        for key in keys_to_remove:  # type: ignore
+            del self._trie[key]
+
+        self.data["global"] = DiceTrie(trie=dict(self._trie.items()))  # type: ignore
+        self.save()
 
 
 DiceTrieCache = DiceTrieCacheHandler()

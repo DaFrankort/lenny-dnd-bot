@@ -30,7 +30,12 @@ class DiceCacheInfo:
 
     @classmethod
     def fromdict(cls, obj: Any) -> "DiceCacheInfo":
-        return cls(rolls=obj.get("rolls", []), reasons=obj.get("reasons", []), initiative=obj.get("initiative", 0), trie={})
+        return cls(
+            rolls=obj.get("rolls", []),
+            reasons=obj.get("reasons", []),
+            initiative=obj.get("initiative", 0),
+            trie=obj.get("trie", DEFAULT_TRIE),
+        )
 
 
 def normalize_expression(expression: str) -> str:
@@ -45,8 +50,6 @@ class DiceCacheTrie:
     def __init__(self, data: DiceCacheInfo):
         self._trie = pygtrie.CharTrie(data.trie)
         self._data = data
-        if len(self._data.trie) == 0:
-            self._data.trie = DEFAULT_TRIE
 
     def add(self, expression: str):
         expression = normalize_expression(expression)

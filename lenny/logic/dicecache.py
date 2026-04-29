@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Any
 
 import discord
+import pygtrie  # pyright: ignore[reportMissingTypeStubs]
 from discord.app_commands import Choice
 
 from logic.dnd.data import Data
@@ -10,11 +11,24 @@ from logic.jsonhandler import JsonFolderHandler, JsonHandler
 from logic.voice_chat import SPECIAL_ROLL_REASONS
 
 
+def default_dicecache_trie() -> dict[str, int]:
+    return {
+        "1d10red": 3,  # Cyberpunk Red roll
+        "1d8e8": 3,  # Sorcerous Burst
+        "4d6kh3": 3,  # Stat rolling
+        "2d20kh1": 3,  # Advantage
+        "2d20kl1": 3,  # Disadvantage
+        "2d4+2": 3,  # Potion of Healing
+        "4d4+4": 3,  # Potion of Greater Healing
+    }
+
+
 @dataclass
 class DiceCacheInfo:
     rolls: list[str]
     reasons: list[str]
     initiative: int
+    trie: dict[str, int]
 
     @classmethod
     def fromdict(cls, obj: Any) -> "DiceCacheInfo":
@@ -22,14 +36,67 @@ class DiceCacheInfo:
             rolls=obj.get("rolls", []),
             reasons=obj.get("reasons", []),
             initiative=obj.get("initiative", 0),
+            trie=obj.get("trie", default_dicecache_trie()),
         )
 
 
+class DiceCacheTrie:
+    _data: DiceCacheInfo
+
+    def __init__(self, data: DiceCacheInfo):
+        self._trie = pygtrie.CharTrie(data.trie)
+        self._data = data
+        self.clean()  # DiceCache is often reinitialized, we can use this behavior to periodically clean the user's trie.
+
+    def add(self, expression: str):
+        expression = expression.strip().lower().replace(" ", "")
+        if not expression:
+            return
+
+        count: int = self._trie.get(expression, 0)  # type: ignore
+        self._trie[expression] = count + 1
+        self._data.trie = dict(self._trie.items())  # type: ignore
+
+    def get_suggestions(self, expression: str, limit: int) -> list[str]:
+        expression = expression.strip().lower().replace(" ", "")
+        if not expression:
+            return []
+
+        try:
+            matches = list(self._trie.items(prefix=expression))  # type: ignore
+            matches.sort(key=lambda item: item[1], reverse=True)  # type: ignore
+            return [expression for expression, _ in matches[:limit]]  # type: ignore
+        except KeyError:
+            return []
+
+    def clean(self, limit: int = 50, max_count: int = 100):
+        items = list(self._trie.items())  # type: ignore
+
+        # If an expression has lots of uses, it will just claim space and will
+        # likely never be removed from the trie, removing newer expressions instead.
+        # To make it easier for a user to 'clear' an expression from the trie, we
+        # limit the max count and halve all counts if that limit is exceeded.
+        if items and max(count for _, count in items) >= max_count:  # type: ignore
+            for key in self._trie.keys():  # type: ignore
+                self._trie[key] = max(1, self._trie[key] // 2)  # type: ignore
+            items = list(self._trie.items())  # type: ignore
+
+        # Remove least used counts
+        items.sort(key=lambda x: x[1], reverse=True)  # type: ignore
+        for key, _ in items[limit:]:  # type: ignore
+            del self._trie[key]
+
+        self._data.trie = dict(self._trie.items())  # type: ignore
+
+
 class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
+    _trie: DiceCacheTrie
+
     def __init__(self, user_id: int):
         super().__init__(str(user_id), "user_cache")
         if not self.data:
-            self.cache = DiceCacheInfo(rolls=[], reasons=[], initiative=0)
+            self.cache = DiceCacheInfo(rolls=[], reasons=[], initiative=0, trie={})
+        self._trie = DiceCacheTrie(self.cache)
 
     @property
     def cache(self) -> DiceCacheInfo:
@@ -49,6 +116,7 @@ class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
         self.cache.rolls.append(expression)
 
         self.cache.rolls = self.cache.rolls[-5:]  # Store max 5 expressions
+        self._trie.add(expression)
         self.save()
 
     def store_reason(self, reason: str | None):
@@ -78,11 +146,25 @@ class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
 
         query = query.strip().lower().replace(" ", "")
         suggestions: list[str] = []
-        if query and re.compile(r"^\d+d\d+$", re.IGNORECASE).match(query):
-            suggestions.append(query)  # Suggest query if is clean dice
-        suggestions.extend([roll for roll in reversed(rolls) if query in roll.lower()])
+        seen: set[str] = set()
 
-        return [Choice(name=roll, value=roll) for roll in suggestions[:25]]
+        def add_suggestion(value: str) -> None:
+            if value in seen:
+                return
+            seen.add(value)
+            suggestions.append(value)
+
+        if query and re.compile(r"^\d+d\d+$", re.IGNORECASE).match(query):
+            add_suggestion(query)  # Suggest query if is clean dice
+
+        for roll in reversed(rolls):
+            if query in roll.lower():
+                add_suggestion(roll)
+
+        for roll in self._trie.get_suggestions(query, 5 - len(suggestions)):
+            add_suggestion(roll)
+
+        return [Choice(name=roll, value=roll) for roll in suggestions[:5]]
 
     def get_autocomplete_reason_suggestions(self, query: str) -> list[Choice[str]]:
         """

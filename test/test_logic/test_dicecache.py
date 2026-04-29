@@ -36,7 +36,7 @@ class TestDiceCacheTrie:
 
     def test_clean_pruning(self, trie_handler: DiceCacheTrie, cache_info: DiceCacheInfo):
         for i in range(60):
-            trie_handler.add(f"1d{i+1}")
+            trie_handler.add(f"1d{i + 1}")
 
         trie_handler.clean(limit=10)
         assert len(cache_info.trie) == 10, "trie data should be limited to clean-limit"

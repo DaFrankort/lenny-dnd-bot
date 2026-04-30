@@ -104,8 +104,8 @@ def _validate_expression(expr: str, advantage: Advantage) -> D20RollResult:
 def roll(expr: str, advantage: Advantage = Advantage.NORMAL) -> RollResult:
     expr = str(d20.parse(expr))
     stringifier = DiceStringifier()
-    roll = d20.roll(expr, stringifier, advantage.advantage)
-    return RollResult(expression=expr, advantage=advantage, result=roll)
+    result = d20.roll(expr, stringifier, advantage.advantage)
+    return RollResult(expression=expr, advantage=advantage, result=result)
 
 
 def multi_roll(expr: str, amount: int, advantage: Advantage) -> MultiRollResult:

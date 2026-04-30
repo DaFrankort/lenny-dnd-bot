@@ -62,7 +62,7 @@ def _adjust_rgb_color_lightness(rgb: tuple[int, int, int], new_lightness: float)
     return tuple(int(x * 255) for x in rgb_float)  # type: ignore
 
 
-def _get_luminance_font_color(rgb: tuple[int, int, int]) -> tuple[int, int, int]:
+def get_luminance_font_color(rgb: tuple[int, int, int]) -> tuple[int, int, int]:
     """
     Returns a brighter font color based on the given background rgb values.
     Has a fallback to pure white or black if the adjusted color is too similar to the background color.
@@ -105,7 +105,7 @@ def get_palette_image(color: discord.Color | int) -> discord.File:
         line_w = line_bbox[2] - line_bbox[0]
         # Center horizontally
         x = (image.width - line_w) // 2
-        draw.text((x, y), line, font=font, fill=_get_luminance_font_color((r, g, b)))
+        draw.text((x, y), line, font=font, fill=get_luminance_font_color((r, g, b)))
         y += line_heights[i] + spacing
 
     # Buffer and send

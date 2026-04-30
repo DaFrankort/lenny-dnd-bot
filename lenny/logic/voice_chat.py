@@ -147,7 +147,7 @@ class VC:
 
     @staticmethod
     async def play_dice_roll(itr: Interaction, result: RollResult, reason: str | None = None):
-        roll = result.roll
+        roll = result.result.roll
         sound_type: SoundType = SoundType.ROLL
 
         reason = "" if not reason else reason.lower().strip()

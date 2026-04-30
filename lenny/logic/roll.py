@@ -3,7 +3,8 @@ import dataclasses
 # The usage of d20 requires many type: ignore comments, as d20 does not use any form of typing internally
 import d20
 from d20.enums import Advantage as D20Advantage
-from d20.roll import RollResult, SingleRollResult, expression
+from d20.roll import RollResult as D20RollResult
+from d20.roll import SingleRollResult, expression
 from d20.roll.stringifier import SimpleStringifier
 
 from methods import ChoicedEnum
@@ -62,6 +63,19 @@ class DiceStringifier(SimpleStringifier):
 
 
 @dataclasses.dataclass
+class RollResult:
+    """Wrapper class around d20.roll.RollResult, to store additional information."""
+
+    expression: str  # The original expression of the roll. May not match the d20 roll's expression if advantage was used.
+    advantage: Advantage
+    result: D20RollResult
+
+    @property
+    def total(self) -> int:
+        return self.result.total
+
+
+@dataclasses.dataclass
 class MultiRollResult:
     expression: str
     advantage: Advantage
@@ -75,7 +89,7 @@ class MultiRollResult:
         return sum(r.total for r in self.rolls)
 
 
-def _validate_expression(expr: str, advantage: Advantage) -> RollResult:
+def _validate_expression(expr: str, advantage: Advantage) -> D20RollResult:
     # Roll an expression once, to check for errors
     try:
         return d20.roll(expr, advantage=advantage.advantage)
@@ -88,8 +102,10 @@ def _validate_expression(expr: str, advantage: Advantage) -> RollResult:
 
 
 def roll(expr: str, advantage: Advantage = Advantage.NORMAL) -> RollResult:
+    expr = str(d20.parse(expr))
     stringifier = DiceStringifier()
-    return d20.roll(expr, stringifier, advantage.advantage)
+    roll = d20.roll(expr, stringifier, advantage.advantage)
+    return RollResult(expression=expr, advantage=advantage, result=roll)
 
 
 def multi_roll(expr: str, amount: int, advantage: Advantage) -> MultiRollResult:

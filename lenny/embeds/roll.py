@@ -5,7 +5,7 @@ from embeds.components import BaseModal, ModalRadioGroupComponent
 from embeds.dnd.table import DNDTableEntryView
 from embeds.embed import UserActionEmbed
 from logic.dnd.table import DNDTable, roll_table
-from logic.roll import Advantage, MultiRollResult, RollResult, SingleRollResult
+from logic.roll import MultiRollResult, RollResult, SingleRollResult
 from logic.voice_chat import VC, SoundType
 from methods import when
 
@@ -18,24 +18,23 @@ class RollEmbed(UserActionEmbed):
         reason: str | None,
         reroll: bool = False,
     ):
-        advantage = Advantage.from_advantage(result.advantage)
         if reroll:
-            title = f"Re-rolling {result.expression}{advantage.title_suffix}!"
+            title = f"Re-rolling {result.expression}{result.advantage.title_suffix}!"
         else:
-            title = f"Rolling {result.expression}{advantage.title_suffix}!"
+            title = f"Rolling {result.expression}{result.advantage.title_suffix}!"
 
         if reason is None:
             reason = "Result"
 
         descriptions: list[str] = []
 
-        for warning in result.warnings:
+        for warning in result.result.warnings:
             descriptions.append(f"⚠️ {warning} ⚠️")
 
-        for roll in result.rolls:
+        for roll in result.result.rolls:
             descriptions.append(f"- `{roll.expr} -> {roll.total}`")
 
-        roll = result.roll
+        roll = result.result.roll
         descriptions.append("")
         if roll.is_comparison:
             success_status = when(roll.total == 0, "Failure", "Success")

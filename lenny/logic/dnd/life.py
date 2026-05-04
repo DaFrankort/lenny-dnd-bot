@@ -1,5 +1,5 @@
-from dataclasses import dataclass
 import random
+from dataclasses import dataclass
 
 from logic.dnd.abstract import DNDEntryList
 
@@ -38,15 +38,13 @@ class LifeData:
                     name=details.get("name"),
                     source=details.get("source"),
                     reasons=details.get("reasons", []),
-                    other=details.get("other", {})
+                    other=details.get("other", {}),
                 )
 
             background_data = datum.get("background", {})
             for bg_name, details in background_data.items():
                 self.backgrounds[bg_name] = LifeBackground(
-                    name=details.get("name"),
-                    source=details.get("source"),
-                    reasons=details.get("reasons", [])
+                    name=details.get("name"), source=details.get("source"), reasons=details.get("reasons", [])
                 )
 
             self.trinkets.extend(datum.get("trinket", []))

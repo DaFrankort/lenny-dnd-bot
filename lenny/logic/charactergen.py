@@ -3,7 +3,7 @@ import random
 
 import discord
 
-from logic.dnd.abstract import TDND, DNDEntry
+from logic.dnd.abstract import TDND
 from logic.dnd.background import Background
 from logic.dnd.class_ import Class
 from logic.dnd.data import Data
@@ -162,29 +162,22 @@ def _apply_background_boosts(stats: list[tuple[int, str]], background: Backgroun
     return new_stats
 
 
-def _get_backstory(table_name: str, entry: DNDEntry) -> str:
-    table_name = f"{table_name} [{entry.name}]"
-    table = _get_dnd_table(table_name, "XGE")
-    if table is None:
-        return ""
+def _get_backstory(class_name: str, background_name: str) -> str:
+    parts: list[str] = []
 
-    if table.table["table"]["headers"] is None:
-        return ""
+    bg_reason = Data.life.get_random_background_reason(background_name)
+    if bg_reason:
+        parts.append(f"**{background_name}**: {bg_reason}")
 
-    try:
-        roll = table.roll()
-    except (PermissionError, LookupError):
-        return ""
+    c_reason = Data.life.get_random_class_reason(class_name)
+    c_others = Data.life.get_random_class_others(class_name)
+    if c_reason and c_others:
+        parts.append(f"**{class_name}**: {c_reason}")
+        for label, detail in c_others:
+            parts.append(f"**{label}**: {detail}")
 
-    reason = roll[0][1]
-    if not isinstance(reason, str):
-        raise NotImplementedError("New backstory table is not supported.")
-
-    if not reason.startswith("I "):
-        reason = reason[0].lower() + reason[1:]
-
-    prefix = table.table["table"]["headers"][1].replace("...", " ")
-    return prefix + reason
+    parts.append(f"**Trinket**: {Data.life.get_random_trinket()}")
+    return "\n".join(parts)
 
 
 def generate_dnd_character(gender_str: str | None, species_str: str | None, char_class_str: str | None) -> CharacterGenResult:
@@ -205,9 +198,7 @@ def generate_dnd_character(gender_str: str | None, species_str: str | None, char
         char_class: Class = Data.classes.get(query=char_class_str, allowed_sources=set(["XPHB"]))[0]
     background = _get_optimal_background(char_class)
 
-    class_backstory = _get_backstory("Class Training; I became...", char_class)
-    background_backstory = _get_backstory("Background; I became...", background)
-    backstory = class_backstory + "\n" + background_backstory
+    backstory = _get_backstory(char_class.name, background.name)
 
     stats = _get_optimal_stats(char_class)
     boosted_stats = _apply_background_boosts(stats=stats, background=background, char_class=char_class)

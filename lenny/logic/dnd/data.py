@@ -15,6 +15,7 @@ from logic.dnd.feat import Feat, FeatList
 from logic.dnd.hazard import Hazard, HazardList
 from logic.dnd.item import Item, ItemList
 from logic.dnd.language import Language, LanguageList
+from logic.dnd.life import LifeData
 from logic.dnd.name import NameTable
 from logic.dnd.object import DNDObject, DNDObjectList
 from logic.dnd.rule import Rule, RuleList
@@ -25,6 +26,7 @@ from logic.dnd.table import DNDTable, DNDTableList
 from logic.dnd.vehicle import Vehicle, VehicleList
 
 
+# pylint: disable=too-many-instance-attributes
 class DNDData:
     spells: SpellList
     items: ItemList
@@ -47,6 +49,7 @@ class DNDData:
 
     skills: SkillList
     names: NameTable
+    life: LifeData
 
     def __init__(self):
         # LISTS
@@ -72,6 +75,7 @@ class DNDData:
         # UNIQUE
         self.skills = SkillList()  # Not searchable, but used internally for suggestions
         self.names = NameTable()  # Is a table of values, only used for namegen
+        self.life = LifeData()  # A specific structured dataset for character-fluff generation
 
     def __iter__(self):
         yield self.spells

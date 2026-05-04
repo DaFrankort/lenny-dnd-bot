@@ -10,6 +10,7 @@ from logic.dnd.data import Data
 from logic.dnd.table import roll_table
 from logic.roll import Advantage, multi_roll, roll
 from logic.searchcache import SearchCache
+from logic.sessionsstats import SessionStatistics
 from logic.voice_chat import VC, SoundType
 
 
@@ -56,6 +57,10 @@ class RollCommand(BaseCommand):
         await itr.response.send_message(embed=embed)
         await VC.play_dice_roll(itr, result, reason)
 
+        stats = SessionStatistics.get(itr)
+        if stats:
+            stats.add_roll(itr, result)
+
 
 class D20Command(BaseCommand):
     name = "d20"
@@ -67,6 +72,9 @@ class D20Command(BaseCommand):
         embed = RollEmbed(itr, result, None)
         await itr.response.send_message(embed=embed)
         await VC.play_dice_roll(itr, result)
+        stats = SessionStatistics.get(itr)
+        if stats:
+            stats.add_roll(itr, result)
 
 
 class MultiRollCommand(BaseCommand):
@@ -100,6 +108,7 @@ class MultiRollCommand(BaseCommand):
 
         await itr.response.send_message(embed=embed)
         await VC.play(itr, SoundType.ROLL)
+        # TODO add multiroll dice to stats
 
 
 async def table_roll_autocomplete(itr: discord.Interaction, current: str):

@@ -12,7 +12,7 @@ from d20.enums import Critical
 from discord import Interaction
 
 from logic.roll import RollResult
-
+from logic.sessionsstats import SessionStatistics
 
 class SoundType(str, Enum):
     ROLL = "dice/roll"
@@ -90,6 +90,10 @@ class VC:
         if old_client:
             if old_client.channel.id == voice_channel.id:
                 return
+            try:
+                await itr.channel.send(SessionStatistics.get(itr).get_report())  # type: ignore
+            except Exception:
+                ...
             await VC.leave(guild_id)  # Need to leave current channel to switch.
 
         client = await voice_channel.connect()
@@ -97,11 +101,14 @@ class VC:
         logging.info("Joined voice channel '%s' in '%s'", client.channel.name, client.guild.name)
         asyncio.create_task(VC.monitor_vc(guild_id))
 
+        SessionStatistics.start(itr)
+
     @staticmethod
     async def leave(guild_id: int):
         client = VC.clients.get(guild_id)
         if client:
             logging.info("Left voice channel '%s' in '%s'", client.channel.name, client.guild.name)
+            SessionStatistics.stop(client.channel.id)
             await client.disconnect()
             del VC.clients[guild_id]
 

@@ -26,6 +26,7 @@ from logic.dnd.table import DNDTable, DNDTableList
 from logic.dnd.vehicle import Vehicle, VehicleList
 
 
+# pylint: disable=too-many-instance-attributes
 class DNDData:
     spells: SpellList
     items: ItemList

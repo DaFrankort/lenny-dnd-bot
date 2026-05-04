@@ -8,6 +8,7 @@ from logic.config import Config
 from logic.dicecache import DiceCache
 from logic.dnd.data import Data
 from logic.dnd.table import roll_table
+from logic.immersion import generate_dice_image
 from logic.roll import Advantage, multi_roll, roll
 from logic.searchcache import SearchCache
 from logic.voice_chat import VC, SoundType
@@ -52,8 +53,10 @@ class RollCommand(BaseCommand):
         DiceCache.get(itr).store_expression(result.expression)
         DiceCache.get(itr).store_reason(reason)
         embed = RollEmbed(itr, result, reason)
+        file = generate_dice_image(itr, [result])
+        embed.set_image(url=f"attachment://{file.filename}")
 
-        await itr.response.send_message(embed=embed)
+        await itr.response.send_message(embed=embed, file=generate_dice_image(itr, [result]))
         await VC.play_dice_roll(itr, result, reason)
 
 

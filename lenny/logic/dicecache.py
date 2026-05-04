@@ -149,9 +149,10 @@ class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
         seen: set[str] = set()
 
         def add_suggestion(value: str) -> None:
-            if value in seen:
+            cleaned = value.strip().lower().replace(" ", "")
+            if cleaned in seen:
                 return
-            seen.add(value)
+            seen.add(cleaned)
             suggestions.append(value)
 
         if query and re.compile(r"^\d+d\d+$", re.IGNORECASE).match(query):

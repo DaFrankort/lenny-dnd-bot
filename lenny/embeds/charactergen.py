@@ -4,7 +4,11 @@ import discord
 from discord import ui
 
 from embeds.components import BaseSeparator, TitleTextDisplay
-from logic.charactergen import CharacterGenResult
+from logic.charactergen import (
+    CharacterGenResult,
+    format_modifier_str,
+    get_mod_from_score,
+)
 from logic.charts import get_radar_chart
 from logic.color import UserColor
 from logic.dnd.abstract import DNDEntry, build_table_from_rows
@@ -42,8 +46,8 @@ class CharacterGenContainerView(ui.LayoutView):
                 diff = boosted_value - base_value
                 ability_value = f"{base_value} + {diff}"
 
-            mod = (boosted_value - 10) // 2
-            mod = f"- {abs(mod)}" if mod < 0 else f"+ {mod}"
+            mod = get_mod_from_score(boosted_value)
+            mod = format_modifier_str(mod)
 
             rows.append([name, ability_value, mod])
 
@@ -79,5 +83,13 @@ class CharacterGenContainerView(ui.LayoutView):
         ability_image = ui.Thumbnail[CharacterGenContainerView](media=self.chart)
         ability_section = ui.Section[CharacterGenContainerView](ability_desc, accessory=ability_image)
         container.add_item(ability_section)
+
+        container.add_item(BaseSeparator())
+        new_info_placeholder = f"**HP**: {result.derived_stats.hp}"
+        new_info_placeholder += f"\n**Initiative**: {result.derived_stats.initiative}"
+        new_info_placeholder += f"\n**Speed**: {result.derived_stats.speed}"
+        new_info_placeholder += f"\n**Passive Perception**: {result.derived_stats.passive_perception}"
+        new_info_placeholder += f"\n**Proficiency Bonus**: +{result.derived_stats.proficiency}"
+        container.add_item(ui.TextDisplay(new_info_placeholder))
 
         self.add_item(container)

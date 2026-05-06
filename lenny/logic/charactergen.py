@@ -1,5 +1,6 @@
 import dataclasses
 import random
+import re
 
 import discord
 
@@ -23,6 +24,58 @@ def class_choices(xphb_only: bool = True) -> list[discord.app_commands.Choice[st
     return [discord.app_commands.Choice(name=char_cls, value=char_cls) for char_cls in classes[:25]]
 
 
+def get_mod_from_score(ability_score: int) -> int:
+    return (ability_score - 10) // 2
+
+
+def format_modifier_str(mod: int) -> str:
+    return f"- {abs(mod)}" if mod < 0 else f"+ {mod}"
+
+
+@dataclasses.dataclass
+class CharacterDerivedStats:
+    proficiency: int
+    hp: int | None
+    passive_perception: int
+    speed: str
+    initiative: int
+
+
+def _get_derived_stats(
+    stats: list[tuple[int, str]], char_class: Class, char_background: Background, char_species: Species, proficiency: int = 2
+) -> CharacterDerivedStats:
+    start_hp = None
+    dex_mod = get_mod_from_score(stats[1][0])
+    con_mod = get_mod_from_score(stats[2][0])
+    wis_mod = get_mod_from_score(stats[4][0])
+
+    # TODO - Adjust lenny-dnd data to store starting HP as a separate field?
+    for info in char_class.base_info:
+        if start_hp:
+            break
+        if info["name"].lower() != "health":
+            continue
+        if info["type"] != "list":
+            continue
+        for entry in info["list"]["entries"]:
+            if not isinstance(entry, str):
+                continue
+            match = re.search(r"d(\d+)$", entry)
+            if match is None:
+                continue
+            start_hp = int(match.group(1)) + con_mod  # TODO TOUGH?
+            break
+
+    speed = ", ".join(char_species.speed)
+    passive_perception = 10 + wis_mod  # TODO uses perception mod or wisdom?
+    initiative = dex_mod
+    if char_background.feat and "alert" in char_background.feat.lower():
+        initiative += proficiency
+    return CharacterDerivedStats(
+        proficiency=proficiency, hp=start_hp, passive_perception=passive_perception, speed=speed, initiative=initiative
+    )
+
+
 @dataclasses.dataclass
 class CharacterGenResult:
     name: str
@@ -33,6 +86,7 @@ class CharacterGenResult:
     backstory: str
     stats: list[tuple[int, str]]
     boosted_stats: list[tuple[int, str]]
+    derived_stats: CharacterDerivedStats
 
 
 def _get_random_xphb_entry(entries: list[TDND]) -> TDND:
@@ -203,4 +257,6 @@ def generate_dnd_character(gender_str: str | None, species_str: str | None, char
     stats = _get_optimal_stats(char_class)
     boosted_stats = _apply_background_boosts(stats=stats, background=background, char_class=char_class)
 
-    return CharacterGenResult(name, gender, species, char_class, background, backstory, stats, boosted_stats)
+    derived_stats = _get_derived_stats(boosted_stats, char_class, background, species)
+
+    return CharacterGenResult(name, gender, species, char_class, background, backstory, stats, boosted_stats, derived_stats)

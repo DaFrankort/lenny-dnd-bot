@@ -47,7 +47,7 @@ class CharacterGenContainerView(ui.LayoutView):
                 ability_value = f"{base_value} + {diff}"
 
             mod = get_mod_from_score(boosted_value)
-            mod = format_modifier_str(mod)
+            mod = format_modifier_str(mod, True)
 
             rows.append([name, ability_value, mod])
 
@@ -85,11 +85,12 @@ class CharacterGenContainerView(ui.LayoutView):
         container.add_item(ability_section)
 
         container.add_item(BaseSeparator())
-        new_info_placeholder = f"**HP**: {result.derived_stats.hp}"
-        new_info_placeholder += f"\n**Initiative**: {result.derived_stats.initiative}"
-        new_info_placeholder += f"\n**Speed**: {result.derived_stats.speed}"
-        new_info_placeholder += f"\n**Passive Perception**: {result.derived_stats.passive_perception}"
-        new_info_placeholder += f"\n**Proficiency Bonus**: +{result.derived_stats.proficiency}"
+        new_info_placeholder = "### Derived Stats"
+        new_info_placeholder += f"\n``{result.derived_stats.hp}`` **Starting HP**"
+        new_info_placeholder += f"\n``+{result.derived_stats.proficiency}`` **Proficiency Bonus**"
+        new_info_placeholder += f"\n``{format_modifier_str(result.derived_stats.initiative)}`` **Initiative**"
+        new_info_placeholder += f"\n``{result.derived_stats.speed}`` **Movement Speed**"
+        new_info_placeholder += f"\n``{result.derived_stats.passive_perception}`` **Passive Perception**"
         container.add_item(ui.TextDisplay(new_info_placeholder))
 
         self.add_item(container)

@@ -28,8 +28,11 @@ def get_mod_from_score(ability_score: int) -> int:
     return (ability_score - 10) // 2
 
 
-def format_modifier_str(mod: int) -> str:
-    return f"- {abs(mod)}" if mod < 0 else f"+ {mod}"
+def format_modifier_str(mod: int, space_between: bool = False) -> str:
+    formatted = f"- {abs(mod)}" if mod < 0 else f"+ {mod}"
+    if space_between:
+        return formatted
+    return formatted.replace(" ", "")
 
 
 @dataclasses.dataclass
@@ -66,7 +69,7 @@ def _get_derived_stats(
             start_hp = int(match.group(1)) + con_mod  # TODO TOUGH?
             break
 
-    speed = ", ".join(char_species.speed)
+    speed = ", ".join(char_species.speed).replace("feet", "ft.").replace(" ", "")
     passive_perception = 10 + wis_mod  # TODO uses perception mod or wisdom?
     initiative = dex_mod
     if char_background.feat and "alert" in char_background.feat.lower():

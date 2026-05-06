@@ -140,11 +140,57 @@ class CharacterGenResult:
     derived_stats: CharacterDerivedStats
     starting_equipment: list[str]
     spellcasting: CharacterSpellCastingStats | None
+    languages: list[str]
 
 
 def _get_random_xphb_entry(entries: list[TDND]) -> TDND:
     xphb_entries = [e for e in entries if e.source == "XPHB" and "(" not in e.name]
     return random.choice(xphb_entries)
+
+
+def _get_character_languages(char_class: Class, species: Species) -> list[str]:
+    species_languages = {
+        "Elf": "Elvish",
+        "Gnome": "Gnomish",
+        "Goliath": "Giant",
+        "Halfling": "Halfling",
+        "Dwarf": "Dwarvish",
+        "Tiefling": "Infernal",
+        "Orc": "Orc",
+        "Dragonborn": "Draconic",
+        # TODO
+    }
+    class_languages = {
+        # None indicates that a random language can be chosen.
+        "Rogue": ["Thieves' Cant", None],
+        "Druid": ["Druidic"],
+    }
+
+    languages: set[str] = set(["Common"])
+    languages_known = 3
+
+    if random.randint(0, 100) > 25:
+        language = species_languages.get(species.name)
+        if language:
+            languages.add(language)
+
+    if char_class.name in class_languages:
+        lang_list = class_languages.get(char_class.name, [])
+        languages_known += len(lang_list)
+        for lang in lang_list:
+            if lang is None:
+                continue
+            languages.add(lang)
+
+    while len(languages) < languages_known:
+        language = _get_random_xphb_entry(Data.languages.entries)
+        if language.select_description is None:
+            continue
+        if not language.select_description.lower().startswith("standard"):
+            continue  # New characters can only choose standard languages.
+        languages.add(language.name)
+
+    return list(languages)
 
 
 def _get_dnd_table(table_name: str, source: str = "XPHB") -> DNDTable | None:
@@ -310,10 +356,6 @@ def generate_dnd_character(gender_str: str | None, species_str: str | None, char
     stats = _get_optimal_stats(char_class)
     boosted_stats = _apply_background_boosts(stats=stats, background=background, char_class=char_class)
 
-    derived_stats = _get_derived_stats(boosted_stats, char_class, background, species)
-    starting_equipment = _get_starting_equipment(char_class, background)
-    spellcasting_stats = _get_spellcasting_stats(boosted_stats, char_class)
-
     return CharacterGenResult(
         name,
         gender,
@@ -323,7 +365,8 @@ def generate_dnd_character(gender_str: str | None, species_str: str | None, char
         backstory,
         stats,
         boosted_stats,
-        derived_stats,
-        starting_equipment,
-        spellcasting_stats,
+        _get_derived_stats(boosted_stats, char_class, background, species),
+        _get_starting_equipment(char_class, background),
+        _get_spellcasting_stats(boosted_stats, char_class),
+        _get_character_languages(char_class, species),
     )

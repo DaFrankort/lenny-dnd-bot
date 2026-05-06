@@ -79,6 +79,52 @@ def _get_derived_stats(
     )
 
 
+def _get_starting_equipment(char_class: Class, background: Background) -> list[str]:
+    equipment: list[str] = []
+    for info in char_class.base_info:
+        if info["name"].lower() != "starting equipment":
+            continue
+        if info["type"] != "text":
+            continue
+        equipment.append(info["value"])
+        break
+
+    if background.equipment:
+        equipment.append(background.equipment)
+
+    return equipment
+
+
+@dataclasses.dataclass
+class CharacterSpellCastingStats:
+    ability: str
+    spellsave_dc: int
+    spell_mod: int
+    spell_atk: int
+
+
+def _get_spellcasting_stats(stats: list[tuple[int, str]], char_class: Class) -> None | CharacterSpellCastingStats:
+    if char_class.spellcast_ability is None:
+        return None
+    ability = char_class.spellcast_ability
+    prof = 2  # TODO ensure same proficiency is used between commands.
+
+    spell_mod = None
+    for stat, skill in stats:
+        skill = skill.replace(".", "").lower()
+        if not ability.lower().startswith(skill):
+            continue
+        spell_mod = get_mod_from_score(stat)
+        break
+
+    if spell_mod is None:
+        return None
+
+    spellsave_dc = 8 + prof + spell_mod
+    spell_atk = spell_mod + prof
+    return CharacterSpellCastingStats(ability=ability, spellsave_dc=spellsave_dc, spell_atk=spell_atk, spell_mod=spell_mod)
+
+
 @dataclasses.dataclass
 class CharacterGenResult:
     name: str
@@ -86,10 +132,14 @@ class CharacterGenResult:
     species: Species
     char_class: Class
     background: Background
+
     backstory: str
     stats: list[tuple[int, str]]
     boosted_stats: list[tuple[int, str]]
+
     derived_stats: CharacterDerivedStats
+    starting_equipment: list[str]
+    spellcasting: CharacterSpellCastingStats | None
 
 
 def _get_random_xphb_entry(entries: list[TDND]) -> TDND:
@@ -261,5 +311,19 @@ def generate_dnd_character(gender_str: str | None, species_str: str | None, char
     boosted_stats = _apply_background_boosts(stats=stats, background=background, char_class=char_class)
 
     derived_stats = _get_derived_stats(boosted_stats, char_class, background, species)
+    starting_equipment = _get_starting_equipment(char_class, background)
+    spellcasting_stats = _get_spellcasting_stats(boosted_stats, char_class)
 
-    return CharacterGenResult(name, gender, species, char_class, background, backstory, stats, boosted_stats, derived_stats)
+    return CharacterGenResult(
+        name,
+        gender,
+        species,
+        char_class,
+        background,
+        backstory,
+        stats,
+        boosted_stats,
+        derived_stats,
+        starting_equipment,
+        spellcasting_stats,
+    )

@@ -86,11 +86,23 @@ class CharacterGenContainerView(ui.LayoutView):
 
         container.add_item(BaseSeparator())
         new_info_placeholder = "### Derived Stats"
-        new_info_placeholder += f"\n``{result.derived_stats.hp}`` **Starting HP**"
-        new_info_placeholder += f"\n``+{result.derived_stats.proficiency}`` **Proficiency Bonus**"
-        new_info_placeholder += f"\n``{format_modifier_str(result.derived_stats.initiative)}`` **Initiative**"
-        new_info_placeholder += f"\n``{result.derived_stats.speed}`` **Movement Speed**"
-        new_info_placeholder += f"\n``{result.derived_stats.passive_perception}`` **Passive Perception**"
+        new_info_placeholder += f"\n- ``{result.derived_stats.hp}`` **Starting HP**"
+        new_info_placeholder += f"\n- ``+{result.derived_stats.proficiency}`` **Proficiency Bonus**"
+        new_info_placeholder += f"\n- ``{format_modifier_str(result.derived_stats.initiative)}`` **Initiative**"
+        new_info_placeholder += f"\n- ``{result.derived_stats.speed}`` **Movement Speed**"
+        new_info_placeholder += f"\n- ``{result.derived_stats.passive_perception}`` **Passive Perception**"
         container.add_item(ui.TextDisplay(new_info_placeholder))
+
+        if result.starting_equipment:
+            equipment = "### Starting Equipment"
+            equipment += "\n- " + "\n- ".join(result.starting_equipment)
+            container.add_item(ui.TextDisplay(equipment))
+
+        if result.spellcasting:
+            spellcasting = f"### Spellcasting ({result.spellcasting.ability})"
+            spellcasting += f"\n- ``{result.spellcasting.spell_mod}`` **Spellcasting Mod.**"
+            spellcasting += f"\n- ``{result.spellcasting.spellsave_dc}`` **Spellsave DC**"
+            spellcasting += f"\n- ``{result.spellcasting.spell_atk}`` **Spell Attack Mod.**"
+            container.add_item(ui.TextDisplay(spellcasting))
 
         self.add_item(container)

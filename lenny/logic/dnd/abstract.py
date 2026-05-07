@@ -14,7 +14,7 @@ from rapidfuzz import fuzz
 from rich.console import Console
 from rich.table import Table
 
-from logic.dnd.app_emojis import AppEmoji
+from logic.app_emojis import AppEmoji
 from methods import ChoicedEnum
 
 BASE_DATA_PATHS = ["./submodules/lenny-dnd-data/generated/official/", "./submodules/lenny-dnd-data/generated/partnered/"]

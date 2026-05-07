@@ -1,6 +1,5 @@
 import logging
 import os
-from pathlib import Path
 
 import discord
 from discord import InteractionType, app_commands
@@ -41,6 +40,7 @@ from logger import (
 )
 from logic.config import Config
 from logic.dicecache import DiceCache
+from logic.dnd.app_emojis import get_emoji_files, init_app_emojis
 from logic.favorites import FavoritesCache
 from logic.homebrew import HomebrewData
 from logic.searchcache import SearchCache
@@ -174,14 +174,10 @@ class Bot(discord.Client):
         emojis: list[discord.Emoji] = await self.fetch_application_emojis()
         existing_names = {emoji.name for emoji in emojis}
 
-        emoji_folder = Path("./assets/images/emojis")
-        valid_extensions = {".png", ".jpg", ".jpeg"}
+        init_app_emojis(emojis)
 
-        image_files = [file for file in emoji_folder.iterdir() if file.is_file() and file.suffix.lower() in valid_extensions]
-
-        for file in image_files:
+        for file in get_emoji_files():
             name = file.stem.strip().lower().replace(" ", "_")
-
             if name in existing_names:
                 existing_names.remove(name)
                 continue
@@ -190,8 +186,8 @@ class Bot(discord.Client):
                 img = f.read()
 
             try:
-                logging.info(f"- Added '{name}'")
                 await self.create_application_emoji(name=name, image=img)
+                logging.info(f"- Added '{name}'")
             except discord.HTTPException as e:
                 logging.warning(f"Failed to create emoji '{name}': {e}")
 

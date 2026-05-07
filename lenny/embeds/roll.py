@@ -4,6 +4,7 @@ from d20.enums import Critical
 from embeds.components import BaseModal, ModalRadioGroupComponent
 from embeds.dnd.table import DNDTableEntryView
 from embeds.embed import UserActionEmbed
+from logic.dnd.app_emojis import AppEmoji
 from logic.dnd.table import DNDTable, roll_table
 from logic.roll import MultiRollResult, RollResult, SingleRollResult
 from logic.voice_chat import VC, SoundType
@@ -24,7 +25,7 @@ class RollEmbed(UserActionEmbed):
             title = f"Rolling {result.expression}{result.advantage.title_suffix}!"
 
         if reason is None:
-            reason = "Result"
+            reason = "Result" + AppEmoji.TEST.emoji  # TODO Remove emoji, just for testing purposes.
 
         descriptions: list[str] = []
 

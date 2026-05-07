@@ -174,8 +174,6 @@ class Bot(discord.Client):
         emojis: list[discord.Emoji] = await self.fetch_application_emojis()
         existing_names = {emoji.name for emoji in emojis}
 
-        init_app_emojis(emojis)
-
         for file in get_emoji_files():
             name = file.stem.strip().lower().replace(" ", "_")
             if name in existing_names:
@@ -186,10 +184,13 @@ class Bot(discord.Client):
                 img = f.read()
 
             try:
-                await self.create_application_emoji(name=name, image=img)
+                emoji = await self.create_application_emoji(name=name, image=img)
+                emojis.append(emoji)
                 logging.info(f"- Added '{name}'")
             except discord.HTTPException as e:
                 logging.warning(f"Failed to create emoji '{name}': {e}")
+
+        init_app_emojis(emojis)
 
         if len(existing_names) > 0:
             # Discord API does not allow automatic emoji deletion.

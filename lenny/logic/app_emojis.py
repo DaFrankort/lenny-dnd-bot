@@ -49,6 +49,21 @@ class AppEmoji(Enum):
     BOON = "boon"
     SKILL = "skill"
 
+    # Classes
+    ARTIFICER = "classartificer"
+    BARBARIAN = "classbarbarian"
+    BARD = "classbard"
+    CLERIC = "classcleric"
+    DRUID = "classdruid"
+    FIGHTER = "classfighter"
+    MONK = "classmonk"
+    PALADIN = "classpaladin"
+    RANGER = "classranger"
+    ROGUE = "classrogue"
+    SORCERER = "classsorcerer"
+    WARLOCK = "classwarlock"
+    WIZARD = "classwizard"
+
     @property
     def _fallback(self) -> str:
         fallback_map = {
@@ -59,7 +74,7 @@ class AppEmoji(Enum):
             self.D8: "🎲",
             self.D6: "🎲",
             self.D4: "🎲",
-            # Entry Types
+            # ENTRY TYPES
             self.ACTION: "🏃",
             self.BACKGROUND: "📕",
             self.CLASS: "🧙‍♂️",
@@ -79,8 +94,22 @@ class AppEmoji(Enum):
             self.CULT: "🕯️",
             self.BOON: "🎁",
             self.SKILL: "🎯",
+            # CLASSES
+            self.ARTIFICER: "🛠️",
+            self.BARBARIAN: "🪓",
+            self.BARD: "🪈",
+            self.CLERIC: "🙏",
+            self.DRUID: "🌿",
+            self.FIGHTER: "⚔️",
+            self.MONK: "📿",
+            self.PALADIN: "🛡️",
+            self.RANGER: "🏹",
+            self.ROGUE: "🗡️",
+            self.SORCERER: "🌀",
+            self.WARLOCK: "🌙",
+            self.WIZARD: "📖",
         }
-        logging.warning(f"Used fallback emoji for '{self.value}'")
+        logging.warning(f"Using fallback emoji for '{self.value}'")
         return fallback_map.get(self, "❓")
 
     @property

@@ -1,5 +1,6 @@
 import logging
 import os
+from pathlib import Path
 
 import discord
 from discord import InteractionType, app_commands
@@ -131,6 +132,8 @@ class Bot(discord.Client):
         else:
             VC.disable_vc()
 
+        await self._sync_application_emojis()
+
         await self.change_presence(
             activity=discord.CustomActivity(name="Rolling d20s!"),
             status=discord.Status.online,
@@ -165,3 +168,38 @@ class Bot(discord.Client):
                 log_modal_submit_interaction(interaction)
             case _:
                 ...
+
+    async def _sync_application_emojis(self):
+        logging.info("Syncing application emojis")
+        emojis: list[discord.Emoji] = await self.fetch_application_emojis()
+        existing_names = {emoji.name for emoji in emojis}
+
+        emoji_folder = Path("./assets/images/emojis")
+        valid_extensions = {".png", ".jpg", ".jpeg"}
+
+        image_files = [file for file in emoji_folder.iterdir() if file.is_file() and file.suffix.lower() in valid_extensions]
+
+        for file in image_files:
+            name = file.stem.strip().lower().replace(" ", "_")
+
+            if name in existing_names:
+                existing_names.remove(name)
+                continue
+
+            with open(file, "rb") as f:
+                img = f.read()
+
+            try:
+                logging.info(f"- Added '{name}'")
+                await self.create_application_emoji(name=name, image=img)
+            except discord.HTTPException as e:
+                logging.warning(f"Failed to create emoji '{name}': {e}")
+
+        if len(existing_names) > 0:
+            # Discord API does not allow automatic emoji deletion.
+            unused = ", ".join(existing_names)
+            logging.warning(
+                f"{len(existing_names)} Unused application emojis found, please delete these in the Developer Portal: {unused}"
+            )
+
+        logging.info("Application emojis synced")

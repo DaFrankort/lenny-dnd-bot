@@ -25,7 +25,7 @@ class RollEmbed(UserActionEmbed):
             title = f"Rolling {result.expression}{result.advantage.title_suffix}!"
 
         if reason is None:
-            reason = "Result" + AppEmoji.TEST.emoji  # TODO Remove emoji, just for testing purposes.
+            reason = "Result"
 
         descriptions: list[str] = []
 
@@ -39,9 +39,9 @@ class RollEmbed(UserActionEmbed):
         descriptions.append("")
         if roll.is_comparison:
             success_status = when(roll.total == 0, "Failure", "Success")
-            descriptions.append(f"🎲 **{reason}: {success_status}**")
+            descriptions.append(f"{AppEmoji.D20.emoji} **{reason}: {success_status}**")
         else:
-            descriptions.append(f"🎲 **{reason}: {roll.total}**")
+            descriptions.append(f"{AppEmoji.D20.emoji} **{reason}: {roll.total}**")
 
         if roll.crit == Critical.CRIT:
             descriptions.append("🎯 **Critical Hit!**")

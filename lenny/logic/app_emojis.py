@@ -9,7 +9,7 @@ app_emojis = {}
 
 def get_emoji_files() -> list[Path]:
     emoji_folder = Path("./assets/images/emojis")
-    valid_extensions = {".png", ".jpg", ".jpeg", ".gif"}
+    valid_extensions = {".png", ".jpg", ".jpeg", ".gif", ".webp"}
     return [file for file in emoji_folder.iterdir() if file.is_file() and file.suffix.lower() in valid_extensions]
 
 
@@ -20,7 +20,13 @@ def init_app_emojis(emojis: list[discord.Emoji]):
 
 
 class AppEmoji(Enum):
-    TEST = "dsa"
+    # DICE
+    D20 = "d20"
+    D12 = "d12"
+    D10 = "d10"
+    D8 = "d8"
+    D6 = "d6"
+    D4 = "d4"
 
     # ENTRY TYPES
     ACTION = "action"
@@ -46,7 +52,13 @@ class AppEmoji(Enum):
     @property
     def _fallback(self) -> str:
         fallback_map = {
-            self.TEST: "🎲",
+            # DICE
+            self.D20: "🎲",
+            self.D12: "🎲",
+            self.D10: "🎲",
+            self.D8: "🎲",
+            self.D6: "🎲",
+            self.D4: "🎲",
             # Entry Types
             self.ACTION: "🏃",
             self.BACKGROUND: "📕",

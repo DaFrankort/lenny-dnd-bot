@@ -58,7 +58,7 @@ class CharacterGenContainerView(ui.LayoutView):
         btn_row = ui.ActionRow[CharacterGenContainerView]()
         species_emoji = "🧝‍♀️" if result.gender is Gender.FEMALE else "🧝‍♂️"
         btn_row.add_item(_CharacterGenInfoButton(result.species, species_emoji))
-        class_emoji = "🧙‍♀️" if result.gender is Gender.FEMALE else "🧙‍♂️"
+        class_emoji = result.char_class.class_emoji or "🧙"
         btn_row.add_item(_CharacterGenInfoButton(result.char_class, class_emoji))
         bg_emoji = "📕" if result.gender is Gender.FEMALE else "📘"
         btn_row.add_item(_CharacterGenInfoButton(result.background, bg_emoji))

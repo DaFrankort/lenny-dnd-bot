@@ -16,7 +16,7 @@ def format_emoji_name(path: Path) -> str:
 
 
 def get_emoji_files() -> list[tuple[str, Path]]:
-    valid_extensions = {".png", ".jpg", ".jpeg", ".gif", ".webp"}
+    valid_extensions = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".avif"}
     files = [file for file in EMOJI_DIR.rglob("*") if file.is_file() and file.suffix.lower() in valid_extensions]
     return [(format_emoji_name(file), file) for file in files]
 

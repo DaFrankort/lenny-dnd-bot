@@ -38,9 +38,9 @@ from logger import (
     log_component_interaction,
     log_modal_submit_interaction,
 )
+from logic.app_emojis import get_emoji_files, init_app_emojis
 from logic.config import Config
 from logic.dicecache import DiceCache
-from logic.app_emojis import get_emoji_files, init_app_emojis
 from logic.favorites import FavoritesCache
 from logic.homebrew import HomebrewData
 from logic.searchcache import SearchCache

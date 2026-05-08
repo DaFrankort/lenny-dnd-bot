@@ -121,8 +121,3 @@ class Coin:
 
         result = [f"{format(val)} {label}" for val, label in denominations if val]
         return ", ".join(result) if result else "0 CP"
-
-
-print(Coin.from_string("100gp - 50cp"))  # 99 GP, 1 EP
-print(Coin.from_string("100gp / 3"))  # 33.33 GP
-print(Coin.from_string("100gp * 2.2"))  # 220 GP

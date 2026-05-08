@@ -174,13 +174,12 @@ class Bot(discord.Client):
         emojis: list[discord.Emoji] = await self.fetch_application_emojis()
         existing_names = {emoji.name for emoji in emojis}
 
-        for file in get_emoji_files():
-            name = file.stem.strip().lower().replace(" ", "_")
+        for name, path in get_emoji_files():
             if name in existing_names:
                 existing_names.remove(name)
                 continue
 
-            with open(file, "rb") as f:
+            with open(path, "rb") as f:
                 img = f.read()
 
             try:

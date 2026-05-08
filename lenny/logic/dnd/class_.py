@@ -42,7 +42,7 @@ class Class(DNDEntry):
 
     @property
     def class_emoji(self) -> str:
-        key: str = "class" + self.name.lower()
+        key: str = "class_" + self.name.lower()
         try:
             return AppEmoji(key).emoji
         except Exception:

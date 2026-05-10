@@ -1,5 +1,88 @@
-import math
 import re
+from typing import Union
+
+
+class CoinNode:
+
+    def eval(self) -> Union["Coin", float]:
+        raise NotImplementedError()
+
+
+class ValueNode(CoinNode):
+
+    def __init__(self, value: Union["Coin", float]):
+        self.value = value
+
+    def eval(self) -> Union["Coin", float]:
+        return self.value
+
+
+class BinOpNode(CoinNode):
+
+    def __init__(self, left: ValueNode, op: str, right: ValueNode):
+        self.left, self.op, self.right = left, op, right
+
+    def eval(self) -> Union["Coin", float]:
+        left_val = self.left.eval()
+        right_val = self.right.eval()
+
+        if self.op == "+":
+            return left_val + right_val  # type: ignore
+        if self.op == "-":
+            return left_val - right_val  # type: ignore
+        if self.op == "*":
+            return left_val * right_val  # type: ignore
+        if self.op == "/":
+            return left_val / right_val  # type: ignore
+        raise ValueError(f"Unknown operator: {self.op}")
+
+
+class CoinParser:
+    def __init__(self, tokens: list[str]):
+        self.tokens = tokens
+        self.pos = 0
+
+    def consume(self):
+        res = self.tokens[self.pos] if self.pos < len(self.tokens) else None
+        self.pos += 1
+        return res
+
+    def peek(self):
+        return self.tokens[self.pos] if self.pos < len(self.tokens) else None
+
+    def parse(self) -> CoinNode:
+        return self.expr()
+
+    def expr(self) -> CoinNode:
+        node = self.term()
+        while self.peek() in ("+", "-"):
+            op = self.consume()
+            if op:
+                node = BinOpNode(node, op, self.term())  # type: ignore
+        return node
+
+    def term(self) -> CoinNode:
+        node = self.factor()
+        while self.peek() in ("*", "/"):
+            op = self.consume()
+            if op:
+                node = BinOpNode(node, op, self.factor())  # type: ignore
+        return node
+
+    def factor(self) -> CoinNode:
+        token = self.consume()
+        if not token:
+            raise ValueError("Unexpected end of expression")
+
+        if token == "(":
+            node = self.expr()
+            self.consume()  # consume ')'
+            return node
+
+        if re.search(r"[a-z]", token):
+            return ValueNode(Coin.parse_unit(token))
+
+        return ValueNode(float(token))
 
 
 class Coin:
@@ -11,7 +94,7 @@ class Coin:
 
     def __init__(self, cp: float = 0, sp: float = 0, ep: float = 0, gp: float = 0, pp: float = 0):
         self.pp, self.gp, self.ep, self.sp, self.cp = pp, gp, ep, sp, cp
-        self.break_down()
+        self.round_up()
 
     @property
     def total_cp(self) -> float:
@@ -20,38 +103,25 @@ class Coin:
 
     @classmethod
     def from_string(cls, expression: str) -> "Coin":
-        parts = re.split(r"([+\-*/])", expression)
-        expression = expression.lower().strip().replace(" ", "")
-        total = Coin()
-        op = "+"
+        tokens = cls._tokenize(expression)
+        parser = CoinParser(tokens)
+        result = parser.parse().eval()
+        if isinstance(result, float) or isinstance(result, int):
+            return Coin(cp=result)
+        return result
 
-        for part in parts:
-            part = part.strip().lower()
-            if not part:
-                continue
-
-            if part in ("+", "-", "*", "/"):
-                op = part
-                continue
-
-            if op == "+":
-                total += cls._parse_block(part)
-            elif op == "-":
-                total -= cls._parse_block(part)
-            elif op == "*":
-                total *= float(part)
-            elif op == "/":
-                total /= float(part)
-        return total
+    @staticmethod
+    def _tokenize(expression: str):
+        token_pattern = re.compile(r"(\d*\.\d+|\d+)[a-z]+|(\d*\.\d+|\d+)|[+\-*/()]")
+        return [m.group(0) for m in token_pattern.finditer(expression.lower().replace(" ", ""))]
 
     @classmethod
-    def _parse_block(cls, block: str) -> "Coin":
+    def parse_unit(cls, block: str) -> "Coin":
         data = {"pp": 0.0, "gp": 0.0, "ep": 0.0, "sp": 0.0, "cp": 0.0}
-        matches = re.findall(r"([\d.]+)\s*([a-z]+)", block)
-        for value, label in matches:
-            if label in data:
-                data[label] += float(value)
-
+        match = re.match(r"([\d.]+)([a-z]+)", block)
+        if match:
+            val, unit = match.groups()
+            data[unit] = float(val)
         return cls(**data)
 
     def round_up(self):
@@ -65,46 +135,17 @@ class Coin:
         self.ep, remainder = divmod(remainder, 50)
         self.sp, self.cp = divmod(remainder, 10)
 
-    def break_down(self):
-        """
-        Only converts larger coins to smaller ones if
-        a denomination is negative.
-        """
-        if self.cp < 0:
-            needed_sp = math.ceil(abs(self.cp) / 10)
-            self.sp -= needed_sp
-            self.cp += needed_sp * 10
-
-        if self.sp < 0:
-            needed_ep = math.ceil(abs(self.sp) / 5)
-            self.ep -= needed_ep
-            self.sp += needed_ep * 5
-
-        if self.ep < 0:
-            needed_gp = math.ceil(abs(self.ep) / 2)
-            self.gp -= needed_gp
-            self.ep += needed_gp * 2
-
-        if self.gp < 0:
-            needed_pp = math.ceil(abs(self.gp) / 10)
-            self.pp -= needed_pp
-            self.gp += needed_pp * 10
-
     def __add__(self, other: "Coin") -> "Coin":
-        return Coin(
-            cp=self.cp + other.cp, sp=self.sp + other.sp, ep=self.ep + other.ep, gp=self.gp + other.gp, pp=self.pp + other.pp
-        )
+        return Coin(cp=self.total_cp + other.total_cp)
 
     def __sub__(self, other: "Coin") -> "Coin":
-        return Coin(
-            cp=self.cp - other.cp, sp=self.sp - other.sp, ep=self.ep - other.ep, gp=self.gp - other.gp, pp=self.pp - other.pp
-        )
+        return Coin(cp=self.total_cp - other.total_cp)
 
     def __mul__(self, other: float) -> "Coin":
-        return Coin(cp=self.cp * other, sp=self.sp * other, ep=self.ep * other, gp=self.gp * other, pp=self.pp * other)
+        return Coin(cp=self.total_cp * other)
 
     def __truediv__(self, other: float) -> "Coin":
-        return Coin(cp=self.cp / other, sp=self.sp / other, ep=self.ep / other, gp=self.gp / other, pp=self.pp / other)
+        return Coin(cp=self.total_cp / other)
 
     def __str__(self) -> str:
         def format(val: float):

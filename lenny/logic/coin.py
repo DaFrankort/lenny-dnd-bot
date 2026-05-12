@@ -1,28 +1,26 @@
 import re
-from typing import Union
 
 
 class CoinNode:
 
-    def eval(self) -> Union["Coin", float]:
+    def eval(self) -> "Coin | float":
         raise NotImplementedError()
 
 
 class ValueNode(CoinNode):
 
-    def __init__(self, value: Union["Coin", float]):
+    def __init__(self, value: "Coin | float"):
         self.value = value
 
-    def eval(self) -> Union["Coin", float]:
+    def eval(self) -> "Coin | float":
         return self.value
 
 
 class BinOpNode(CoinNode):
-
     def __init__(self, left: ValueNode, op: str, right: ValueNode):
         self.left, self.op, self.right = left, op, right
 
-    def eval(self) -> Union["Coin", float]:
+    def eval(self) -> "Coin | float":
         left_val = self.left.eval()
         right_val = self.right.eval()
 
@@ -55,7 +53,7 @@ class CoinParser:
 
     def expr(self) -> CoinNode:
         node = self.term()
-        while self.peek() in ("+", "-"):
+        while self.peek() in {"+", "-"}:
             op = self.consume()
             if op:
                 node = BinOpNode(node, op, self.term())  # type: ignore
@@ -63,7 +61,7 @@ class CoinParser:
 
     def term(self) -> CoinNode:
         node = self.factor()
-        while self.peek() in ("*", "/"):
+        while self.peek() in {"*", "/"}:
             op = self.consume()
             if op:
                 node = BinOpNode(node, op, self.factor())  # type: ignore
@@ -106,7 +104,7 @@ class Coin:
         tokens = cls._tokenize(expression)
         parser = CoinParser(tokens)
         result = parser.parse().eval()
-        if isinstance(result, float) or isinstance(result, int):
+        if isinstance(result, (float, int)):
             return Coin(cp=result)
         return result
 
@@ -148,7 +146,8 @@ class Coin:
         return Coin(cp=self.total_cp / other)
 
     def __str__(self) -> str:
-        def format(val: float):
+
+        def format_val(val: float):
             val = round(val, 2)
             return int(val) if val == int(val) else val
 
@@ -160,5 +159,5 @@ class Coin:
             (self.cp, "CP"),
         ]
 
-        result = [f"{format(val)} {label}" for val, label in denominations if val]
+        result = [f"{format_val(val)} {label}" for val, label in denominations if val]
         return ", ".join(result) if result else "0 CP"

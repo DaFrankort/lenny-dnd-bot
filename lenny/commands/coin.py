@@ -10,9 +10,7 @@ class CoinCommand(BaseCommand):
     desc = "Calculate D&D coin math!"
     help = "Calculate your pieces using addition, subtraction, division and multiplication!"
 
-    async def handle(self, itr: discord.Interaction, expression: str, round_up: bool = False):
+    async def handle(self, itr: discord.Interaction, expression: str):
         coin = Coin.from_string(expression)
-        if round_up:
-            coin.round_up()
         embed = UserActionEmbed(itr, title=expression, description=str(coin))
         await itr.response.send_message(embed=embed)

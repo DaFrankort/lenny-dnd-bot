@@ -39,7 +39,7 @@ class TestCoin:
             ("10pp - 5gp", Coin(pp=9, gp=5)),
             ("5gp - 25cp", Coin(gp=4, sp=7, cp=5)),
             ("1gp - 5cp", Coin(sp=9, cp=5)),
-            ("1ep - 5cp", Coin(cp=5)),
+            ("1ep - 5cp", Coin(cp=5, sp=4)),
             ("1gp 5sp - 5sp", Coin(gp=1)),
             ("2gp 5sp - 5sp", Coin(gp=2)),
             ("(2gp + 5sp) - 5sp", Coin(gp=2)),

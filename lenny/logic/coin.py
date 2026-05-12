@@ -78,7 +78,17 @@ class CoinParser:
             return node
 
         if re.search(r"[a-z]", token):
-            return ValueNode(Coin.parse_unit(token))
+            coin = Coin.parse_unit(token)
+            while True:
+                # Users can do "wallet"-notations like so: 100gp 20sp + x
+                # In cases where there isn't an operator between pieces, we sum them up and treat them as one collection of pieces, or a "wallet".
+                next_token = self.peek()
+                if not next_token or not re.search(r"[a-z]", next_token):
+                    break
+
+                coin += Coin.parse_unit(self.consume())  # type: ignore
+
+            return ValueNode(coin)
 
         return ValueNode(float(token))
 
@@ -152,12 +162,24 @@ class Coin:
             return int(val) if val == int(val) else val
 
         denominations = [
-            (self.pp, "PP"),
-            (self.gp, "GP"),
-            (self.ep, "EP"),
-            (self.sp, "SP"),
             (self.cp, "CP"),
+            (self.sp, "SP"),
+            (self.ep, "EP"),
+            (self.gp, "GP"),
+            (self.pp, "PP"),
         ]
 
-        result = [f"{format_val(val)} {label}" for val, label in denominations if val]
+        result = [f"``{format_val(val)}`` {label}" for val, label in denominations if val]
         return ", ".join(result) if result else "0 CP"
+
+    def __repr__(self) -> str:
+        parts: list[str] = []
+
+        for name in ("cp", "sp", "ep", "gp", "pp"):
+            value = getattr(self, name)
+            if value:
+                parts.append(f"{name}={value}")
+
+        parts.append(f"total_cp={self.total_cp}")
+
+        return f"Coin({', '.join(parts)})"

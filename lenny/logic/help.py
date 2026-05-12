@@ -283,6 +283,37 @@ class HelpTabList:
         ],
     )
 
+    Coin = HelpTab(
+        tab="coin",
+        name="Coin Calculation",
+        commands=["coin"],
+        text="You can perform calculations on your D&D currency using the following command:",
+        info=[
+            (
+                "Coin Values",
+                [
+                    "There are 5 value-tiers for your pieces in D&D, in the following ascending order:",
+                    "- **CP (Copper)**",
+                    "- **SP (Silver)**: 1sp = 10cp",
+                    "- **EP (Electrum)**: 1ep = 5sp",
+                    "- **GP (Gold)**: 1gp = 2ep",
+                    "- **PP (Platinum)**: 1pp = 10gp",
+                ],
+            ),
+            (
+                "Coin Expressions",
+                [
+                    "- **Addition (+)** and **Subtraction (-)** can be done as such: ``1pp - 1gp + 1ep``",
+                    "- **Division (/)** and **Multiplication (*)** use numbers, which *can* have decimals; (e.g.: ``100gp * 1.2``, ``60gp / 3``)",
+                    "- **Wallet Notations** Can be used to specify a collection of coins like so: ``5sp 5cp``, if there's no operator in between pieces, they're treated as one collection.",
+                    "- **Brackets** are also supported for more precise maths. (e.g. ``(50gp - 5gp) / 2``)",
+                    "- If the value of a piece isn't specified in a subtraction or addition, it default to **CP**. (e.g. ``1cp - 1 = 0cp``)",
+                    "- Results of calculations are always rounded up.",
+                ],
+            ),
+        ],
+    )
+
     @property
     def tabs(self) -> list[HelpTab]:
         return [
@@ -298,6 +329,7 @@ class HelpTabList:
             self.TokenGen,
             self.Config,
             self.Favorites,
+            self.Coin,
         ]
 
     @property

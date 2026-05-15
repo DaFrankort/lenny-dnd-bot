@@ -97,6 +97,8 @@ class ClassEmbed(DNDEntryEmbed):
         level = max(0, min(20, level))
 
         super().__init__(character_class)
+        if self.title:
+            self.title = (character_class.class_emoji + " " + self.title).strip()
 
         if level == 0:  # Core Info (page 0)
             self.description = "*Core Info*"

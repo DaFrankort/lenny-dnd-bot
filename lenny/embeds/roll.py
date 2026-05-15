@@ -4,6 +4,7 @@ from d20.enums import Critical
 from embeds.components import BaseModal, ModalRadioGroupComponent
 from embeds.dnd.table import DNDTableEntryView
 from embeds.embed import UserActionEmbed
+from logic.app_emojis import AppEmoji
 from logic.dnd.table import DNDTable, roll_table
 from logic.roll import MultiRollResult, RollResult, SingleRollResult
 from logic.voice_chat import VC, SoundType
@@ -38,9 +39,9 @@ class RollEmbed(UserActionEmbed):
         descriptions.append("")
         if roll.is_comparison:
             success_status = when(roll.total == 0, "Failure", "Success")
-            descriptions.append(f"🎲 **{reason}: {success_status}**")
+            descriptions.append(f"{AppEmoji.D20.emoji} **{reason}: {success_status}**")
         else:
-            descriptions.append(f"🎲 **{reason}: {roll.total}**")
+            descriptions.append(f"{AppEmoji.D20.emoji} **{reason}: {roll.total}**")
 
         if roll.crit == Critical.CRIT:
             descriptions.append("🎯 **Critical Hit!**")

@@ -1,5 +1,6 @@
 from typing import Any
 
+from logic.app_emojis import AppEmoji
 from logic.dnd.abstract import Description, DNDEntry, DNDEntryList, DNDEntryType
 
 
@@ -38,6 +39,14 @@ class Class(DNDEntry):
     @property
     def subclasses(self) -> set[str]:
         return set(self.subclass_level_features.keys())
+
+    @property
+    def class_emoji(self) -> str:
+        key: str = "class_" + self.name.lower()
+        try:
+            return AppEmoji(key).emoji
+        except Exception:
+            return ""
 
 
 class ClassList(DNDEntryList[Class]):

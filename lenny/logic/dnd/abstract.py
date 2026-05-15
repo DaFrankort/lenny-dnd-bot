@@ -14,6 +14,7 @@ from rapidfuzz import fuzz
 from rich.console import Console
 from rich.table import Table
 
+from logic.app_emojis import AppEmoji
 from methods import ChoicedEnum
 
 BASE_DATA_PATHS = ["./submodules/lenny-dnd-data/generated/official/", "./submodules/lenny-dnd-data/generated/partnered/"]
@@ -42,28 +43,7 @@ class DNDEntryType(str, ChoicedEnum):
 
     @property
     def emoji(self) -> str:
-        emojis = {
-            self.ACTION: "🏃",
-            self.BACKGROUND: "📕",
-            self.CLASS: "🧙‍♂️",
-            self.CONDITION: "🤒",
-            self.CREATURE: "🐉",
-            self.DEITY: "👁️",
-            self.FEAT: "🎖️",
-            self.HAZARD: "🪤",
-            self.ITEM: "🗡️",
-            self.LANGUAGE: "💬",
-            self.OBJECT: "🪨",
-            self.RULE: "📜",
-            self.SPECIES: "🧝",
-            self.SPELL: "🔥",
-            self.TABLE: "📊",
-            self.VEHICLE: "⛵",
-            self.CULT: "🕯️",
-            self.BOON: "🎁",
-            self.SKILL: "🎯",
-        }
-        return emojis.get(self, "❓")
+        return AppEmoji(self.value).emoji
 
 
 @dataclasses.dataclass

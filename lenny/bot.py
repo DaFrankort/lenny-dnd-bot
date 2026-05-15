@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 
 from commands.average import AverageDamageCommandGroup
 from commands.charactergen import CharacterGenCommand
+from commands.coin import CoinCommand
 from commands.color import ColorCommandGroup
 from commands.config import ConfigCommand
 from commands.distribution import DistributionCommand
@@ -98,6 +99,7 @@ class Bot(discord.Client):
         self.tree.add_command(HomebrewCommandGroup())
         self.tree.add_command(FavoritesCommandGroup())
         self.tree.add_command(AverageDamageCommandGroup())
+        self.tree.add_command(CoinCommand())
 
         # Context menus
         self.tree.add_command(DeleteContextMenu())

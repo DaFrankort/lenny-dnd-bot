@@ -194,3 +194,8 @@ Command to help track initiatives for combat. Names are enforced to be unique an
   - `Bulk` - Adds creature initiatives in bulk, making it easy for a DM to add a group of creatures at once. These are numbered automatically for easy tracking.
   - `Lock` - Disables all the buttons, to avoid accidental adjustments.
   - `Clear Rolls` - Clears all stored initiatives in the server, used after a battle.
+
+### Coin Calculation
+Perform calculations on your D&D currency directly using coin expressions. Examples of a coin expression are `2pp + 5gp - 3sp` or `10gp * 1.2`.
+
+- `/coin <expression>` - Evaluate a coin expression and automatically convert the result into the optimal denominations.

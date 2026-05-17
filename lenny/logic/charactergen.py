@@ -99,7 +99,7 @@ def _get_starting_equipment(char_class: Class, background: Background) -> list[s
         break
 
     if background.equipment:
-        equipment.append(background.equipment)
+        equipment.append(background.equipment.replace("*", ""))
 
     return equipment
 
@@ -120,8 +120,8 @@ def _get_spellcasting_stats(stats: list[tuple[int, str]], char_class: Class) -> 
 
     spell_mod = None
     for stat, skill in stats:
-        skill = skill.replace(".", "").lower()
-        if not ability.lower().startswith(skill):
+        skill_clean = skill.replace(".", "").lower()
+        if not ability.lower().startswith(skill_clean):
             continue
         spell_mod = get_mod_from_score(stat)
         break
@@ -204,20 +204,22 @@ def _get_character_languages(char_class: Class, species: Species) -> list[str]:
 
 def _get_character_proficiencies(char_class: Class, species: Species, background: Background) -> set[str]:
     options: list[ProficiencyOptions] = []
-    if char_class.start_prof:
-        options.append(char_class.start_prof.skills)
     if species.skill_prof:
         options.append(species.skill_prof)
     options.append(background.skill_prof)
+    if char_class.start_prof:
+        options.append(char_class.start_prof.skills)
 
-    # Sort data and prepare
     result: set[str] = set()
     selectable: list[tuple[int, list[str]]] = []
     free_choice_count: int = 0
 
+    if background.feat == "Skilled":
+        free_choice_count += 3  # For simplicity, always take 3 skill proficiencies rather than a tool proficiency.
+
     for option in options:
         if option.amount == "all":
-            result.update(option.options)  # TODO Handle duplicates? Depends on the rules.
+            result.update(option.options)
             continue
 
         if option.options == "any":
@@ -228,19 +230,18 @@ def _get_character_proficiencies(char_class: Class, species: Species, background
 
     # Handle specific choices
     for amount, choices in selectable:
-        print(amount, choices)
-        while amount > 0:
+        iterations = amount  # Appease pylint
+        while iterations > 0:
             available = [choice for choice in choices if choice not in result]
 
             if not available:
-                # TODO Check the rules, what to do if all options are already applied to character?
-                # free_choice_count += amount
+                # Duplicates are impossible at level 1, so we don't handle this case any further.
                 break
 
             choice = random.choice(available)
             result.add(choice)
             choices.remove(choice)
-            amount -= 1
+            iterations -= 1
 
     # Handle free-choice
     remaining: list[tuple[str, str]] = [

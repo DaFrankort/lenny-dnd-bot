@@ -85,36 +85,44 @@ class CharacterGenContainerView(ui.LayoutView):
         container.add_item(ability_section)
 
         container.add_item(BaseSeparator())
-        new_info_placeholder = "### Derived Stats"
-        new_info_placeholder += f"\n- ``{result.derived_stats.hp}`` Starting HP"
-        new_info_placeholder += f"\n- ``+{result.derived_stats.proficiency}`` Proficiency Bonus"
-        new_info_placeholder += f"\n- ``{format_modifier_str(result.derived_stats.initiative)}`` Initiative"
+        for info in self._get_additional_info(result):
+            container.add_item(ui.TextDisplay(info))
+
+        self.add_item(container)
+
+    def _get_additional_info(self, result: CharacterGenResult) -> list[str]:
+        info: list[str] = []
+        derived = "### Derived Stats"
+        derived += f"\n- ``{result.derived_stats.hp}`` Starting HP"
+        derived += f"\n- ``+{result.derived_stats.proficiency}`` Proficiency Bonus"
+        derived += f"\n- ``{format_modifier_str(result.derived_stats.initiative)}`` Initiative"
+
         if result.background.feat and "Alert" in result.background.feat:
-            new_info_placeholder += " (Alert)"  # TODO handle this better.
-        new_info_placeholder += f"\n- ``{result.derived_stats.speed}`` Movement Speed"
-        new_info_placeholder += f"\n- ``{result.derived_stats.passive_perception}`` Passive Perception"
-        container.add_item(ui.TextDisplay(new_info_placeholder))
+            derived += " (Alert)"  # TODO handle this better.
+            derived += f"\n- ``{result.derived_stats.speed}`` Movement Speed"
+            derived += f"\n- ``{result.derived_stats.passive_perception}`` Passive Perception"
+        info.append(derived)
 
         if result.spellcasting:
             spellcasting = f"### Spellcasting ({result.spellcasting.ability})"
             spellcasting += f"\n- ``{format_modifier_str(result.spellcasting.spell_mod)}`` Spellcasting Mod."
             spellcasting += f"\n- ``{result.spellcasting.spellsave_dc}`` Spellsave DC"
             spellcasting += f"\n- ``{format_modifier_str(result.spellcasting.spell_atk)}`` Spell Attack Mod."
-            container.add_item(ui.TextDisplay(spellcasting))
+            info.append(spellcasting)
 
         if result.proficiencies:
             prof = "### Skill Proficiencies\n"
             prof += ", ".join([p.title() for p in result.proficiencies])
-            container.add_item(ui.TextDisplay(prof))
+            info.append(prof)
 
         if result.languages:
             languages = f"### Languages ({len(result.languages)})\n"
             languages += ", ".join(result.languages)
-            container.add_item(ui.TextDisplay(languages))
+            info.append(languages)
 
         if result.starting_equipment:
             equipment = "### Starting Equipment"
             equipment += "\n- " + "\n- ".join(result.starting_equipment)
-            container.add_item(ui.TextDisplay(equipment))
+            info.append(equipment)
 
-        self.add_item(container)
+        return info

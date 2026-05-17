@@ -168,7 +168,6 @@ def _get_character_languages(char_class: Class, species: Species) -> list[str]:
         "Tiefling": "Infernal",
         "Orc": "Orc",
         "Dragonborn": "Draconic",
-        # TODO
     }
     class_languages = {
         # None indicates that a random language can be chosen.

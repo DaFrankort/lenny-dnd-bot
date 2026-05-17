@@ -4,7 +4,11 @@ import discord
 from discord import ui
 
 from embeds.components import BaseSeparator, TitleTextDisplay
-from logic.charactergen import CharacterGenResult
+from logic.charactergen import (
+    CharacterGenResult,
+    format_modifier_str,
+    get_mod_from_score,
+)
 from logic.charts import get_radar_chart
 from logic.color import UserColor
 from logic.dnd.abstract import DNDEntry, build_table_from_rows
@@ -42,8 +46,8 @@ class CharacterGenContainerView(ui.LayoutView):
                 diff = boosted_value - base_value
                 ability_value = f"{base_value} + {diff}"
 
-            mod = (boosted_value - 10) // 2
-            mod = f"- {abs(mod)}" if mod < 0 else f"+ {mod}"
+            mod = get_mod_from_score(boosted_value)
+            mod = format_modifier_str(mod, True)
 
             rows.append([name, ability_value, mod])
 
@@ -80,4 +84,50 @@ class CharacterGenContainerView(ui.LayoutView):
         ability_section = ui.Section[CharacterGenContainerView](ability_desc, accessory=ability_image)
         container.add_item(ability_section)
 
+        container.add_item(BaseSeparator())
+        for info in self._get_additional_info(result):
+            container.add_item(ui.TextDisplay(info))
+
         self.add_item(container)
+
+    def _get_additional_info(self, result: CharacterGenResult) -> list[str]:
+        feat = result.background.feat or ""
+
+        info: list[str] = []
+        derived = "### Derived Stats"
+        derived += f"\n- ``{result.derived_stats.hp}`` Starting HP"
+        if "Tough" in feat:
+            derived += " (Tough)"
+        derived += f"\n- ``+{result.derived_stats.proficiency}`` Proficiency Bonus"
+        derived += f"\n- ``{format_modifier_str(result.derived_stats.initiative)}`` Initiative"
+        if "Alert" in feat:
+            derived += " (Alert)"
+        derived += f"\n- ``{result.derived_stats.speed}`` Movement Speed"
+        derived += f"\n- ``{result.derived_stats.passive_perception}`` Passive Perception"
+        info.append(derived)
+
+        if result.spellcasting:
+            spellcasting = f"### Spellcasting ({result.spellcasting.ability})"
+            spellcasting += f"\n- ``{format_modifier_str(result.spellcasting.spell_mod)}`` Spellcasting Mod."
+            spellcasting += f"\n- ``{result.spellcasting.spellsave_dc}`` Spellsave DC"
+            spellcasting += f"\n- ``{format_modifier_str(result.spellcasting.spell_atk)}`` Spell Attack Mod."
+            info.append(spellcasting)
+
+        if result.proficiencies:
+            prof = "### Skill Proficiencies"
+            if "Skilled" in feat:
+                prof += " (Skilled)"
+            prof += "\n" + ", ".join([p.title() for p in result.proficiencies])
+            info.append(prof)
+
+        if result.languages:
+            languages = f"### Languages ({len(result.languages)})\n"
+            languages += ", ".join(result.languages)
+            info.append(languages)
+
+        if result.starting_equipment:
+            equipment = "### Starting Equipment"
+            equipment += "\n- " + "\n- ".join(result.starting_equipment)
+            info.append(equipment)
+
+        return info

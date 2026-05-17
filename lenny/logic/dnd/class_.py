@@ -1,12 +1,44 @@
+from dataclasses import dataclass
 from typing import Any
 
-from logic.dnd.abstract import Description, DNDEntry, DNDEntryList, DNDEntryType
+from logic.dnd.abstract import (
+    Description,
+    DNDEntry,
+    DNDEntryList,
+    DNDEntryType,
+    ProficiencyOptions,
+)
+
+
+@dataclass
+class ClassStartingProficiencies:
+    armor: list[str]
+    tools: list[str]
+    weapons: list[str]
+    skills: ProficiencyOptions
+    saving: list[str]
+
+    @classmethod
+    def from_data(cls, obj: dict[str, Any]) -> "ClassStartingProficiencies | None":
+        proficiencies = obj.get("startingProficiencies", None)
+        if proficiencies is None:
+            return None
+
+        skills = proficiencies["skills"]
+        return cls(
+            armor=proficiencies["armor"],
+            tools=proficiencies["tools"],
+            weapons=proficiencies["weapons"],
+            skills=ProficiencyOptions(options=skills["options"], amount=skills["amount"]),
+            saving=proficiencies["saving"],
+        )
 
 
 class Class(DNDEntry):
     subclass_unlock_level: int | None
     primary_ability: str | None
     spellcast_ability: str | None
+    start_prof: ClassStartingProficiencies | None  # Sidekicks do not have this data.
     base_info: list[Description]
     level_resources: dict[str, list[Description]]
     level_features: dict[str, list[Description]]
@@ -22,6 +54,7 @@ class Class(DNDEntry):
         self.subclass_unlock_level = obj["subclassUnlockLevel"]
         self.primary_ability = obj["primaryAbility"]
         self.spellcast_ability = obj["spellcastAbility"]
+        self.start_prof = ClassStartingProficiencies.from_data(obj)
         self.base_info = obj["baseInfo"]
         self.level_resources = obj["levelResources"]
         self.level_features = obj["levelFeatures"]

@@ -4,7 +4,7 @@ import re
 
 import discord
 
-from logic.dnd.abstract import TDND
+from logic.dnd.abstract import TDND, ProficiencyOptions
 from logic.dnd.background import Background
 from logic.dnd.class_ import Class
 from logic.dnd.data import Data
@@ -45,7 +45,12 @@ class CharacterDerivedStats:
 
 
 def _get_derived_stats(
-    stats: list[tuple[int, str]], char_class: Class, char_background: Background, char_species: Species, proficiency: int = 2
+    stats: list[tuple[int, str]],
+    char_class: Class,
+    char_background: Background,
+    char_species: Species,
+    has_perception_prof: bool,
+    proficiency: int = 2,
 ) -> CharacterDerivedStats:
     start_hp = None
     dex_mod = get_mod_from_score(stats[1][0])
@@ -70,7 +75,11 @@ def _get_derived_stats(
             break
 
     speed = ", ".join(char_species.speed).replace("feet", "ft.").replace(" ", "")
-    passive_perception = 10 + wis_mod  # TODO uses perception mod or wisdom?
+
+    passive_perception = 10 + wis_mod
+    if has_perception_prof:
+        passive_perception += proficiency
+
     initiative = dex_mod
     if char_background.feat and "alert" in char_background.feat.lower():
         initiative += proficiency
@@ -141,6 +150,7 @@ class CharacterGenResult:
     starting_equipment: list[str]
     spellcasting: CharacterSpellCastingStats | None
     languages: list[str]
+    proficiencies: list[str]
 
 
 def _get_random_xphb_entry(entries: list[TDND]) -> TDND:
@@ -191,6 +201,69 @@ def _get_character_languages(char_class: Class, species: Species) -> list[str]:
         languages.add(language.name)
 
     return list(languages)
+
+
+def _get_character_proficiencies(char_class: Class, species: Species, background: Background) -> set[str]:
+    options: list[ProficiencyOptions] = []
+    if char_class.start_prof:
+        options.append(char_class.start_prof.skills)
+    if species.skill_prof:
+        options.append(species.skill_prof)
+    options.append(background.skill_prof)
+
+    # Sort data and prepare
+    result: set[str] = set()
+    selectable: list[tuple[int, list[str]]] = []
+    free_choice_count: int = 0
+
+    for option in options:
+        if option.amount == "all":
+            result.update(option.options)  # TODO Handle duplicates? Depends on the rules.
+            continue
+
+        if option.options == "any":
+            free_choice_count += option.amount
+            continue
+
+        selectable.append((option.amount, option.options.copy()))
+
+    # Handle specific choices
+    for amount, choices in selectable:
+        print(amount, choices)
+        while amount > 0:
+            available = [choice for choice in choices if choice not in result]
+
+            if not available:
+                # TODO Check the rules, what to do if all options are already applied to character?
+                # free_choice_count += amount
+                break
+
+            choice = random.choice(available)
+            result.add(choice)
+            choices.remove(choice)
+            amount -= 1
+
+    # Handle free-choice
+    remaining: list[tuple[str, str]] = [
+        (e.ability, e.name.lower()) for e in Data.skills.entries if e.source == "XPHB" and e.name.lower() not in result
+    ]
+
+    preferred: list[tuple[str, str]] = []
+    if char_class.primary_ability:
+        primary = char_class.primary_ability.lower()
+        preferred = [skill for skill in remaining if skill[0].lower() in primary]
+
+    while free_choice_count > 0 and remaining:
+        pool = preferred if preferred else remaining
+        selected = random.choice(pool)
+
+        if selected in preferred:
+            preferred.remove(selected)
+        remaining.remove(selected)
+        result.add(selected[1])
+        free_choice_count -= 1
+
+    return result
 
 
 def _get_dnd_table(table_name: str, source: str = "XPHB") -> DNDTable | None:
@@ -356,17 +429,21 @@ def generate_dnd_character(gender_str: str | None, species_str: str | None, char
     stats = _get_optimal_stats(char_class)
     boosted_stats = _apply_background_boosts(stats=stats, background=background, char_class=char_class)
 
+    proficiencies = _get_character_proficiencies(char_class, species, background)
+    has_perception_prof = "perception" in proficiencies
+
     return CharacterGenResult(
-        name,
-        gender,
-        species,
-        char_class,
-        background,
-        backstory,
-        stats,
-        boosted_stats,
-        _get_derived_stats(boosted_stats, char_class, background, species),
-        _get_starting_equipment(char_class, background),
-        _get_spellcasting_stats(boosted_stats, char_class),
-        _get_character_languages(char_class, species),
+        name=name,
+        gender=gender,
+        species=species,
+        char_class=char_class,
+        background=background,
+        backstory=backstory,
+        stats=stats,
+        boosted_stats=boosted_stats,
+        derived_stats=_get_derived_stats(boosted_stats, char_class, background, species, has_perception_prof),
+        starting_equipment=_get_starting_equipment(char_class, background),
+        spellcasting=_get_spellcasting_stats(boosted_stats, char_class),
+        languages=_get_character_languages(char_class, species),
+        proficiencies=list(proficiencies),
     )

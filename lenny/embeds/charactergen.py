@@ -92,9 +92,7 @@ class CharacterGenContainerView(ui.LayoutView):
         if result.background.feat and "Alert" in result.background.feat:
             new_info_placeholder += " (Alert)"  # TODO handle this better.
         new_info_placeholder += f"\n- ``{result.derived_stats.speed}`` Movement Speed"
-        new_info_placeholder += (
-            f"\n- ``{result.derived_stats.passive_perception}`` Passive Perception (Perception proficiency not accounted for.)"
-        )
+        new_info_placeholder += f"\n- ``{result.derived_stats.passive_perception}`` Passive Perception"
         container.add_item(ui.TextDisplay(new_info_placeholder))
 
         if result.spellcasting:
@@ -103,6 +101,11 @@ class CharacterGenContainerView(ui.LayoutView):
             spellcasting += f"\n- ``{result.spellcasting.spellsave_dc}`` Spellsave DC"
             spellcasting += f"\n- ``{format_modifier_str(result.spellcasting.spell_atk)}`` Spell Attack Mod."
             container.add_item(ui.TextDisplay(spellcasting))
+
+        if result.proficiencies:
+            prof = "### Skill Proficiencies\n"
+            prof += ", ".join([p.title() for p in result.proficiencies])
+            container.add_item(ui.TextDisplay(prof))
 
         if result.languages:
             languages = f"### Languages ({len(result.languages)})\n"

@@ -91,16 +91,19 @@ class CharacterGenContainerView(ui.LayoutView):
         self.add_item(container)
 
     def _get_additional_info(self, result: CharacterGenResult) -> list[str]:
+        feat = result.background.feat or ""
+
         info: list[str] = []
         derived = "### Derived Stats"
         derived += f"\n- ``{result.derived_stats.hp}`` Starting HP"
+        if "Tough" in feat:
+            derived += " (Tough)"
         derived += f"\n- ``+{result.derived_stats.proficiency}`` Proficiency Bonus"
         derived += f"\n- ``{format_modifier_str(result.derived_stats.initiative)}`` Initiative"
-
-        if result.background.feat and "Alert" in result.background.feat:
-            derived += " (Alert)"  # TODO handle this better.
-            derived += f"\n- ``{result.derived_stats.speed}`` Movement Speed"
-            derived += f"\n- ``{result.derived_stats.passive_perception}`` Passive Perception"
+        if "Alert" in feat:
+            derived += " (Alert)"
+        derived += f"\n- ``{result.derived_stats.speed}`` Movement Speed"
+        derived += f"\n- ``{result.derived_stats.passive_perception}`` Passive Perception"
         info.append(derived)
 
         if result.spellcasting:
@@ -111,8 +114,10 @@ class CharacterGenContainerView(ui.LayoutView):
             info.append(spellcasting)
 
         if result.proficiencies:
-            prof = "### Skill Proficiencies\n"
-            prof += ", ".join([p.title() for p in result.proficiencies])
+            prof = "### Skill Proficiencies"
+            if "Skilled" in feat:
+                prof += " (Skilled)"
+            prof += "\n" + ", ".join([p.title() for p in result.proficiencies])
             info.append(prof)
 
         if result.languages:

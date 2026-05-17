@@ -57,7 +57,6 @@ def _get_derived_stats(
     con_mod = get_mod_from_score(stats[2][0])
     wis_mod = get_mod_from_score(stats[4][0])
 
-    # TODO - Adjust lenny-dnd data to store starting HP as a separate field?
     for info in char_class.base_info:
         if start_hp:
             break
@@ -71,8 +70,11 @@ def _get_derived_stats(
             match = re.search(r"d(\d+)$", entry)
             if match is None:
                 continue
-            start_hp = int(match.group(1)) + con_mod  # TODO TOUGH?
+            start_hp = int(match.group(1)) + con_mod
             break
+
+    if start_hp and char_background.feat and "Tough" in char_background.feat:
+        start_hp += 2  # Level 1 * 2
 
     speed = ", ".join(char_species.speed).replace("feet", "ft.").replace(" ", "")
 
@@ -112,11 +114,12 @@ class CharacterSpellCastingStats:
     spell_atk: int
 
 
-def _get_spellcasting_stats(stats: list[tuple[int, str]], char_class: Class) -> None | CharacterSpellCastingStats:
+def _get_spellcasting_stats(
+    stats: list[tuple[int, str]], char_class: Class, prof_bonus: int = 2
+) -> None | CharacterSpellCastingStats:
     if char_class.spellcast_ability is None:
         return None
     ability = char_class.spellcast_ability
-    prof = 2  # TODO ensure same proficiency is used between commands.
 
     spell_mod = None
     for stat, skill in stats:
@@ -129,8 +132,8 @@ def _get_spellcasting_stats(stats: list[tuple[int, str]], char_class: Class) -> 
     if spell_mod is None:
         return None
 
-    spellsave_dc = 8 + prof + spell_mod
-    spell_atk = spell_mod + prof
+    spellsave_dc = 8 + prof_bonus + spell_mod
+    spell_atk = spell_mod + prof_bonus
     return CharacterSpellCastingStats(ability=ability, spellsave_dc=spellsave_dc, spell_atk=spell_atk, spell_mod=spell_mod)
 
 

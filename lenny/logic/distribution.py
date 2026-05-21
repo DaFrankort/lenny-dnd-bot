@@ -5,6 +5,7 @@ import math
 import d20
 import discord
 import matplotlib
+from d20.distribution.distribution import Distribution
 from matplotlib import pyplot as plt
 
 from logic.color import UserColor
@@ -32,7 +33,7 @@ def to_matplotlib_color(color: int) -> tuple[float, float, float]:
 
 
 def _distribution_chart(
-    dist: d20.Distribution,
+    dist: Distribution,
     color: int,
     min_to_beat: float,
 ) -> discord.File:

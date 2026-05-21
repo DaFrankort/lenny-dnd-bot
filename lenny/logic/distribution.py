@@ -3,10 +3,8 @@ import io
 import math
 
 import d20
-import d20distribution  # type: ignore
 import discord
 import matplotlib
-from d20distribution.distribution import Distribution  # type: ignore
 from matplotlib import pyplot as plt
 
 from logic.color import UserColor
@@ -34,7 +32,7 @@ def to_matplotlib_color(color: int) -> tuple[float, float, float]:
 
 
 def _distribution_chart(
-    dist: Distribution,
+    dist: d20.Distribution,
     color: int,
     min_to_beat: float,
 ) -> discord.File:
@@ -77,7 +75,7 @@ def _distribution_chart(
 
 
 def dice_distribution(expression: str, advantage: Advantage = Advantage.NORMAL):
-    dist = d20distribution.parse(expression)
+    dist = d20.distribution(expression)
 
     if advantage == Advantage.ADVANTAGE:
         dist = dist.advantage()

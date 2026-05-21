@@ -29,10 +29,9 @@ def get_mod_from_score(ability_score: int) -> int:
 
 
 def format_modifier_str(mod: int, space_between: bool = False) -> str:
-    formatted = f"- {abs(mod)}" if mod < 0 else f"+ {mod}"
-    if space_between:
-        return formatted
-    return formatted.replace(" ", "")
+    sign = "+" if mod >= 0 else "-"
+    space = " " if space_between else ""
+    return f"{sign}{space}{abs(mod)}"
 
 
 @dataclasses.dataclass
@@ -73,7 +72,7 @@ def _get_derived_stats(
             start_hp = int(match.group(1)) + con_mod
             break
 
-    if start_hp and char_background.feat and "Tough" in char_background.feat:
+    if start_hp and char_background.feat and "tough" in char_background.feat.lower():
         start_hp += 2  # Level 1 * 2
 
     speed = ", ".join(char_species.speed).replace("feet", "ft.").replace(" ", "")
@@ -161,33 +160,38 @@ def _get_random_xphb_entry(entries: list[TDND]) -> TDND:
     return random.choice(xphb_entries)
 
 
-def _get_character_languages(char_class: Class, species: Species) -> list[str]:
-    species_languages = {
-        "Elf": "Elvish",
-        "Gnome": "Gnomish",
-        "Goliath": "Giant",
-        "Halfling": "Halfling",
-        "Dwarf": "Dwarvish",
-        "Tiefling": "Infernal",
-        "Orc": "Orc",
-        "Dragonborn": "Draconic",
-    }
-    class_languages = {
-        # None indicates that a random language can be chosen.
-        "Rogue": ["Thieves' Cant", None],
-        "Druid": ["Druidic"],
-    }
+SPECIES_LANGUAGES = {
+    # Data for which species is more likely to speak which language is not available.
+    # For flair reasons we define this ourselves, however it should be noted that if any of these languages are removed.
+    # (Which they likely won't) this needs to be adjusted.
+    "Elf": "Elvish",
+    "Gnome": "Gnomish",
+    "Goliath": "Giant",
+    "Halfling": "Halfling",
+    "Dwarf": "Dwarvish",
+    "Tiefling": "Infernal",
+    "Orc": "Orc",
+    "Dragonborn": "Draconic",
+}
 
+CLASS_LANGUAGES = {
+    # None indicates that a random language can be chosen.
+    "Rogue": ["Thieves' Cant", None],
+    "Druid": ["Druidic"],
+}
+
+
+def _get_character_languages(char_class: Class, species: Species) -> list[str]:
     languages: set[str] = set(["Common"])
     languages_known = 3
 
     if random.randint(0, 100) > 25:
-        language = species_languages.get(species.name)
+        language = SPECIES_LANGUAGES.get(species.name)
         if language:
             languages.add(language)
 
-    if char_class.name in class_languages:
-        lang_list = class_languages.get(char_class.name, [])
+    if char_class.name in CLASS_LANGUAGES:
+        lang_list = CLASS_LANGUAGES.get(char_class.name, [])
         languages_known += len(lang_list)
         for lang in lang_list:
             if lang is None:

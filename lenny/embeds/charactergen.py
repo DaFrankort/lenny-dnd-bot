@@ -85,49 +85,59 @@ class CharacterGenContainerView(ui.LayoutView):
         container.add_item(ability_section)
 
         container.add_item(BaseSeparator())
-        for info in self._get_additional_info(result):
-            container.add_item(ui.TextDisplay(info))
+        container.add_item(ui.TextDisplay(self._get_derived_stats(result)))
+        if result.spellcasting:
+            container.add_item(ui.TextDisplay(self._get_spellcast_info(result)))
+        container.add_item(ui.TextDisplay(self._get_proficiency_info(result)))
+        container.add_item(ui.TextDisplay(self._get_language_info(result)))
+        container.add_item(ui.TextDisplay(self._get_starting_equipment_info(result)))
 
         self.add_item(container)
 
-    def _get_additional_info(self, result: CharacterGenResult) -> list[str]:
+    def _get_derived_stats(self, result: CharacterGenResult) -> str:
         feat = result.background.feat or ""
+        info: list[str] = ["### Derived Stats"]
 
-        info: list[str] = []
-        derived = "### Derived Stats"
-        derived += f"\n- ``{result.derived_stats.hp}`` Starting HP"
+        start_hp = f"``{result.derived_stats.hp}`` Starting HP"
         if "Tough" in feat:
-            derived += " (Tough)"
-        derived += f"\n- ``+{result.derived_stats.proficiency}`` Proficiency Bonus"
-        derived += f"\n- ``{format_modifier_str(result.derived_stats.initiative)}`` Initiative"
+            start_hp += " (Tough)"
+        initiative = f"``{format_modifier_str(result.derived_stats.initiative)}`` Initiative"
         if "Alert" in feat:
-            derived += " (Alert)"
-        derived += f"\n- ``{result.derived_stats.speed}`` Movement Speed"
-        derived += f"\n- ``{result.derived_stats.passive_perception}`` Passive Perception"
-        info.append(derived)
+            initiative += " (Alert)"
 
-        if result.spellcasting:
-            spellcasting = f"### Spellcasting ({result.spellcasting.ability})"
-            spellcasting += f"\n- ``{format_modifier_str(result.spellcasting.spell_mod)}`` Spellcasting Mod."
-            spellcasting += f"\n- ``{result.spellcasting.spellsave_dc}`` Spellsave DC"
-            spellcasting += f"\n- ``{format_modifier_str(result.spellcasting.spell_atk)}`` Spell Attack Mod."
-            info.append(spellcasting)
+        info.append(start_hp)
+        info.append(f"``+{result.derived_stats.proficiency}`` Proficiency Bonus")
+        info.append(initiative)
+        info.append(f"``{result.derived_stats.speed}`` Movement Speed")
+        info.append(f"``{result.derived_stats.passive_perception}`` Passive Perception")
+        return "\n- ".join(info)
 
-        if result.proficiencies:
-            prof = "### Skill Proficiencies"
-            if "Skilled" in feat:
-                prof += " (Skilled)"
-            prof += "\n" + ", ".join([p.title() for p in result.proficiencies])
-            info.append(prof)
+    def _get_spellcast_info(self, result: CharacterGenResult) -> str:
+        if not result.spellcasting:
+            return ""
 
-        if result.languages:
-            languages = f"### Languages ({len(result.languages)})\n"
-            languages += ", ".join(result.languages)
-            info.append(languages)
+        info = [f"### Spellcasting ({result.spellcasting.ability})"]
+        info.append(f"``{format_modifier_str(result.spellcasting.spell_mod)}`` Spellcasting Mod.")
+        info.append(f"``{result.spellcasting.spellsave_dc}`` Spellsave DC")
+        info.append(f"``{format_modifier_str(result.spellcasting.spell_atk)}`` Spell Attack Mod.")
+        return "\n- ".join(info)
 
-        if result.starting_equipment:
-            equipment = "### Starting Equipment"
-            equipment += "\n- " + "\n- ".join(result.starting_equipment)
-            info.append(equipment)
+    def _get_proficiency_info(self, result: CharacterGenResult) -> str:
+        feat = result.background.feat or ""
+        prof = "### Skill Proficiencies"
+        if "Skilled" in feat:
+            prof += " (Skilled)"
 
-        return info
+        info = [prof]
+        info.append(", ".join([p.title() for p in result.proficiencies]))
+        return "\n".join(info)
+
+    def _get_language_info(self, result: CharacterGenResult) -> str:
+        info = [f"### Languages ({len(result.languages)})"]
+        info.append(", ".join(result.languages))
+        return "\n".join(info)
+
+    def _get_starting_equipment_info(self, result: CharacterGenResult) -> str:
+        info = ["### Starting Equipment"]
+        info.extend(result.starting_equipment)
+        return "\n- ".join(info)

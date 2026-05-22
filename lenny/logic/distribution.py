@@ -2,10 +2,10 @@ import dataclasses
 import io
 import math
 
-import d20
+import d100
 import discord
 import matplotlib
-from d20.distribution.distribution import Distribution
+from d100.distribution.distribution import Distribution
 from matplotlib import pyplot as plt
 
 from logic.color import UserColor
@@ -76,7 +76,7 @@ def _distribution_chart(
 
 
 def dice_distribution(expression: str, advantage: Advantage = Advantage.NORMAL):
-    dist = d20.distribution(expression)
+    dist = d100.distribution(expression)
 
     if advantage == Advantage.ADVANTAGE:
         dist = dist.advantage()
@@ -94,7 +94,7 @@ def distribution(
     color: int,
     min_to_beat: float | None = None,
 ):
-    expression = str(d20.parse(expr=expression))
+    expression = str(d100.parse(expr=expression))
     dist = dice_distribution(expression, advantage)
 
     if min_to_beat is None:

@@ -16,5 +16,4 @@ scikit-image==0.26.0
 matplotlib==3.10.9
 validators==0.35.0
 thread==2.0.6
-d20distribution @ git+https://github.com/pipieter/d20distribution@main
-d20 @ git+https://github.com/pipieter/d20lenny@main
+d100 @ git+https://github.com/pipieter/d100@main

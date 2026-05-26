@@ -1,11 +1,10 @@
 import dataclasses
 
-# The usage of d20 requires many type: ignore comments, as d20 does not use any form of typing internally
-import d20
-from d20.enums import Advantage as D20Advantage
-from d20.roll import RollResult as D20RollResult
-from d20.roll import SingleRollResult, expression
-from d20.roll.stringifier import SimpleStringifier
+import d100
+from d100.enums import Advantage as D20Advantage
+from d100.roll import RollResult as D20RollResult
+from d100.roll import SingleRollResult, expression
+from d100.roll.stringifier import SimpleStringifier
 
 from methods import ChoicedEnum
 
@@ -58,13 +57,13 @@ class DiceStringifier(SimpleStringifier):
         dice = list(self._str_die(die, node.size) for die in node.keptset)
         return "[" + ",".join(dice) + "]"
 
-    def _str_die(self, die: expression.Die, size: d20.ast.DiceSize) -> str:
+    def _str_die(self, die: expression.Die, size: d100.ast.DiceSize) -> str:
         return str(die.value)
 
 
 @dataclasses.dataclass
 class RollResult:
-    """Wrapper class around d20.roll.RollResult, to store additional information."""
+    """Wrapper class around d100.roll.RollResult, to store additional information."""
 
     expression: str  # The original expression of the roll. May not match the d20 roll's expression if advantage was used.
     advantage: Advantage
@@ -92,26 +91,26 @@ class MultiRollResult:
 def _validate_expression(expr: str, advantage: Advantage) -> D20RollResult:
     # Roll an expression once, to check for errors
     try:
-        return d20.roll(expr, advantage=advantage.advantage)
-    except d20.errors.RollSyntaxError as exception:
+        return d100.roll(expr, advantage=advantage.advantage)
+    except d100.errors.RollSyntaxError as exception:
         raise SyntaxError(f"Expression '{expr}' has an invalid syntax!") from exception
-    except d20.errors.TooManyRolls as exception:
+    except d100.errors.TooManyRolls as exception:
         raise TimeoutError(f"Expression '{expr}' has too many dice rolls!") from exception
     except Exception as exception:
         raise exception
 
 
 def roll(expr: str, advantage: Advantage = Advantage.NORMAL) -> RollResult:
-    expr = str(d20.parse(expr))
+    expr = str(d100.parse(expr))
     stringifier = DiceStringifier()
-    result = d20.roll(expr, stringifier, advantage.advantage)
+    result = d100.roll(expr, stringifier, advantage.advantage)
     return RollResult(expression=expr, advantage=advantage, result=result)
 
 
 def multi_roll(expr: str, amount: int, advantage: Advantage) -> MultiRollResult:
     stringifier = DiceStringifier()
     validation = _validate_expression(expr, advantage)
-    expr = str(d20.parse(expr))
+    expr = str(d100.parse(expr))
 
     rolls_win: list[SingleRollResult] = []
     rolls_lose_1: list[SingleRollResult] = []
@@ -119,7 +118,7 @@ def multi_roll(expr: str, amount: int, advantage: Advantage) -> MultiRollResult:
 
     for _ in range(amount):
         reverse = advantage == Advantage.DISADVANTAGE
-        rolls = d20.roll(expr, stringifier, advantage.advantage).rolls
+        rolls = d100.roll(expr, stringifier, advantage.advantage).rolls
         rolls = list(sorted(rolls, key=lambda r: r.total, reverse=reverse))
 
         rolls_win.append(rolls[-1])

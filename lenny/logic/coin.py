@@ -1,96 +1,85 @@
 import re
+from typing import Union
+from lark import Lark, Transformer, Token, Tree
+
+COIN_GRAMMAR = r"""
+    ?start: expr
+
+    ?expr: term
+         | expr "+" term   -> add
+         | expr "-" term   -> sub
+
+    ?term: factor
+         | term "*" factor -> mul
+         | term "/" factor -> div
+
+    ?factor: NUMBER        -> number
+           | COIN_UNIT     -> coin
+           | wallet        -> wallet
+           | "(" expr ")"
+
+    wallet: COIN_UNIT+     // Handles "10gp 5sp" style sequences
+
+    COIN_UNIT: /[\d.]+(pp|gp|ep|sp|cp)/
+    %import common.NUMBER
+    %import common.WS
+    %ignore WS
+"""
 
 
-class CoinNode:
-
-    def eval(self) -> "Coin | float":
-        raise NotImplementedError()
+COIN_PARSER: Lark = Lark(COIN_GRAMMAR, parser="lalr")
+EvalResult = Union["Coin", float]
 
 
-class ValueNode(CoinNode):
+class CoinTransformer(Transformer[Token, EvalResult]):
+    """Converts the Lark Tree into a Coin object or float."""
 
-    def __init__(self, value: "Coin | float"):
-        self.value = value
+    def number(self, n: list[Token]) -> float:
+        return float(n[0])
 
-    def eval(self) -> "Coin | float":
-        return self.value
+    def coin(self, token: Token) -> "Coin":
+        return Coin.parse_unit(token.value)
 
-
-class BinOpNode(CoinNode):
-    def __init__(self, left: ValueNode, op: str, right: ValueNode):
-        self.left, self.op, self.right = left, op, right
-
-    def eval(self) -> "Coin | float":
-        left_val = self.left.eval()
-        right_val = self.right.eval()
-
-        if self.op == "+":
-            return left_val + right_val  # type: ignore
-        if self.op == "-":
-            return left_val - right_val  # type: ignore
-        if self.op == "*":
-            return left_val * right_val  # type: ignore
-        if self.op == "/":
-            return left_val / right_val  # type: ignore
-        raise ValueError(f"Unknown operator: {self.op}")
-
-
-class CoinParser:
-    def __init__(self, tokens: list[str]):
-        self.tokens = tokens
-        self.pos = 0
-
-    def consume(self):
-        res = self.tokens[self.pos] if self.pos < len(self.tokens) else None
-        self.pos += 1
+    def wallet(self, coins: list["Coin"]) -> "Coin":
+        # Sums up a sequence of coins: "10gp 5sp"
+        res = Coin()
+        for c in coins:
+            res += c
         return res
 
-    def peek(self):
-        return self.tokens[self.pos] if self.pos < len(self.tokens) else None
+    def add(self, args: list[EvalResult]) -> EvalResult:
+        if isinstance(args[0], float | int):
+            return args[1] + args[0]
+        return args[0] + args[1]
 
-    def parse(self) -> CoinNode:
-        return self.expr()
+    def sub(self, args: list[EvalResult]) -> EvalResult:
+        if isinstance(args[0], float | int):
+            return args[1] - args[0]
+        return args[0] - args[1]
 
-    def expr(self) -> CoinNode:
-        node = self.term()
-        while self.peek() in {"+", "-"}:
-            op = self.consume()
-            if op:
-                node = BinOpNode(node, op, self.term())  # type: ignore
-        return node
+    def mul(self, args: list[EvalResult]) -> EvalResult:
+        left, right = args[0], args[1]
+        if isinstance(left, "Coin") and isinstance(right, float | int):
+            return left * right
+        if isinstance(right, "Coin") and isinstance(left, float | int):
+            return right * left
+        if isinstance(left, float | int) and isinstance(right, float | int):
+            return left * right
+        if isinstance(left, "Coin") and isinstance(right, "Coin"):
+            raise ValueError("Cannot multiply coin with coin, use numerical values for the multiplier instead.")
+        raise ValueError("Unexpected multiplication detected.")
 
-    def term(self) -> CoinNode:
-        node = self.factor()
-        while self.peek() in {"*", "/"}:
-            op = self.consume()
-            if op:
-                node = BinOpNode(node, op, self.factor())  # type: ignore
-        return node
-
-    def factor(self) -> CoinNode:
-        token = self.consume()
-        if not token:
-            raise ValueError("Unexpected end of expression")
-
-        if token == "(":
-            node = self.expr()
-            self.consume()  # consume ')'
-            return node
-
-        if re.search(r"[a-z]", token):
-            coin = Coin.parse_unit(token)
-            while True:
-                # Users can do "wallet"-notations like so: 100gp 20sp + x
-                # In cases where there isn't an operator between pieces, we sum them up and treat them as one collection of pieces, or a "wallet".
-                next_token = self.peek()
-                if not next_token or not re.search(r"[a-z]", next_token):
-                    break
-
-                coin += Coin.parse_unit(self.consume())  # type: ignore
-
-            return ValueNode(coin)
-
-        return ValueNode(float(token))
+    def div(self, args: list[EvalResult]) -> EvalResult:
+        left, right = args[0], args[1]
+        if isinstance(left, "Coin") and isinstance(right, float | int):
+            return left / right
+        if isinstance(right, "Coin") and isinstance(left, float | int):
+            return right / left
+        if isinstance(left, float | int) and isinstance(right, float | int):
+            return left / right
+        if isinstance(args[0], "Coin") and isinstance(args[1], "Coin"):
+            raise ValueError("Cannot divide coin by coin, use numerical values for divider instead.")
+        raise ValueError("Unexpected division detected.")
 
 
 class Coin:
@@ -111,26 +100,21 @@ class Coin:
 
     @classmethod
     def from_string(cls, expression: str) -> "Coin":
-        tokens = cls._tokenize(expression)
-        parser = CoinParser(tokens)
-        result = parser.parse().eval()
-        if isinstance(result, (float, int)):
-            return Coin(cp=result)
-        return result
+        raw_tree: Tree[Token] = COIN_PARSER.parse(expression.lower())  # pyright: ignore[reportUnknownMemberType]
+        transformer = CoinTransformer()
+        result = transformer.transform(raw_tree)
 
-    @staticmethod
-    def _tokenize(expression: str):
-        token_pattern = re.compile(r"(\d*\.\d+|\d+)[a-z]+|(\d*\.\d+|\d+)|[+\-*/()]")
-        return [m.group(0) for m in token_pattern.finditer(expression.lower().replace(" ", ""))]
+        if isinstance(result, float | int):
+            return cls(cp=float(result))
+        return result
 
     @classmethod
     def parse_unit(cls, block: str) -> "Coin":
-        data = {"pp": 0.0, "gp": 0.0, "ep": 0.0, "sp": 0.0, "cp": 0.0}
         match = re.match(r"([\d.]+)([a-z]+)", block)
-        if match:
-            val, unit = match.groups()
-            data[unit] = float(val)
-        return cls(**data)
+        if not match:
+            return cls()
+        val, unit = match.groups()
+        return cls(**{unit: float(val)})
 
     def round_up(self):
         """
@@ -143,10 +127,14 @@ class Coin:
         self.ep, remainder = divmod(remainder, 50)
         self.sp, self.cp = divmod(remainder, 10)
 
-    def __add__(self, other: "Coin") -> "Coin":
+    def __add__(self, other: "Coin | float") -> "Coin":
+        if isinstance(other, float | int):
+            return Coin(cp=self.total_cp + other)
         return Coin(cp=self.total_cp + other.total_cp)
 
-    def __sub__(self, other: "Coin") -> "Coin":
+    def __sub__(self, other: "Coin | float") -> "Coin":
+        if isinstance(other, float | int):
+            return Coin(cp=self.total_cp - other)
         return Coin(cp=self.total_cp - other.total_cp)
 
     def __mul__(self, other: float) -> "Coin":

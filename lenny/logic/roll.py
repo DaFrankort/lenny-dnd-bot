@@ -1,10 +1,13 @@
 import dataclasses
 
 import d100
+from d100.ast.dice import Dice
+from d100.ast.die import DiceSize, Die
+from d100.ast.expression import Expression
 from d100.enums import Advantage as D20Advantage
 from d100.roll import RollResult as D20RollResult
-from d100.roll import SingleRollResult, expression
-from d100.roll.stringifier import SimpleStringifier
+from d100.roll import SingleRollResult
+from d100.stringifier import SimpleStringifier
 
 from methods import ChoicedEnum
 
@@ -50,14 +53,14 @@ class Advantage(str, ChoicedEnum):
 
 
 class DiceStringifier(SimpleStringifier):
-    def _str_expression(self, node: expression.Expression):
+    def _str_expression(self, node: Expression):
         return f"{self._stringify(node.value)}"
 
-    def _str_dice(self, node: expression.Dice):
+    def _str_dice(self, node: Dice):
         dice = list(self._str_die(die, node.size) for die in node.keptset)
         return "[" + ",".join(dice) + "]"
 
-    def _str_die(self, die: expression.Die, size: d100.ast.DiceSize) -> str:
+    def _str_die(self, die: Die, size: DiceSize) -> str:
         return str(die.value)
 
 

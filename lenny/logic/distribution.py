@@ -5,7 +5,7 @@ import math
 import d100
 import discord
 import matplotlib
-from d100.distribution.distribution import Distribution
+from d100.distribution import Distribution
 from matplotlib import pyplot as plt
 
 from logic.color import UserColor

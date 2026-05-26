@@ -1,6 +1,12 @@
 from typing import Any
 
-from logic.dnd.abstract import Description, DNDEntry, DNDEntryList, DNDEntryType
+from logic.dnd.abstract import (
+    Description,
+    DNDEntry,
+    DNDEntryList,
+    DNDEntryType,
+    ProficiencyOptions,
+)
 
 
 class Background(DNDEntry):
@@ -13,6 +19,7 @@ class Background(DNDEntry):
     prerequisite: str | None
     description: list[Description]
     fluff: list[Description]
+    skill_prof: ProficiencyOptions
 
     def __init__(self, obj: dict[str, Any]):
         self.entry_type = DNDEntryType.BACKGROUND
@@ -30,6 +37,9 @@ class Background(DNDEntry):
         self.prerequisite = obj["prerequisite"]
         self.description = obj["description"]
         self.fluff = obj["fluff"]
+        self.skill_prof = ProficiencyOptions(
+            options=obj["skillProficiencies"]["options"], amount=obj["skillProficiencies"]["amount"]
+        )
 
 
 class BackgroundList(DNDEntryList[Background]):

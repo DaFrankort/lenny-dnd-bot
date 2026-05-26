@@ -18,7 +18,7 @@ async def species_autocomplete(_: discord.Interaction, current: str):
 class NameGenCommand(BaseCommand):
     name = "namegen"
     desc = "Generate a random name depending on species and gender!"
-    help = "Get a random name for a humanoid, species and gender can be specified but will default to random values."
+    help = "Get a random name for a humanoid; species and gender can be specified but will default to random values."
 
     @choices(gender=Gender.choices())
     @autocomplete(species=species_autocomplete)

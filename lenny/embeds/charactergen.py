@@ -106,6 +106,7 @@ class CharacterGenContainerView(ui.LayoutView):
             initiative += " (Alert)"
 
         info.append(start_hp)
+        info.append(f"``1d{result.char_class.hp}`` HP Die")
         info.append(f"``+{result.derived_stats.proficiency}`` Proficiency Bonus")
         info.append(initiative)
         info.append(f"``{result.derived_stats.speed}`` Movement Speed")

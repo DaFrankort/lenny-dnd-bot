@@ -1,6 +1,5 @@
 import dataclasses
 import random
-import re
 
 import discord
 
@@ -51,28 +50,15 @@ def _get_derived_stats(
     has_perception_prof: bool,
     proficiency: int = 2,
 ) -> CharacterDerivedStats:
-    start_hp = None
     dex_mod = get_mod_from_score(stats[1][0])
     con_mod = get_mod_from_score(stats[2][0])
     wis_mod = get_mod_from_score(stats[4][0])
 
-    for info in char_class.base_info:
-        if start_hp:
-            break
-        if info["name"].lower() != "health":
-            continue
-        if info["type"] != "list":
-            continue
-        for entry in info["list"]["entries"]:
-            if not isinstance(entry, str):
-                continue
-            match = re.search(r"d(\d+)$", entry)
-            if match is None:
-                continue
-            start_hp = int(match.group(1)) + con_mod
-            break
+    if char_class.hp is None:
+        raise NotImplementedError(f"The class '{char_class.name} ({char_class.source})' does not have starting-HP data.")
 
-    if start_hp and char_background.feat and "tough" in char_background.feat.lower():
+    start_hp = char_class.hp + con_mod
+    if char_background.feat and "tough" in char_background.feat.lower():
         start_hp += 2  # Level 1 * 2
 
     speed = ", ".join(char_species.speed).replace("feet", "ft.").replace(" ", "")

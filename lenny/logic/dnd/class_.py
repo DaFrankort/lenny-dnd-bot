@@ -39,6 +39,7 @@ class Class(DNDEntry):
     primary_ability: str | None
     spellcast_ability: str | None
     start_prof: ClassStartingProficiencies | None  # Sidekicks do not have this data.
+    hp: int | None  # The start HP for and the sides for the HP-die. For Sidekicks, this value is None.
     base_info: list[Description]
     level_resources: dict[str, list[Description]]
     level_features: dict[str, list[Description]]
@@ -55,6 +56,7 @@ class Class(DNDEntry):
         self.primary_ability = obj["primaryAbility"]
         self.spellcast_ability = obj["spellcastAbility"]
         self.start_prof = ClassStartingProficiencies.from_data(obj)
+        self.hp = obj["hp"]
         self.base_info = obj["baseInfo"]
         self.level_resources = obj["levelResources"]
         self.level_features = obj["levelFeatures"]

@@ -38,7 +38,7 @@ class DNDTable(DNDEntry):
         if self.dice_notation is None:
             raise PermissionError("This table is not rollable.")
 
-        result = roll(self.dice_notation).roll.total
+        result = roll(self.dice_notation).result.total
         row = self.get_rollable_row(result)
         return row, result
 

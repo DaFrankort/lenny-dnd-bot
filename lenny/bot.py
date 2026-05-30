@@ -25,6 +25,7 @@ from commands.roll import (
     TableRollCommand,
 )
 from commands.search import SearchCommandGroup
+from commands.sessionstats import SessionStatsCommand
 from commands.stats import StatsCommandGroup
 from commands.timestamp import TimestampCommandGroup
 from commands.tokengen import TokenGenCommandGroup
@@ -98,6 +99,7 @@ class Bot(discord.Client):
         self.tree.add_command(HomebrewCommandGroup())
         self.tree.add_command(FavoritesCommandGroup())
         self.tree.add_command(AverageDamageCommandGroup())
+        self.tree.add_command(SessionStatsCommand())
 
         # Context menus
         self.tree.add_command(DeleteContextMenu())

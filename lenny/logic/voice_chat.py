@@ -91,10 +91,6 @@ class VC:
         if old_client:
             if old_client.channel.id == voice_channel.id:
                 return
-            try:
-                await itr.channel.send(SessionStatistics.get(itr).get_report())  # type: ignore
-            except Exception:
-                ...
             await VC.leave(guild_id)  # Need to leave current channel to switch.
 
         client = await voice_channel.connect()

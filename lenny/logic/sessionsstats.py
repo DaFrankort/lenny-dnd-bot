@@ -27,15 +27,15 @@ class UserSessionDiceStats:
         self.dis_count = 0
 
     def add(self, result: RollResult):
-        if len(result.warnings) > 0:
+        if len(result.result.warnings) > 0:
             # Rolls with warnings are not considered valid dice-rolls.
             # But often appear when users want to quickly calculate something.
             return
 
         self._add_advantage(result)
-        for roll in result.rolls:
+        for roll in result.result.rolls:
             # TODO -> maybe use different separation? Possibly 1d10red support?
-            if "d20" in roll.expr:
+            if "d20" in result.expression:
                 self._add_d20(roll)
             else:
                 self._add_damage_roll(roll)
@@ -69,6 +69,8 @@ class UserSessionDiceStats:
 
     @property
     def average_d20(self) -> int:
+        if len(self.d20_totals) == 0:
+            return 0
         return sum(self.d20_totals) // len(self.d20_totals)
 
     @property
@@ -81,6 +83,8 @@ class UserSessionDiceStats:
     @property
     def average_dmg(self) -> int:
         totals = self.damage_totals
+        if len(totals) == 0:
+            return 0
         return sum(totals) // len(totals)
 
     @property
@@ -150,7 +154,6 @@ class SessionStats:
             user_report += f"\n- Dice rolled: ``{dice.dice_rolled}``"
             report += user_report
 
-        print(report)
         return report
 
 

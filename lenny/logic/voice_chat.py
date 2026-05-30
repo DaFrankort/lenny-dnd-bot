@@ -14,6 +14,7 @@ from discord import Interaction
 from logic.roll import RollResult
 from logic.sessionsstats import SessionStatistics
 
+
 class SoundType(str, Enum):
     ROLL = "dice/roll"
     NAT_20 = "dice/nat_20"

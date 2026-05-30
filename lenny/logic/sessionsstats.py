@@ -58,13 +58,13 @@ class UserSessionDiceStats:
         if result.advantage is Advantage.ADVANTAGE or result.advantage is Advantage.ELVEN_ACCURACY:
             self.adv_count += 1
             return
-        elif result.advantage is Advantage.DISADVANTAGE:
+        if result.advantage is Advantage.DISADVANTAGE:
             self.dis_count += 1
             return
 
-        if "2d20kh1" in result.expression or "2d20dl1" in result.expression or "adv" in result.expression:
+        if "2d20kh1" in result.expression or "2d20dl1" in result.expression or "1d20adv" in result.expression:
             self.adv_count += 1
-        if "2d20kl1" in result.expression or "2d20dh1" in result.expression or "dis" in result.expression:
+        if "2d20kl1" in result.expression or "2d20dh1" in result.expression or "1d20dis" in result.expression:
             self.dis_count += 1
 
     @property
@@ -139,11 +139,11 @@ class SessionStats:
             raise PermissionError("Must be in a server to get a report!")
 
         report = "# Session Stats"
-        for user_id in self.user_data:
+        for user_id, stats in self.user_data.items():
             user = itr.guild.get_member(user_id)
             if not user:
                 continue
-            dice: UserSessionDiceStats = self.user_data[user_id].dice
+            dice: UserSessionDiceStats = stats.dice
             user_report = f"\n\n### {user.display_name}"
             user_report += f"\n- Average d20 result: ``{dice.average_d20}``"
             user_report += f"\n- Average damage: ``{dice.average_dmg}``"

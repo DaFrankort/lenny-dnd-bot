@@ -20,6 +20,12 @@ from methods import ChoicedEnum
 BASE_DATA_PATHS = ["./submodules/lenny-dnd-data/generated/official/", "./submodules/lenny-dnd-data/generated/partnered/"]
 
 
+@dataclasses.dataclass
+class ProficiencyOptions:
+    options: list[str] | Literal["any"]
+    amount: int | Literal["all"]
+
+
 class DNDEntryType(str, ChoicedEnum):
     ACTION = "action"
     BACKGROUND = "background"

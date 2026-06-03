@@ -1,7 +1,7 @@
 import math
 
 import pytest
-from d20.enums import Critical  # type: ignore
+from d100.enums import Critical
 
 from logic.roll import Advantage, roll
 

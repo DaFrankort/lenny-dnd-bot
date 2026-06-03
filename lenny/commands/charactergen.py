@@ -9,8 +9,8 @@ from logic.dnd.name import Gender
 
 class CharacterGenCommand(BaseCommand):
     name = "charactergen"
-    desc = "Generate a random D&D character!"
-    help = "Generates a random D&D 5e character, using XPHB classes, species and backgrounds."
+    desc = "Generate a random Lvl. 1 D&D character!"
+    help = "Generates a random Level 1 D&D 5e character, for inspiration or quick-start purposes. Limited to strictly XPHB classes, species, and backgrounds.\nIf XGE life-data is available for your class or background, random life-inspiration will be provided too."
 
     @choices(gender=Gender.choices(), species=species_choices(), char_class=class_choices())
     @describe(

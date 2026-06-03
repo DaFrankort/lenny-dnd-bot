@@ -4,7 +4,11 @@ import discord
 from discord import ui
 
 from embeds.components import BaseSeparator, TitleTextDisplay
-from logic.charactergen import CharacterGenResult
+from logic.charactergen import (
+    CharacterGenResult,
+    format_modifier_str,
+    get_mod_from_score,
+)
 from logic.charts import get_radar_chart
 from logic.color import UserColor
 from logic.dnd.abstract import DNDEntry, build_table_from_rows
@@ -42,8 +46,8 @@ class CharacterGenContainerView(ui.LayoutView):
                 diff = boosted_value - base_value
                 ability_value = f"{base_value} + {diff}"
 
-            mod = (boosted_value - 10) // 2
-            mod = f"- {abs(mod)}" if mod < 0 else f"+ {mod}"
+            mod = get_mod_from_score(boosted_value)
+            mod = format_modifier_str(mod, True)
 
             rows.append([name, ability_value, mod])
 
@@ -80,4 +84,61 @@ class CharacterGenContainerView(ui.LayoutView):
         ability_section = ui.Section[CharacterGenContainerView](ability_desc, accessory=ability_image)
         container.add_item(ability_section)
 
+        container.add_item(BaseSeparator())
+        container.add_item(ui.TextDisplay(self._get_derived_stats(result)))
+        if result.spellcasting:
+            container.add_item(ui.TextDisplay(self._get_spellcast_info(result)))
+        container.add_item(ui.TextDisplay(self._get_proficiency_info(result)))
+        container.add_item(ui.TextDisplay(self._get_language_info(result)))
+        container.add_item(ui.TextDisplay(self._get_starting_equipment_info(result)))
+
         self.add_item(container)
+
+    def _get_derived_stats(self, result: CharacterGenResult) -> str:
+        feat = result.background.feat or ""
+        info: list[str] = ["### Derived Stats"]
+
+        start_hp = f"``{result.derived_stats.hp}`` Starting HP"
+        if "Tough" in feat:
+            start_hp += " (Tough)"
+        initiative = f"``{format_modifier_str(result.derived_stats.initiative)}`` Initiative"
+        if "Alert" in feat:
+            initiative += " (Alert)"
+
+        info.append(start_hp)
+        info.append(f"``1d{result.char_class.hp}`` HP Die")
+        info.append(f"``+{result.derived_stats.proficiency}`` Proficiency Bonus")
+        info.append(initiative)
+        info.append(f"``{result.derived_stats.speed}`` Movement Speed")
+        info.append(f"``{result.derived_stats.passive_perception}`` Passive Perception")
+        return "\n- ".join(info)
+
+    def _get_spellcast_info(self, result: CharacterGenResult) -> str:
+        if not result.spellcasting:
+            return ""
+
+        info = [f"### Spellcasting ({result.spellcasting.ability})"]
+        info.append(f"``{format_modifier_str(result.spellcasting.spell_mod)}`` Spellcasting Mod.")
+        info.append(f"``{result.spellcasting.spellsave_dc}`` Spellsave DC")
+        info.append(f"``{format_modifier_str(result.spellcasting.spell_atk)}`` Spell Attack Mod.")
+        return "\n- ".join(info)
+
+    def _get_proficiency_info(self, result: CharacterGenResult) -> str:
+        feat = result.background.feat or ""
+        prof = "### Skill Proficiencies"
+        if "Skilled" in feat:
+            prof += " (Skilled)"
+
+        info = [prof]
+        info.append(", ".join([p.title() for p in result.proficiencies]))
+        return "\n".join(info)
+
+    def _get_language_info(self, result: CharacterGenResult) -> str:
+        info = [f"### Languages ({len(result.languages)})"]
+        info.append(", ".join(result.languages))
+        return "\n".join(info)
+
+    def _get_starting_equipment_info(self, result: CharacterGenResult) -> str:
+        info = ["### Starting Equipment"]
+        info.extend(result.starting_equipment)
+        return "\n- ".join(info)

@@ -1,6 +1,12 @@
 from typing import Any
 
-from logic.dnd.abstract import Description, DNDEntry, DNDEntryList, DNDEntryType
+from logic.dnd.abstract import (
+    Description,
+    DNDEntry,
+    DNDEntryList,
+    DNDEntryType,
+    ProficiencyOptions,
+)
 
 
 class Species(DNDEntry):
@@ -11,6 +17,7 @@ class Species(DNDEntry):
 
     description: list[Description]
     info: list[Description]
+    skill_prof: ProficiencyOptions | None
 
     def __init__(self, obj: dict[str, Any]):
         self.entry_type = DNDEntryType.SPECIES
@@ -26,6 +33,12 @@ class Species(DNDEntry):
 
         self.description = obj["description"]
         self.info = obj["info"]
+
+        skill_prof = obj["skillProficiencies"]
+        if skill_prof:
+            self.skill_prof = ProficiencyOptions(options=skill_prof["options"], amount=skill_prof["amount"])
+        else:
+            self.skill_prof = None
 
 
 class SpeciesList(DNDEntryList[Species]):

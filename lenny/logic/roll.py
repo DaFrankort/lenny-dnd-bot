@@ -5,6 +5,7 @@ import d100.utils
 from d100.ast.dice import Dice
 from d100.ast.die import DiceSize, Die
 from d100.ast.expression import ASTExpression, Expression
+from d100.errors import RollError
 from d100.roll import RollResult as D20RollResult
 from d100.roll import SingleRollResult
 from d100.stringifier import SimpleStringifier
@@ -36,6 +37,7 @@ class Advantage(str, ChoicedEnum):
                 return 3
             case Advantage.NORMAL:
                 return 1
+
 
 class DiceStringifier(SimpleStringifier):
     def _str_expression(self, node: Expression):
@@ -91,9 +93,9 @@ def parse(expr: str, advantage: Advantage) -> tuple[ASTExpression, set[str]]:
             case Advantage.DISADVANTAGE:
                 parsed = d100.utils.add_advantage_to_d20_in_expression(parsed, "dis", 2)
             case _:
-                raise Error(f"Unknown advantage type: {advantage.value}")
+                raise RollError(f"Unknown advantage type: {advantage.value}")
 
-    except Exception as exception:
+    except RollError as exception:
         warnings.add(str(exception))
 
     return parsed, warnings

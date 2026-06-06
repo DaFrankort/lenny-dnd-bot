@@ -185,9 +185,9 @@ class Bot(discord.Client):
             try:
                 emoji = await self.create_application_emoji(name=name, image=img)
                 emojis.append(emoji)
-                logging.info(f"- Added '{name}'")
+                logging.info("- Added '%s'", name)
             except discord.HTTPException as e:
-                logging.warning(f"Failed to create emoji '{name}': {e}")
+                logging.warning("Failed to create emoji '%s': %s", name, e)
 
         init_app_emojis(emojis)
 
@@ -195,7 +195,9 @@ class Bot(discord.Client):
             # Discord API does not allow automatic emoji deletion.
             unused = ", ".join(existing_names)
             logging.warning(
-                f"{len(existing_names)} Unused application emojis found, please delete these in the Developer Portal: {unused}"
+                "%d unused application emojis found, please delete these in the Developer Portal: %s",
+                len(existing_names),
+                unused,
             )
 
         logging.info("Application emojis synced")

@@ -5,7 +5,7 @@ from pathlib import Path
 import discord
 
 EMOJI_DIR = Path("./assets/images/emojis")
-app_emojis = {}
+APP_EMOJIS: dict[str, str] = {}
 
 
 def format_emoji_name(path: Path) -> str:
@@ -22,11 +22,11 @@ def get_emoji_files() -> list[tuple[str, Path]]:
 
 
 def init_app_emojis(emojis: list[discord.Emoji]):
-    global app_emojis
+    APP_EMOJIS.clear()
+    APP_EMOJIS.update({emoji.name: str(emoji) for emoji in emojis})
 
-    app_emojis = {emoji.name: str(emoji) for emoji in emojis}
 
-
+# pylint: disable=duplicate-code
 class AppEmoji(Enum):
     # ENTRY TYPES
     # NOTE: Does not have custom emojis yet.
@@ -103,9 +103,9 @@ class AppEmoji(Enum):
             self.WARLOCK: "🌙",
             self.WIZARD: "📖",
         }
-        logging.warning(f"Using fallback emoji for '{self.value}'")
+        logging.warning("Using fallback emoji for '%s'", self.value)
         return fallback_map.get(self, "❓")
 
     @property
     def emoji(self) -> str:
-        return app_emojis.get(self.value, self._fallback)
+        return APP_EMOJIS.get(self.value) or self._fallback  # Use of 'or' to prevent _fallback log messages.

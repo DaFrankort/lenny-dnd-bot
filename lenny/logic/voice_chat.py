@@ -8,6 +8,7 @@ from pathlib import Path
 
 import davey  # noqa: F401 # pylint: disable=unused-import # type: ignore
 import discord
+from d100.enums import Critical
 from discord import Interaction
 
 from logic.roll import RollResult
@@ -146,7 +147,7 @@ class VC:
 
     @staticmethod
     async def play_dice_roll(itr: Interaction, result: RollResult, reason: str | None = None):
-        roll = result.roll
+        roll = result.result.roll
         sound_type: SoundType = SoundType.ROLL
 
         reason = "" if not reason else reason.lower().strip()
@@ -157,9 +158,9 @@ class VC:
                 sound_type = SPECIAL_ROLL_REASONS.get(key, SoundType.ROLL)
                 break
 
-        if roll.is_natural_twenty:
+        if roll.crit == Critical.CRIT:
             sound_type = SoundType.NAT_20
-        elif roll.is_natural_one:
+        elif roll.crit == Critical.FAIL:
             sound_type = SoundType.NAT_1
 
         await VC.play(itr, sound_type)

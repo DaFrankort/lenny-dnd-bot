@@ -54,7 +54,7 @@ GUILD_ID=0
 - If you don't have a bot token, you can create one by following [Discord's bot creation guide](https://discordpy.readthedocs.io/en/stable/discord.html).
 - To get a guild ID, enable [developer mode](https://help.mee6.xyz/support/solutions/articles/101000482629-how-to-enable-developer-mode) on discord.
   Afterwards you can right click on your server of choice and select `Copy Server ID`.
-  The ``GUILD_ID`` field is optional and mainly serves to prioritize syncing with a certain server (for development purposes).
+  The `GUILD_ID` field is optional and mainly serves to prioritize syncing with a certain server (for development purposes).
 
 ### 4. (Optional) Install FFMPEG
 
@@ -87,7 +87,7 @@ Once the bot is added to your server, the commands below are available. When set
 Configure bot-specific settings for your server.
 
 - `/config permissions` - Set the roles which are allowed to configure the bot further. Only the server admin is allowed to use this command.
-- `/config sources` - Enable or disable which sources will be used during the `/search` commands. Only users with the permission roles can change the sources.
+- `/config sources <content> [search]` - Enable or disable which sources will be used during the `/search` commands. Only users with the permission roles can change the sources. You can filter content between official & partnered, and also quick-search to find the page a specific source is on.
 
 ### Dice Rolls
 
@@ -96,7 +96,10 @@ Roll D&D dice using dice-expressions (e.g. `2d6` / `1d20+2`).
 - `/roll <dice-expression> [advantage] [reason]` – Roll a single dice expression, optionally specify a reason for the roll (e.g. Acrobatics) and the advantage on the roll.
 - `/d20` - Rolls a basic 1d20 without any modifiers.
 - `/multiroll <dice-expression> <amount> [advantage] [reason]` – Roll a dice expression multiple times, shows the individual results as well as the total.
+- `/tableroll <table-name> <roll-result>` - Rolls on a D&D table from 5e.tools, showing the result and it's description.
 - `/distribution <expression> [advantage] [min-to-beat]` - Creates a graph showing likeliness of your dice expression's roll results.
+- `/average ac <hit> <damage> [min_ac] [max_ac] [crit_min] [miss_damage]` - Calculate the average damage of an attack based on hit chance and critical range against various armor classes.
+- `/average dc <dc> <damage> <miss_damage> [min_mod] [max_mod]` - Calculate the average damage of a save-based attack based on save DC against various saving throw modifiers.
 
 ### D&D Data lookup
 
@@ -175,8 +178,8 @@ By default the user's color is automatically generated based on their display na
 - `/color set hex <hex_color>` - Set your color using a hexadecimal color value.
 - `/color set rgb <r> <g> <b>` - Set your color using a RGB value.
 - `/color set image [image] [style]` - Generates color suggestions based on your profile picture.
-  - ``[image]`` - You can optionally upload a different image instead.
-  - ``[style]`` - Apply a different color-selection algorithm, changing the overall mood of the generated colors.
+  - `[image]` - You can optionally upload a different image instead.
+  - `[style]` - Apply a different color-selection algorithm, changing the overall mood of the generated colors.
 - `/color clear` - Clears your set color and enforces use of an auto-generated color.
 - `/color show` - Shows the color you've set to everyone.
 

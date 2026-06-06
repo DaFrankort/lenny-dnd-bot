@@ -19,6 +19,12 @@ from methods import ChoicedEnum
 BASE_DATA_PATHS = ["./submodules/lenny-dnd-data/generated/official/", "./submodules/lenny-dnd-data/generated/partnered/"]
 
 
+@dataclasses.dataclass
+class ProficiencyOptions:
+    options: list[str] | Literal["any"]
+    amount: int | Literal["all"]
+
+
 class DNDEntryType(str, ChoicedEnum):
     ACTION = "action"
     BACKGROUND = "background"
@@ -134,7 +140,7 @@ class DescriptionTableTable(TypedDict):
     type: Literal["table"]
     title: str
     headers: list[str] | None
-    rows: Sequence[Sequence[str | DescriptionRowRange]]
+    rows: Sequence[Sequence[str | DescriptionRowRange | int | None]]
 
 
 class DescriptionTable(TypedDict):
@@ -268,11 +274,18 @@ class DNDEntryList(abc.ABC, Generic[TDND]):
         return found
 
 
-def build_table(value: str | DescriptionTableTable, width: int | None = 56, show_lines: bool = False) -> str:
+def build_table(
+    value: str | DescriptionTableTable,
+    width: int | None = 56,
+    show_lines: bool = False,
+    align_right: bool = False,
+) -> str:
     if isinstance(value, str):
         return value
 
-    def format_cell_value(value: int | str | DescriptionRowRange) -> str:
+    def format_cell_value(value: int | str | DescriptionRowRange | None) -> str:
+        if value is None:
+            return "—"
         if isinstance(value, int):
             return str(value)
         if isinstance(value, str):
@@ -290,9 +303,10 @@ def build_table(value: str | DescriptionTableTable, width: int | None = 56, show
     has_headers = headers is not None
     table = Table(box=box_style, show_lines=show_lines, show_header=has_headers)
 
+    align = "right" if align_right else "left"
     if has_headers:
         for header in headers:
-            table.add_column(header, justify="left", style=None)
+            table.add_column(header, justify=align, style=None)
 
     for row in rows:
         formatted_row = [format_cell_value(value) for value in row]
@@ -309,12 +323,13 @@ def build_table(value: str | DescriptionTableTable, width: int | None = 56, show
 
 def build_table_from_rows(
     headers: list[str] | None,
-    rows: Sequence[Sequence[str | DescriptionRowRange]],
+    rows: Sequence[Sequence[str | DescriptionRowRange | int | None]],
     width: int | None = 56,
     show_lines: bool = False,
+    align_right: bool = False,
 ) -> str:
     table = DescriptionTableTable({"type": "table", "title": "", "headers": headers, "rows": rows})
-    return build_table(table, width, show_lines)
+    return build_table(table, width, show_lines, align_right=align_right)
 
 
 def get_command_option(itr: discord.Interaction, name: str):

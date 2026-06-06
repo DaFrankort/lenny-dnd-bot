@@ -1,12 +1,44 @@
 import discord
-from discord.app_commands import choices
+from discord.app_commands import autocomplete, choices, describe
 
 from commands.command import BaseCommand, BaseCommandGroup
 from embeds.config.permissions import ConfigPermissionsView
 from embeds.config.sources import ConfigSourcesView
 from embeds.embed import ErrorEmbed
-from logic.config import Config
+from logic.config import OFFICIAL_SOURCES, PARTNERED_SOURCES, Config
+from logic.dnd.abstract import fuzzy_matches_list
 from logic.dnd.source import ContentChoice
+
+
+async def source_autocomplete(itr: discord.Interaction, current: str) -> list[discord.app_commands.Choice[str]]:
+    sep = "###"  # Required for a fuzzy match of two separate strings that we want to split later.
+    current = current.replace(sep, "")
+    if not current:
+        return []
+
+    entries = []
+    try:
+        # Value that the user filled in in the `content`-field.
+        content_value = itr.data["options"][0]["options"][0]["value"]  # type: ignore
+        content = ContentChoice(content_value)
+
+        if content is ContentChoice.OFFICIAL:
+            entries = OFFICIAL_SOURCES.entries
+        elif content is ContentChoice.PARTNERED:
+            entries = PARTNERED_SOURCES.entries
+        else:
+            entries = OFFICIAL_SOURCES.entries + PARTNERED_SOURCES.entries
+
+    except ValueError:
+        return []  # If user fills in `search` before `content`, return nothing.
+
+    matches = fuzzy_matches_list(current, [f"{e.id}{sep}{e.name}" for e in entries])
+    results: list[discord.app_commands.Choice[str]] = []
+    for result in matches[:25]:
+        src, name = result.choice.name.split(sep)
+        results.append(discord.app_commands.Choice(name=f"{src} - {name}", value=src))
+
+    return results
 
 
 class ConfigSourcesCommand(BaseCommand):
@@ -15,17 +47,21 @@ class ConfigSourcesCommand(BaseCommand):
     help = "Open up an overview you can use to configure the bot's sources in your server."
 
     @choices(content=ContentChoice.choices())
-    async def handle(self, itr: discord.Interaction, content: str):
+    @autocomplete(search=source_autocomplete)
+    @describe(
+        content="Which 5e.tools tools content to filter for", search="Quickly search for an exact source in the config-list."
+    )
+    async def handle(self, itr: discord.Interaction, content: str, search: str | None = None):
         config = Config.get(itr)
         content_choice = ContentChoice(content)
         if itr.guild is None:
             embed = ErrorEmbed("Sources can only be managed in a server!")
             await itr.response.send_message(embed=embed, ephemeral=True)
         elif config.user_is_admin_or_has_config_permissions(itr.user):
-            view = ConfigSourcesView(itr=itr, allow_configuration=True, content=content_choice)
+            view = ConfigSourcesView(itr=itr, allow_configuration=True, content=content_choice, search=search)
             await itr.response.send_message(view=view, ephemeral=True)
         else:
-            view = ConfigSourcesView(itr=itr, allow_configuration=False, content=content_choice)
+            view = ConfigSourcesView(itr=itr, allow_configuration=False, content=content_choice, search=search)
             await itr.response.send_message(view=view, ephemeral=True)
 
 

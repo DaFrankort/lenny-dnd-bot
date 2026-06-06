@@ -39,28 +39,40 @@ class HomebrewEmbed(discord.Embed):
 
 
 class HomebrewEntryAddModal(BaseModal):
-    name = BaseLabelTextInput(label="Name", placeholder="Peanut")
-    type = ModalSelectComponent(label="Type", options=DNDEntryType.options(), required=True)
-    url = BaseLabelTextInput(label="External link", placeholder="https://example.com/", required=False, min_length=10)
-    subtitle = BaseLabelTextInput(label="Subtitle", placeholder="A small legume", required=False, max_length=80)
-    description = BaseLabelTextInput(
-        label="Description",
-        placeholder="A peanut is a legume that is often mistaken for a nut.",
-        max_length=4000,
-        style=discord.TextStyle.paragraph,
-    )
+    name: BaseLabelTextInput
+    type: ModalSelectComponent
+    url: BaseLabelTextInput
+    subtitle: BaseLabelTextInput
+    description: BaseLabelTextInput
 
     def __init__(self, itr: discord.Interaction, md_file: MDFile | None):
+        super().__init__(itr=itr, title="Add new homebrew entry")
+        self.name = BaseLabelTextInput(label="Name", placeholder="Peanut", max_length=45, min_length=1)
+        self.type = ModalSelectComponent(label="Type", options=DNDEntryType.options())
+        self.url = BaseLabelTextInput(label="External link", placeholder="https://example.com/", required=False, min_length=10)
+        self.subtitle = BaseLabelTextInput(label="Subtitle", placeholder="A small legume", required=False, max_length=80)
+        self.description = BaseLabelTextInput(
+            label="Description",
+            placeholder="A peanut is a legume that is often mistaken for a nut.",
+            max_length=4000,
+            style=discord.TextStyle.paragraph,
+        )
+
         if md_file:
             if len(md_file.content) > 4000:
-                raise ValueError(
-                    "Markdown file's content exceeds exceeds character-limit!\nPlease use a file with less than 4000 characters."
-                )
+                raise ValueError("Markdown file too long")
+
             self.name.default = md_file.title
             self.name.placeholder = self.format_placeholder(md_file.title)
+
             self.description.default = md_file.content
             self.description.placeholder = self.format_placeholder(md_file.content)
-        super().__init__(itr=itr, title="Add new homebrew entry")
+
+        self.add_item(self.name)
+        self.add_item(self.type)
+        self.add_item(self.url)
+        self.add_item(self.subtitle)
+        self.add_item(self.description)
 
     async def on_submit(self, itr: discord.Interaction):
         name = self.get_str(self.name)
@@ -73,6 +85,8 @@ class HomebrewEntryAddModal(BaseModal):
             raise ValueError("Name is a required field.")
         if not description:
             raise ValueError("Description is a required field.")
+        if len(description) > 4000:
+            raise ValueError(f"Description exceeds maximum amount of characters ({len(description)}, must be below 4000.)")
         if not entry_type:
             raise ValueError("Type is a required field.")
 
@@ -85,21 +99,44 @@ class HomebrewEntryAddModal(BaseModal):
 
 class HomebrewEditModal(BaseModal):
     entry: HomebrewEntry
-    name = BaseLabelTextInput(label="Name")
-    url = BaseLabelTextInput(label="External link", placeholder="https://example.com/", required=False, min_length=10)
-    subtitle = BaseLabelTextInput(label="Subtitle", required=False, max_length=80)
-    description = BaseLabelTextInput(label="Description", max_length=4000, style=discord.TextStyle.paragraph)
+    name: BaseLabelTextInput
+    url: BaseLabelTextInput
+    subtitle: BaseLabelTextInput
+    description: BaseLabelTextInput
 
     def __init__(self, itr: discord.Interaction, entry: HomebrewEntry):
+        raw_title = f"Edit {entry.entry_type.value}: {entry.name}"
+        title = raw_title if len(raw_title) <= 45 else raw_title[:42] + "..."
+        super().__init__(itr=itr, title=title)
+
         self.entry = entry
-        self.name.default = entry.name
-        self.name.placeholder = entry.name
-        self.subtitle.default = entry.select_description or ""
-        self.subtitle.placeholder = entry.select_description or "Subtitle"
-        self.description.default = entry.description
-        self.description.placeholder = self.format_placeholder(entry.description)
-        self.url.default = entry.url or ""
-        super().__init__(itr=itr, title=f"Edit {entry.entry_type.value}: {entry.name}")
+        self.name = BaseLabelTextInput(
+            label="Name",
+            default=entry.name[:45],
+            placeholder=entry.name[:45],
+            max_length=45,
+            min_length=1,
+        )
+        self.url = BaseLabelTextInput(label="External link", placeholder="https://example.com/", required=False, min_length=10)
+        self.subtitle = BaseLabelTextInput(
+            label="Subtitle",
+            required=False,
+            max_length=80,
+            default=entry.select_description or "",
+            placeholder=entry.select_description or "Subtitle",
+        )
+        self.description = BaseLabelTextInput(
+            label="Description",
+            max_length=4000,
+            style=discord.TextStyle.paragraph,
+            default=entry.description,
+            placeholder=self.format_placeholder(entry.description),
+        )
+
+        self.add_item(self.name)
+        self.add_item(self.url)
+        self.add_item(self.subtitle)
+        self.add_item(self.description)
 
     async def on_submit(self, itr: discord.Interaction):
         name = self.get_str(self.name)

@@ -46,6 +46,7 @@ SLASH_COMMAND_TESTS: Iterable[Iterable[Any]] = [
             "reason": [None, "Attack"],
         },
     ),
+    ("tableroll", {"name": "Wild Magic Surge", "roll_result": [None, 37]}),
     ("search spell", {"name": ["Fire Bolt", "abcdef"]}),
     ("search item", {"name": ["Sword", "abcdef"]}),
     ("search condition", {"name": ["Poisoned", "abcdef"]}),
@@ -176,6 +177,17 @@ SLASH_COMMAND_TESTS: Iterable[Iterable[Any]] = [
     ("favorites add", {"name": Data.spells.entries[0].title}),
     ("favorites view", {}),
     ("favorites remove", {"name": Data.spells.entries[0].title}),
+    ("average ac", {"hit": "1d4+4", "damage": "2d6+4", "min_ac": 4, "max_ac": 16, "crit_min": 19, "miss_damage": "4"}),
+    (
+        "average dc",
+        {
+            "dc": 17,
+            "damage": "8d6",
+            "miss_damage": "4d6",
+            "min_mod": -2,
+            "max_mod": 8,
+        },
+    ),
     # Homebrew commands work through modals, and are thus not testable.
     # ("", {"": "", "": ""}),
 ]
@@ -317,6 +329,10 @@ class TestBotCommands:
                 },
             ),
             (
+                "tableroll",
+                [{"name": "Wild Magic Surge", "roll_result": [-1, 999]}, {"name": "Actions"}],
+            ),
+            (
                 "timestamp date",
                 [
                     {"time": "Wrong", "timezone": 0},
@@ -376,6 +392,7 @@ class TestBotCommands:
             ("multiroll", "diceroll", ["", "1d20"]),
             ("roll", "reason", ["", "Att"]),
             ("multiroll", "reason", ["", "Att"]),
+            ("tableroll", "name", ["", "Wild"]),
             ("search spell", "name", ["", "Fireb"]),
             ("search item", "name", ["", "Dag"]),
             ("search condition", "name", ["", "Poi"]),

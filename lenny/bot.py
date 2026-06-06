@@ -6,6 +6,7 @@ from discord import InteractionType, app_commands
 from discord.ext import tasks
 from dotenv import load_dotenv
 
+from commands.average import AverageDamageCommandGroup
 from commands.charactergen import CharacterGenCommand
 from commands.color import ColorCommandGroup
 from commands.config import ConfigCommand
@@ -21,6 +22,7 @@ from commands.roll import (
     D20Command,
     MultiRollCommand,
     RollCommand,
+    TableRollCommand,
 )
 from commands.search import SearchCommandGroup
 from commands.stats import StatsCommandGroup
@@ -82,6 +84,7 @@ class Bot(discord.Client):
         self.tree.add_command(RollCommand())
         self.tree.add_command(D20Command())
         self.tree.add_command(MultiRollCommand())
+        self.tree.add_command(TableRollCommand())
         self.tree.add_command(TokenGenCommandGroup())
         self.tree.add_command(InitiativeCommand())
         self.tree.add_command(PlanSessionCommand())
@@ -94,6 +97,7 @@ class Bot(discord.Client):
         self.tree.add_command(TimestampCommandGroup())
         self.tree.add_command(HomebrewCommandGroup())
         self.tree.add_command(FavoritesCommandGroup())
+        self.tree.add_command(AverageDamageCommandGroup())
 
         # Context menus
         self.tree.add_command(DeleteContextMenu())

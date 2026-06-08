@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import re
-from typing import Union
-from lark import Lark, Transformer, Token, Tree
+from typing import TypeAlias
+
+from lark import Lark, LarkError, Token, Transformer, Tree
 
 COIN_GRAMMAR = r"""
     ?start: expr
@@ -18,9 +21,9 @@ COIN_GRAMMAR = r"""
            | wallet        -> wallet
            | "(" expr ")"
 
-    wallet: COIN_UNIT+     // Handles "10gp 5sp" style sequences
+    wallet: COIN_UNIT COIN_UNIT+
 
-    COIN_UNIT: /[\d.]+(pp|gp|ep|sp|cp)/
+    COIN_UNIT.10: /[\d.]+(pp|gp|ep|sp|cp)/
     %import common.NUMBER
     %import common.WS
     %ignore WS
@@ -28,19 +31,19 @@ COIN_GRAMMAR = r"""
 
 
 COIN_PARSER: Lark = Lark(COIN_GRAMMAR, parser="lalr")
-EvalResult = Union["Coin", float]
+EvalResult: TypeAlias = "Coin | float"
 
 
-class CoinTransformer(Transformer[Token, EvalResult]):
+class CoinTransformer(Transformer[Token]):
     """Converts the Lark Tree into a Coin object or float."""
 
     def number(self, n: list[Token]) -> float:
         return float(n[0])
 
-    def coin(self, token: Token) -> "Coin":
-        return Coin.parse_unit(token.value)
+    def coin(self, items: list[Token]) -> Coin:
+        return Coin.parse_unit(str(items[0]))
 
-    def wallet(self, coins: list["Coin"]) -> "Coin":
+    def wallet(self, coins: list[Coin]) -> Coin:
         # Sums up a sequence of coins: "10gp 5sp"
         res = Coin()
         for c in coins:
@@ -59,25 +62,25 @@ class CoinTransformer(Transformer[Token, EvalResult]):
 
     def mul(self, args: list[EvalResult]) -> EvalResult:
         left, right = args[0], args[1]
-        if isinstance(left, "Coin") and isinstance(right, float | int):
+        if isinstance(left, Coin) and isinstance(right, float | int):
             return left * right
-        if isinstance(right, "Coin") and isinstance(left, float | int):
+        if isinstance(right, Coin) and isinstance(left, float | int):
             return right * left
         if isinstance(left, float | int) and isinstance(right, float | int):
             return left * right
-        if isinstance(left, "Coin") and isinstance(right, "Coin"):
+        if isinstance(left, Coin) and isinstance(right, Coin):
             raise ValueError("Cannot multiply coin with coin, use numerical values for the multiplier instead.")
         raise ValueError("Unexpected multiplication detected.")
 
     def div(self, args: list[EvalResult]) -> EvalResult:
         left, right = args[0], args[1]
-        if isinstance(left, "Coin") and isinstance(right, float | int):
+        if isinstance(left, Coin) and isinstance(right, float | int):
             return left / right
-        if isinstance(right, "Coin") and isinstance(left, float | int):
+        if isinstance(right, Coin) and isinstance(left, float | int):
             return right / left
         if isinstance(left, float | int) and isinstance(right, float | int):
             return left / right
-        if isinstance(args[0], "Coin") and isinstance(args[1], "Coin"):
+        if isinstance(args[0], Coin) and isinstance(args[1], Coin):
             raise ValueError("Cannot divide coin by coin, use numerical values for divider instead.")
         raise ValueError("Unexpected division detected.")
 
@@ -100,13 +103,18 @@ class Coin:
 
     @classmethod
     def from_string(cls, expression: str) -> "Coin":
-        raw_tree: Tree[Token] = COIN_PARSER.parse(expression.lower())  # pyright: ignore[reportUnknownMemberType]
-        transformer = CoinTransformer()
-        result = transformer.transform(raw_tree)
+        try:
+            raw_tree: Tree = COIN_PARSER.parse(expression.lower())  # pyright: ignore[reportUnknownMemberType]
+            transformer = CoinTransformer()
+            result = transformer.transform(raw_tree)
 
-        if isinstance(result, float | int):
-            return cls(cp=float(result))
-        return result
+            if isinstance(result, float | int):
+                return cls(cp=float(result))
+            return result  # type: ignore
+        except LarkError:
+            raise ValueError(
+                f"Unsupported coin-syntax in ``{expression}``, supported:\n- coin units: ``cp``, ``sp``, ``ep``, ``gp``, ``pp``\n- operators: ``+``, ``-``, ``*``, ``/``"
+            )
 
     @classmethod
     def parse_unit(cls, block: str) -> "Coin":

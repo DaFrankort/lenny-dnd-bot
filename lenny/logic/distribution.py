@@ -2,15 +2,14 @@ import dataclasses
 import io
 import math
 
-import d20
-import d20distribution  # type: ignore
+import d100
 import discord
 import matplotlib
-from d20distribution.distribution import Distribution  # type: ignore
+from d100.distribution import Distribution
 from matplotlib import pyplot as plt
 
 from logic.color import UserColor
-from logic.roll import Advantage
+from logic.roll import Advantage, parse
 
 # Required to calculate the chart in a separate thread, https://stackoverflow.com/questions/27147300/matplotlib-tcl-asyncdelete-async-handler-deleted-by-the-wrong-thread
 matplotlib.use("Agg")
@@ -77,16 +76,8 @@ def _distribution_chart(
 
 
 def dice_distribution(expression: str, advantage: Advantage = Advantage.NORMAL):
-    dist = d20distribution.parse(expression)
-
-    if advantage == Advantage.ADVANTAGE:
-        dist = dist.advantage()
-    elif advantage == Advantage.DISADVANTAGE:
-        dist = dist.disadvantage()
-    elif advantage == Advantage.ELVEN_ACCURACY:
-        dist = dist.advantage(count=3)
-
-    return dist
+    parsed, _ = parse(expression, advantage)
+    return d100.distribution(parsed)
 
 
 def distribution(
@@ -95,7 +86,7 @@ def distribution(
     color: int,
     min_to_beat: float | None = None,
 ):
-    expression = str(d20.parse(expr=expression))
+    cleaned = str(d100.parse(expr=expression))
     dist = dice_distribution(expression, advantage)
 
     if min_to_beat is None:
@@ -113,7 +104,7 @@ def distribution(
     chart = _distribution_chart(dist, color, min_to_beat)
 
     return DistributionResult(
-        expression=expression,
+        expression=cleaned,
         chart=chart,
         advantage=advantage,
         mean=mean,

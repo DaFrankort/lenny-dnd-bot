@@ -97,13 +97,13 @@ class Coin:
         try:
             raw_tree: Tree = COIN_PARSER.parse(
                 expression.lower()
-            )  # pyright: ignore[reportUnknownVariableType] - Conflict with pylint
+            )  # pyright: ignore[reportMissingTypeArgument, reportUnknownMemberType] - Conflict with pylint
             transformer = CoinTransformer()
-            result = transformer.transform(raw_tree)  # pyright: ignore[reportUnknownVariableType] - Conflict with pylint
+            result = transformer.transform(raw_tree)  # pyright: ignore[reportUnknownArgumentType]
 
             if isinstance(result, float | int):
                 return cls(cp=float(result))
-            return result
+            return result  # pyright: ignore[reportUnknownArgumentType]
         except LarkError as e:
             raise ValueError(
                 f"Unsupported coin-syntax in ``{expression}``, supported:\n- coin units: ``cp``, ``sp``, ``ep``, ``gp``, ``pp``\n- operators: ``+``, ``-``, ``*``, ``/``"

@@ -95,18 +95,19 @@ class Coin:
     @classmethod
     def from_string(cls, expression: str) -> Coin:
         try:
-            raw_tree: Tree = COIN_PARSER.parse(
-                expression.lower()
-            )  # pyright: ignore[reportMissingTypeArgument, reportUnknownMemberType] - Conflict with pylint
+            raw_tree: Tree[Token] = COIN_PARSER.parse(expression.lower())  # pyright: ignore[reportInvalidTypeArguments]
             transformer = CoinTransformer()
-            result = transformer.transform(raw_tree)  # pyright: ignore[reportUnknownArgumentType]
+            result = transformer.transform(raw_tree)
 
             if isinstance(result, float | int):
                 return cls(cp=float(result))
-            return result  # pyright: ignore[reportUnknownArgumentType]
+            return result
+
         except LarkError as e:
             raise ValueError(
-                f"Unsupported coin-syntax in ``{expression}``, supported:\n- coin units: ``cp``, ``sp``, ``ep``, ``gp``, ``pp``\n- operators: ``+``, ``-``, ``*``, ``/``"
+                f"Unsupported coin-syntax in ``{expression}``, supported:\n"
+                "- coin units: ``cp``, ``sp``, ``ep``, ``gp``, ``pp``\n"
+                "- operators: ``+``, ``-``, ``*``, ``/``"
             ) from e
 
     @classmethod

@@ -95,7 +95,9 @@ class Coin:
     @classmethod
     def from_string(cls, expression: str) -> Coin:
         try:
-            raw_tree: Tree[EvalResult] = COIN_PARSER.parse(expression.lower())  # pyright: ignore[reportInvalidTypeArguments]
+            raw_tree: Tree[Token] = COIN_PARSER.parse(  # type: ignore[reportInvalidTypeArguments]
+                expression.lower()
+            )  # pyright: ignore[reportUnknownMemberType]
             transformer = CoinTransformer()
             result = transformer.transform(raw_tree)  # pyright: ignore[reportUnknownVariableType]
 

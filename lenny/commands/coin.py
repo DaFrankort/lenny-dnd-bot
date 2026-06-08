@@ -12,5 +12,5 @@ class CoinCommand(BaseCommand):
 
     async def handle(self, itr: discord.Interaction, expression: str):
         coin = Coin.from_string(expression)
-        embed = UserActionEmbed(itr, title=expression.upper(), description=str(coin))
+        embed = UserActionEmbed(itr, title=expression.lower(), description=str(coin))
         await itr.response.send_message(embed=embed)

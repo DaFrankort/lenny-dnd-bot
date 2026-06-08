@@ -22,8 +22,6 @@ class TestCoin:
             ("1ep + 1ep", Coin(gp=1)),
             ("5gp + 5gp", Coin(pp=1)),
             ("10gp + 5gp", Coin(pp=1, gp=5)),
-            ("1gp 1ep + 1ep", Coin(gp=2)),
-            ("1ep + 1gp 1ep", Coin(gp=2)),
             ("(1gp + 1ep) + 1ep", Coin(gp=2)),
             ("1ep + (1gp + 1ep)", Coin(gp=2)),
         ],
@@ -35,13 +33,10 @@ class TestCoin:
     @pytest.mark.parametrize(
         "expression, expected_result",
         [
-            ("100gp 50cp - 50cp", Coin(pp=10)),
             ("10pp - 5gp", Coin(pp=9, gp=5)),
             ("5gp - 25cp", Coin(gp=4, sp=7, cp=5)),
             ("1gp - 5cp", Coin(sp=9, cp=5)),
             ("1ep - 5cp", Coin(cp=5, sp=4)),
-            ("1gp 5sp - 5sp", Coin(gp=1)),
-            ("2gp 5sp - 5sp", Coin(gp=2)),
             ("(2gp + 5sp) - 5sp", Coin(gp=2)),
             ("10gp - (2gp + 5gp)", Coin(gp=3)),
         ],

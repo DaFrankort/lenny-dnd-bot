@@ -18,12 +18,10 @@ COIN_GRAMMAR = r"""
 
     ?factor: NUMBER        -> number
            | COIN_UNIT     -> coin
-           | wallet        -> wallet
            | "(" expr ")"
 
-    wallet: COIN_UNIT COIN_UNIT+
-
     COIN_UNIT.10: /[\d.]+(pp|gp|ep|sp|cp)/
+
     %import common.NUMBER
     %import common.WS
     %ignore WS
@@ -34,7 +32,7 @@ COIN_PARSER: Lark = Lark(COIN_GRAMMAR, parser="lalr")
 EvalResult: TypeAlias = "Coin | float"
 
 
-class CoinTransformer(Transformer[Token]):
+class CoinTransformer(Transformer[EvalResult]):
     """Converts the Lark Tree into a Coin object or float."""
 
     def number(self, n: list[Token]) -> float:
@@ -42,13 +40,6 @@ class CoinTransformer(Transformer[Token]):
 
     def coin(self, items: list[Token]) -> Coin:
         return Coin.parse_unit(str(items[0]))
-
-    def wallet(self, coins: list[Coin]) -> Coin:
-        # Sums up a sequence of coins: "10gp 5sp"
-        res = Coin()
-        for c in coins:
-            res += c
-        return res
 
     def add(self, args: list[EvalResult]) -> EvalResult:
         if isinstance(args[0], float | int):
@@ -102,22 +93,22 @@ class Coin:
         return (self.pp * 1000) + (self.gp * 100) + (self.ep * 50) + (self.sp * 10) + self.cp
 
     @classmethod
-    def from_string(cls, expression: str) -> "Coin":
+    def from_string(cls, expression: str) -> Coin:
         try:
-            raw_tree: Tree = COIN_PARSER.parse(expression.lower())  # pyright: ignore[reportUnknownMemberType]
+            raw_tree: Tree = COIN_PARSER.parse(expression.lower())
             transformer = CoinTransformer()
             result = transformer.transform(raw_tree)
 
             if isinstance(result, float | int):
                 return cls(cp=float(result))
-            return result  # type: ignore
-        except LarkError:
+            return result
+        except LarkError as e:
             raise ValueError(
                 f"Unsupported coin-syntax in ``{expression}``, supported:\n- coin units: ``cp``, ``sp``, ``ep``, ``gp``, ``pp``\n- operators: ``+``, ``-``, ``*``, ``/``"
-            )
+            ) from e
 
     @classmethod
-    def parse_unit(cls, block: str) -> "Coin":
+    def parse_unit(cls, block: str) -> Coin:
         match = re.match(r"([\d.]+)([a-z]+)", block)
         if not match:
             return cls()
@@ -135,38 +126,37 @@ class Coin:
         self.ep, remainder = divmod(remainder, 50)
         self.sp, self.cp = divmod(remainder, 10)
 
-    def __add__(self, other: "Coin | float") -> "Coin":
+    def __add__(self, other: Coin | float) -> Coin:
         if isinstance(other, float | int):
             return Coin(cp=self.total_cp + other)
         return Coin(cp=self.total_cp + other.total_cp)
 
-    def __sub__(self, other: "Coin | float") -> "Coin":
+    def __sub__(self, other: Coin | float) -> Coin:
         if isinstance(other, float | int):
             return Coin(cp=self.total_cp - other)
         return Coin(cp=self.total_cp - other.total_cp)
 
-    def __mul__(self, other: float) -> "Coin":
+    def __mul__(self, other: float) -> Coin:
         return Coin(cp=self.total_cp * other)
 
-    def __truediv__(self, other: float) -> "Coin":
+    def __truediv__(self, other: float) -> Coin:
         return Coin(cp=self.total_cp / other)
 
     def __str__(self) -> str:
-
         def format_val(val: float):
             val = round(val, 2)
             return int(val) if val == int(val) else val
 
         denominations = [
-            (self.cp, "CP"),
-            (self.sp, "SP"),
-            (self.ep, "EP"),
-            (self.gp, "GP"),
-            (self.pp, "PP"),
+            (self.cp, "cp"),
+            (self.sp, "sp"),
+            (self.ep, "ep"),
+            (self.gp, "gp"),
+            (self.pp, "pp"),
         ]
 
         result = [f"``{format_val(val)}`` {label}" for val, label in denominations if val]
-        return ", ".join(result) if result else "0 CP"
+        return ", ".join(result) if result else "0 cp"
 
     def __repr__(self) -> str:
         parts: list[str] = []

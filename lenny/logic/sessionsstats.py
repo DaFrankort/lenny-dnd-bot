@@ -1,8 +1,7 @@
 import discord
-from d20 import Advantage, Critical
+from d100 import Critical
 
-from logic.roll import RollResult, SingleRollResult
-
+from logic.roll import Advantage, RollResult, SingleRollResult
 
 class UserSessionDiceStats:
     nat20_count: int

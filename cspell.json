@@ -83,6 +83,8 @@
     "rollable",
     "searchcache",
     "sendmodal",
+    "sessionsstats",
+    "sessionstats",
     "skimage",
     "smhdw",
     "spellcast",

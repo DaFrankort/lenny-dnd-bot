@@ -95,13 +95,13 @@ class Coin:
     @classmethod
     def from_string(cls, expression: str) -> Coin:
         try:
-            raw_tree: Tree[Token] = COIN_PARSER.parse(expression.lower())  # pyright: ignore[reportInvalidTypeArguments]
+            raw_tree: Tree[EvalResult] = COIN_PARSER.parse(expression.lower())  # pyright: ignore[reportInvalidTypeArguments]
             transformer = CoinTransformer()
-            result = transformer.transform(raw_tree)
+            result = transformer.transform(raw_tree)  # pyright: ignore[reportUnknownVariableType]
 
             if isinstance(result, float | int):
                 return cls(cp=float(result))
-            return result
+            return result  # pyright: ignore[reportUnknownVariableType]
 
         except LarkError as e:
             raise ValueError(

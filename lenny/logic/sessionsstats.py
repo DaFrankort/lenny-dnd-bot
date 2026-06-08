@@ -174,7 +174,11 @@ class GlobalSessionStats:
         return itr.user.voice.channel.id
 
     def get(self, itr: discord.Interaction) -> SessionStats | None:
-        session_id = self._get_itr_id(itr)
+        try:
+            session_id = self._get_itr_id(itr)
+        except PermissionError:
+            return None
+
         if session_id not in self._sessions:
             return None
         return self._sessions[session_id]

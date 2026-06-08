@@ -156,7 +156,7 @@ class Coin:
         ]
 
         result = [f"``{format_val(val)}`` {label}" for val, label in denominations if val]
-        return ", ".join(result) if result else "0 cp"
+        return ", ".join(result) if result else "``0`` cp"
 
     def __repr__(self) -> str:
         parts: list[str] = []

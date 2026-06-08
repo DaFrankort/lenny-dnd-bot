@@ -39,6 +39,8 @@ class TestCoin:
             ("1ep - 5cp", Coin(cp=5, sp=4)),
             ("(2gp + 5sp) - 5sp", Coin(gp=2)),
             ("10gp - (2gp + 5gp)", Coin(gp=3)),
+            ("10gp - 11sp", Coin(sp=-1)),
+            ("1cp- (1pp + 1gp + 1ep + 1sp + 2cp)", Coin(cp=-1, sp=-1, ep=-1, gp=-1, pp=-1)),
         ],
     )
     def test_subtraction(self, expression: str, expected_result: Coin):

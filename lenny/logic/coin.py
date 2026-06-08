@@ -120,11 +120,20 @@ class Coin:
         Converts all coins to the perfect amount, as if perfectly exchanged at a bank.
         """
 
-        total = self.total_cp
-        self.pp, remainder = divmod(total, 1000)
-        self.gp, remainder = divmod(remainder, 100)
-        self.ep, remainder = divmod(remainder, 50)
-        self.sp, self.cp = divmod(remainder, 10)
+        total = int(round(self.total_cp))
+        sign = -1 if total < 0 else 1
+        total = abs(total)
+
+        pp, remainder = divmod(total, 1000)
+        gp, remainder = divmod(remainder, 100)
+        ep, remainder = divmod(remainder, 50)
+        sp, cp = divmod(remainder, 10)
+
+        self.pp = pp * sign
+        self.gp = gp * sign
+        self.ep = ep * sign
+        self.sp = sp * sign
+        self.cp = cp * sign
 
     def __add__(self, other: Coin | float) -> Coin:
         if isinstance(other, float | int):

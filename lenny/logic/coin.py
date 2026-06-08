@@ -99,7 +99,7 @@ class Coin:
                 expression.lower()
             )  # pyright: ignore[reportUnknownMemberType]
             transformer = CoinTransformer()
-            result = transformer.transform(raw_tree)  # pyright: ignore[reportUnknownVariableType]
+            result = transformer.transform(raw_tree)  # pyright: ignore[reportUnknownVariableType, reportArgumentType]
 
             if isinstance(result, float | int):
                 return cls(cp=float(result))

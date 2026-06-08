@@ -3,6 +3,7 @@ from d100 import Critical
 
 from logic.roll import Advantage, RollResult, SingleRollResult
 
+
 class UserSessionDiceStats:
     nat20_count: int
     nat1_count: int

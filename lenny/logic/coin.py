@@ -32,7 +32,7 @@ COIN_PARSER: Lark = Lark(COIN_GRAMMAR, parser="lalr")
 EvalResult: TypeAlias = "Coin | float"
 
 
-class CoinTransformer(Transformer[EvalResult]):
+class CoinTransformer(Transformer[EvalResult]):  # pyright: ignore[reportInvalidTypeArguments] - Conflict with pylint
     """Converts the Lark Tree into a Coin object or float."""
 
     def number(self, n: list[Token]) -> float:
@@ -95,9 +95,11 @@ class Coin:
     @classmethod
     def from_string(cls, expression: str) -> Coin:
         try:
-            raw_tree: Tree = COIN_PARSER.parse(expression.lower())
+            raw_tree: Tree = COIN_PARSER.parse(
+                expression.lower()
+            )  # pyright: ignore[reportUnknownVariableType] - Conflict with pylint
             transformer = CoinTransformer()
-            result = transformer.transform(raw_tree)
+            result = transformer.transform(raw_tree)  # pyright: ignore[reportUnknownVariableType] - Conflict with pylint
 
             if isinstance(result, float | int):
                 return cls(cp=float(result))

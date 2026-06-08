@@ -1,7 +1,7 @@
 import discord
+from discord.app_commands import describe
 
 from commands.command import BaseCommand
-from discord.app_commands import describe
 from embeds.embed import UserActionEmbed
 from logic.coin import Coin
 

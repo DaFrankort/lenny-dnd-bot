@@ -1,7 +1,24 @@
+from dataclasses import dataclass
+
 import discord
 from d100 import Critical
 
+from logic.color import UserColor
 from logic.roll import Advantage, RollResult, SingleRollResult
+
+
+@dataclass
+class UserSessionResult:
+    user: discord.Member
+    color: discord.Color
+    title: str
+    description: str
+
+
+@dataclass
+class SessionResult:
+    base_info: str
+    users_stats: list[UserSessionResult]
 
 
 class UserSessionDiceStats:
@@ -138,23 +155,30 @@ class SessionStats:
             self.user_data[itr.user.id] = UserSessionStats()
         self.user_data[itr.user.id].dice.add(result)
 
-    def get_report(self, itr: discord.Interaction) -> str:
+    def get_report(self, itr: discord.Interaction) -> SessionResult:
         if not itr.guild:
             raise PermissionError("Must be in a server to get a report!")
 
-        report = "# Session Stats"
+        users_stats: list[UserSessionResult] = []
         for user_id, stats in self.user_data.items():
             user = itr.guild.get_member(user_id)
             if not user:
                 continue
+
             dice: UserSessionDiceStats = stats.dice
-            user_report = f"\n\n### {user.display_name}"
-            user_report += f"\n- Average d20 result: ``{dice.average_d20}``"
+            user_report = f"\n- Average d20 result: ``{dice.average_d20}``"
             user_report += f"\n- Average damage: ``{dice.average_dmg}``"
             user_report += f"\n- Dice rolled: ``{dice.dice_rolled}``"
-            report += user_report
 
-        return report
+            users_stats.append(
+                UserSessionResult(
+                    user=user, color=discord.Color(UserColor.get_from_user(user)), title="Placeholder", description=user_report
+                )
+            )
+
+        return SessionResult(
+            base_info="# Session results\n Probably I'll put more text here, but IDK.", users_stats=users_stats
+        )
 
 
 class GlobalSessionStats:

@@ -1,6 +1,7 @@
 import discord
 
 from commands.command import BaseCommand
+from embeds.sessionstats import UserSessionStatEmbed
 from logic.sessionsstats import SessionStatistics
 
 
@@ -18,4 +19,6 @@ class SessionStatsCommand(BaseCommand):
         if stats is None:
             await itr.response.send_message("No session active!", ephemeral=True)
         else:
-            await itr.response.send_message(stats.get_report(itr))
+            result = stats.get_report(itr)
+            embeds = [UserSessionStatEmbed(stat) for stat in result.users_stats[:10]]
+            await itr.response.send_message(result.base_info, embeds=embeds)

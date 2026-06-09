@@ -42,14 +42,16 @@ class CoinTransformer(Transformer[EvalResult]):  # pyright: ignore[reportInvalid
         return Coin.parse_unit(str(items[0]))
 
     def add(self, args: list[EvalResult]) -> EvalResult:
-        if isinstance(args[0], float | int):
-            return args[1] + args[0]
-        return args[0] + args[1]
+        left, right = args[0], args[1]
+        if isinstance(left, float | int):
+            return right + left
+        return left + right
 
     def sub(self, args: list[EvalResult]) -> EvalResult:
-        if isinstance(args[0], float | int):
-            return args[1] - args[0]
-        return args[0] - args[1]
+        left, right = args[0], args[1]
+        if isinstance(left, float | int):
+            return right - left
+        return left - right
 
     def mul(self, args: list[EvalResult]) -> EvalResult:
         left, right = args[0], args[1]
@@ -88,9 +90,9 @@ class Coin:
         self.round_up()
 
     @property
-    def total_cp(self) -> float:
+    def total_cp(self) -> int:
         """Converts the entire wallet into a single Copper value."""
-        return (self.pp * 1000) + (self.gp * 100) + (self.ep * 50) + (self.sp * 10) + self.cp
+        return int((self.pp * 1000) + (self.gp * 100) + (self.ep * 50) + (self.sp * 10) + self.cp)
 
     @classmethod
     def from_string(cls, expression: str) -> Coin:

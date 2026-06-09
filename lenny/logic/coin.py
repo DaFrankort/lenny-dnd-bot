@@ -7,7 +7,6 @@ from lark import Lark, LarkError, Token, Transformer, Tree
 
 from logic.roll import roll
 
-# TODO Only supports basic dice expressions, should potentially also support modifiers (explode, keep, drop, roll over...)
 COIN_GRAMMAR = r"""
     ?start: expr
 
@@ -25,7 +24,7 @@ COIN_GRAMMAR = r"""
            | "(" expr ")"
 
     COIN_UNIT.10: /[\d.]+(pp|gp|ep|sp|cp)/
-    DICE.20: /\d+d\d+/
+    DICE.20: /\d+d\d+[a-zA-Z0-9<>=!]*/
 
     %import common.NUMBER
     %import common.WS

@@ -3,15 +3,13 @@ import pytest
 from logic.coin import Coin
 
 
-def assert_coin(expression: str, coin: Coin, expected: Coin):
-    assert coin.pp == expected.pp, f"{expression} | PP => {coin} != {expected}"
-    assert coin.gp == expected.gp, f"{expression} | GP => {coin} != {expected}"
-    assert coin.ep == expected.ep, f"{expression} | EP => {coin} != {expected}"
-    assert coin.sp == expected.sp, f"{expression} | SP => {coin} != {expected}"
-    assert coin.cp == expected.cp, f"{expression} | CP => {coin} != {expected}"
-
-
 class TestCoin:
+    def assert_coin(self, expression: str, coin: Coin, expected: Coin):
+        assert coin.pp == expected.pp, f"{expression} | PP => {coin} != {expected}"
+        assert coin.gp == expected.gp, f"{expression} | GP => {coin} != {expected}"
+        assert coin.ep == expected.ep, f"{expression} | EP => {coin} != {expected}"
+        assert coin.sp == expected.sp, f"{expression} | SP => {coin} != {expected}"
+        assert coin.cp == expected.cp, f"{expression} | CP => {coin} != {expected}"
 
     @pytest.mark.parametrize(
         "expression, expected_result",
@@ -28,7 +26,7 @@ class TestCoin:
     )
     def test_addition(self, expression: str, expected_result: Coin):
         coin = Coin.from_string(expression)
-        assert_coin(expression, coin, expected_result)
+        self.assert_coin(expression, coin, expected_result)
 
     @pytest.mark.parametrize(
         "expression, expected_result",
@@ -45,7 +43,7 @@ class TestCoin:
     )
     def test_subtraction(self, expression: str, expected_result: Coin):
         coin = Coin.from_string(expression)
-        assert_coin(expression, coin, expected_result)
+        self.assert_coin(expression, coin, expected_result)
 
     @pytest.mark.parametrize(
         "expression, expected_result",
@@ -65,7 +63,7 @@ class TestCoin:
     )
     def test_multiplication(self, expression: str, expected_result: Coin):
         coin = Coin.from_string(expression)
-        assert_coin(expression, coin, expected_result)
+        self.assert_coin(expression, coin, expected_result)
 
     @pytest.mark.parametrize(
         "expression, expected_result",
@@ -85,4 +83,4 @@ class TestCoin:
     )
     def test_division(self, expression: str, expected_result: Coin):
         coin = Coin.from_string(expression)
-        assert_coin(expression, coin, expected_result)
+        self.assert_coin(expression, coin, expected_result)

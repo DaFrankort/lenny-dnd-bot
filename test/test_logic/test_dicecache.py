@@ -1,8 +1,8 @@
 import pytest
 from discord import Interaction
-from logic.coin import Coin
 from mocking import MockInteraction, MockUser
 
+from logic.coin import Coin
 from logic.dicecache import DiceCache, DiceCacheInfo, DiceCacheTrie
 
 

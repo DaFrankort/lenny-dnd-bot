@@ -20,7 +20,7 @@ COIN_GRAMMAR = r"""
            | COIN_UNIT     -> coin
            | "(" expr ")"
 
-    COIN_UNIT.10: /[\d.]+(pp|gp|ep|sp|cp)/
+    COIN_UNIT.10: /[+-]?[\d.]+(pp|gp|ep|sp|cp)/
 
     %import common.NUMBER
     %import common.WS
@@ -156,7 +156,7 @@ class Coin:
     def __truediv__(self, other: float) -> Coin:
         return Coin(cp=self.total_cp / other)
 
-    def __str__(self) -> str:
+    def _get_denominations(self) -> list[tuple[float, str]]:
         def format_val(val: float):
             val = round(val, 2)
             return int(val) if val == int(val) else val
@@ -169,7 +169,25 @@ class Coin:
             (self.pp, "pp"),
         ]
 
-        result = [f"``{format_val(val)}`` {label}" for val, label in denominations if val]
+        return [(format_val(val), unit) for val, unit in denominations if val]
+
+    @property
+    def expr(self) -> str:
+        """Returns the sum-expression that evaluates to the Coin result."""
+        denominations = self._get_denominations()
+        if not denominations:
+            return "0cp"
+        result: list[str] = []
+        for i, (val, unit) in enumerate(denominations):
+            term = f"{abs(val)}{unit}"
+            if i == 0:
+                result.append(f"-{term}" if val < 0 else term)
+            else:
+                result.append(f"- {term}" if val < 0 else f"+ {term}")
+        return " ".join(result)
+
+    def __str__(self) -> str:
+        result = [f"``{val}`` {unit}" for val, unit in self._get_denominations()]
         return ", ".join(result) if result else "``0`` cp"
 
     def __repr__(self) -> str:

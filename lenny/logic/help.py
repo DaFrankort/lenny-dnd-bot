@@ -308,6 +308,7 @@ class HelpTabList:
                     "- **Brackets** are also supported for more precise maths. (e.g. ``(50gp - 5gp) / 2``)",
                     "- If the value of a piece isn't specified in a subtraction or addition, it default to **CP**. (e.g. ``1cp - 1 = 0cp``)",
                     "- Results of calculations are always rounded up.",
+                    "- You can also use dice-expressions within your coin-expression for random values. (e.g. ``1d20 * 25gp``). A dice expression that isn't multiplied with coin, will be treated as a random number of **CP**.",
                 ],
             ),
         ],

@@ -11,7 +11,7 @@ class CoinCommand(BaseCommand):
     desc = "Perform D&D currency math!"
     help = "Calculate your pieces using addition, subtraction, division and multiplication!"
 
-    @describe(expression="Units: cp, sp, ep, gp, pp; Operators: + - * /")
+    @describe(expression="Units: cp, sp, ep, gp, pp; Operators: + - * /; Also supports dice expressions: 1d20, ...")
     async def handle(self, itr: discord.Interaction, expression: str):
         coin = Coin.from_string(expression)
         embed = UserActionEmbed(itr, title=expression.lower(), description=str(coin))

@@ -196,6 +196,6 @@ Command to help track initiatives for combat. Names are enforced to be unique an
   - `Clear Rolls` - Clears all stored initiatives in the server, used after a battle.
 
 ### Coin Calculation
-Perform calculations on your D&D currency directly using coin expressions. Examples of a coin expression are `2pp + 5gp - 3sp` or `10gp * 1.2`.
+Perform calculations on your D&D currency directly using coin expressions. Examples of a coin expression are `2pp + 5gp - 3sp`, `10gp * 1.2` or `500gp + (1d20 * 25gp)`.
 
 - `/coin <expression>` - Evaluate a coin expression and automatically convert the result into the optimal denominations.

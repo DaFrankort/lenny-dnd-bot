@@ -5,22 +5,27 @@ from typing import TypeAlias
 
 from lark import Lark, LarkError, Token, Transformer, Tree
 
+from logic.roll import roll
+
+# TODO Only supports basic dice expressions, should potentially also support modifiers (explode, keep, drop, roll over...)
 COIN_GRAMMAR = r"""
     ?start: expr
 
     ?expr: term
-         | expr "+" term   -> add
-         | expr "-" term   -> sub
+         | expr "+" term    -> add
+         | expr "-" term    -> sub
 
     ?term: factor
-         | term "*" factor -> mul
-         | term "/" factor -> div
+         | term "*" factor  -> mul
+         | term "/" factor  -> div
 
-    ?factor: NUMBER        -> number
-           | COIN_UNIT     -> coin
+    ?factor: NUMBER         -> number
+           | COIN_UNIT      -> coin
+           | DICE           -> dice
            | "(" expr ")"
 
     COIN_UNIT.10: /[\d.]+(pp|gp|ep|sp|cp)/
+    DICE.20: /\d+d\d+/
 
     %import common.NUMBER
     %import common.WS
@@ -40,6 +45,10 @@ class CoinTransformer(Transformer[EvalResult]):  # pyright: ignore[reportInvalid
 
     def coin(self, items: list[Token]) -> Coin:
         return Coin.parse_unit(str(items[0]))
+
+    def dice(self, items: list[Token]) -> float:
+        expr = str(items[0])
+        return roll(expr).result.total
 
     def add(self, args: list[EvalResult]) -> EvalResult:
         if isinstance(args[0], float | int):

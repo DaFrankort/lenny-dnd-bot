@@ -84,3 +84,18 @@ class TestCoin:
     def test_division(self, expression: str, expected_result: Coin):
         coin = Coin.from_string(expression)
         self.assert_coin(expression, coin, expected_result)
+
+    @pytest.mark.parametrize(
+        "expression",
+        [
+            ("dungeon master"),
+            ("100ip + 100gp"),
+            ("1cp *"),
+            ("1cp /"),
+            ("1cp -"),
+            ("1cp +"),
+        ],
+    )
+    def test_invalid_syntax(self, expression: str):
+        with pytest.raises(ValueError):
+            Coin.from_string(expression)

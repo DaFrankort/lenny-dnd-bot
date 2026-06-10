@@ -17,6 +17,9 @@ class SessionTitle(ABC):
 
 
 class TitleRegistry:
+    titles: list[SessionTitle]
+    assigned: set[SessionTitle]
+
     def __init__(self):
         self.titles: list[SessionTitle] = [
             TitleMostNat1(),
@@ -25,17 +28,23 @@ class TitleRegistry:
             TitleHeavyHitter(),
             TitleWeakHitter(),
         ]
+        self.assigned = set()
 
     def assign_title(self, stats: UserSessionDiceStats, all_session_stats: dict[int, UserSessionStats]) -> SessionTitle | None:
         best_title = None
         highest_score = 0.0
 
         for title in self.titles:
+            if title in self.assigned:
+                continue  # Don't re-evaluate already assigned titles.
+
             score = title.evaluate(stats, all_session_stats)
             if score > highest_score:
                 highest_score = score
                 best_title = title
 
+        if best_title:
+            self.assigned.add(best_title)
         return best_title
 
 

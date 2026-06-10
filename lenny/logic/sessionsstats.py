@@ -179,9 +179,9 @@ class SessionStats:
             else:
                 title = assigned_title
 
-            user_report.append(f"- Average d20 result: ``{dice.average_d20}``")
-            user_report.append(f"\n- Average damage: ``{dice.average_dmg}``")
-            user_report.append(f"\n- Dice rolled: ``{dice.dice_rolled}``")
+            user_report.append(f"Average d20 result: ``{dice.average_d20}``")
+            user_report.append(f"Average damage: ``{dice.average_dmg}``")
+            user_report.append(f"Dice rolled: ``{dice.dice_rolled}``")
 
             users_stats.append(
                 UserSessionResult(

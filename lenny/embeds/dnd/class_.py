@@ -97,9 +97,8 @@ class ClassEmbed(DNDEntryEmbed):
         level = max(0, min(20, level))
 
         super().__init__(character_class)
-
         if level == 0:  # Core Info (page 0)
-            self.description = "*Core Info*"
+            self.description = (character_class.class_emoji + " *Core Info*").strip()
 
             if character_class.primary_ability:
                 self.add_field(
@@ -117,7 +116,7 @@ class ClassEmbed(DNDEntryEmbed):
             self.add_description_fields(character_class.base_info)
 
         else:
-            subtitle = f"Level {level}"
+            subtitle = (character_class.class_emoji + f" Level {level}").strip()
             if subclass and level >= (character_class.subclass_unlock_level or 0):
                 subtitle += f" {subclass}"
             self.description = f"*{subtitle}*"
@@ -149,5 +148,5 @@ class ClassEmbed(DNDEntryEmbed):
                 self.add_field(name="", value=HORIZONTAL_LINE, inline=False)
                 self.add_description_fields(descriptions=descriptions)
 
-        self.set_footer(text=f"Page {level + 1} / 21", icon_url="")
+        self.set_footer(text=f"Page {level} / 20", icon_url="")
         self.view = ClassNavigationView(character_class, allowed_sources, level, subclass)

@@ -14,7 +14,7 @@ pytest-asyncio==1.4.0
 pytest-benchmark==5.2.3
 pillow==12.2.0
 scikit-image==0.26.0
-matplotlib==3.10.9
+matplotlib==3.11.0
 validators==0.35.0
 thread==2.0.6
 d100 @ git+https://github.com/pipieter/d100@main

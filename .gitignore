@@ -15,6 +15,7 @@ venv
 /config
 .env
 .flake8
+*.pem
 
 # Assets
 assets/sounds/**/*

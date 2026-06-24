@@ -1,9 +1,8 @@
 import os
+import urllib.parse
 
 import discord
-import urllib.parse
-from github import GithubIntegration
-from github import Auth
+from github import Auth, GithubIntegration
 
 from embeds.embed import BaseEmbed
 
@@ -63,8 +62,6 @@ async def report_issue(itr: discord.Interaction, title: str, description: str, r
 
         with open(GITHUB_PRIVATE_KEY, "r") as f:
             private_key_content = f.read()
-
-        print(GITHUB_APP_ID, GITHUB_INSTALLATION_ID, GITHUB_PRIVATE_KEY, GITHUB_REPO_PATH)
 
         auth = Auth.AppAuth(GITHUB_APP_ID, private_key_content)
         gi = GithubIntegration(auth=auth)

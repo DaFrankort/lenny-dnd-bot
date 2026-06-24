@@ -13,6 +13,7 @@ from commands.color import ColorCommandGroup
 from commands.config import ConfigCommand
 from commands.distribution import DistributionCommand
 from commands.favorites import FavoritesCommandGroup
+from commands.github import IssueReportCommand
 from commands.help import HelpCommand
 from commands.homebrew import HomebrewCommandGroup
 from commands.initiative import InitiativeCommand
@@ -100,6 +101,7 @@ class Bot(discord.Client):
         self.tree.add_command(FavoritesCommandGroup())
         self.tree.add_command(AverageDamageCommandGroup())
         self.tree.add_command(CoinCommand())
+        self.tree.add_command(IssueReportCommand())
 
         # Context menus
         self.tree.add_command(DeleteContextMenu())

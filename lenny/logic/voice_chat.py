@@ -199,11 +199,15 @@ class VC:
     @staticmethod
     async def leave_inactive_voice_chats():
         """Iterates over all cached voice clients and leaves them if there's no non-bot users."""
+        inactive: list[int] = []
+
         for guild_id, client in VC.clients.items():
             channel = client.channel
             if any(not m.bot for m in channel.members):
                 continue
-            logging.info("Disconnecting from Voice - Bot is alone: #%s (%s).", channel.name, client.guild.name)
+            inactive.append(guild_id)
+
+        for guild_id in inactive:
             await VC.leave(guild_id)
 
 

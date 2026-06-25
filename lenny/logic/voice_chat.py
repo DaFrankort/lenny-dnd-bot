@@ -202,8 +202,7 @@ class VC:
         inactive: list[int] = []
 
         for guild_id, client in VC.clients.items():
-            channel = client.channel
-            if any(not m.bot for m in channel.members):
+            if any(not m.bot for m in client.channel.members):
                 continue
             inactive.append(guild_id)
 

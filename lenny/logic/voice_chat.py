@@ -201,7 +201,7 @@ class VC:
         """Iterates over all cached voice clients and leaves them if there's no non-bot users."""
         for guild_id, client in VC.clients.items():
             channel = client.channel
-            if any(not m.bot for m in channel.members):  # Check if there's at least 1 non-bot user.
+            if any(not m.bot for m in channel.members):
                 continue
             logging.info("Disconnecting from Voice - Bot is alone: #%s (%s).", channel.name, client.guild.name)
             await VC.leave(guild_id)

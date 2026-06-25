@@ -6,6 +6,7 @@ import discord
 import pygtrie  # pyright: ignore[reportMissingTypeStubs]
 from discord.app_commands import Choice
 
+from logic.coin import Coin
 from logic.dnd.data import Data
 from logic.jsonhandler import JsonFolderHandler, JsonHandler
 from logic.voice_chat import SPECIAL_ROLL_REASONS
@@ -29,6 +30,7 @@ class DiceCacheInfo:
     reasons: list[str]
     initiative: int
     trie: dict[str, int]
+    coin: list[str]
 
     @classmethod
     def fromdict(cls, obj: Any) -> "DiceCacheInfo":
@@ -37,6 +39,7 @@ class DiceCacheInfo:
             reasons=obj.get("reasons", []),
             initiative=obj.get("initiative", 0),
             trie=obj.get("trie", default_dicecache_trie()),
+            coin=obj.get("coin", []),
         )
 
 
@@ -95,7 +98,7 @@ class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
     def __init__(self, user_id: int):
         super().__init__(str(user_id), "user_cache")
         if not self.data:
-            self.cache = DiceCacheInfo(rolls=[], reasons=[], initiative=0, trie={})
+            self.cache = DiceCacheInfo(rolls=[], reasons=[], initiative=0, trie={}, coin=[])
         self._trie = DiceCacheTrie(self.cache)
 
     @property
@@ -135,6 +138,21 @@ class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
             return
         self.cache.initiative = initiative
         self.save()
+
+    def store_coin(self, coin: Coin):
+        expression = coin.expr
+        if expression in self.cache.coin:
+            self.cache.coin.remove(expression)
+        self.cache.coin.append(expression)
+        self.cache.coin = self.cache.coin[-5:]
+        self.save()
+
+    def get_coin_autocomplete_suggestions(self, query: str) -> list[Choice[str]]:
+        coins = self.cache.coin
+        query = query.strip().lower().replace(" ", "")
+        if query or len(coins) == 0:
+            return []
+        return [Choice(name=f"({coin})", value=f"({coin})") for coin in reversed(coins)]
 
     def get_autocomplete_suggestions(self, query: str) -> list[Choice[str]]:
         """

@@ -188,6 +188,17 @@ SLASH_COMMAND_TESTS: Iterable[Iterable[Any]] = [
             "max_mod": 8,
         },
     ),
+    (
+        "coin",
+        {
+            "expression": [
+                "10gp - 5gp",
+                "10gp + 5gp",
+                "10gp / 2",
+                "10gp * 2",
+            ],
+        },
+    ),
     # Homebrew commands work through modals, and are thus not testable.
     # ("", {"": "", "": ""}),
 ]

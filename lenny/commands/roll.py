@@ -10,7 +10,7 @@ from logic.dnd.data import Data
 from logic.dnd.table import roll_table
 from logic.roll import Advantage, multi_roll, roll
 from logic.searchcache import SearchCache
-from logic.sessionsstats import SessionStatistics
+from logic.session.stats import SessionStatistics
 from logic.voice_chat import VC, SoundType
 
 

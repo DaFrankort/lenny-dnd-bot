@@ -12,7 +12,7 @@ from d100.enums import Critical
 from discord import Interaction
 
 from logic.roll import RollResult
-from logic.sessionsstats import SessionStatistics
+from logic.session.stats import SessionStatistics
 
 
 class SoundType(str, Enum):

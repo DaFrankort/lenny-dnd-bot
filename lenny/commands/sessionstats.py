@@ -2,7 +2,7 @@ import discord
 
 from commands.command import BaseCommand
 from embeds.sessionstats import UserSessionStatEmbed
-from logic.sessionsstats import SessionStatistics
+from logic.session.stats import SessionStatistics
 
 
 class SessionStatsCommand(BaseCommand):

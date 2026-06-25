@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from logic.sessionsstats import UserSessionDiceStats, UserSessionStats
+from logic.session.types import UserSessionDiceStats, UserSessionStats
 
 
 class SessionTitle(ABC):
@@ -13,7 +13,7 @@ class SessionTitle(ABC):
         Returns a score representing how well the player qualifies for this title.
         Return 0 or negative if they don't qualify at all.
         """
-        pass
+        raise NotImplementedError(f"The title '{self.name}' can not be evaluated yet.")
 
 
 class TitleRegistry:

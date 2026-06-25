@@ -205,7 +205,7 @@ class VC:
 
             if members:
                 continue
-            logging.info(f"Disconnecting from Voice - Bot is alone: #{channel.name} ({client.guild.name}).")
+            logging.info("Disconnecting from Voice - Bot is alone: #%s (%s).", channel.name, client.guild.name)
             await VC.leave(guild_id)
 
 

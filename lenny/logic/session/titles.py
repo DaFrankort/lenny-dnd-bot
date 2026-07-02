@@ -65,7 +65,7 @@ class TitleRegistry:
 # TITLES
 # d20 check related titles
 class TitleMostNat1(SessionTitle):
-    name = "Murphy's Law Enthusiast"
+    name = "The Murphy's Law Enthusiast"
     description = "Rolled the most Natural 1s this session."
     weight = 5.0
 
@@ -80,7 +80,7 @@ class TitleMostNat1(SessionTitle):
 
 
 class TitleMostNat20(SessionTitle):
-    name = "Weighted Dice User"
+    name = "The Weighted Dice User"
     description = "Rolled the most Natural 20s this session."
     weight = 5.0
 
@@ -95,7 +95,7 @@ class TitleMostNat20(SessionTitle):
 
 
 class TitleConsistentRoller(SessionTitle):
-    name = "Ol' Reliable"
+    name = "The Ol' Reliable"
     description = "Maintained an average d20 roll of 14 or higher."
 
     def _evaluate(self, stats: UserSessionDiceStats, all_session_stats: dict[int, UserSessionStats]) -> float:
@@ -107,7 +107,7 @@ class TitleConsistentRoller(SessionTitle):
 
 # Damage related titles
 class TitleHeavyHitter(SessionTitle):
-    name = "Min-Maxxer"
+    name = "The Min-Maxxer"
     description = "Dealt the highest total damage across the entire session."
     weight = 0.7
 
@@ -123,7 +123,7 @@ class TitleHeavyHitter(SessionTitle):
 
 
 class TitleWeakHitter(SessionTitle):
-    name = "Emotional Support"
+    name = "The Emotional Support"
     description = "Dealt the least amount of damage across the entire session."
     weight = 5.0
 
@@ -140,7 +140,7 @@ class TitleWeakHitter(SessionTitle):
 
 # Advantage User
 class TitleAdvantage(SessionTitle):
-    name = "Crit Fisher"
+    name = "The Crit Fisher"
     description = "Rolled with advantage more times than anyone else."
     weight = 2.0
 
@@ -156,7 +156,7 @@ class TitleAdvantage(SessionTitle):
 
 
 class TitleDisadvantage(SessionTitle):
-    name = "DM's Least Favorite"
+    name = "The DM's Least Favorite"
     description = "Rolled with disadvantage more times than anyone else."
     weight = 5.0
 

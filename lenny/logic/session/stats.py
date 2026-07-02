@@ -117,9 +117,18 @@ class SessionStats:
                 title = assigned_title
                 user_report.append("")
 
-            user_report.append(f"Average d20 result: ``{dice.average_d20}``")
-            user_report.append(f"Average damage: ``{dice.average_dmg}``")
             user_report.append(f"Dice rolled: ``{dice.dice_rolled}``")
+            user_report.append(f"Average d20 result: ``{dice.average_d20}``")
+            user_report.append(f"D20's rolled: ``{len(dice.d20_totals)}``")
+            if dice.nat1_count > 0:
+                user_report.append(f"Natural 1s rolled: ``{dice.nat1_count}``")
+            if dice.nat20_count > 0:
+                user_report.append(f"Natural 20s rolled: ``{dice.nat20_count}``")
+            if dice.damage_totals:
+                user_report.append(f"Total damage: ``{sum(dice.damage_totals)}``")
+                user_report.append(f"Average damage: ``{dice.average_dmg}``")
+            user_report.append(f"Rolled with Advantage: ``{dice.adv_count}`` time(s)")
+            user_report.append(f"Rolled with Disadvantage: ``{dice.dis_count}`` time(s)")
 
             color = discord.Color(UserColor.get_from_user(user))
             graph = _d20_comparison_chart(dice, color.value)

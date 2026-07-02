@@ -26,7 +26,7 @@ from commands.roll import (
     TableRollCommand,
 )
 from commands.search import SearchCommandGroup
-from commands.sessionstats import SessionStatsCommand
+from commands.session import SessionStatsCommand
 from commands.stats import StatsCommandGroup
 from commands.timestamp import TimestampCommandGroup
 from commands.tokengen import TokenGenCommandGroup

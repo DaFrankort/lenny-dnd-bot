@@ -1,7 +1,12 @@
+import io
+from typing import Counter
+
 import discord
+from matplotlib import pyplot as plt
 
 from logic.color import UserColor
-from logic.roll import RollResult
+from logic.distribution import to_matplotlib_color
+from logic.roll import MultiRollResult, RollResult
 from logic.session.titles import TitleRegistry
 from logic.session.types import (
     SessionResult,
@@ -9,6 +14,45 @@ from logic.session.types import (
     UserSessionResult,
     UserSessionStats,
 )
+
+
+def _d20_comparison_chart(stats: UserSessionDiceStats, color: int) -> discord.File | None:
+    if not stats.d20_totals:
+        return None
+
+    total_rolls = len(stats.d20_totals)
+    counts = Counter(stats.d20_totals)
+
+    x_faces = list(range(1, 21))
+    actual_percentages = [(counts[face] / total_rolls) * 100 for face in x_faces]
+    expected_percentage = 5.0
+
+    plt.rcParams["figure.dpi"] = 600
+    fig, ax = plt.subplots()
+
+    ax.tick_params(colors="white")  # type: ignore
+    ax.grid(color="white", alpha=0.3, linewidth=1)  # type: ignore
+    for spine in ["top", "right", "bottom", "left"]:
+        ax.spines[spine].set_color("white")
+
+    ax.set_xticks(x_faces)  # type: ignore
+    ax.yaxis.set_major_formatter("{x:.1f}%")
+    ax.set_axisbelow(True)
+    ax.axhline(y=expected_percentage, color="white", linestyle="--", alpha=0.6, label="Expected (5%)")  # type: ignore
+
+    user_color = to_matplotlib_color(color)  # type: ignore
+    ax.bar(x_faces, actual_percentages, color=user_color, alpha=0.8, label="Your Rolls")  # type: ignore
+
+    legend = ax.legend(loc="upper right", framealpha=0.1)  # type: ignore
+    for text in legend.get_texts():
+        text.set_color("white")
+
+    buf = io.BytesIO()
+    plt.savefig(buf, format="png", bbox_inches="tight", transparent=True)  # type: ignore
+    buf.seek(0)
+    plt.close(fig)
+
+    return discord.File(fp=buf, filename="d20_comparison.png")
 
 
 class SessionStats:
@@ -43,7 +87,7 @@ class SessionStats:
             return False
         return True
 
-    def add_roll(self, itr: discord.Interaction, result: RollResult):
+    def add_roll(self, itr: discord.Interaction, result: RollResult | MultiRollResult):
         if not self._check_user(itr):
             return
         if itr.user.id not in self.user_data:
@@ -76,13 +120,11 @@ class SessionStats:
             user_report.append(f"Average damage: ``{dice.average_dmg}``")
             user_report.append(f"Dice rolled: ``{dice.dice_rolled}``")
 
+            color = discord.Color(UserColor.get_from_user(user))
+            graph = _d20_comparison_chart(dice, color.value)
+
             users_stats.append(
-                UserSessionResult(
-                    user=user,
-                    color=discord.Color(UserColor.get_from_user(user)),
-                    title=title,
-                    description="\n- ".join(user_report),
-                )
+                UserSessionResult(user=user, color=color, title=title, description="\n- ".join(user_report), graph=graph)
             )
 
         return SessionResult(base_info="# Session results\nHere's how everyone rolled!", users_stats=users_stats)

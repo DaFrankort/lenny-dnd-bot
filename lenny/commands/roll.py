@@ -108,7 +108,10 @@ class MultiRollCommand(BaseCommand):
 
         await itr.response.send_message(embed=embed)
         await VC.play(itr, SoundType.ROLL)
-        # TODO add multiroll dice to stats
+
+        stats = SessionStatistics.get(itr)
+        if stats:
+            stats.add_roll(itr, result)
 
 
 async def table_roll_autocomplete(itr: discord.Interaction, current: str):

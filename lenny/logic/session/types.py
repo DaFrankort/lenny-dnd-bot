@@ -2,6 +2,8 @@ from dataclasses import dataclass
 
 import discord
 from d100 import Critical
+from d100.ast.dice import ASTDice
+from d100.ast.node import ASTNode
 
 from logic.roll import Advantage, MultiRollResult, RollResult, SingleRollResult
 
@@ -34,6 +36,7 @@ class UserSessionDiceStats:
 
     adv_count: int
     dis_count: int
+    dice_rolled: int
 
     def __init__(self):
         self.nat20_count = 0
@@ -45,6 +48,7 @@ class UserSessionDiceStats:
 
         self.adv_count = 0
         self.dis_count = 0
+        self.dice_rolled = 0
 
     def add(self, result: RollResult | MultiRollResult):
         if isinstance(result, MultiRollResult):
@@ -62,6 +66,7 @@ class UserSessionDiceStats:
         if "d100" in result.expression:
             return  # We don't want to track d100's, they're not used for skill-checks or damage.
 
+        self._add_dice_count(rolls)
         self._add_advantage(result.expression, result.advantage)
 
         for roll in rolls:
@@ -70,8 +75,27 @@ class UserSessionDiceStats:
             else:
                 self._add_damage_roll(roll)
 
+    def _add_dice_count(self, rolls: list[SingleRollResult]):
+        def add_from_node(node: ASTNode):
+            if isinstance(node, ASTDice):
+                self.dice_rolled += node.num
+            for node in node.children:
+                add_from_node(node)
+
+        for roll in rolls:
+            for node in roll.ast.children:
+                add_from_node(node)
+
     def _add_d20(self, roll: SingleRollResult):
-        self.d20_totals.append(roll.total)
+        d20 = roll.ast.find_d20()
+        if d20 is None:
+            return
+
+        value = roll.roll.find_from_ast(d20)  # Cache rolled result without modifiers.
+        if value is None:
+            return
+
+        self.d20_totals.append(value.total)
         if roll.crit is Critical.CRIT:
             self.nat20_count += 1
         elif roll.crit is Critical.FAIL:
@@ -116,10 +140,6 @@ class UserSessionDiceStats:
         if len(totals) == 0:
             return 0
         return sum(totals) // len(totals)
-
-    @property
-    def dice_rolled(self) -> int:
-        return len(self.d20_totals) + len(self.dmg_expressions)
 
 
 class UserSessionStats:

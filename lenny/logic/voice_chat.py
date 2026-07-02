@@ -96,7 +96,6 @@ class VC:
         client = await voice_channel.connect()
         VC.clients[guild_id] = client
         logging.info("Joined voice channel '%s' in '%s'", client.channel.name, client.guild.name)
-        asyncio.create_task(VC.monitor_vc(guild_id))
 
         SessionStatistics.start(itr)
 
@@ -202,23 +201,17 @@ class VC:
         client.play(audio_source)
 
     @staticmethod
-    async def monitor_vc(guild_id: int):
-        """Periodically checks if the bot is alone in a voice channel and disconnects if so."""
-        while True:
-            client = VC.clients.get(guild_id)
-            if not client:
-                break
+    async def leave_inactive_voice_chats():
+        """Iterates over all cached voice clients and leaves them if there's no non-bot users."""
+        inactive: list[int] = []
 
-            channel = client.channel
-            members = channel.members if channel else []
-            non_bot_members = [m for m in members if not m.bot]
+        for guild_id, client in VC.clients.items():
+            if any(not m.bot for m in client.channel.members):
+                continue
+            inactive.append(guild_id)
 
-            if not non_bot_members:
-                logging.info("Bot is alone in voice channel, disconnecting.")
-                await VC.leave(guild_id)
-                break
-
-            await asyncio.sleep(60)
+        for guild_id in inactive:
+            await VC.leave(guild_id)
 
 
 class Sounds:

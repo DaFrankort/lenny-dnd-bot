@@ -25,10 +25,10 @@ def _d20_comparison_chart(stats: UserSessionDiceStats, color: int) -> discord.Fi
 
     x_faces = list(range(1, 21))
     actual_percentages = [(counts[face] / total_rolls) * 100 for face in x_faces]
-    expected_percentage = 5.0
+    average_percentage = 5.0
 
     plt.rcParams["figure.dpi"] = 600
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots()  # type: ignore
 
     ax.tick_params(colors="white")  # type: ignore
     ax.grid(color="white", alpha=0.3, linewidth=1)  # type: ignore
@@ -38,7 +38,7 @@ def _d20_comparison_chart(stats: UserSessionDiceStats, color: int) -> discord.Fi
     ax.set_xticks(x_faces)  # type: ignore
     ax.yaxis.set_major_formatter("{x:.1f}%")
     ax.set_axisbelow(True)
-    ax.axhline(y=expected_percentage, color="white", linestyle="--", alpha=0.6, label="Expected (5%)")  # type: ignore
+    ax.axhline(y=average_percentage, color="white", linestyle="--", alpha=0.6, label="Average (5%)")  # type: ignore
 
     user_color = to_matplotlib_color(color)  # type: ignore
     ax.bar(x_faces, actual_percentages, color=user_color, alpha=0.8, label="Your Rolls")  # type: ignore
@@ -52,7 +52,7 @@ def _d20_comparison_chart(stats: UserSessionDiceStats, color: int) -> discord.Fi
     buf.seek(0)
     plt.close(fig)
 
-    return discord.File(fp=buf, filename="d20_comparison.png")
+    return discord.File(fp=buf, filename=f"{color}_d20_comparison.png")
 
 
 class SessionStats:
@@ -115,6 +115,7 @@ class SessionStats:
                 user_report.append(f"-# {assigned_title.description}")
             else:
                 title = assigned_title
+                user_report.append("")
 
             user_report.append(f"Average d20 result: ``{dice.average_d20}``")
             user_report.append(f"Average damage: ``{dice.average_dmg}``")

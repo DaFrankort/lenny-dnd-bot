@@ -32,7 +32,10 @@ class RollEmbed(UserActionEmbed):
             descriptions.append(f"⚠️ {warning} ⚠️")
 
         for roll in result.result.rolls:
-            descriptions.append(f"- `{roll.expr} -> {roll.total}`")
+            line = f"`{roll.expr} -> {roll.total}`"
+            if roll != result.result.roll:
+                line = f"~~{line}~~"
+            descriptions.append(f"- {line}")
 
         roll = result.result.roll
         descriptions.append("")

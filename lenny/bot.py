@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 
 from commands.average import AverageDamageCommandGroup
 from commands.charactergen import CharacterGenCommand
+from commands.coin import CoinCommand
 from commands.color import ColorCommandGroup
 from commands.config import ConfigCommand
 from commands.distribution import DistributionCommand
@@ -99,6 +100,7 @@ class Bot(discord.Client):
         self.tree.add_command(HomebrewCommandGroup())
         self.tree.add_command(FavoritesCommandGroup())
         self.tree.add_command(AverageDamageCommandGroup())
+        self.tree.add_command(CoinCommand())
 
         # Context menus
         self.tree.add_command(DeleteContextMenu())
@@ -140,6 +142,7 @@ class Bot(discord.Client):
         )
         logging.info("Finished initialization")
         self._cache_cleaner.start()
+        self._frequent_cleanup.start()
 
     async def _attempt_sync_guild(self):
         guild = discord.utils.get(self.guilds, id=self.guild_id)
@@ -157,6 +160,10 @@ class Bot(discord.Client):
         Config.clear_cache(max_age=900)
         SearchCache.clear_cache(max_age=450)
         FavoritesCache.clear_cache(max_age=450)
+
+    @tasks.loop(minutes=3)
+    async def _frequent_cleanup(self):
+        await VC.leave_inactive_voice_chats()
 
     async def on_interaction(self, interaction: discord.Interaction):
         match interaction.type:

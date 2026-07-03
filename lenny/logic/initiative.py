@@ -33,12 +33,12 @@ class Initiative:
 
     @property
     def rolls(self) -> list[int]:
-        return list(self.raw_d20)[: self.advantage.advantage.rolls]
+        return list(self.raw_d20)[: self.advantage.rolls]
 
     def get_total(self):
         roll = self.raw_d20[0]
 
-        if self.advantage == Advantage.ADVANTAGE:
+        if self.advantage in [Advantage.ADVANTAGE, Advantage.TOTAL_ADVANTAGE]:
             roll = max(self.rolls)
 
         elif self.advantage == Advantage.DISADVANTAGE:

@@ -46,6 +46,7 @@ class TestInitiative:
             Advantage.ADVANTAGE,
             Advantage.DISADVANTAGE,
             Advantage.ELVEN_ACCURACY,
+            Advantage.TOTAL_ADVANTAGE,
         ],
     )
     def test_roll(self, advantage: Advantage):

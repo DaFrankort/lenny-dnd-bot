@@ -18,6 +18,7 @@ class Advantage(str, ChoicedEnum):
     ADVANTAGE = "advantage"
     DISADVANTAGE = "disadvantage"
     ELVEN_ACCURACY = "elven accuracy"
+    TOTAL_ADVANTAGE = "total advantage"
 
     @property
     def title_suffix(self) -> str:
@@ -25,13 +26,14 @@ class Advantage(str, ChoicedEnum):
             self.ADVANTAGE: " with advantage",
             self.DISADVANTAGE: " with disadvantage",
             self.ELVEN_ACCURACY: " with elven accuracy",
+            self.TOTAL_ADVANTAGE: " with total advantage",
         }
         return suffixes.get(self, "")
 
     @property
     def rolls(self) -> int:
         match self:
-            case Advantage.ADVANTAGE | Advantage.DISADVANTAGE:
+            case Advantage.ADVANTAGE | Advantage.DISADVANTAGE | Advantage.TOTAL_ADVANTAGE:
                 return 2
             case Advantage.ELVEN_ACCURACY:
                 return 3
@@ -92,6 +94,8 @@ def parse(expr: str, advantage: Advantage) -> tuple[ASTExpression, set[str]]:
                 parsed = d100.utils.add_advantage_to_d20_in_expression(parsed, "adv", 3)
             case Advantage.DISADVANTAGE:
                 parsed = d100.utils.add_advantage_to_d20_in_expression(parsed, "dis", 2)
+            case Advantage.TOTAL_ADVANTAGE:
+                parsed = d100.parse(f"({expr})adv2")
             case _:
                 raise RollError(f"Unknown advantage type: {advantage.value}")
 

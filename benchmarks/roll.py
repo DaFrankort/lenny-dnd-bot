@@ -14,6 +14,6 @@ from logic.roll import Advantage, roll
         ("4d6kh3"),
     ],
 )
-@pytest.mark.parametrize("advantage", [Advantage.values()])
+@pytest.mark.parametrize("advantage", Advantage.values())
 def test_roll(benchmark: BenchmarkFixture, expression: str, advantage: Advantage):
     benchmark.pedantic(roll, args=(expression, advantage), rounds=1000, iterations=5, warmup_rounds=24)  # type: ignore

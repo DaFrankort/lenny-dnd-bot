@@ -197,7 +197,7 @@ class AverageDamageResultsBase(ABC):
 class AverageDamageACResults(AverageDamageResultsBase):
     hit_expr: str
     crit_min: int
-    attacks:int
+    attacks: int
 
     def __init__(
         self,

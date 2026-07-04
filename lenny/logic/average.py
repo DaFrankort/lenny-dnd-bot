@@ -215,13 +215,18 @@ class AverageDamageACResults(AverageDamageResultsBase):
         self.attacks = attacks
         acs = list(range(min(min_ac, max_ac), max(min_ac, max_ac) + 1))
 
+        if attacks == 1:
+            ylabel = f"Avg. Damage ({self.hit_expr} -> {damage})"
+        else:
+            ylabel = f"Avg. Damage ({self.hit_expr} -> {damage}, {attacks} attacks)"
+
         super().__init__(
             x_values=acs,
             damage=damage,
             miss_damage=miss_damage,
             title="Average Damage vs Armor Class",
             xlabel="Armor Class (AC)",
-            ylabel=f"Avg. Damage ({self.hit_expr} -> {damage})",
+            ylabel=ylabel,
             calc_func=lambda ac, adv: _average_damage(hit, damage, ac, adv, crit_min, miss_damage, attacks=attacks),
         )
 
@@ -231,7 +236,7 @@ class AverageDamageACResults(AverageDamageResultsBase):
 
     @property
     def title(self) -> str:
-        return "Average Damage per Attack"
+        return "Average Damage"
 
     @property
     def details(self) -> str:

@@ -209,6 +209,7 @@ class AverageDamageACResults(AverageDamageResultsBase):
         miss_damage: str,
         attacks: int,
     ) -> None:
+        hit = hit.lstrip("+").replace(" ", "")
         self.hit_expr = f"1d20+{hit}" if not hit.startswith("-") else f"1d20{hit}"
         self.crit_min = crit_min
         self.attacks = attacks

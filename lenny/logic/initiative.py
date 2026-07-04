@@ -38,7 +38,7 @@ class Initiative:
     def get_total(self):
         roll = self.raw_d20[0]
 
-        if self.advantage in [Advantage.ADVANTAGE, Advantage.TOTAL_ADVANTAGE]:
+        if self.advantage in [Advantage.ADVANTAGE, Advantage.SAVAGE_ATTACKER]:
             roll = max(self.rolls)
 
         elif self.advantage == Advantage.DISADVANTAGE:

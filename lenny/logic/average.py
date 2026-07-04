@@ -74,7 +74,7 @@ def _calculate_hit_chances(
     return normal_hit_chance, miss_chance, crit_hit_chance
 
 
-def _average_damage_per_attack(
+def _average_damage(
     hit: str,
     damage: str,
     ac: int,
@@ -82,6 +82,7 @@ def _average_damage_per_attack(
     crit_min: int,
     miss_damage_expr: str = "0",
     ignore_crit: bool = False,
+    attacks: int = 1,
 ) -> AverageDamageResult:
     hit_chance, miss_chance, crit_chance = _calculate_hit_chances(hit, ac, advantage, crit_min, ignore_crit)
 
@@ -93,7 +94,8 @@ def _average_damage_per_attack(
     miss_avg = miss_damage.mean()
     crit_avg = crit_damage.mean()
 
-    avg = (hit_chance * hit_avg) + (miss_chance * miss_avg) + (crit_chance * crit_avg)
+    avg_per_attack = (hit_chance * hit_avg) + (miss_chance * miss_avg) + (crit_chance * crit_avg)
+    avg = avg_per_attack * attacks
 
     return AverageDamageResult(
         hit=hit,
@@ -195,6 +197,7 @@ class AverageDamageResultsBase(ABC):
 class AverageDamageACResults(AverageDamageResultsBase):
     hit_expr: str
     crit_min: int
+    attacks: int
 
     def __init__(
         self,
@@ -204,11 +207,18 @@ class AverageDamageACResults(AverageDamageResultsBase):
         max_ac: int,
         crit_min: int,
         miss_damage: str,
+        attacks: int,
     ) -> None:
         hit = hit.lstrip("+").replace(" ", "")
         self.hit_expr = f"1d20+{hit}" if not hit.startswith("-") else f"1d20{hit}"
         self.crit_min = crit_min
+        self.attacks = attacks
         acs = list(range(min(min_ac, max_ac), max(min_ac, max_ac) + 1))
+
+        if attacks == 1:
+            ylabel = f"Avg. Damage ({self.hit_expr} -> {damage})"
+        else:
+            ylabel = f"Avg. Damage ({self.hit_expr} -> {damage}, {attacks} attacks)"
 
         super().__init__(
             x_values=acs,
@@ -216,8 +226,8 @@ class AverageDamageACResults(AverageDamageResultsBase):
             miss_damage=miss_damage,
             title="Average Damage vs Armor Class",
             xlabel="Armor Class (AC)",
-            ylabel=f"Avg. Damage ({self.hit_expr} -> {damage})",
-            calc_func=lambda ac, adv: _average_damage_per_attack(hit, damage, ac, adv, crit_min, miss_damage),
+            ylabel=ylabel,
+            calc_func=lambda ac, adv: _average_damage(hit, damage, ac, adv, crit_min, miss_damage, attacks=attacks),
         )
 
     @property
@@ -226,12 +236,16 @@ class AverageDamageACResults(AverageDamageResultsBase):
 
     @property
     def title(self) -> str:
-        return "Average Damage per Attack"
+        return "Average Damage"
 
     @property
     def details(self) -> str:
         details = f"**Hit**: {self.hit_expr}"
         details += f"\n**Damage**: {self.damage}"
+
+        if self.attacks != 1:
+            details += f"\n**Attacks**: {self.attacks}"
+
         if self.miss_damage != "0":
             details += f"\n**Miss damage:** {self.miss_damage}"
         if self.crit_min < 20:
@@ -260,7 +274,7 @@ class AverageDamageDCResults(AverageDamageResultsBase):
             title=f"Average Damage using DC {self.dc}",
             xlabel="Saving Throw Modifier (1d20+x)",
             ylabel=f"Avg. Damage ({damage} or {miss_damage})",
-            calc_func=lambda mod, adv: _average_damage_per_attack(
+            calc_func=lambda mod, adv: _average_damage(
                 str(mod), miss_damage, dc, adv, 20, damage, True
             ),  # Swap damage/miss_damage and use ignore_crit for Save DCs
         )

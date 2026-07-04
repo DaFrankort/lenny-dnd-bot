@@ -17,11 +17,12 @@ class AverageDamageACCommand(BaseCommand):
 
     @describe(
         hit="Your hit modifier on your attack roll, (e.g. '8', '4+1d4').",
-        damage="Your damage expression on a hit (e.g. '1d8+3', '8d6')",
+        damage="Your damage expression on a hit (e.g. '1d8+3', '8d6').",
         min_ac="The minimum AC to compare against, default = 8.",
         max_ac="The maximum AC to compare against, default = 30.",
-        crit_min="The minimum roll required on the d20 to land a critical hit, default = 20",
+        crit_min="The minimum roll required on the d20 to land a critical hit, default = 20.",
         miss_damage="The damage rolled on a miss, default = 0.",
+        attacks="The amount of attacks done against the target, default = 1.",
     )
     async def handle(
         self,
@@ -32,8 +33,9 @@ class AverageDamageACCommand(BaseCommand):
         max_ac: Range[int, 0, 30] = 30,
         crit_min: Range[int, 0, 20] = 20,
         miss_damage: str = "0",
+        attacks: int = 1,
     ) -> None:
-        results = AverageDamageACResults(hit, damage, min_ac, max_ac, crit_min, miss_damage)
+        results = AverageDamageACResults(hit, damage, min_ac, max_ac, crit_min, miss_damage, attacks)
         view = AverageDamageLayoutView(itr, results)
         await itr.response.send_message(view=view, file=results.chart)
 

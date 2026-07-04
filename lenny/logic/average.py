@@ -84,11 +84,20 @@ def _average_damage(
     ignore_crit: bool = False,
     attacks: int = 1,
 ) -> AverageDamageResult:
-    hit_chance, miss_chance, crit_chance = _calculate_hit_chances(hit, ac, advantage, crit_min, ignore_crit)
+    # Unlike other advantages, total advantage should apply advantage to the
+    # *damage* and not the hit chances!
+    if advantage == Advantage.TOTAL_ADVANTAGE:
+        hit_chance, miss_chance, crit_chance = _calculate_hit_chances(hit, ac, Advantage.NORMAL, crit_min, ignore_crit)
 
-    hit_damage = dice_distribution(damage)
-    miss_damage = dice_distribution(miss_damage_expr)
-    crit_damage = dice_distribution(double_dice_in_expression(damage))
+        hit_damage = dice_distribution(damage, advantage=Advantage.TOTAL_ADVANTAGE)
+        miss_damage = dice_distribution(miss_damage_expr, advantage=Advantage.TOTAL_ADVANTAGE)
+        crit_damage = dice_distribution(double_dice_in_expression(damage), advantage=Advantage.TOTAL_ADVANTAGE)
+    else:
+        hit_chance, miss_chance, crit_chance = _calculate_hit_chances(hit, ac, advantage, crit_min, ignore_crit)
+
+        hit_damage = dice_distribution(damage)
+        miss_damage = dice_distribution(miss_damage_expr)
+        crit_damage = dice_distribution(double_dice_in_expression(damage))
 
     hit_avg = hit_damage.mean()
     miss_avg = miss_damage.mean()

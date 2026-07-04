@@ -31,15 +31,15 @@ class TestDiceExpression:
         advantage = roll("1d20", Advantage.ADVANTAGE)
         disadvantage = roll("1d20", Advantage.DISADVANTAGE)
         elven_accuracy = roll("1d20", Advantage.ELVEN_ACCURACY)
-        total_advantage = roll("1d20", Advantage.TOTAL_ADVANTAGE)
+        total_advantage = roll("1d20", Advantage.SAVAGE_ATTACKER)
 
         assert len(normal.result.rolls) == 1, "Normal rolls should only have one roll."
         assert len(advantage.result.rolls) == 2, "Advantage rolls should have two rolls."
         assert len(disadvantage.result.rolls) == 2, "Disadvantage rolls should have two rolls."
         assert len(elven_accuracy.result.rolls) == 3, "Elven accuracy rolls should have three rolls."
-        assert len(total_advantage.result.rolls) == 2, "Total advantage rolls should have two rolls."
+        assert len(total_advantage.result.rolls) == 2, "Savage attacker rolls should have two rolls."
 
-    @pytest.mark.parametrize("advantage", (Advantage.ADVANTAGE, Advantage.ELVEN_ACCURACY, Advantage.TOTAL_ADVANTAGE))
+    @pytest.mark.parametrize("advantage", (Advantage.ADVANTAGE, Advantage.ELVEN_ACCURACY, Advantage.SAVAGE_ATTACKER))
     def test_advantage_is_greater(self, advantage: Advantage):
         # Monte Carlo test to see if advantage is always the greatest of the two numbers
         for _ in range(1000):

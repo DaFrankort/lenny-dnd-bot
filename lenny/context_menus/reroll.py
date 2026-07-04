@@ -26,11 +26,11 @@ class RerollContextMenu(BaseContextMenu):
 
     @staticmethod
     def _parse_advantage(dice_notation: str) -> Advantage:
-        # Check 'total advantage' and 'disadvantage' before 'advantage', may give a false positive otherwise.
+        # Check 'disadvantage' before 'advantage', may give a false positive otherwise.
         if "disadvantage" in dice_notation:
             return Advantage.DISADVANTAGE
-        if "total advantage" in dice_notation:
-            return Advantage.TOTAL_ADVANTAGE
+        if "savage attacker" in dice_notation:
+            return Advantage.SAVAGE_ATTACKER
         if "advantage" in dice_notation:
             return Advantage.ADVANTAGE
         if "elven accuracy" in dice_notation:

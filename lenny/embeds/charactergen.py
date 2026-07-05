@@ -4,6 +4,7 @@ import discord
 from discord import ui
 
 from embeds.components import BaseSeparator, TitleTextDisplay
+from logic.app_emojis import AppEmoji
 from logic.charactergen import (
     CharacterGenResult,
     format_modifier_str,
@@ -60,11 +61,12 @@ class CharacterGenContainerView(ui.LayoutView):
         container.add_item(TitleTextDisplay(result.name))
 
         btn_row = ui.ActionRow[CharacterGenContainerView]()
-        species_emoji = "🧝‍♀️" if result.gender is Gender.FEMALE else "🧝‍♂️"
+        # species_emoji = "🧝‍♀️" if result.gender is Gender.FEMALE else "🧝‍♂️"
+        species_emoji = AppEmoji.DWARF.emoji if result.gender is Gender.FEMALE else AppEmoji.HUMAN.emoji
         btn_row.add_item(_CharacterGenInfoButton(result.species, species_emoji))
         class_emoji = result.char_class.class_emoji or "🧙"
         btn_row.add_item(_CharacterGenInfoButton(result.char_class, class_emoji))
-        bg_emoji = "📕" if result.gender is Gender.FEMALE else "📘"
+        bg_emoji = AppEmoji.ARTIST.emoji if result.gender is Gender.FEMALE else AppEmoji.ACOLYTE.emoji
         btn_row.add_item(_CharacterGenInfoButton(result.background, bg_emoji))
         container.add_item(btn_row)
 

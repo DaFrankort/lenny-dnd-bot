@@ -65,6 +65,15 @@ class AppEmoji(Enum):
     WARLOCK = "class_warlock"
     WIZARD = "class_wizard"
 
+    # Species
+    AASIMAR = "species_aasimar"
+    DWARF = "species_dwarf"
+    HUMAN = "species_human"
+
+    # Background
+    ARTIST = "background_artist"
+    ACOLYTE = "background_acolyte"
+
     @property
     def _fallback(self) -> str:
         fallback_map = {
@@ -102,6 +111,13 @@ class AppEmoji(Enum):
             self.SORCERER: "🌀",
             self.WARLOCK: "🌙",
             self.WIZARD: "📖",
+            # SPECIES
+            self.AASIMAR: "👼",
+            self.DWARF: "🧔",
+            self.HUMAN: "👱",
+            # BACKGROUND
+            self.ARTIST: "👨‍🎨",
+            self.ACOLYTE: "👨‍🎓",
         }
         logging.warning("Using fallback emoji for '%s'", self.value)
         return fallback_map.get(self, "❓")

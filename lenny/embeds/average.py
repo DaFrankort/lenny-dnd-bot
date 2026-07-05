@@ -29,6 +29,7 @@ class AverageDamageLayoutView(discord.ui.LayoutView):
 
         if self.show_table:
             container.add_item(discord.ui.TextDisplay(self.results.table))
+            container.add_item(discord.ui.File(f"attachment://{self.results.csv.filename}"))
 
         btn_label = "Hide result table" if self.show_table else "Show result table"
         toggle_button = discord.ui.Button(label=btn_label, style=discord.ButtonStyle.secondary)  # type: ignore

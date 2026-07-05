@@ -1,6 +1,8 @@
+import csv
 import dataclasses
 import io
 import re
+import time
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 
@@ -129,6 +131,7 @@ class AverageDamageResultsBase(ABC):
     data: dict[tuple[int, Advantage], float]
 
     chart: discord.File
+    csv: discord.File
     table: str
 
     damage: str
@@ -155,6 +158,7 @@ class AverageDamageResultsBase(ABC):
                 self.data[(x, adv)] = calc_func(x, adv).avg_damage
 
         self.chart = self.generate_chart(title, xlabel, ylabel)
+        self.csv = self.generate_csv()
         self.table = self.generate_table()
 
     def get(self, x: int, adv: Advantage) -> str:
@@ -182,10 +186,25 @@ class AverageDamageResultsBase(ABC):
 
         return discord.File(fp=buffer, filename="average_chart.png")
 
+    def _headers(self) -> list[str]:
+        return [self.label, *[str(adv).capitalize() for adv in self.advantages]]
+
+    def generate_csv(self) -> discord.File:
+        buffer = io.StringIO()
+        writer = csv.writer(buffer)
+        writer.writerow(self._headers())
+
+        for x in self.x_values:
+            row = [str(x), *[self.get(x, adv) for adv in self.advantages]]
+            writer.writerow(row)
+
+        bytes_buffer = io.BytesIO(buffer.getvalue().encode("utf-8"))
+        bytes_buffer.seek(0)
+        return discord.File(fp=bytes_buffer, filename=f"damage_vs_{self.label}_{int(time.time())}.csv")
+
     def generate_table(self) -> str:
-        headers = [self.label, *[str(adv).capitalize() for adv in self.advantages]]
         rows = [(str(x), *[self.get(x, adv) for adv in self.advantages]) for x in self.x_values]
-        return build_table_from_rows(headers, rows, align_right=True)
+        return build_table_from_rows(self._headers(), rows, align_right=True)
 
     @property
     @abstractmethod

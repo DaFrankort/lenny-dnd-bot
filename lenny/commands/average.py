@@ -37,7 +37,7 @@ class AverageDamageACCommand(BaseCommand):
     ) -> None:
         results = AverageDamageACResults(hit, damage, min_ac, max_ac, crit_min, miss_damage, attacks)
         view = AverageDamageLayoutView(itr, results)
-        await itr.response.send_message(view=view, file=results.chart)
+        await itr.response.send_message(view=view, files=[results.chart, results.csv])
 
 
 async def miss_damage_dc_autocomplete(itr: discord.Interaction, current: str):
@@ -80,7 +80,7 @@ class AverageDamageDCCommand(BaseCommand):
     ) -> None:
         results = AverageDamageDCResults(dc, damage, miss_damage, min_mod, max_mod)
         view = AverageDamageLayoutView(itr, results)
-        await itr.response.send_message(view=view, file=results.chart)
+        await itr.response.send_message(view=view, files=[results.chart, results.csv])
 
 
 class AverageDamageCommandGroup(BaseCommandGroup):

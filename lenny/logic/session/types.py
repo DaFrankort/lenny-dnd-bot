@@ -30,25 +30,23 @@ class UserSessionDiceStats:
     nat20_count: int
     nat1_count: int
     dirty20_count: int
-    d20_totals: list[int]
-
-    dmg_expressions: dict[str, list[int]]
-
     adv_count: int
     dis_count: int
-    dice_rolled: int
+
+    d20_totals: list[int]
+    dmg_expressions: dict[str, list[int]]
+    rolled_dice: dict[int, int]
 
     def __init__(self):
         self.nat20_count = 0
         self.nat1_count = 0
         self.dirty20_count = 0
-        self.d20_totals = []
-
-        self.dmg_expressions = {}
-
         self.adv_count = 0
         self.dis_count = 0
-        self.dice_rolled = 0
+
+        self.d20_totals = []
+        self.dmg_expressions = {}
+        self.rolled_dice = {}
 
     def add(self, result: RollResult | MultiRollResult):
         if isinstance(result, MultiRollResult):
@@ -63,13 +61,13 @@ class UserSessionDiceStats:
             # But often appear when users want to quickly calculate something.
             return
 
-        if "d100" in result.expression:
-            return  # We don't want to track d100's, they're not used for skill-checks or damage.
-
         self._add_dice_count(rolls)
         self._add_advantage(result.expression, result.advantage)
 
         for roll in rolls:
+            if "d100" in result.expression:
+                return  # We don't want to track d100's, they're not used for skill-checks or damage.
+
             if "d20" in result.expression:
                 self._add_d20(roll)
             else:
@@ -78,7 +76,12 @@ class UserSessionDiceStats:
     def _add_dice_count(self, rolls: list[SingleRollResult]):
         def add_from_node(node: ASTNode):
             if isinstance(node, ASTDice):
-                self.dice_rolled += node.num
+                size = node.size if isinstance(node.size, int) else 100  # DiceSize can also be %, which is 100.
+                if not self.rolled_dice[size]:
+                    self.rolled_dice[size] = 0
+                self.rolled_dice[size] += node.num
+                # TODO 1d8e8 -> should count as 2 rolls if exploded, is this the case?
+
             for node in node.children:
                 add_from_node(node)
 
@@ -140,6 +143,18 @@ class UserSessionDiceStats:
         if len(totals) == 0:
             return 0
         return sum(totals) // len(totals)
+
+    @property
+    def total_dice_rolled(self) -> int:
+        return sum(v for v in self.rolled_dice.values())
+
+    @property
+    def most_used_die_type(self) -> tuple[int, int]:
+        most_used: tuple[int, int] = (-1, -1)
+        for sides, uses in self.rolled_dice.items():
+            if uses > most_used[1]:
+                most_used = (sides, uses)
+        return most_used
 
 
 class UserSessionStats:

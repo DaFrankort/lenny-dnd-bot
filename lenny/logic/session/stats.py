@@ -38,10 +38,10 @@ def _d20_comparison_chart(stats: UserSessionDiceStats, color: int) -> discord.Fi
     ax.set_xticks(x_faces)  # type: ignore
     ax.yaxis.set_major_formatter("{x:.1f}%")
     ax.set_axisbelow(True)
-    ax.axhline(y=average_percentage, color="white", linestyle="--", alpha=0.6, label="Average (5%)")  # type: ignore
+    ax.axhline(y=average_percentage, color="white", linestyle="--", alpha=0.5, label=f"Average ({average_percentage}%)")  # type: ignore
 
     user_color = to_matplotlib_color(color)  # type: ignore
-    ax.bar(x_faces, actual_percentages, color=user_color, alpha=0.8, label="Your Rolls")  # type: ignore
+    ax.bar(x_faces, actual_percentages, color=user_color, alpha=0.8, label="Your d20 Rolls")  # type: ignore
 
     legend = ax.legend(loc="upper right", framealpha=0.1)  # type: ignore
     for text in legend.get_texts():
@@ -117,7 +117,7 @@ class SessionStats:
                 title = assigned_title
                 user_report.append("")
 
-            user_report.append(f"Dice rolled: ``{dice.dice_rolled}``")
+            user_report.append(f"Dice rolled: ``{dice.total_dice_rolled}``")
             user_report.append(f"Average d20 result: ``{dice.average_d20}``")
             user_report.append(f"D20's rolled: ``{len(dice.d20_totals)}``")
             if dice.nat1_count > 0:

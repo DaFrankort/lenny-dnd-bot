@@ -16,7 +16,7 @@ class DistributionCommand(BaseCommand):
 
     @choices(advantage=Advantage.choices())
     @describe(
-        expression="The dice-expression to visualize (Example: 1d8ro1).",
+        expression="The dice-expression to visualize (Example: 1d8ro1). Multiple distributions are supported if they are separated by commas (e.g. 1d8,2d4).",
         advantage="Whether to simulate a normal roll or the roll with advantage or disadvantage.",
         min_to_beat="Visualize the odds to roll above this value.",
     )

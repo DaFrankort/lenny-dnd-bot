@@ -24,7 +24,7 @@ class Spell(DNDEntry):
 
         self.level = obj["level"]
         self.school = obj["school"]
-        self.casting_time = obj["casting_time"]
+        self.casting_time = obj["castingTime"]
         self.spell_range = obj["range"]
         self.components = obj["components"]
         self.duration = obj["duration"]

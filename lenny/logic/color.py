@@ -1,6 +1,7 @@
 import dataclasses
 import io
 import re
+from typing import List
 import warnings
 
 import colornames  # type: ignore
@@ -39,6 +40,10 @@ class BasicColors(ChoicedEnum):
     PINK = discord.Color.pink().value
     FUCHSIA = discord.Color.fuchsia().value
     GREYPLE = discord.Color.greyple().value
+
+
+ColorRGBInt = tuple[int, int, int]
+ColorRGBFloat = tuple[float, float, float]
 
 
 def _adjust_rgb_color_lightness(rgb: tuple[int, int, int], new_lightness: float) -> tuple[int, int, int]:
@@ -224,6 +229,15 @@ def _filter_most_unique_colors(
     if not result:
         return colors[:5]
     return result
+
+
+def lerp_float_colors(colors: List[ColorRGBFloat]) -> ColorRGBFloat:
+    if len(colors) == 0:
+        return 0.0, 0.0, 0.0
+    r = sum(color[0] for color in colors) / len(colors)
+    g = sum(color[1] for color in colors) / len(colors)
+    b = sum(color[2] for color in colors) / len(colors)
+    return r, g, b
 
 
 async def save_image_color(

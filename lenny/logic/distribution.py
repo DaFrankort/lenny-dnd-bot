@@ -10,9 +10,10 @@ from matplotlib import pyplot as plt
 import matplotlib.figure
 import matplotlib.axes
 
-from logic.color import UserColor
+from logic.color import UserColor, lerp_float_colors
 from logic.roll import Advantage, clean_expression, parse
 import numpy as np
+import itertools
 
 from methods import ChoicedEnum
 
@@ -23,19 +24,12 @@ matplotlib.use("Agg")
 """
 TODO:
 - Use colors based on the user's color for multi-chart
-- Create a separate function for overlap bars
-  - Draw each layer at 10% (or something, depending on the amount of distributions)
-  - Convert the colored graph parts to a separate image
-  - Make this image fully opaque
-  - Create a new chart with the exact same layout and axes, but completely empty
-  - Past the opaque charts onto the empty layout
-- Remove code duplication
 """
 
 
-class MultiDistributionStyle(ChoicedEnum):
-    ADJACENT = "Adjacent"
-    OVERLAP = "Overlap"
+class DistributionChartStyle(ChoicedEnum):
+    ADJACENT = "adjacent"
+    OVERLAP = "overlap"
 
 
 def dice_distribution(expression: str, advantage: Advantage = Advantage.NORMAL):
@@ -161,7 +155,54 @@ def _multi_adjacent_distribution_chart(dists: list[SingleDistributionResult]) ->
     return discord.File(fp=buf, filename="distribution.png")
 
 
-def _multi_overlap_distribution_chart(dists: list[SingleDistributionResult]) -> discord.File: ...
+def _multi_overlap_distribution_chart(dists: list[SingleDistributionResult]) -> discord.File:
+    """
+    Matplotlib does not blend colors when multiple bar charts are overlapping. To address this,
+    we manually calculate the overlapping regions and draw the regions with the most overlap
+    latest.
+    """
+
+    if len(dists) > 3:
+        raise ValueError(f"Only up to three distributions supported at once for overlay (for now)")
+
+    colors = [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0)]
+    colors = colors[: len(dists)]
+
+    min_key = min(dist.min for dist in dists)
+    max_key = max(dist.max for dist in dists)
+    keys = list(range(min_key, max_key + 1))
+
+    fig, ax = _empty_distribution_chart(keys)
+
+    # This dict contains all the overlaps for all distributions. For example, key
+    # (0, 2, 3) contains the overlapping regions for the distributions at indices
+    # 0, 2, and 3
+    values: dict[tuple[int, ...], list[float]] = {}
+
+    for size in range(1, len(dists) + 1):
+        for combination in itertools.combinations(range(len(dists)), size):
+            overlap = [100 * min(dists[i].distribution.get(key) for i in combination) for key in keys]
+            values[combination] = overlap
+
+    combinations = sorted(values.keys(), key=lambda comb: (len(comb), comb))
+    for combination in combinations:
+        merged_color = lerp_float_colors(list(colors[i] for i in combination))
+        value = values[combination]
+
+        # If there is one value in the combination, it's one of the original distributions
+        # In this case, add a label
+        if len(combination) == 1:
+            label = dists[combination[0]].expression
+        else:
+            label = None
+        
+        ax.bar(keys, value, color=merged_color, label=label)  # type: ignore
+
+
+    ax.legend()  # type: ignore
+
+    buf = _convert_and_close_fig(fig)
+    return discord.File(fp=buf, filename="distribution.png")
 
 
 def distribution(
@@ -169,7 +210,7 @@ def distribution(
     advantage: Advantage,
     color: int,
     min_to_beat: int | None = None,
-    style: MultiDistributionStyle = MultiDistributionStyle.ADJACENT,
+    style: DistributionChartStyle = DistributionChartStyle.ADJACENT,
 ):
     split = expressions.split(",")
     cleaned = [clean_expression(expr) for expr in split if expr]
@@ -179,9 +220,9 @@ def distribution(
         raise ValueError(f"Expected at least one dice expression in '{expressions}'!")
     elif len(results) == 1:
         chart = _single_distribution_chart(dist=results[0].distribution, color=color, min_to_beat=min_to_beat or 0)
-    elif style == MultiDistributionStyle.ADJACENT:
+    elif style == DistributionChartStyle.ADJACENT:
         chart = _multi_adjacent_distribution_chart(results)
-    elif style == MultiDistributionStyle.OVERLAP:
+    elif style == DistributionChartStyle.OVERLAP:
         chart = _multi_overlap_distribution_chart(results)
 
     return DistributionResult(

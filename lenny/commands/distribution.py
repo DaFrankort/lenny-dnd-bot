@@ -4,7 +4,7 @@ from discord.app_commands import choices, describe
 from commands.command import BaseCommand
 from embeds.distribution import DistributionEmbed
 from logic.color import UserColor
-from logic.distribution import distribution
+from logic.distribution import DistributionChartStyle, distribution
 from logic.roll import Advantage
 from methods import call_with_timeout
 
@@ -19,6 +19,7 @@ class DistributionCommand(BaseCommand):
         expression="The dice-expression to visualize (Example: 1d8ro1). Multiple distributions are supported if they are separated by commas (e.g. 1d8,2d4).",
         advantage="Whether to simulate a normal roll or the roll with advantage or disadvantage.",
         min_to_beat="Visualize the odds to roll above this value.",
+        style="The chart style for multiple distributions.",
     )
     async def handle(
         self,
@@ -26,6 +27,7 @@ class DistributionCommand(BaseCommand):
         expression: str,
         advantage: str = Advantage.NORMAL,
         min_to_beat: int | None = None,
+        style: DistributionChartStyle = DistributionChartStyle.ADJACENT,
     ):
         timeout = 5  # seconds
 
@@ -34,7 +36,7 @@ class DistributionCommand(BaseCommand):
         result = call_with_timeout(
             timeout=timeout,
             func=distribution,
-            args=[expression, Advantage(advantage), color, min_to_beat],
+            args=[expression, Advantage(advantage), color, min_to_beat, style],
         )
         if result is None:
             raise TimeoutError("Distribution took too long to calculate! For more information, see `/help distribution`.")

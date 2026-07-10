@@ -14,7 +14,10 @@ class DistributionCommand(BaseCommand):
     desc = "Show the probability distribution of an expression."
     help = "Generates an image of the distribution of an expression."
 
-    @choices(advantage=Advantage.choices())
+    @choices(
+        advantage=Advantage.choices(),
+        style=DistributionChartStyle.choices(),
+    )
     @describe(
         expression="The dice-expression to visualize (Example: 1d8ro1). Multiple distributions are supported if they are separated by commas (e.g. 1d8,2d4).",
         advantage="Whether to simulate a normal roll or the roll with advantage or disadvantage.",

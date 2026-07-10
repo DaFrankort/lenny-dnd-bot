@@ -237,7 +237,8 @@ def distribution(
 
     if len(results) == 0:
         raise ValueError(f"Expected at least one dice expression in '{expressions}'!")
-    elif len(results) == 1:
+
+    if len(results) == 1:
         chart = _single_distribution_chart(dist=results[0].distribution, color=color, min_to_beat=min_to_beat or 0)
     elif style == DistributionChartStyle.ADJACENT:
         chart = _multi_adjacent_distribution_chart(results, colors)

@@ -44,7 +44,6 @@ class DistributionCommand(BaseCommand):
         if result is None:
             raise TimeoutError("Distribution took too long to calculate! For more information, see `/help distribution`.")
 
-
         if len(result.distributions) == 1:
             embed = SingleDistributionEmbed(itr, result)
         else:

@@ -4,7 +4,6 @@ import io
 import math
 import re
 import warnings
-from typing import List
 
 import colornames  # type: ignore
 import discord
@@ -233,7 +232,7 @@ def _filter_most_unique_colors(
     return result
 
 
-def lerp_float_colors(colors: List[ColorRGBFloat]) -> ColorRGBFloat:
+def lerp_float_colors(colors: list[ColorRGBFloat]) -> ColorRGBFloat:
     if len(colors) == 0:
         return 0.0, 0.0, 0.0
     r = sum(color[0] for color in colors) / len(colors)
@@ -281,8 +280,8 @@ def hue_shift_n_colors_from_base(
         if fallback_color is not None:
             if is_nearly_grayscale(fallback_color):
                 raise ValueError(f"Cannot = create {n} different colors from grayscale fallback color {fallback_color}!")
-            else:
-                color = fallback_color
+
+            color = fallback_color
         else:
             raise ValueError(f"Cannot create {n} different colors from grayscale color {color}!")
 

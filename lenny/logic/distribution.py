@@ -133,7 +133,7 @@ def _single_distribution_chart(
     return discord.File(fp=buf, filename="distribution.png")
 
 
-def _multi_adjacent_distribution_chart(dists: list[SingleDistributionResult]) -> discord.File:
+def _multi_adjacent_distribution_chart(dists: list[SingleDistributionResult], colors: list[ColorRGBFloat]) -> discord.File:
     min_key = min(dist.min for dist in dists)
     max_key = max(dist.max for dist in dists)
     keys = list(range(min_key, max_key + 1))
@@ -147,7 +147,7 @@ def _multi_adjacent_distribution_chart(dists: list[SingleDistributionResult]) ->
         values = [100 * dist.distribution.get(key) for key in keys]  # In percent
 
         offset = i * single_bar_width - total_bar_width / 2 + single_bar_width / 2
-        ax.bar(np.array(keys) + offset, values, width=single_bar_width, label=dist.expression)  # type: ignore
+        ax.bar(np.array(keys) + offset, values, width=single_bar_width, label=dist.expression, color=colors[i])  # type: ignore
 
     ax.legend()  # type: ignore
 
@@ -220,7 +220,7 @@ def distribution(
     elif len(results) == 1:
         chart = _single_distribution_chart(dist=results[0].distribution, color=color, min_to_beat=min_to_beat or 0)
     elif style == DistributionChartStyle.ADJACENT:
-        chart = _multi_adjacent_distribution_chart(results)
+        chart = _multi_adjacent_distribution_chart(results, colors)
     elif style == DistributionChartStyle.OVERLAP:
         chart = _multi_overlap_distribution_chart(results, colors)
 

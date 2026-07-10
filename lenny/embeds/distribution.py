@@ -5,21 +5,12 @@ from logic.color import UserColor
 from logic.distribution import DistributionResult
 
 
-class DistributionEmbed(discord.Embed):
+class SingleDistributionEmbed(discord.Embed):
     chart: discord.File
 
     def __init__(self, itr: discord.Interaction, result: DistributionResult):
         color = UserColor.get(itr)
 
-        if len(result.distributions) == 1:
-            self._init_single_chart(color, result)
-        else:
-            self._init_multi_chart(color, result)
-
-        self.chart = result.chart or MISSING
-        self.set_image(url=f"attachment://{self.chart.filename}")
-
-    def _init_single_chart(self, color: int, result: DistributionResult) -> None:
         dist = result.distributions[0]
         mean = dist.distribution.mean()
         stdev = dist.distribution.stdev()
@@ -41,8 +32,17 @@ class DistributionEmbed(discord.Embed):
                 inline=True,
             )
 
-    def _init_multi_chart(self, color: int, result: DistributionResult) -> None:
+        self.chart = result.chart or MISSING
+        self.set_image(url=f"attachment://{self.chart.filename}")
+
+
+class MultiDistributionEmbed(discord.Embed):
+    chart: discord.File
+
+    def __init__(self, itr: discord.Interaction, result: DistributionResult) -> None:
+        color = UserColor.get(itr)
         title = ", ".join(r.expression for r in result.distributions)
+
         super().__init__(
             color=color,
             title=f"Distribution for {title}{result.advantage.title_suffix}!",
@@ -50,3 +50,6 @@ class DistributionEmbed(discord.Embed):
         )
 
         self.add_field(name="Range", value=f"{result.min} ~ {result.max}", inline=True)
+
+        self.chart = result.chart or MISSING
+        self.set_image(url=f"attachment://{self.chart.filename}")

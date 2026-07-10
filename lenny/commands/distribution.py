@@ -2,7 +2,7 @@ from discord import Interaction
 from discord.app_commands import choices, describe
 
 from commands.command import BaseCommand
-from embeds.distribution import DistributionEmbed
+from embeds.distribution import MultiDistributionEmbed, SingleDistributionEmbed
 from logic.color import UserColor
 from logic.distribution import DistributionChartStyle, distribution
 from logic.roll import Advantage
@@ -44,5 +44,10 @@ class DistributionCommand(BaseCommand):
         if result is None:
             raise TimeoutError("Distribution took too long to calculate! For more information, see `/help distribution`.")
 
-        embed = DistributionEmbed(itr, result)
+
+        if len(result.distributions) == 1:
+            embed = SingleDistributionEmbed(itr, result)
+        else:
+            embed = MultiDistributionEmbed(itr, result)
+
         await itr.followup.send(embed=embed, file=embed.chart)

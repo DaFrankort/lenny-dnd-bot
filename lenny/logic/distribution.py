@@ -63,6 +63,14 @@ class SingleDistributionResult:
     def max(self) -> int:
         return self.distribution.max()
 
+    @property
+    def mean(self) -> float:
+        return self.distribution.mean()
+
+    @property
+    def stdev(self) -> float:
+        return self.distribution.stdev()
+
 
 @dataclasses.dataclass
 class DistributionResult:

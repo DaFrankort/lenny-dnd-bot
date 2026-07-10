@@ -10,12 +10,23 @@ class TestDistribution:
 
         assert dist.min == approx(1.0)
         assert dist.max == approx(20)
-        assert dist.mean == approx(10.50)
+        assert dist.distributions[0].mean == approx(10.50)
 
     def test_d20_out_of_bounds(self):
         dist = distribution("1d20mi21", advantage=Advantage.NORMAL, color=0xFF00FF)
 
         assert dist.min == approx(21)
         assert dist.max == approx(21)
-        assert dist.mean == approx(21)
-        assert dist.stdev == approx(0.0)
+        assert dist.distributions[0].mean == approx(21)
+        assert dist.distributions[0] == approx(0.0)
+
+    def test_basic_multi_distribution(self):
+        dist = distribution("1d6,1d8", advantage=Advantage.NORMAL, color=0xFF00FF)
+
+        assert dist.distributions[0].min == 1
+        assert dist.distributions[0].max == 6
+        assert dist.distributions[0].mean == approx(3.50)
+
+        assert dist.distributions[1].min == 1
+        assert dist.distributions[1].max == 8
+        assert dist.distributions[1].mean == approx(4.50)

@@ -9,6 +9,7 @@ from d100.distribution import Distribution
 from matplotlib import pyplot as plt
 import matplotlib.figure
 import matplotlib.axes
+import matplotlib.legend
 
 from logic.color import ColorRGBFloat, UserColor, hue_shift_n_colors_from_base, lerp_float_colors
 from logic.roll import Advantage, clean_expression, parse
@@ -19,12 +20,6 @@ from methods import ChoicedEnum
 
 # Required to calculate the chart in a separate thread, https://stackoverflow.com/questions/27147300/matplotlib-tcl-asyncdelete-async-handler-deleted-by-the-wrong-thread
 matplotlib.use("Agg")
-
-
-"""
-TODO:
-- Use colors based on the user's color for multi-chart
-"""
 
 
 class DistributionChartStyle(ChoicedEnum):
@@ -105,6 +100,28 @@ def _empty_distribution_chart(keys: list[int]) -> tuple[matplotlib.figure.Figure
     return fig, ax
 
 
+def _style_legend(legend: matplotlib.legend.Legend) -> None:
+    frame = legend.get_frame()
+    frame.set_alpha(None)
+    frame.set_facecolor((1, 1, 1, 0.25))
+
+    frame.set_edgecolor("white")
+    frame.set_linewidth(1)
+
+    for text in legend.texts:
+        text.set_color("white")
+
+    for handle in legend.legend_handles:
+        if not handle:
+            continue
+        if hasattr(handle, "set_markeredgecolor"):
+            handle.set_markeredgecolor("white")  # type: ignore
+        if hasattr(handle, "set_markeredgewidth"):
+            handle.set_markeredgewidth(0.5)  # type: ignore
+        if hasattr(handle, "set_edgecolor"):
+            handle.set_edgecolor("white")  # type: ignore
+
+
 def _convert_and_close_fig(fig: matplotlib.figure.Figure) -> io.BytesIO:
     buf = io.BytesIO()
     fig.savefig(buf, format="png", bbox_inches="tight", transparent=True)  # type: ignore
@@ -149,7 +166,7 @@ def _multi_adjacent_distribution_chart(dists: list[SingleDistributionResult], co
         offset = i * single_bar_width - total_bar_width / 2 + single_bar_width / 2
         ax.bar(np.array(keys) + offset, values, width=single_bar_width, label=dist.expression, color=colors[i])  # type: ignore
 
-    ax.legend()  # type: ignore
+    _style_legend(ax.legend())  # type: ignore
 
     buf = _convert_and_close_fig(fig)
     return discord.File(fp=buf, filename="distribution.png")
@@ -191,11 +208,10 @@ def _multi_overlap_distribution_chart(dists: list[SingleDistributionResult], col
             label = dists[combination[0]].expression
         else:
             label = None
-        
+
         ax.bar(keys, value, color=merged_color, label=label)  # type: ignore
 
-
-    ax.legend()  # type: ignore
+    _style_legend(ax.legend())  # type: ignore
 
     buf = _convert_and_close_fig(fig)
     return discord.File(fp=buf, filename="distribution.png")

@@ -1,21 +1,25 @@
 import dataclasses
 import io
+import itertools
 import math
 
 import d100
 import discord
 import matplotlib
+import matplotlib.axes
+import matplotlib.figure
+import matplotlib.legend
+import numpy as np
 from d100.distribution import Distribution
 from matplotlib import pyplot as plt
-import matplotlib.figure
-import matplotlib.axes
-import matplotlib.legend
 
-from logic.color import ColorRGBFloat, UserColor, hue_shift_n_colors_from_base, lerp_float_colors
+from logic.color import (
+    ColorRGBFloat,
+    UserColor,
+    hue_shift_n_colors_from_base,
+    lerp_float_colors,
+)
 from logic.roll import Advantage, clean_expression, parse
-import numpy as np
-import itertools
-
 from methods import ChoicedEnum
 
 # Required to calculate the chart in a separate thread, https://stackoverflow.com/questions/27147300/matplotlib-tcl-asyncdelete-async-handler-deleted-by-the-wrong-thread

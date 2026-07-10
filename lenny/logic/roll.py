@@ -116,8 +116,10 @@ def _validate_expression(expr: str) -> D20RollResult:
     except Exception as exception:
         raise exception
 
+
 def clean_expression(expr: str) -> str:
-    return str(d100.parse(expr)) 
+    return str(d100.parse(expr))
+
 
 def roll(expr: str, advantage: Advantage = Advantage.NORMAL) -> RollResult:
     cleaned = clean_expression(expr)

@@ -3,8 +3,8 @@ import dataclasses
 import io
 import math
 import re
-from typing import List
 import warnings
+from typing import List
 
 import colornames  # type: ignore
 import discord
@@ -258,9 +258,7 @@ def is_nearly_grayscale(color: ColorRGBFloat, epsilon: float = 0.01) -> bool:
 
 
 def hue_shift_n_colors_from_base(
-    color: ColorRGBFloat,
-    n: int,
-    fallback_color: ColorRGBFloat | None = None
+    color: ColorRGBFloat, n: int, fallback_color: ColorRGBFloat | None = None
 ) -> list[ColorRGBFloat]:
     """Shift a color's hue N times.
 

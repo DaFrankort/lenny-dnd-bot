@@ -18,7 +18,7 @@ class TestDistribution:
         assert dist.min == approx(21)
         assert dist.max == approx(21)
         assert dist.distributions[0].mean == approx(21)
-        assert dist.distributions[0] == approx(0.0)
+        assert dist.distributions[0].stdev == approx(0.0)
 
     def test_basic_multi_distribution(self):
         dist = distribution("1d6,1d8", advantage=Advantage.NORMAL, color=0xFF00FF)

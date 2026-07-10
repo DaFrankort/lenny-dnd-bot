@@ -288,13 +288,13 @@ def hue_shift_n_colors_from_base(
 
     # Convert color to HSL
     r, g, b = color
-    h, s, l = colorsys.rgb_to_hls(r, g, b)
+    hue, sat, lum = colorsys.rgb_to_hls(r, g, b)
 
     # Calculate new hues
     colors: list[ColorRGBFloat] = []
     for i in range(n):
-        h2 = (h + i / n) % 1.0
-        adjusted = colorsys.hls_to_rgb(h2, s, l)
+        h2 = (hue + i / n) % 1.0
+        adjusted = colorsys.hls_to_rgb(h2, sat, lum)
         colors.append(adjusted)
 
     return colors

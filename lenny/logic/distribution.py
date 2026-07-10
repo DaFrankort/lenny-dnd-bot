@@ -10,7 +10,7 @@ from matplotlib import pyplot as plt
 import matplotlib.figure
 import matplotlib.axes
 
-from logic.color import UserColor, lerp_float_colors
+from logic.color import ColorRGBFloat, UserColor, hue_shift_n_colors_from_base, lerp_float_colors
 from logic.roll import Advantage, clean_expression, parse
 import numpy as np
 import itertools
@@ -155,17 +155,13 @@ def _multi_adjacent_distribution_chart(dists: list[SingleDistributionResult]) ->
     return discord.File(fp=buf, filename="distribution.png")
 
 
-def _multi_overlap_distribution_chart(dists: list[SingleDistributionResult]) -> discord.File:
+def _multi_overlap_distribution_chart(dists: list[SingleDistributionResult], colors: list[ColorRGBFloat]) -> discord.File:
     """
     Matplotlib does not blend colors when multiple bar charts are overlapping. To address this,
     we manually calculate the overlapping regions and draw the regions with the most overlap
     latest.
     """
 
-    if len(dists) > 3:
-        raise ValueError(f"Only up to three distributions supported at once for overlay (for now)")
-
-    colors = [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0)]
     colors = colors[: len(dists)]
 
     min_key = min(dist.min for dist in dists)
@@ -216,6 +212,9 @@ def distribution(
     cleaned = [clean_expression(expr) for expr in split if expr]
     results = [SingleDistributionResult(expr, advantage, min_to_beat) for expr in cleaned]
 
+    rgb = to_matplotlib_color(color)
+    colors = hue_shift_n_colors_from_base(rgb, len(results), fallback_color=(1.0, 0.0, 0.0))
+
     if len(results) == 0:
         raise ValueError(f"Expected at least one dice expression in '{expressions}'!")
     elif len(results) == 1:
@@ -223,7 +222,7 @@ def distribution(
     elif style == DistributionChartStyle.ADJACENT:
         chart = _multi_adjacent_distribution_chart(results)
     elif style == DistributionChartStyle.OVERLAP:
-        chart = _multi_overlap_distribution_chart(results)
+        chart = _multi_overlap_distribution_chart(results, colors)
 
     return DistributionResult(
         distributions=results,

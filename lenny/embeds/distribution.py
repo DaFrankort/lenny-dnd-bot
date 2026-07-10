@@ -48,3 +48,5 @@ class DistributionEmbed(discord.Embed):
             title=f"Distribution for {title}{result.advantage.title_suffix}!",
             type="rich",
         )
+
+        self.add_field(name="Range", value=f"{result.min} ~ {result.max}", inline=True)

@@ -262,12 +262,29 @@ def hue_shift_n_colors_from_base(
     n: int,
     fallback_color: ColorRGBFloat | None = None
 ) -> list[ColorRGBFloat]:
+    """Shift a color's hue N times.
+
+    Args:
+        color (ColorRGBFloat): The color to shift hues from.
+        n (int): The amount of colors to shift.
+        fallback_color (ColorRGBFloat | None, optional): An optional fallback color if the original color is too gray. Defaults to None.
+
+    Raises:
+        ValueError: If the color and fallback_color are too gray to shift hues from.
+
+    Returns:
+        list[ColorRGBFloat]: A list of the hue shifted colors of length n, including the original color.
+    """
+
     if n == 0:
         return []
 
     if is_nearly_grayscale(color):
         if fallback_color is not None:
-            color = fallback_color
+            if is_nearly_grayscale(fallback_color):
+                raise ValueError(f"Cannot = create {n} different colors from grayscale fallback color {fallback_color}!")
+            else:
+                color = fallback_color
         else:
             raise ValueError(f"Cannot create {n} different colors from grayscale color {color}!")
 

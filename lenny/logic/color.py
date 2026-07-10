@@ -293,8 +293,8 @@ def hue_shift_n_colors_from_base(
     # Calculate new hues
     colors: list[ColorRGBFloat] = []
     for i in range(n):
-        h2 = (hue + i / n) % 1.0
-        adjusted = colorsys.hls_to_rgb(h2, sat, lum)
+        new_hue = (hue + i / n) % 1.0
+        adjusted = colorsys.hls_to_rgb(new_hue, sat, lum)
         colors.append(adjusted)
 
     return colors

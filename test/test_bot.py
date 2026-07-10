@@ -5,6 +5,7 @@ import pytest
 
 # Required to mark the library as essential for testing in our workflows
 import pytest_asyncio  # noqa: F401 # type: ignore
+from logic.distribution import DistributionChartStyle
 from mocking import (
     MockBackgroundImage,
     MockDirectMessageInteraction,
@@ -165,7 +166,15 @@ SLASH_COMMAND_TESTS: Iterable[Iterable[Any]] = [
             },
         ],
     ),
-    ("distribution", {"expression": ["1d20", "1d8ro1"], "advantage": Advantage.values(), "min_to_beat": [None, "5"]}),
+    (
+        "distribution",
+        {
+            "expression": ["1d20", "1d8ro1"],
+            "advantage": Advantage.values(),
+            "min_to_beat": [None, 5],
+            "style": DistributionChartStyle.values(),
+        },
+    ),
     (
         "charactergen",
         {

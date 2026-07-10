@@ -252,6 +252,8 @@ def distribution(
         chart = _multi_adjacent_distribution_chart(results, colors)
     elif style == DistributionChartStyle.OVERLAP:
         chart = _multi_overlap_distribution_chart(results, colors)
+    else:
+        raise ValueError(f"Unsupported chart style: {style}")
 
     return DistributionResult(
         distributions=results,

@@ -1,5 +1,7 @@
+import colorsys
 import dataclasses
 import io
+import math
 import re
 from typing import List
 import warnings
@@ -238,6 +240,49 @@ def lerp_float_colors(colors: List[ColorRGBFloat]) -> ColorRGBFloat:
     g = sum(color[1] for color in colors) / len(colors)
     b = sum(color[2] for color in colors) / len(colors)
     return r, g, b
+
+
+def is_nearly_grayscale(color: ColorRGBFloat, epsilon: float = 0.01) -> bool:
+    """
+    A color is grayscale if all of its components have the same value, e.g.
+    (0.8, 0.8, 0.8). Thus, a point is nearly grayscale if all of its values
+    are very close to each other, e.g. (0.78, 0.80, 0.82).
+    In order to calculate the "grayscale-ness" of a point, we need to calculate
+    its distance from the unit vector that goes through (0, 0, 0) and (1, 1, 1).
+    If that distance is nearly zero, the point is nearly grayscale.
+    """
+
+    x, y, z = color
+    distance = math.sqrt((x - y) ** 2 + (y - z) ** 2 + (z - x) ** 2) / math.sqrt(3)
+    return distance < epsilon
+
+
+def hue_shift_n_colors_from_base(
+    color: ColorRGBFloat,
+    n: int,
+    fallback_color: ColorRGBFloat | None = None
+) -> list[ColorRGBFloat]:
+    if n == 0:
+        return []
+
+    if is_nearly_grayscale(color):
+        if fallback_color is not None:
+            color = fallback_color
+        else:
+            raise ValueError(f"Cannot create {n} different colors from grayscale color {color}!")
+
+    # Convert color to HSL
+    r, g, b = color
+    h, s, l = colorsys.rgb_to_hls(r, g, b)
+
+    # Calculate new hues
+    colors: list[ColorRGBFloat] = []
+    for i in range(n):
+        h2 = (h + i / n) % 1.0
+        adjusted = colorsys.hls_to_rgb(h2, s, l)
+        colors.append(adjusted)
+
+    return colors
 
 
 async def save_image_color(

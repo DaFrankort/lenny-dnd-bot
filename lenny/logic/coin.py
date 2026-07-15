@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import re
-from typing import TypeAlias
+from dataclasses import dataclass
+from typing import ClassVar, Literal, TypeAlias, TypeGuard, Union, cast, get_args
 
-from lark import Lark, LarkError, Token, Transformer, Tree
+from lark import Lark, LarkError, Token, Transformer
 
 COIN_GRAMMAR = r"""
     ?start: expr
@@ -28,178 +29,265 @@ COIN_GRAMMAR = r"""
 """
 
 
-COIN_PARSER: Lark = Lark(COIN_GRAMMAR, parser="lalr")
-EvalResult: TypeAlias = "Coin | float"
+CoinUnit = Literal["cp", "sp", "ep", "gp", "pp"]
+Operators = Literal["+", "-", "*", "/"]
 
 
-class CoinTransformer(Transformer[EvalResult]):  # pyright: ignore[reportInvalidTypeArguments] - Conflict with pylint
-    """Converts the Lark Tree into a Coin object or float."""
-
-    def number(self, n: list[Token]) -> float:
-        return float(n[0])
-
-    def coin(self, items: list[Token]) -> Coin:
-        return Coin.parse_unit(str(items[0]))
-
-    def add(self, args: list[EvalResult]) -> EvalResult:
-        left, right = args[0], args[1]
-        if isinstance(left, float | int):
-            return right + left
-        return left + right
-
-    def sub(self, args: list[EvalResult]) -> EvalResult:
-        left, right = args[0], args[1]
-        if isinstance(left, float | int):
-            return right - left
-        return left - right
-
-    def mul(self, args: list[EvalResult]) -> EvalResult:
-        left, right = args[0], args[1]
-        if isinstance(left, Coin) and isinstance(right, float | int):
-            return left * right
-        if isinstance(right, Coin) and isinstance(left, float | int):
-            return right * left
-        if isinstance(left, float | int) and isinstance(right, float | int):
-            return left * right
-        if isinstance(left, Coin) and isinstance(right, Coin):
-            raise ValueError("Cannot multiply coin with coin, use numerical values for the multiplier instead.")
-        raise ValueError("Unexpected multiplication detected.")
-
-    def div(self, args: list[EvalResult]) -> EvalResult:
-        left, right = args[0], args[1]
-        if isinstance(left, Coin) and isinstance(right, float | int):
-            return left / right
-        if isinstance(right, Coin) and isinstance(left, float | int):
-            return right / left
-        if isinstance(left, float | int) and isinstance(right, float | int):
-            return left / right
-        if isinstance(args[0], Coin) and isinstance(args[1], Coin):
-            raise ValueError("Cannot divide coin by coin, use numerical values for divider instead.")
-        raise ValueError("Unexpected division detected.")
+def is_coin_unit(val: str) -> TypeGuard[CoinUnit]:
+    """Runtime check that narrows down a raw string to the CoinUnit Literal type."""
+    return val in get_args(CoinUnit)
 
 
+@dataclass(frozen=True)
+class ASTNode:
+    """Base class for all Abstract Syntax Tree nodes."""
+
+    pass
+
+
+@dataclass(frozen=True)
+class NumberNode(ASTNode):
+    value: float
+
+
+@dataclass(frozen=True)
+class CoinNode(ASTNode):
+    value: float
+    unit: CoinUnit
+
+
+@dataclass(frozen=True)
+class BinOpNode(ASTNode):
+    op: Operators
+    left: ASTNode
+    right: ASTNode
+
+
+@dataclass
 class Coin:
-    pp: float
-    gp: float
-    ep: float
-    sp: float
-    cp: float
+    cp: float = 0.0
+    sp: float = 0.0
+    ep: float = 0.0
+    gp: float = 0.0
+    pp: float = 0.0
 
-    def __init__(self, cp: float = 0, sp: float = 0, ep: float = 0, gp: float = 0, pp: float = 0):
-        self.pp, self.gp, self.ep, self.sp, self.cp = pp, gp, ep, sp, cp
-        self.round_up()
-
-    @property
-    def total_cp(self) -> int:
-        """Converts the entire wallet into a single Copper value."""
-        return int((self.pp * 1000) + (self.gp * 100) + (self.ep * 50) + (self.sp * 10) + self.cp)
-
-    @classmethod
-    def from_string(cls, expression: str) -> Coin:
-        try:
-            raw_tree: Tree[Token] = COIN_PARSER.parse(  # type: ignore[reportInvalidTypeArguments]
-                expression.lower()
-            )  # pyright: ignore[reportUnknownMemberType]
-            transformer = CoinTransformer()
-            result = transformer.transform(raw_tree)  # pyright: ignore[reportUnknownVariableType, reportArgumentType]
-
-            if isinstance(result, float | int):
-                return cls(cp=float(result))
-            return result  # pyright: ignore[reportUnknownVariableType]
-
-        except LarkError as e:
-            raise ValueError(
-                f"Unsupported coin-syntax in ``{expression}``, supported:\n"
-                "- coin units: ``cp``, ``sp``, ``ep``, ``gp``, ``pp``\n"
-                "- operators: ``+``, ``-``, ``*``, ``/``"
-            ) from e
+    DENOMINATIONS: ClassVar[list[CoinUnit]] = ["cp", "sp", "ep", "gp", "pp"]
+    CONVERSIONS: ClassVar[dict[CoinUnit, int]] = {
+        "pp": 1000,
+        "gp": 100,
+        "ep": 50,
+        "sp": 10,
+        "cp": 1,
+    }
 
     @classmethod
-    def parse_unit(cls, block: str) -> Coin:
-        match = re.match(r"([\d.]+)([a-z]+)", block)
-        if not match:
-            return cls()
-        val, unit = match.groups()
-        return cls(**{unit: float(val)})
-
-    def round_up(self):
+    def from_cp(cls, total_cp: float, limit_to_unit: CoinUnit = "pp") -> Coin:
         """
-        Converts all coins to the perfect amount, as if perfectly exchanged at a bank.
-        """
+        Constructs a consolidated Coin instance from raw copper value,
+        capping the bank exchange to the specified 'limit_to_unit'.
 
-        total = int(round(self.total_cp))
+        Example: If limit_to_unit is "gp", any leftover value that would
+        normally become "pp" is kept as "gp" instead.
+        """
+        total = int(round(total_cp))
         sign = -1 if total < 0 else 1
         total = abs(total)
 
-        pp, remainder = divmod(total, 1000)
-        gp, remainder = divmod(remainder, 100)
-        ep, remainder = divmod(remainder, 50)
-        sp, cp = divmod(remainder, 10)
+        limit_idx = cls.DENOMINATIONS.index(limit_to_unit)
+        allowed_denoms = cls.DENOMINATIONS[: limit_idx + 1]
 
-        self.pp = pp * sign
-        self.gp = gp * sign
-        self.ep = ep * sign
-        self.sp = sp * sign
-        self.cp = cp * sign
+        values = {denom: 0.0 for denom in cls.DENOMINATIONS}
+        remainder = total
 
-    def __add__(self, other: Coin | float) -> Coin:
-        if isinstance(other, float | int):
-            return Coin(cp=self.total_cp + other)
-        return Coin(cp=self.total_cp + other.total_cp)
+        for denom in reversed(allowed_denoms):
+            unit_value = cls.CONVERSIONS[denom]
+            if denom == allowed_denoms[0]:
+                values[denom] = remainder
+            else:
+                amount, remainder = divmod(remainder, unit_value)
+                values[denom] = amount
 
-    def __sub__(self, other: Coin | float) -> Coin:
-        if isinstance(other, float | int):
-            return Coin(cp=self.total_cp - other)
-        return Coin(cp=self.total_cp - other.total_cp)
-
-    def __mul__(self, other: float) -> Coin:
-        return Coin(cp=self.total_cp * other)
-
-    def __truediv__(self, other: float) -> Coin:
-        return Coin(cp=self.total_cp / other)
-
-    def _get_denominations(self) -> list[tuple[float, str]]:
-        def format_val(val: float):
-            val = round(val, 2)
-            return int(val) if val == int(val) else val
-
-        denominations = [
-            (self.cp, "cp"),
-            (self.sp, "sp"),
-            (self.ep, "ep"),
-            (self.gp, "gp"),
-            (self.pp, "pp"),
-        ]
-
-        return [(format_val(val), unit) for val, unit in denominations if val]
+        return cls(
+            pp=values["pp"] * sign,
+            gp=values["gp"] * sign,
+            ep=values["ep"] * sign,
+            sp=values["sp"] * sign,
+            cp=values["cp"] * sign,
+        )
 
     @property
-    def expr(self) -> str:
-        """Returns the sum-expression that evaluates to the Coin result."""
-        denominations = self._get_denominations()
-        if not denominations:
-            return "0cp"
-        result: list[str] = []
-        for i, (val, unit) in enumerate(denominations):
-            term = f"{abs(val)}{unit}"
-            if i == 0:
-                result.append(f"-{term}" if val < 0 else term)
-            else:
-                result.append(f"- {term}" if val < 0 else f"+ {term}")
-        return " ".join(result)
+    def total_cp(self) -> float:
+        return sum([(getattr(self, unit) * value) for unit, value in self.CONVERSIONS.items()])
 
     def __str__(self) -> str:
-        result = [f"``{val}`` {unit}" for val, unit in self._get_denominations()]
-        return ", ".join(result) if result else "``0`` cp"
+        denoms: list[str] = []
+        for unit in self.DENOMINATIONS:
+            val = getattr(self, unit)
+            if val:
+                formatted_val = int(val) if val == int(val) else round(val, 2)
+                denoms.append(f"``{formatted_val}`` {unit}")
+        return ", ".join(denoms) if denoms else "``0`` cp"
 
-    def __repr__(self) -> str:
-        parts: list[str] = []
+    def consolidate(self, limit_to_unit: CoinUnit = "pp") -> None:
+        """Consolidates current sparse fields into the standard bank values."""
+        raw_cp = self.total_cp
+        consolidated = self.from_cp(raw_cp, limit_to_unit=limit_to_unit)
+        self.pp = consolidated.pp
+        self.gp = consolidated.gp
+        self.ep = consolidated.ep
+        self.sp = consolidated.sp
+        self.cp = consolidated.cp
 
-        for name in ("cp", "sp", "ep", "gp", "pp"):
-            value = getattr(self, name)
-            if value:
-                parts.append(f"{name}={value}")
 
-        parts.append(f"total_cp={self.total_cp}")
+class ASTTransformer(Transformer[ASTNode]):
+    """Transforms Lark Tree strictly into our clean, decoupled ASTNode objects."""
 
-        return f"Coin({', '.join(parts)})"
+    def number(self, n: list[Token]) -> NumberNode:
+        return NumberNode(float(n[0]))
+
+    def coin(self, items: list[Token]) -> CoinNode:
+        block = str(items[0])
+        match = re.match(r"([+-]?[\d.]+)([a-z]+)", block)
+        if not match:
+            raise ValueError(f"Failed to parse coin slice: {block}")
+        val, unit = match.groups()
+        if not is_coin_unit(unit):
+            raise ValueError(f"Invalid coin unit: '{unit}'. Must be one of cp, sp, ep, gp, pp.")
+        return CoinNode(float(val), unit)  # TODO check if string is valid coinunit
+
+    def add(self, args: list[ASTNode]) -> BinOpNode:
+        return BinOpNode("+", args[0], args[1])
+
+    def sub(self, args: list[ASTNode]) -> BinOpNode:
+        return BinOpNode("-", args[0], args[1])
+
+    def mul(self, args: list[ASTNode]) -> BinOpNode:
+        return BinOpNode("*", args[0], args[1])
+
+    def div(self, args: list[ASTNode]) -> BinOpNode:
+        return BinOpNode("/", args[0], args[1])
+
+
+EvalValue: TypeAlias = Union[Coin, float]
+
+
+class CoinEvaluator:
+    """Evaluates an AST containing Coin and Numeric nodes."""
+
+    limit_to_unit: CoinUnit
+
+    def __init__(self, limit_to_unit: CoinUnit = "pp"):
+        self.limit_to_unit = limit_to_unit
+
+    def _float_to_coin(self, value: float | int) -> Coin:
+        return Coin(gp=value)
+
+    def evaluate(self, node: ASTNode) -> EvalValue:
+        if isinstance(node, NumberNode):
+            return node.value
+
+        if isinstance(node, CoinNode):
+            kwargs = {node.unit: node.value}
+            return Coin(**kwargs)
+
+        if isinstance(node, BinOpNode):
+            left = self.evaluate(node.left)
+            right = self.evaluate(node.right)
+            return self._apply_operator(node.op, left, right)
+
+        raise TypeError(f"Unknown AST node type: {type(node)}")
+
+    def _apply_operator(self, op: str, left: EvalValue, right: EvalValue) -> EvalValue:
+        if op == "+":
+            return self._add(left, right)
+        elif op == "-":
+            return self._sub(left, right)
+        elif op == "*":
+            return self._mul(left, right)
+        elif op == "/":
+            return self._div(left, right)
+        raise ValueError(f"Unsupported operator: {op}")
+
+    def _add(self, left: EvalValue, right: EvalValue) -> EvalValue:
+        left = self._float_to_coin(left) if isinstance(left, float | int) else left
+        right = self._float_to_coin(right) if isinstance(right, float | int) else right
+        return Coin.from_cp(left.total_cp + right.total_cp, self.limit_to_unit)
+
+    def _sub(self, left: EvalValue, right: EvalValue) -> EvalValue:
+        left = self._float_to_coin(left) if isinstance(left, float | int) else left
+        right = self._float_to_coin(right) if isinstance(right, float | int) else right
+        return Coin.from_cp(left.total_cp - right.total_cp, self.limit_to_unit)
+
+    def _mul(self, left: EvalValue, right: EvalValue) -> EvalValue:
+        if isinstance(left, Coin) and isinstance(right, Coin):
+            raise ValueError("Cannot multiply coin by coin.")
+        if isinstance(left, Coin) and isinstance(right, float | int):
+            return Coin.from_cp(left.total_cp * right, self.limit_to_unit)
+        if isinstance(left, float | int) and isinstance(right, Coin):
+            return Coin.from_cp(left * right.total_cp, self.limit_to_unit)
+        return float(left * right)  # pyright: ignore
+
+    def _div(self, left: EvalValue, right: EvalValue) -> EvalValue:
+        if isinstance(left, Coin) and isinstance(right, Coin):
+            raise ValueError("Cannot divide coin by coin.")
+        if isinstance(left, Coin) and isinstance(right, float | int):
+            return Coin.from_cp(left.total_cp / right, self.limit_to_unit)
+        if isinstance(left, float | int) and isinstance(right, Coin):
+            return Coin.from_cp(left / right.total_cp, self.limit_to_unit)
+        return float(left / right)  # pyright: ignore
+
+
+@dataclass
+class CoinResult:
+    expression: str
+    ast: ASTNode
+    value: EvalValue
+    limit_to_unit: CoinUnit = "pp"
+
+    @property
+    def coin(self) -> Coin:
+        """Returns result as a clean consolidated Coin object, converting floats to cp."""
+        if isinstance(self.value, Coin):
+            return self.value
+        return Coin.from_cp(self.value)
+
+
+LARK_PARSER = Lark(COIN_GRAMMAR, parser="lalr")
+AST_BUILDER = ASTTransformer()
+
+
+def collect_used_units(node: ASTNode) -> set[str]:
+    """
+    Recursively traverses the AST to find all coin units
+    explicitly typed by the user.
+    """
+    if isinstance(node, CoinNode):
+        return {node.unit}
+    elif isinstance(node, NumberNode):
+        return {"gp"}
+    elif isinstance(node, BinOpNode):
+        return collect_used_units(node.left) | collect_used_units(node.right)
+    return set()
+
+
+def parse_coin(expression: str) -> CoinResult:
+    """Parses, builds the AST, and evaluates the expression into a CoinResult."""
+    try:
+        raw_tree = LARK_PARSER.parse(expression.lower())
+        ast: ASTNode = AST_BUILDER.transform(raw_tree)
+
+        used_units = collect_used_units(ast)
+        highest_unit: CoinUnit = "cp"
+        if used_units:
+            highest_unit = cast(CoinUnit, max(used_units, key=lambda u: Coin.DENOMINATIONS.index(u)))  # type: ignore
+        evaluator = CoinEvaluator(limit_to_unit=highest_unit)
+        value = evaluator.evaluate(ast)
+        return CoinResult(expression=expression, ast=ast, value=value, limit_to_unit=highest_unit)
+    except LarkError as e:
+        allowed_units = ", ".join(f"``{u}``" for u in get_args(CoinUnit))
+        operators = ", ".join(f"``{op}``" for op in get_args(Operators))
+        raise ValueError(
+            f"Unsupported coin-syntax in ``{expression}``, supported:\n"
+            f"- coin units: {allowed_units}\n"
+            f"- operators: {operators}"
+        ) from e

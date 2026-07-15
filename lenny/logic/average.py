@@ -172,8 +172,7 @@ class AverageDamageResultsBase(ABC):
         plt.style.use("dark_background")  # Looks better in Discord
         plt.figure(figsize=(10, 6))  # type: ignore
 
-        advantages = [adv for adv in self.advantages]
-        for adv in advantages:
+        for adv in self.advantages:
             y_values = [float(self.get(x, adv)) for x in self.x_values]
             plt.plot(self.x_values, y_values, label=adv, marker="o", markersize=4)  # type: ignore
 

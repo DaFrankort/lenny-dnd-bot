@@ -12,6 +12,7 @@ from d100.enums import Critical
 from discord import Interaction
 
 from logic.roll import RollResult
+from logic.session.stats import SessionStatistics
 
 
 class SoundType(str, Enum):
@@ -96,11 +97,14 @@ class VC:
         VC.clients[guild_id] = client
         logging.info("Joined voice channel '%s' in '%s'", client.channel.name, client.guild.name)
 
+        SessionStatistics.start(itr)
+
     @staticmethod
     async def leave(guild_id: int):
         client = VC.clients.get(guild_id)
         if client:
             logging.info("Left voice channel '%s' in '%s'", client.channel.name, client.guild.name)
+            SessionStatistics.stop(client.channel.id)
             await client.disconnect()
             del VC.clients[guild_id]
 

@@ -174,7 +174,7 @@ class AverageDamageResultsBase(ABC):
 
         for adv in self.advantages:
             y_values = [float(self.get(x, adv)) for x in self.x_values]
-            plt.plot(self.x_values, y_values, label=adv, marker="o", markersize=4)  # type: ignore
+            plt.plot(self.x_values, y_values, label=adv.value, marker="o", markersize=4)  # type: ignore
 
         labels = self.chart_labels
         plt.title(labels.title)  # type: ignore

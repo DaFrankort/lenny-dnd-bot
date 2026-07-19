@@ -5,7 +5,7 @@ from embeds.embed import BaseEmbed
 from embeds.search import send_dnd_embed
 from logic.dnd.abstract import DNDEntry
 from logic.dnd.data import Data
-from logic.dnd.source import SOURCES
+from logic.dnd.source import SourceList
 
 
 class FavoriteSelectButton(discord.ui.Button["FavoritesLayoutView"]):
@@ -18,7 +18,7 @@ class FavoriteSelectButton(discord.ui.Button["FavoritesLayoutView"]):
         self.name = self.name.strip()
         source = self.source.replace(")", "").strip()
         try:
-            self.source = SOURCES.get_from_display_name(source).id
+            self.source = SourceList.get_from_display_name(source).id
         except KeyError:
             # Old data uses ID instead of display name.
             self.source = source

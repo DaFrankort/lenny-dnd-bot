@@ -3,7 +3,7 @@ import discord
 from embeds.components import BaseSeparator, PaginatedLayoutView
 from embeds.config.config import ConfigAllowButton
 from logic.config import Config
-from logic.dnd.source import ContentChoice, Source, SourceList
+from logic.dnd.source import ContentChoice, GlobalSourceList, Source
 
 
 class ConfigManageSourcesButton(ConfigAllowButton):
@@ -49,7 +49,7 @@ class ConfigSourcesView(PaginatedLayoutView):
         self.search = search
 
         if self.search:
-            all_sources = SourceList(self.content)
+            all_sources = GlobalSourceList(self.content)
             sorted_entries = sorted(all_sources.entries, key=lambda s: s.name)
 
             try:
@@ -72,7 +72,7 @@ class ConfigSourcesView(PaginatedLayoutView):
         container.add_item(BaseSeparator())
 
         # Source list
-        sources = SourceList(self.content)
+        sources = GlobalSourceList(self.content)
         sources = sorted(sources.entries, key=lambda s: s.name)
         for source in self.viewed_sources:
             name = f"**{source.name}**" if source.id == self.search else source.name
@@ -88,12 +88,12 @@ class ConfigSourcesView(PaginatedLayoutView):
 
     @property
     def entry_count(self) -> int:
-        sources = SourceList(self.content)
+        sources = GlobalSourceList(self.content)
         return len(sources.entries)
 
     @property
     def viewed_sources(self) -> list[Source]:
-        sources = SourceList(self.content)
+        sources = GlobalSourceList(self.content)
         sources = sorted(sources.entries, key=lambda s: s.name)
 
         start = self.page * self.per_page

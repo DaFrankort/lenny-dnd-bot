@@ -1,12 +1,12 @@
 from pytest_benchmark.fixture import BenchmarkFixture
 
 from lenny.logic.dnd.data import Data
-from logic.dnd.source import ContentChoice, SourceList
+from logic.dnd.source import ContentChoice, GlobalSourceList
 
 
 def test_dnd_data_search(benchmark: BenchmarkFixture) -> None:
     names: list[str] = [e.name for entry_list in Data for e in entry_list.entries]
-    sources: set[str] = set({e.name for e in SourceList(content=ContentChoice.ALL).entries})
+    sources: set[str] = set({e.name for e in GlobalSourceList(content=ContentChoice.ALL).entries})
     index = 0
 
     def setup() -> tuple[tuple[str], dict[str, set[str]]]:

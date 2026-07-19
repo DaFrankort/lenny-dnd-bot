@@ -12,7 +12,7 @@ from rapidfuzz import fuzz
 from rich.console import Console
 from rich.table import Table
 
-from logic.dnd.source import SOURCES, Source
+from logic.dnd.source import Source, SourceList
 from methods import ChoicedEnum, read_json_file
 
 BASE_DATA_PATHS = ["./submodules/lenny-dnd-data/generated/official/", "./submodules/lenny-dnd-data/generated/partnered/"]
@@ -174,7 +174,7 @@ class DNDEntry(abc.ABC):
     def __init__(self, obj: dict[str, Any]) -> None:
         self.name = obj["name"]
         source_id = obj["source"]
-        source = SOURCES.get(source_id)
+        source = SourceList.get(source_id)
         self.source = source
 
     @property

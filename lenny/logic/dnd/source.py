@@ -30,7 +30,7 @@ class Source:
         self.group = source["group"]
 
 
-class SourceList:
+class GlobalSourceList:
     path_official = "./submodules/lenny-dnd-data/generated/official/sources.json"
     path_partnered = "./submodules/lenny-dnd-data/generated/partnered/sources.json"
     entries: list[Source]
@@ -75,4 +75,4 @@ class SourceList:
         raise KeyError(f"Could not find source by display name '{display_name}'")
 
 
-SOURCES = SourceList()
+SourceList = GlobalSourceList()

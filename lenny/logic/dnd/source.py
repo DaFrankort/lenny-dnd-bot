@@ -1,7 +1,6 @@
 from typing import Any
 
-from logic.dnd.abstract import DNDEntryList
-from methods import ChoicedEnum
+from methods import ChoicedEnum, read_dnd_data_contents
 
 
 class ContentChoice(ChoicedEnum):
@@ -15,6 +14,7 @@ class Source:
 
     id: str
     name: str
+    display_name: str
     source: str
     published: str
     author: str | None
@@ -23,6 +23,7 @@ class Source:
     def __init__(self, source: dict[str, Any]):
         self.id = source["id"]
         self.name = source["name"]
+        self.display_name = source["displayName"]
         self.source = source["source"]
         self.published = source["published"]
         self.author = source["author"]
@@ -50,7 +51,7 @@ class SourceList:
                 paths = [self.path_partnered]
 
         for path in paths:
-            data = DNDEntryList.read_dnd_data_contents(path)
+            data = read_dnd_data_contents(path)
             self.entries.extend([Source(e) for e in data])
 
     def contains(self, source: str) -> bool:
@@ -59,3 +60,12 @@ class SourceList:
     @property
     def source_ids(self) -> set[str]:
         return set(entry.id for entry in self.entries)
+
+    def get(self, source_id: str) -> Source | None:
+        for source in self.entries:
+            if source.id == source_id:
+                return source
+        return None
+
+
+SOURCES = SourceList()

@@ -1,8 +1,6 @@
 import abc
 import dataclasses
 import io
-import json
-import os
 from collections.abc import Iterable, Sequence
 from typing import Any, Generic, Literal, TypedDict, TypeVar
 
@@ -14,7 +12,8 @@ from rapidfuzz import fuzz
 from rich.console import Console
 from rich.table import Table
 
-from methods import ChoicedEnum
+from logic.dnd.source import SOURCES, Source
+from methods import ChoicedEnum, read_dnd_data_contents
 
 BASE_DATA_PATHS = ["./submodules/lenny-dnd-data/generated/official/", "./submodules/lenny-dnd-data/generated/partnered/"]
 
@@ -167,17 +166,23 @@ Description = DescriptionTable | DescriptionText | DescriptionList
 class DNDEntry(abc.ABC):
     entry_type: DNDEntryType
     name: str
-    source: str
+    source: Source
     url: str | None
     select_description: str | None = None  # Description in dropdown menus
 
     @abc.abstractmethod
     def __init__(self, obj: dict[str, Any]) -> None:
-        pass
+
+        self.name = obj["name"]
+        source_id = obj["source"]
+        source = SOURCES.get(source_id)
+        if source is None:
+            raise KeyError(f"Could not find source {source_id}")
+        self.source = source
 
     @property
     def title(self) -> str:
-        return f"{self.name} ({self.source})"
+        return f"{self.name} ({self.source.display_name})"
 
 
 TDND = TypeVar("TDND", bound=DNDEntry)  # pylint: disable=invalid-name
@@ -198,18 +203,9 @@ class DNDEntryList(abc.ABC, Generic[TDND]):
         for path in self.paths:
             for base_path in BASE_DATA_PATHS:
                 full_path = base_path + path
-                for data in self.read_dnd_data_contents(full_path):
+                for data in read_dnd_data_contents(full_path):
                     entry: TDND = self.type(data)
                     self.entries.append(entry)
-
-    @staticmethod
-    def read_dnd_data_contents(path: str) -> list[dict[str, Any]]:
-        if not os.path.exists(path):
-            raise FileNotFoundError(f"D&D data file not found: '{path}'")
-        if not os.path.isfile(path):
-            raise TypeError(f"D&D data file is not a file: '{path}'")
-        with open(path, "r", encoding="utf-8") as file:
-            return json.load(file)
 
     def get(self, query: str, allowed_sources: set[str], fuzzy_threshold: float = 75) -> list[TDND]:
         query = query.strip().lower()
@@ -217,7 +213,7 @@ class DNDEntryList(abc.ABC, Generic[TDND]):
         fuzzy: list[TDND] = []
 
         for entry in self.entries:
-            if entry.source not in allowed_sources:
+            if entry.source.id not in allowed_sources:
                 continue
 
             entry_name = entry.name.strip().lower()
@@ -226,8 +222,8 @@ class DNDEntryList(abc.ABC, Generic[TDND]):
             if fuzz.ratio(query, entry_name) > fuzzy_threshold:
                 fuzzy.append(entry)
 
-        exact = sorted(exact, key=lambda e: (e.name, e.source))
-        fuzzy = sorted(fuzzy, key=lambda e: (e.name, e.source))
+        exact = sorted(exact, key=lambda e: (e.name, e.source.id))
+        fuzzy = sorted(fuzzy, key=lambda e: (e.name, e.source.id))
 
         if len(exact) > 0:
             return exact
@@ -244,7 +240,7 @@ class DNDEntryList(abc.ABC, Generic[TDND]):
         choices: list[FuzzyMatchResult] = []
         seen_names: set[str] = set()  # Required to avoid duplicate suggestions
         for e in self.entries:
-            if e.source not in allowed_sources:
+            if e.source.id not in allowed_sources:
                 continue
             if e.name in seen_names:
                 continue
@@ -263,14 +259,14 @@ class DNDEntryList(abc.ABC, Generic[TDND]):
         found: list[DNDEntry] = []
 
         for entry in self.entries:
-            if entry.source not in allowed_sources:
+            if entry.source.id not in allowed_sources:
                 continue
 
             entry_name = entry.name.strip().lower()
             if fuzz.partial_ratio(query, entry_name) > fuzzy_threshold:
                 found.append(entry)
 
-        found = sorted(found, key=lambda e: (e.name, e.source))
+        found = sorted(found, key=lambda e: (e.name, e.source.id))
         return found
 
 

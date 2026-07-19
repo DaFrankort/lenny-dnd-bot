@@ -10,8 +10,7 @@ class DNDObject(DNDEntry):
     def __init__(self, obj: dict[str, Any]):
         self.entry_type = DNDEntryType.OBJECT
 
-        self.name = obj["name"]
-        self.source = obj["source"]
+        super().__init__(obj)
         self.select_description = obj["subtitle"]
         self.url = obj["url"]
         self.token_url = obj["tokenUrl"]

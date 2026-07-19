@@ -10,8 +10,7 @@ class Condition(DNDEntry):
     def __init__(self, obj: dict[str, Any]):
         self.entry_type = DNDEntryType.CONDITION
 
-        self.name = obj["name"]
-        self.source = obj["source"]
+        super().__init__(obj)
         self.url = obj["url"]
         self.description = obj["description"]
         self.image = obj["image"]

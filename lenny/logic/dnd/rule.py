@@ -9,8 +9,7 @@ class Rule(DNDEntry):
     def __init__(self, obj: dict[str, Any]):
         self.entry_type = DNDEntryType.RULE
 
-        self.name = obj["name"]
-        self.source = obj["source"]
+        super().__init__(obj)
         self.url = obj["url"]
         self.select_description = f"{obj['ruleType']} Rule"
 

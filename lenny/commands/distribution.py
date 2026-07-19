@@ -2,7 +2,7 @@ from discord import Interaction
 from discord.app_commands import choices, describe
 
 from commands.command import BaseCommand
-from embeds.distribution import MultiDistributionEmbed, SingleDistributionEmbed
+from embeds.distribution import MultiDistributionView, SingleDistributionEmbed
 from logic.color import UserColor
 from logic.distribution import DistributionChartStyle, distribution
 from logic.roll import Advantage
@@ -46,7 +46,7 @@ class DistributionCommand(BaseCommand):
 
         if len(result.distributions) == 1:
             embed = SingleDistributionEmbed(itr, result)
+            await itr.followup.send(embed=embed, file=embed.chart)
         else:
-            embed = MultiDistributionEmbed(itr, result)
-
-        await itr.followup.send(embed=embed, file=embed.chart)
+            view = MultiDistributionView(itr, result)
+            await itr.followup.send(view=view, file=view.chart)

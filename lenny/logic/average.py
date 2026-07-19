@@ -123,6 +123,13 @@ def _average_damage(
     )
 
 
+@dataclasses.dataclass
+class ChartLabels:
+    title: str
+    xlabel: str
+    ylabel: str
+
+
 class AverageDamageResultsBase(ABC):
     """Base class to handle data calculation and chart generation."""
 
@@ -142,39 +149,37 @@ class AverageDamageResultsBase(ABC):
         x_values: list[int],
         damage: str,
         miss_damage: str,
-        title: str,
-        xlabel: str,
-        ylabel: str,
         calc_func: Callable[[int, Advantage], AverageDamageResult],
     ):
         self.x_values = x_values
-        self.advantages = Advantage.values()
+        self.advantages = [Advantage.NORMAL, Advantage.ADVANTAGE, Advantage.DISADVANTAGE]
         self.damage = damage.strip().replace(" ", "").lower()
         self.miss_damage = miss_damage.strip().replace(" ", "").lower()
         self.data = {}
 
         for x in self.x_values:
-            for adv in self.advantages:
+            for adv in Advantage.values():
                 self.data[(x, adv)] = calc_func(x, adv).avg_damage
 
-        self.chart = self.generate_chart(title, xlabel, ylabel)
+        self.chart = self.generate_chart()
         self.csv = self.generate_csv()
         self.table = self.generate_table()
 
     def get(self, x: int, adv: Advantage) -> str:
         return f"{self.data.get((x, adv), 0.0):.2f}"
 
-    def generate_chart(self, title: str, xlabel: str, ylabel: str) -> discord.File:
+    def generate_chart(self) -> discord.File:
         plt.style.use("dark_background")  # Looks better in Discord
         plt.figure(figsize=(10, 6))  # type: ignore
 
         for adv in self.advantages:
             y_values = [float(self.get(x, adv)) for x in self.x_values]
-            plt.plot(self.x_values, y_values, label=adv, marker="o", markersize=4)  # type: ignore
+            plt.plot(self.x_values, y_values, label=adv.value, marker="o", markersize=4)  # type: ignore
 
-        plt.title(title)  # type: ignore
-        plt.xlabel(xlabel)  # type: ignore
-        plt.ylabel(ylabel)  # type: ignore
+        labels = self.chart_labels
+        plt.title(labels.title)  # type: ignore
+        plt.xlabel(labels.xlabel)  # type: ignore
+        plt.ylabel(labels.ylabel)  # type: ignore
         plt.grid(True, linestyle="--", alpha=0.6)  # type: ignore
         plt.legend(title="Advantage Type")  # type: ignore
         plt.xticks(self.x_values)  # type: ignore
@@ -184,18 +189,20 @@ class AverageDamageResultsBase(ABC):
         plt.close()
         buffer.seek(0)
 
-        return discord.File(fp=buffer, filename="average_chart.png")
+        filename = f"average_chart_{int(time.time())}.png"
+        return discord.File(fp=buffer, filename=filename)
 
-    def _headers(self) -> list[str]:
-        return [self.label, *[str(adv).capitalize() for adv in self.advantages]]
+    def _headers(self, advantages: list[Advantage]) -> list[str]:
+        return [self.label, *[adv.capitalize() for adv in advantages]]
 
     def generate_csv(self) -> discord.File:
+        advantages = Advantage.values()  # easier to work with if the format is always the same.
         buffer = io.StringIO()
         writer = csv.writer(buffer)
-        writer.writerow(self._headers())
+        writer.writerow(self._headers(advantages))
 
         for x in self.x_values:
-            row = [str(x), *[self.get(x, adv) for adv in self.advantages]]
+            row = [str(x), *[self.get(x, adv) for adv in advantages]]
             writer.writerow(row)
 
         bytes_buffer = io.BytesIO(buffer.getvalue().encode("utf-8"))
@@ -203,8 +210,9 @@ class AverageDamageResultsBase(ABC):
         return discord.File(fp=bytes_buffer, filename=f"damage_vs_{self.label}_{int(time.time())}.csv")
 
     def generate_table(self) -> str:
+        headers = self._headers(self.advantages)
         rows = [(str(x), *[self.get(x, adv) for adv in self.advantages]) for x in self.x_values]
-        return build_table_from_rows(self._headers(), rows, align_right=True)
+        return build_table_from_rows(headers, rows, align_right=True)
 
     @property
     @abstractmethod
@@ -220,6 +228,11 @@ class AverageDamageResultsBase(ABC):
     @abstractmethod
     def details(self) -> str:
         """The formatted string showing the input of the user."""
+
+    @property
+    @abstractmethod
+    def chart_labels(self) -> ChartLabels:
+        """Labels used for the chart."""
 
 
 class AverageDamageACResults(AverageDamageResultsBase):
@@ -243,18 +256,10 @@ class AverageDamageACResults(AverageDamageResultsBase):
         self.attacks = attacks
         acs = list(range(min(min_ac, max_ac), max(min_ac, max_ac) + 1))
 
-        if attacks == 1:
-            ylabel = f"Avg. Damage ({self.hit_expr} -> {damage})"
-        else:
-            ylabel = f"Avg. Damage ({self.hit_expr} -> {damage}, {attacks} attacks)"
-
         super().__init__(
             x_values=acs,
             damage=damage,
             miss_damage=miss_damage,
-            title="Average Damage vs Armor Class",
-            xlabel="Armor Class (AC)",
-            ylabel=ylabel,
             calc_func=lambda ac, adv: _average_damage(hit, damage, ac, adv, crit_min, miss_damage, attacks=attacks),
         )
 
@@ -280,6 +285,14 @@ class AverageDamageACResults(AverageDamageResultsBase):
             details += f"\n**Critical range:** {self.crit_min}-20"
         return details
 
+    @property
+    def chart_labels(self):
+        if self.attacks == 1:
+            ylabel = f"Avg. Damage ({self.hit_expr} -> {self.damage})"
+        else:
+            ylabel = f"Avg. Damage ({self.hit_expr} -> {self.damage}, {self.attacks} attacks)"
+        return ChartLabels(title="Average Damage vs Armor Class", xlabel="Armor Class (AC)", ylabel=ylabel)
+
 
 class AverageDamageDCResults(AverageDamageResultsBase):
     dc: int
@@ -299,9 +312,6 @@ class AverageDamageDCResults(AverageDamageResultsBase):
             x_values=mods,
             damage=damage,
             miss_damage=miss_damage,
-            title=f"Average Damage using DC {self.dc}",
-            xlabel="Saving Throw Modifier (1d20+x)",
-            ylabel=f"Avg. Damage ({damage} or {miss_damage})",
             calc_func=lambda mod, adv: _average_damage(
                 str(mod), miss_damage, dc, adv, 20, damage, True
             ),  # Swap damage/miss_damage and use ignore_crit for Save DCs
@@ -321,3 +331,11 @@ class AverageDamageDCResults(AverageDamageResultsBase):
         details += f"\n**Damage:** {self.damage}"
         details += f"\n**Miss damage:** {self.miss_damage}"
         return details
+
+    @property
+    def chart_labels(self):
+        return ChartLabels(
+            title=f"Average Damage using DC {self.dc}",
+            xlabel="Saving Throw Modifier (1d20+x)",
+            ylabel=f"Avg. Damage ({self.damage} or {self.miss_damage})",
+        )

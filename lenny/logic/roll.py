@@ -117,8 +117,12 @@ def _validate_expression(expr: str) -> D20RollResult:
         raise exception
 
 
+def clean_expression(expr: str) -> str:
+    return str(d100.parse(expr))
+
+
 def roll(expr: str, advantage: Advantage = Advantage.NORMAL) -> RollResult:
-    cleaned = str(d100.parse(expr))
+    cleaned = clean_expression(expr)
     parsed, warnings = parse(expr, advantage)
 
     stringifier = DiceStringifier()
@@ -128,7 +132,7 @@ def roll(expr: str, advantage: Advantage = Advantage.NORMAL) -> RollResult:
 
 
 def multi_roll(expr: str, amount: int, advantage: Advantage) -> MultiRollResult:
-    cleaned = str(d100.parse(expr))
+    cleaned = clean_expression(expr)
     parsed, parsing_warnings = parse(expr, advantage)
     stringifier = DiceStringifier()
     validation = _validate_expression(expr)

@@ -1,5 +1,7 @@
+import colorsys
 import dataclasses
 import io
+import math
 import re
 import warnings
 
@@ -39,6 +41,10 @@ class BasicColors(ChoicedEnum):
     PINK = discord.Color.pink().value
     FUCHSIA = discord.Color.fuchsia().value
     GREYPLE = discord.Color.greyple().value
+
+
+ColorRGBInt = tuple[int, int, int]
+ColorRGBFloat = tuple[float, float, float]
 
 
 def _adjust_rgb_color_lightness(rgb: tuple[int, int, int], new_lightness: float) -> tuple[int, int, int]:
@@ -224,6 +230,73 @@ def _filter_most_unique_colors(
     if not result:
         return colors[:5]
     return result
+
+
+def lerp_float_colors(colors: list[ColorRGBFloat]) -> ColorRGBFloat:
+    if len(colors) == 0:
+        return 0.0, 0.0, 0.0
+    r = sum(color[0] for color in colors) / len(colors)
+    g = sum(color[1] for color in colors) / len(colors)
+    b = sum(color[2] for color in colors) / len(colors)
+    return r, g, b
+
+
+def is_nearly_grayscale(color: ColorRGBFloat, epsilon: float = 0.01) -> bool:
+    """
+    A color is grayscale if all of its components have the same value, e.g.
+    (0.8, 0.8, 0.8). Thus, a point is nearly grayscale if all of its values
+    are very close to each other, e.g. (0.78, 0.80, 0.82).
+    In order to calculate the "grayscale-ness" of a point, we need to calculate
+    its distance from the unit vector that goes through (0, 0, 0) and (1, 1, 1).
+    If that distance is nearly zero, the point is nearly grayscale.
+    """
+
+    x, y, z = color
+    distance = math.sqrt((x - y) ** 2 + (y - z) ** 2 + (z - x) ** 2) / math.sqrt(3)
+    return distance < epsilon
+
+
+def hue_shift_n_colors_from_base(
+    color: ColorRGBFloat, n: int, fallback_color: ColorRGBFloat | None = None
+) -> list[ColorRGBFloat]:
+    """Shift a color's hue N times.
+
+    Args:
+        color (ColorRGBFloat): The color to shift hues from.
+        n (int): The amount of colors to shift.
+        fallback_color (ColorRGBFloat | None, optional): An optional fallback color if the original color is too gray. Defaults to None.
+
+    Raises:
+        ValueError: If the color and fallback_color are too gray to shift hues from.
+
+    Returns:
+        list[ColorRGBFloat]: A list of the hue shifted colors of length n, including the original color.
+    """
+
+    if n == 0:
+        return []
+
+    if is_nearly_grayscale(color):
+        if fallback_color is not None:
+            if is_nearly_grayscale(fallback_color):
+                raise ValueError(f"Cannot = create {n} different colors from grayscale fallback color {fallback_color}!")
+
+            color = fallback_color
+        else:
+            raise ValueError(f"Cannot create {n} different colors from grayscale color {color}!")
+
+    # Convert color to HSL
+    r, g, b = color
+    hue, sat, lum = colorsys.rgb_to_hls(r, g, b)
+
+    # Calculate new hues
+    colors: list[ColorRGBFloat] = []
+    for i in range(n):
+        new_hue = (hue + i / n) % 1.0
+        adjusted = colorsys.hls_to_rgb(new_hue, sat, lum)
+        colors.append(adjusted)
+
+    return colors
 
 
 async def save_image_color(

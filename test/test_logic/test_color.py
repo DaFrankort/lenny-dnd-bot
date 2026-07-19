@@ -4,7 +4,24 @@ import discord
 import pytest
 from mocking import MockInteraction
 
-from logic.color import UserColor
+from logic.color import ColorRGBFloat, UserColor, is_nearly_grayscale
+
+
+class TestColorUtil:
+    @pytest.mark.parametrize(
+        "color,grayscale",
+        [
+            ((0.80, 0.80, 0.80), True),
+            ((0.82, 0.78, 0.80), True),
+            ((1.00, 1.00, 1.00), True),
+            ((0.00, 0.00, 0.00), True),
+            ((1.00, 0.00, 0.00), False),
+            ((1.00, 0.80, 0.80), False),
+        ],
+    )
+    def test_is_nearly_grayscale(self, color: ColorRGBFloat, grayscale: bool):
+        epsilon = 0.1
+        assert is_nearly_grayscale(color, epsilon=epsilon) == grayscale
 
 
 class TestUserColor:

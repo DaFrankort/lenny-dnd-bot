@@ -35,7 +35,9 @@ class DistributionCommand(BaseCommand):
         timeout = 5  # seconds
 
         await itr.response.defer()
+        style = DistributionChartStyle(style)
         color = UserColor.get(itr)
+
         result = call_with_timeout(
             timeout=timeout,
             func=distribution,

@@ -110,7 +110,7 @@ class DNDData:
                 name = entry.name.strip().lower()
                 source = entry.source
 
-                if source not in allowed_sources:
+                if source.id not in allowed_sources:
                     continue
                 if fuzz.partial_ratio(query, name) > threshold:
                     results.add(entry)
@@ -192,7 +192,7 @@ class DNDSearchResults:
         return all_entries
 
     def get_all_sorted(self) -> list[DNDEntry]:
-        return sorted(self.get_all(), key=lambda r: (r.entry_type, r.name, r.source))
+        return sorted(self.get_all(), key=lambda r: (r.entry_type, r.name, r.source.display_name))
 
     def __len__(self) -> int:
         return len(self.get_all())

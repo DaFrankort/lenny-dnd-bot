@@ -61,11 +61,18 @@ class SourceList:
     def source_ids(self) -> set[str]:
         return set(entry.id for entry in self.entries)
 
-    def get(self, source_id: str) -> Source | None:
+    def get(self, source_id: str) -> Source:
         for source in self.entries:
             if source.id == source_id:
                 return source
-        return None
+        raise KeyError(f"Could not find source by id '{source_id}'")
+
+    def get_from_display_name(self, display_name: str) -> Source:
+        display_name = display_name.lower()
+        for source in self.entries:
+            if source.display_name.lower() == display_name:
+                return source
+        raise KeyError(f"Could not find source by display name '{display_name}'")
 
 
 SOURCES = SourceList()

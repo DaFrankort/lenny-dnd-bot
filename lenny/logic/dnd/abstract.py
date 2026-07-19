@@ -172,12 +172,9 @@ class DNDEntry(abc.ABC):
 
     @abc.abstractmethod
     def __init__(self, obj: dict[str, Any]) -> None:
-
         self.name = obj["name"]
         source_id = obj["source"]
         source = SOURCES.get(source_id)
-        if source is None:
-            raise KeyError(f"Could not find source {source_id}")
         self.source = source
 
     @property

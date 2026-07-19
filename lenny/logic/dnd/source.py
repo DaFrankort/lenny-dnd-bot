@@ -1,7 +1,6 @@
 from typing import Any
 
-from logic.dnd.abstract import DNDEntryList
-from methods import ChoicedEnum
+from methods import ChoicedEnum, read_json_file
 
 
 class ContentChoice(ChoicedEnum):
@@ -15,6 +14,7 @@ class Source:
 
     id: str
     name: str
+    display_name: str
     source: str
     published: str
     author: str | None
@@ -23,13 +23,14 @@ class Source:
     def __init__(self, source: dict[str, Any]):
         self.id = source["id"]
         self.name = source["name"]
+        self.display_name = source["displayName"]
         self.source = source["source"]
         self.published = source["published"]
         self.author = source["author"]
         self.group = source["group"]
 
 
-class SourceList:
+class GlobalSourceList:
     path_official = "./submodules/lenny-dnd-data/generated/official/sources.json"
     path_partnered = "./submodules/lenny-dnd-data/generated/partnered/sources.json"
     entries: list[Source]
@@ -50,7 +51,7 @@ class SourceList:
                 paths = [self.path_partnered]
 
         for path in paths:
-            data = DNDEntryList.read_dnd_data_contents(path)
+            data = read_json_file(path)
             self.entries.extend([Source(e) for e in data])
 
     def contains(self, source: str) -> bool:
@@ -59,3 +60,19 @@ class SourceList:
     @property
     def source_ids(self) -> set[str]:
         return set(entry.id for entry in self.entries)
+
+    def get(self, source_id: str) -> Source:
+        for source in self.entries:
+            if source.id == source_id:
+                return source
+        raise KeyError(f"Could not find source by id '{source_id}'")
+
+    def get_from_display_name(self, display_name: str) -> Source:
+        display_name = display_name.lower()
+        for source in self.entries:
+            if source.display_name.lower() == display_name:
+                return source
+        raise KeyError(f"Could not find source by display name '{display_name}'")
+
+
+SourceList = GlobalSourceList()

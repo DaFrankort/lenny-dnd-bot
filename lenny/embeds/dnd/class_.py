@@ -19,7 +19,7 @@ class MultiClassSubclassSelect(discord.ui.Select["ClassNavigationView"]):
         for subclass_name in character_class.subclasses:
             if not any(src in subclass_name for src in sources):
                 continue  # Skip disallowed source-content.
-            if character_class.source == "XPHB" and "(PHB)" in subclass_name:
+            if character_class.source.id == "XPHB" and "(PHB)" in subclass_name:
                 continue  # Do not show PHB subclasses for XPHB classes, unreliable data.
 
             label = subclass_name if subclass != subclass_name else f"{subclass_name} [Current]"

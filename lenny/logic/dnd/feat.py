@@ -11,8 +11,7 @@ class Feat(DNDEntry):
     def __init__(self, obj: dict[str, Any]):
         self.entry_type = DNDEntryType.FEAT
 
-        self.name = obj["name"]
-        self.source = obj["source"]
+        super().__init__(obj)
         self.url = obj["url"]
         self.select_description = obj["type"]
 

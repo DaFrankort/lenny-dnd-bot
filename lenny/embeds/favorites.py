@@ -5,6 +5,7 @@ from embeds.embed import BaseEmbed
 from embeds.search import send_dnd_embed
 from logic.dnd.abstract import DNDEntry
 from logic.dnd.data import Data
+from logic.dnd.source import SourceList
 
 
 class FavoriteSelectButton(discord.ui.Button["FavoritesLayoutView"]):
@@ -15,7 +16,12 @@ class FavoriteSelectButton(discord.ui.Button["FavoritesLayoutView"]):
     def __init__(self, name: str):
         self.name, self.source = name.rsplit("(", 1)
         self.name = self.name.strip()
-        self.source = self.source.replace(")", "").strip()
+        source = self.source.replace(")", "").strip()
+        try:
+            self.source = SourceList.get_from_display_name(source).id
+        except KeyError:
+            # Old data uses ID instead of display name.
+            self.source = source
 
         self.entry = None
         entries = Data.search(self.name, set([self.source]), 95).get_all()
@@ -23,11 +29,12 @@ class FavoriteSelectButton(discord.ui.Button["FavoritesLayoutView"]):
         if len(entries) > 0:
             self.entry = entries[0]
 
-        bracket_source = f"({self.source})"
-        label = f"{self.name} {bracket_source}"
+        display_source = self.entry.source.display_name if self.entry else source
+        label = f"{self.name} ({display_source})"
+
         if len(label) > 80:
             cutoff_symbol = "..."
-            new_size = 80 - (len(cutoff_symbol) + len(bracket_source))
+            new_size = 80 - (len(cutoff_symbol) + len(display_source))
             label = label[:new_size] + cutoff_symbol
 
         emoji: str = "❓" if self.entry is None else self.entry.entry_type.emoji

@@ -129,7 +129,7 @@ class DNDTableContainerView(PaginatedLayoutView):
         self.clear_items()
         container = ui.Container[DNDTableContainerView](accent_color=discord.Color.dark_green())
 
-        title_display = TitleTextDisplay(name=self.table.name, source=self.table.source, url=self.table.url)
+        title_display = TitleTextDisplay(name=self.table.name, source=self.table.source.display_name, url=self.table.url)
         if self.table.is_rollable:
             title_section = ui.Section(title_display, accessory=DNDTableRollButton(self.table))
             container.add_item(title_section)

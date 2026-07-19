@@ -9,8 +9,8 @@ class TestCharacterGen:
     @pytest.mark.strict
     def test_all_possible_combinations(self):
         """Ensures all possible species, class, and gender combinations (in XPHB) are possible."""
-        species = [species for species in Data.species.entries if species.source == "XPHB"]
-        classes = [class_ for class_ in Data.classes.entries if class_.source == "XPHB"]
+        species = [species for species in Data.species.entries if species.source.id == "XPHB"]
+        classes = [class_ for class_ in Data.classes.entries if class_.source.id == "XPHB"]
         genders = Gender.values()
 
         for spec in species:

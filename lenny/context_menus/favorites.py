@@ -70,7 +70,7 @@ class AddFavoriteContextMenu(BaseContextMenu):
 
         entries = Data.search(name, set([source]), 95).get_all()
         for entry in entries:
-            if entry.name == name and entry.source == source:
+            if entry.name == name and entry.source.id == source:
                 FavoritesCache.get(interaction).store(entry)
                 await interaction.response.send_message(embed=FavoriteAddedEmbed(entry), ephemeral=True)
                 return

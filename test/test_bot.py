@@ -169,7 +169,7 @@ SLASH_COMMAND_TESTS: Iterable[Iterable[Any]] = [
     (
         "distribution",
         {
-            "expression": ["1d20", "1d8ro1"],
+            "expression": ["1d20", "1d8ro1", "1d20,2d20,3d20"],
             "advantage": Advantage.values(),
             "min_to_beat": [None, 5],
             "style": DistributionChartStyle.values(),

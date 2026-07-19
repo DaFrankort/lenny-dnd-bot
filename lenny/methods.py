@@ -83,10 +83,10 @@ def join_strings(strings: list[str], separator: str, final_separator: str) -> st
     return final_separator.join([first_part, last_string])
 
 
-def read_dnd_data_contents(path: str) -> list[dict[str, Any]]:
+def read_json_file(path: str) -> list[dict[str, Any]]:
     if not os.path.exists(path):
-        raise FileNotFoundError(f"D&D data file not found: '{path}'")
+        raise FileNotFoundError(f"JSON file not found: '{path}'")
     if not os.path.isfile(path):
-        raise TypeError(f"D&D data file is not a file: '{path}'")
+        raise TypeError(f"Path is not a JSON file: '{path}'")
     with open(path, "r", encoding="utf-8") as file:
         return json.load(file)

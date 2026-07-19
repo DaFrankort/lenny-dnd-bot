@@ -1,6 +1,6 @@
 from typing import Any
 
-from methods import ChoicedEnum, read_dnd_data_contents
+from methods import ChoicedEnum, read_json_file
 
 
 class ContentChoice(ChoicedEnum):
@@ -51,7 +51,7 @@ class SourceList:
                 paths = [self.path_partnered]
 
         for path in paths:
-            data = read_dnd_data_contents(path)
+            data = read_json_file(path)
             self.entries.extend([Source(e) for e in data])
 
     def contains(self, source: str) -> bool:

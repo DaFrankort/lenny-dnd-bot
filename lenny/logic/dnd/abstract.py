@@ -13,7 +13,7 @@ from rich.console import Console
 from rich.table import Table
 
 from logic.dnd.source import SOURCES, Source
-from methods import ChoicedEnum, read_dnd_data_contents
+from methods import ChoicedEnum, read_json_file
 
 BASE_DATA_PATHS = ["./submodules/lenny-dnd-data/generated/official/", "./submodules/lenny-dnd-data/generated/partnered/"]
 
@@ -200,7 +200,7 @@ class DNDEntryList(abc.ABC, Generic[TDND]):
         for path in self.paths:
             for base_path in BASE_DATA_PATHS:
                 full_path = base_path + path
-                for data in read_dnd_data_contents(full_path):
+                for data in read_json_file(full_path):
                     entry: TDND = self.type(data)
                     self.entries.append(entry)
 

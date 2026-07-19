@@ -1,7 +1,7 @@
 import dataclasses
 import random
 
-from methods import ChoicedEnum, read_dnd_data_contents
+from methods import ChoicedEnum, read_json_file
 
 
 class Gender(str, ChoicedEnum):
@@ -32,7 +32,7 @@ class NameTable:
 
     def __init__(self):
         self.tables = {}
-        data = read_dnd_data_contents(self.path)
+        data = read_json_file(self.path)
 
         for datum in data:
             male = datum["tables"]["male"]

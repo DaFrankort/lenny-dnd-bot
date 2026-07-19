@@ -10,16 +10,18 @@ COIN_GRAMMAR = r"""
     ?start: expr
 
     ?expr: term
-         | expr "+" term   -> add
-         | expr "-" term   -> sub
+        | expr "+" term   -> add
+        | expr "-" term   -> sub
 
     ?term: factor
-         | term "*" factor -> mul
-         | term "/" factor -> div
+        | term "*" factor -> mul
+        | term "/" factor -> div
 
     ?factor: NUMBER        -> number
-           | COIN_UNIT     -> coin
-           | "(" expr ")"
+        | COIN_UNIT     -> coin
+        | "-" factor    -> neg
+        | "+" factor    -> pos
+        | "(" expr ")"
 
     COIN_UNIT.10: /[+-]?[\d.]+(pp|gp|ep|sp|cp)/
 
@@ -57,6 +59,13 @@ class CoinNode(ASTNode):
 
 
 @dataclass(frozen=True)
+class NegNode(ASTNode):
+    """Represents a unary negative operation (e.g., -expr)."""
+
+    operand: ASTNode
+
+
+@dataclass(frozen=True)
 class BinOpNode(ASTNode):
     op: Operators
     left: ASTNode
@@ -71,7 +80,7 @@ class Coin:
     gp: float = 0.0
     pp: float = 0.0
 
-    DENOMINATIONS: ClassVar[list[CoinUnit]] = ["cp", "sp", "ep", "gp", "pp"]
+    DENOMINATIONS: ClassVar[list[CoinUnit]] = ["cp", "sp", "ep", "gp", "pp"]  # Always order from small to largest!
     CONVERSIONS: ClassVar[dict[CoinUnit, int]] = {
         "pp": 1000,
         "gp": 100,
@@ -147,13 +156,19 @@ class ASTTransformer(Transformer[ASTNode]):
 
     def coin(self, items: list[Token]) -> CoinNode:
         block = str(items[0])
-        match = re.match(r"([+-]?[\d.]+)([a-z]+)", block)
+        match = re.match(r"([\d.]+)([a-z]+)", block)
         if not match:
             raise ValueError(f"Failed to parse coin slice: {block}")
         val, unit = match.groups()
         if not is_coin_unit(unit):
             raise ValueError(f"Invalid coin unit: '{unit}'. Must be one of cp, sp, ep, gp, pp.")
-        return CoinNode(float(val), unit)  # TODO check if string is valid coinunit
+        return CoinNode(float(val), unit)
+
+    def neg(self, args: list[ASTNode]) -> NegNode:
+        return NegNode(args[0])
+
+    def pos(self, args: list[ASTNode]) -> ASTNode:
+        return args[0]
 
     def add(self, args: list[ASTNode]) -> BinOpNode:
         return BinOpNode("+", args[0], args[1])
@@ -189,6 +204,12 @@ class CoinEvaluator:
         if isinstance(node, CoinNode):
             kwargs = {node.unit: node.value}
             return Coin(**kwargs)
+
+        if isinstance(node, NegNode):
+            inner = self.evaluate(node.operand)
+            if isinstance(inner, Coin):
+                return Coin.from_cp(-inner.total_cp, self.limit_to_unit)
+            return -inner
 
         if isinstance(node, BinOpNode):
             left = self.evaluate(node.left)
@@ -242,6 +263,7 @@ class CoinResult:
     expression: str
     ast: ASTNode
     value: EvalValue
+    used_units: set[CoinUnit]
     limit_to_unit: CoinUnit = "pp"
 
     @property
@@ -256,7 +278,7 @@ LARK_PARSER = Lark(COIN_GRAMMAR, parser="lalr")
 AST_BUILDER = ASTTransformer()
 
 
-def collect_used_units(node: ASTNode) -> set[str]:
+def collect_used_units(node: ASTNode) -> set[CoinUnit]:
     """
     Recursively traverses the AST to find all coin units
     explicitly typed by the user.
@@ -282,7 +304,7 @@ def parse_coin(expression: str) -> CoinResult:
             highest_unit = cast(CoinUnit, max(used_units, key=lambda u: Coin.DENOMINATIONS.index(u)))  # type: ignore
         evaluator = CoinEvaluator(limit_to_unit=highest_unit)
         value = evaluator.evaluate(ast)
-        return CoinResult(expression=expression, ast=ast, value=value, limit_to_unit=highest_unit)
+        return CoinResult(expression=expression, ast=ast, value=value, used_units=used_units, limit_to_unit=highest_unit)
     except LarkError as e:
         allowed_units = ", ".join(f"``{u}``" for u in get_args(CoinUnit))
         operators = ", ".join(f"``{op}``" for op in get_args(Operators))

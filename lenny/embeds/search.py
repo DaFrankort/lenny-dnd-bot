@@ -108,7 +108,7 @@ class SearchSelectButton(ui.Button["SearchLayoutView"]):
 
     def __init__(self, entry: DNDEntry):
         self.entry = entry
-        label = f"{entry.name} ({entry.source})"
+        label = entry.title
         if len(label) > 80:
             label = label[:77] + "..."
         super().__init__(label=label, emoji=entry.entry_type.emoji, style=discord.ButtonStyle.gray)

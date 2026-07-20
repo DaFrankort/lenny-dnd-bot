@@ -18,7 +18,7 @@ class FavoriteSelectButton(discord.ui.Button["FavoritesLayoutView"]):
         self.name = self.name.strip()
         source = self.source.replace(")", "").strip()
         try:
-            self.source = SourceList.get_from_display_name(source).id
+            self.source = SourceList.get_from_abbreviation(source).source
         except KeyError:
             # Old data uses ID instead of display name.
             self.source = source
@@ -29,7 +29,7 @@ class FavoriteSelectButton(discord.ui.Button["FavoritesLayoutView"]):
         if len(entries) > 0:
             self.entry = entries[0]
 
-        display_source = self.entry.source.display_name if self.entry else source
+        display_source = self.entry.source.abbreviation if self.entry else source
         label = f"{self.name} ({display_source})"
 
         if len(label) > 80:

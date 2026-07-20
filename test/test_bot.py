@@ -535,7 +535,7 @@ class TestBotCommands:
         """Tests the class embeds for all classes and subclasses at all levels"""
         itr = MockInteraction()
         sources = Config.get(itr).all_sources
-        sources = set(source.id for source in sources)
+        sources = set(source.source for source in sources)
 
         classes = Data.classes
         levels = list(range(0, 21))

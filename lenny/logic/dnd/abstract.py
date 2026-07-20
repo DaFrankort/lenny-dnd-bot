@@ -179,7 +179,7 @@ class DNDEntry(abc.ABC):
 
     @property
     def title(self) -> str:
-        return f"{self.name} ({self.source.display_name})"
+        return f"{self.name} ({self.source.abbreviation})"
 
 
 TDND = TypeVar("TDND", bound=DNDEntry)  # pylint: disable=invalid-name
@@ -210,7 +210,7 @@ class DNDEntryList(abc.ABC, Generic[TDND]):
         fuzzy: list[TDND] = []
 
         for entry in self.entries:
-            if entry.source.id not in allowed_sources:
+            if entry.source.source not in allowed_sources:
                 continue
 
             entry_name = entry.name.strip().lower()
@@ -219,8 +219,8 @@ class DNDEntryList(abc.ABC, Generic[TDND]):
             if fuzz.ratio(query, entry_name) > fuzzy_threshold:
                 fuzzy.append(entry)
 
-        exact = sorted(exact, key=lambda e: (e.name, e.source.id))
-        fuzzy = sorted(fuzzy, key=lambda e: (e.name, e.source.id))
+        exact = sorted(exact, key=lambda e: (e.name, e.source.source))
+        fuzzy = sorted(fuzzy, key=lambda e: (e.name, e.source.source))
 
         if len(exact) > 0:
             return exact
@@ -237,7 +237,7 @@ class DNDEntryList(abc.ABC, Generic[TDND]):
         choices: list[FuzzyMatchResult] = []
         seen_names: set[str] = set()  # Required to avoid duplicate suggestions
         for e in self.entries:
-            if e.source.id not in allowed_sources:
+            if e.source.source not in allowed_sources:
                 continue
             if e.name in seen_names:
                 continue
@@ -256,14 +256,14 @@ class DNDEntryList(abc.ABC, Generic[TDND]):
         found: list[DNDEntry] = []
 
         for entry in self.entries:
-            if entry.source.id not in allowed_sources:
+            if entry.source.source not in allowed_sources:
                 continue
 
             entry_name = entry.name.strip().lower()
             if fuzz.partial_ratio(query, entry_name) > fuzzy_threshold:
                 found.append(entry)
 
-        found = sorted(found, key=lambda e: (e.name, e.source.id))
+        found = sorted(found, key=lambda e: (e.name, e.source.source))
         return found
 
 

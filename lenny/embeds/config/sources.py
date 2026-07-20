@@ -18,7 +18,7 @@ class ConfigManageSourcesButton(ConfigAllowButton):
         config = Config.get(itr)
         allowed_sources = config.allowed_sources
 
-        allowed = self.source.id in allowed_sources
+        allowed = self.source.source in allowed_sources
         disabled = not allow_configuration
 
         super().__init__(allowed=allowed, disabled=disabled)
@@ -29,9 +29,9 @@ class ConfigManageSourcesButton(ConfigAllowButton):
             raise PermissionError("You don't have permission to edit sources!")
 
         if self.allowed:
-            config.disallow_source(self.source.id)
+            config.disallow_source(self.source.source)
         else:
-            config.allow_source(self.source.id)
+            config.allow_source(self.source.source)
         await self.sources_view.rebuild(interaction)
 
 
@@ -53,7 +53,7 @@ class ConfigSourcesView(PaginatedLayoutView):
             sorted_entries = sorted(all_sources.entries, key=lambda s: s.name)
 
             try:
-                found_index = next(i for i, s in enumerate(sorted_entries) if s.id == self.search)
+                found_index = next(i for i, s in enumerate(sorted_entries) if s.source == self.search)
                 self.page = found_index // self.per_page
             except StopIteration:
                 self.page = 0
@@ -75,7 +75,7 @@ class ConfigSourcesView(PaginatedLayoutView):
         sources = GlobalSourceList(self.content)
         sources = sorted(sources.entries, key=lambda s: s.name)
         for source in self.viewed_sources:
-            name = f"**{source.name}**" if source.id == self.search else source.name
+            name = f"**{source.name}**" if source.source == self.search else source.name
             text = discord.ui.TextDisplay[discord.ui.LayoutView](name)
             button = ConfigManageSourcesButton(self, self.itr, source, self.allow_configuration)
             container.add_item(discord.ui.Section[discord.ui.LayoutView](text, accessory=button))

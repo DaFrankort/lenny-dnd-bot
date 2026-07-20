@@ -110,7 +110,7 @@ class DNDData:
                 name = entry.name.strip().lower()
                 source = entry.source
 
-                if source.id not in allowed_sources:
+                if source.source not in allowed_sources:
                     continue
                 if fuzz.partial_ratio(query, name) > threshold:
                     results.add(entry)

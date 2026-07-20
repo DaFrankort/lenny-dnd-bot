@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Literal
 
 from methods import ChoicedEnum, read_json_file
 
@@ -12,22 +12,20 @@ class ContentChoice(ChoicedEnum):
 class Source:
     """Note: this object does not inherit from DNDEntry as it is meta data about DNDEntries"""
 
-    id: str
     name: str
-    display_name: str
+    abbreviation: str
     source: str
-    published: str
-    author: str | None
-    group: str
+    published: str | None
+    category: Literal["core", "supplemental", "core-supplemental", "adventure", "partnered"]
+    legacy: bool
 
     def __init__(self, source: dict[str, Any]):
-        self.id = source["id"]
         self.name = source["name"]
-        self.display_name = source["displayName"]
+        self.abbreviation = source["abbreviation"]
         self.source = source["source"]
         self.published = source["published"]
-        self.author = source["author"]
-        self.group = source["group"]
+        self.category = source["category"]
+        self.legacy = source["legacy"]
 
 
 class GlobalSourceList:
@@ -59,20 +57,20 @@ class GlobalSourceList:
 
     @property
     def source_ids(self) -> set[str]:
-        return set(entry.id for entry in self.entries)
+        return set(entry.source for entry in self.entries)
 
     def get(self, source_id: str) -> Source:
         for source in self.entries:
-            if source.id == source_id:
+            if source.source == source_id:
                 return source
         raise KeyError(f"Could not find source by id '{source_id}'")
 
-    def get_from_display_name(self, display_name: str) -> Source:
-        display_name = display_name.lower()
+    def get_from_abbreviation(self, abbreviation: str) -> Source:
+        abbreviation = abbreviation.lower()
         for source in self.entries:
-            if source.display_name.lower() == display_name:
+            if source.abbreviation.lower() == abbreviation:
                 return source
-        raise KeyError(f"Could not find source by display name '{display_name}'")
+        raise KeyError(f"Could not find source by abbreviation '{abbreviation}'")
 
 
 SourceList = GlobalSourceList()

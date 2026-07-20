@@ -192,7 +192,7 @@ class DNDSearchResults:
         return all_entries
 
     def get_all_sorted(self) -> list[DNDEntry]:
-        return sorted(self.get_all(), key=lambda r: (r.entry_type, r.name, r.source.display_name))
+        return sorted(self.get_all(), key=lambda r: (r.entry_type, r.name, r.source.abbreviation))
 
     def __len__(self) -> int:
         return len(self.get_all())

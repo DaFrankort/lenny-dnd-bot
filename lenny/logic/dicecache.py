@@ -6,7 +6,7 @@ import discord
 import pygtrie  # pyright: ignore[reportMissingTypeStubs]
 from discord.app_commands import Choice
 
-from logic.coin import Coin
+from logic.coin import CoinResult
 from logic.dnd.data import Data
 from logic.jsonhandler import JsonFolderHandler, JsonHandler
 from logic.voice_chat import SPECIAL_ROLL_REASONS
@@ -139,8 +139,8 @@ class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
         self.cache.initiative = initiative
         self.save()
 
-    def store_coin(self, coin: Coin):
-        expression = coin.expr
+    def store_coin(self, coin: CoinResult):
+        expression = coin.expression  # TODO use evaluated expression instead.
         if expression in self.cache.coin:
             self.cache.coin.remove(expression)
         self.cache.coin.append(expression)

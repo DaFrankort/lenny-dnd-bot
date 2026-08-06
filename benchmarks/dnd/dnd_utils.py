@@ -3,7 +3,7 @@ from pytest_benchmark.fixture import BenchmarkFixture
 
 from logic.dnd.abstract import DNDEntry, DNDEntryList
 from logic.dnd.data import Data
-from logic.dnd.source import ContentChoice, SourceList
+from logic.dnd.source import ContentChoice, GlobalSourceList
 
 ENTRY_LIST_PARAMS = [
     ("actions", Data.actions),
@@ -39,7 +39,7 @@ def parametrize_entry_lists():
 @parametrize_entry_lists()
 def benchmark_entry_list(benchmark: BenchmarkFixture, entry_list: DNDEntryList[DNDEntry], method: str) -> None:
     names: list[str] = [e.name for e in entry_list.entries]
-    sources: set[str] = set({e.name for e in SourceList(content=ContentChoice.ALL).entries})
+    sources: set[str] = set({e.name for e in GlobalSourceList(content=ContentChoice.ALL).entries})
     index = 0
 
     def setup() -> tuple[tuple[str], dict[str, set[str]]]:

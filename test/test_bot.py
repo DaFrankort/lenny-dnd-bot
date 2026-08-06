@@ -21,6 +21,7 @@ from embeds.dnd.class_ import ClassEmbed
 from logic.charactergen import class_choices, species_choices
 from logic.color import BasicColors, ImageColorStyle
 from logic.config import Config, ConfigHandler
+from logic.distribution import DistributionChartStyle
 from logic.dnd.abstract import DNDEntry, DNDEntryList
 from logic.dnd.data import Data
 from logic.dnd.name import Gender
@@ -165,7 +166,15 @@ SLASH_COMMAND_TESTS: Iterable[Iterable[Any]] = [
             },
         ],
     ),
-    ("distribution", {"expression": ["1d20", "1d8ro1"], "advantage": Advantage.values(), "min_to_beat": [None, "5"]}),
+    (
+        "distribution",
+        {
+            "expression": ["1d20", "1d8ro1", "1d20,2d20,3d20"],
+            "advantage": Advantage.values(),
+            "min_to_beat": [None, 5],
+            "style": DistributionChartStyle.values(),
+        },
+    ),
     (
         "charactergen",
         {
@@ -526,7 +535,7 @@ class TestBotCommands:
         """Tests the class embeds for all classes and subclasses at all levels"""
         itr = MockInteraction()
         sources = Config.get(itr).all_sources
-        sources = set(source.id for source in sources)
+        sources = set(source.source for source in sources)
 
         classes = Data.classes
         levels = list(range(0, 21))

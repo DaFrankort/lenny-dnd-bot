@@ -13,8 +13,7 @@ class Item(DNDEntry):
     def __init__(self, obj: dict[str, Any]):
         self.entry_type = DNDEntryType.ITEM
 
-        self.name = obj["name"]
-        self.source = obj["source"]
+        super().__init__(obj)
         self.url = obj["url"]
         self.value = obj["value"]
         self.weight = obj["weight"]

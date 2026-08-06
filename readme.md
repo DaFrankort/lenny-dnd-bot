@@ -100,7 +100,7 @@ Roll D&D dice using dice-expressions (e.g. `2d6` / `1d20+2`).
 
 Additionally there are some advanced dice roll commands for analyzing your rolls, helping to optimize your builds or balance your encounters.
 The averages commands also export the results to a CSV file for further analysis.
-- `/distribution <expression> [advantage] [min-to-beat]` - Creates a graph showing likeliness of your dice expression's roll results.
+- `/distribution <expression> [advantage] [min-to-beat] [style]` - Creates a graph showing likeliness of your dice expression's roll results. Supports multiple distributions at once.
 - `/average ac <hit> <damage> [min_ac] [max_ac] [crit_min] [miss_damage] [attack_count]` - Calculate the average damage of an attack based on hit chance and critical range against various armor classes.
 - `/average dc <dc> <damage> <miss_damage> [min_mod] [max_mod]` - Calculate the average damage of a save-based attack based on save DC against various saving throw modifiers.
 

@@ -36,7 +36,7 @@ async def source_autocomplete(itr: discord.Interaction, current: str) -> list[di
     results: list[discord.app_commands.Choice[str]] = []
     for result in matches[:25]:
         src, name = result.choice.name.split(sep)
-        results.append(discord.app_commands.Choice(name=f"[{src}] {name}", value=src))
+        results.append(discord.app_commands.Choice(name=f"{src} - {name}", value=src))
 
     return results
 

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from typing import ClassVar, Literal, TypeAlias, TypeGuard, Union, cast, get_args
+from typing import ClassVar, Literal, TypeAlias, TypeGuard, cast, get_args
 
 from lark import Lark, LarkError, Token, Transformer
 
@@ -43,8 +43,6 @@ def is_coin_unit(val: str) -> TypeGuard[CoinUnit]:
 @dataclass(frozen=True)
 class ASTNode:
     """Base class for all Abstract Syntax Tree nodes."""
-
-    pass
 
 
 @dataclass(frozen=True)
@@ -126,7 +124,7 @@ class Coin:
 
     @property
     def total_cp(self) -> float:
-        return sum([(getattr(self, unit) * value) for unit, value in self.CONVERSIONS.items()])
+        return sum(getattr(self, unit) * value for unit, value in self.CONVERSIONS.items())
 
     def __str__(self) -> str:
         denoms: list[str] = []
@@ -148,7 +146,7 @@ class Coin:
         self.cp = consolidated.cp
 
 
-class ASTTransformer(Transformer[ASTNode]):
+class ASTTransformer(Transformer[ASTNode, ASTNode]):
     """Transforms Lark Tree strictly into our clean, decoupled ASTNode objects."""
 
     def number(self, n: list[Token]) -> NumberNode:
@@ -183,7 +181,7 @@ class ASTTransformer(Transformer[ASTNode]):
         return BinOpNode("/", args[0], args[1])
 
 
-EvalValue: TypeAlias = Union[Coin, float]
+EvalValue: TypeAlias = Coin | float
 
 
 class CoinEvaluator:
@@ -221,11 +219,11 @@ class CoinEvaluator:
     def _apply_operator(self, op: str, left: EvalValue, right: EvalValue) -> EvalValue:
         if op == "+":
             return self._add(left, right)
-        elif op == "-":
+        if op == "-":
             return self._sub(left, right)
-        elif op == "*":
+        if op == "*":
             return self._mul(left, right)
-        elif op == "/":
+        if op == "/":
             return self._div(left, right)
         raise ValueError(f"Unsupported operator: {op}")
 
@@ -285,9 +283,9 @@ def collect_used_units(node: ASTNode) -> set[CoinUnit]:
     """
     if isinstance(node, CoinNode):
         return {node.unit}
-    elif isinstance(node, NumberNode):
+    if isinstance(node, NumberNode):
         return {"gp"}
-    elif isinstance(node, BinOpNode):
+    if isinstance(node, BinOpNode):
         return collect_used_units(node.left) | collect_used_units(node.right)
     return set()
 
@@ -295,16 +293,16 @@ def collect_used_units(node: ASTNode) -> set[CoinUnit]:
 def parse_coin(expression: str) -> CoinResult:
     """Parses, builds the AST, and evaluates the expression into a CoinResult."""
     try:
-        raw_tree = LARK_PARSER.parse(expression.lower())
-        ast: ASTNode = AST_BUILDER.transform(raw_tree)
+        raw_tree = LARK_PARSER.parse(expression.lower())  # type: ignore
+        ast: ASTNode = AST_BUILDER.transform(raw_tree)  # type: ignore
 
-        used_units = collect_used_units(ast)
+        used_units = collect_used_units(ast)  # type: ignore
         highest_unit: CoinUnit = "cp"
         if used_units:
-            highest_unit = cast(CoinUnit, max(used_units, key=lambda u: Coin.DENOMINATIONS.index(u)))  # type: ignore
+            highest_unit = cast(CoinUnit, max(used_units, key=Coin.DENOMINATIONS.index))  # type: ignore
         evaluator = CoinEvaluator(limit_to_unit=highest_unit)
-        value = evaluator.evaluate(ast)
-        return CoinResult(expression=expression, ast=ast, value=value, used_units=used_units, limit_to_unit=highest_unit)
+        value = evaluator.evaluate(ast)  # type: ignore
+        return CoinResult(expression=expression, ast=ast, value=value, used_units=used_units, limit_to_unit=highest_unit)  # type: ignore
     except LarkError as e:
         allowed_units = ", ".join(f"``{u}``" for u in get_args(CoinUnit))
         operators = ", ".join(f"``{op}``" for op in get_args(Operators))

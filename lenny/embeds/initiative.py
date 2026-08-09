@@ -188,7 +188,7 @@ class InitiativeBulkModal(BaseModal):
             initiatives.sort(key=lambda init: init.get_total(), reverse=True)
 
         for i, initiative in enumerate(initiatives):
-            initiative.name = f"{initiative.name} {i+1}"
+            initiative.name = f"{initiative.name} {i + 1}"
 
         title = f"{itr.user.display_name} rolled Initiative for {amount} {name.strip().title()}(s)!"
         descriptions: list[str] = []

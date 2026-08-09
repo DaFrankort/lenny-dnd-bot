@@ -190,7 +190,7 @@ class MultiDNDSelect(discord.ui.Select["MultiDNDSelectView"]):
     def select_option(self, entry: DNDEntry) -> discord.SelectOption:
         index = self.entries.index(entry)
         return discord.SelectOption(
-            label=f"{entry.name} ({entry.source})",
+            label=entry.title,
             description=entry.select_description,
             value=str(index),
         )

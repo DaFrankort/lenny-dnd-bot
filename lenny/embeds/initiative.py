@@ -13,7 +13,7 @@ from embeds.components import (
 )
 from embeds.embed import BaseEmbed, UserActionEmbed
 from logic.dicecache import DiceCache
-from logic.initiative import Initiative, Initiatives
+from logic.initiative import Initiative
 from logic.roll import Advantage
 from logic.voice_chat import VC, SoundType
 from methods import when
@@ -24,12 +24,15 @@ class InitiativeRollModal(BaseModal):
     name = BaseLabelTextInput(label="Name", placeholder="Goblin", required=False, max_length=128)
     advantage = ModalSelectComponent(label="Roll Mode", placeholder="Normal", options=Advantage.options(), required=False)
 
-    def __init__(self, itr: Interaction):
+    def __init__(self, itr: Interaction, view: "InitiativeContainerView"):
         self.name.placeholder = itr.user.display_name.title().strip()
         prev_initiative = str(DiceCache.get(itr).get_last_initiative())
         self.modifier.default = prev_initiative
         self.modifier.placeholder = prev_initiative
+
         super().__init__(itr, title="Rolling for Initiative")
+
+        self.view = view
 
     async def on_submit(self, itr: Interaction):
         name = self.get_str(self.name)
@@ -41,7 +44,6 @@ class InitiativeRollModal(BaseModal):
 
         advantage = self.get_choice(self.advantage, Advantage) or Advantage.NORMAL
         initiative = Initiative(itr, modifier, name, advantage)
-        Initiatives.add(itr, initiative)
 
         title = f"{itr.user.name} rolled Initiative for {initiative.name}{advantage.title_suffix}!"
 
@@ -55,27 +57,24 @@ class InitiativeRollModal(BaseModal):
         descriptions.append(f"\n**Initiative**: {initiative.get_total()}")
         description = "\n".join(descriptions)
 
-        view = InitiativeContainerView(itr)
         sound_type = SoundType.CREATURE if name else SoundType.PLAYER
-        await itr.response.defer()
+
         await VC.play(itr, sound_type, True)
-        if itr.message:
-            await itr.followup.edit_message(message_id=itr.message.id, view=view)
-            await itr.followup.send(
-                embed=UserActionEmbed(itr=itr, title=title, description=description),
-                ephemeral=True,
-            )
+        await itr.response.edit_message(view=self.view.add_initiative(initiative))
+        await itr.followup.send(embed=UserActionEmbed(itr=itr, title=title, description=description), ephemeral=True)
 
 
 class InitiativeSetModal(BaseModal):
     value = BaseLabelTextInput(label="Initiative value", max_length=3)
     name = BaseLabelTextInput(label="Name", required=False, max_length=128)
 
-    def __init__(self, itr: Interaction):
+    def __init__(self, itr: Interaction, view: "InitiativeContainerView"):
         super().__init__(itr, title="Setting your Initiative value")
+        self.view = view
 
         self.name.placeholder = itr.user.display_name.title().strip()
-        for initiative in Initiatives.get(itr):
+
+        for initiative in self.view.initiatives.values():
             if initiative.is_owner(itr.user) and not initiative.is_npc:
                 self.value.placeholder = str(initiative.get_total())
                 self.value.default = str(initiative.get_total())
@@ -89,14 +88,12 @@ class InitiativeSetModal(BaseModal):
             return
 
         initiative = Initiative(itr, 0, name, Advantage.NORMAL, roll=value)
-        Initiatives.add(itr, initiative)
 
         title = f"{itr.user.name} set Initiative for {initiative.name}!"
         description = f"**Initiative**: {initiative.get_total()}"
 
-        view = InitiativeContainerView(itr)
         await VC.play(itr, SoundType.WRITE, True)
-        await itr.response.edit_message(view=view)
+        await itr.response.edit_message(view=self.view.add_initiative(initiative))
         await itr.followup.send(
             embed=UserActionEmbed(itr=itr, title=title, description=description),
             ephemeral=True,
@@ -104,11 +101,17 @@ class InitiativeSetModal(BaseModal):
 
 
 class InitiativeDeleteModal(BaseModal):
-    def __init__(self, itr: Interaction):
+    def __init__(self, itr: Interaction, view: "InitiativeContainerView"):
         super().__init__(itr, title="Remove initiative rolls")
 
+        self.view = view
+
         checkboxes: list[ModalCheckboxGroupComponent] = [ModalCheckboxGroupComponent("Rolls to delete", options=[])]
-        for initiative in Initiatives.get(itr):
+
+        initiatives = list(self.view.initiatives.values())
+        initiatives.sort(key=lambda init: init.name)
+
+        for initiative in initiatives:
             if len(checkboxes[-1].options) >= 10:
                 if len(checkboxes) >= 5:
                     break
@@ -125,19 +128,17 @@ class InitiativeDeleteModal(BaseModal):
             self.add_item(checkbox)
 
     async def on_submit(self, itr: Interaction) -> None:
-        deleted_initiatives: list[str] = []
+        deleted_initiatives: list[Initiative] = []
         for child in self.children:
             group = typing.cast(ModalCheckboxGroupComponent, child)
             for name in group.values:
-                initiative = Initiatives.remove(itr, name)
-                deleted_initiatives.append(initiative.name)
-
-        view = InitiativeContainerView(itr)
+                initiative = self.view.initiatives[name]
+                deleted_initiatives.append(initiative)
 
         await VC.play(itr, SoundType.DELETE, True)
-        await itr.response.edit_message(view=view)
+        await itr.response.edit_message(view=self.view.remove_initiatives(deleted_initiatives))
 
-        description = "\n- ".join(deleted_initiatives)
+        description = "\n- ".join(init.name for init in deleted_initiatives)
         embed = BaseEmbed(title="Removed initiative", description=f"- {description}")
         await itr.followup.send(embed=embed, ephemeral=True)
 
@@ -154,13 +155,16 @@ class InitiativeBulkModal(BaseModal):
     advantage = ModalSelectComponent(label="Roll Mode", placeholder="Normal", options=Advantage.options(), required=False)
     shared = ModalCheckboxComponent(label="Share Initiative")
 
-    def __init__(self, itr: Interaction):
+    def __init__(self, itr: Interaction, view: "InitiativeContainerView"):
         super().__init__(itr, title="Adding Initiatives in bulk!")
+        self.view = view
 
     async def on_submit(self, itr: Interaction):
         name = str(self.name.input)
         modifier = self.get_int(self.modifier)
         amount = self.get_int(self.amount)
+        advantage = self.get_choice(self.advantage, Advantage) or Advantage.NORMAL
+        shared: bool = self.shared.component.value  # type: ignore
 
         if modifier is None or amount is None:
             await itr.response.send_message(
@@ -175,9 +179,16 @@ class InitiativeBulkModal(BaseModal):
             )
             return
 
-        advantage = self.get_choice(self.advantage, Advantage) or Advantage.NORMAL
-        shared: bool = self.shared.component.value  # type: ignore
-        initiatives = Initiatives.add_bulk(itr, modifier, name, amount, advantage, shared)  # type: ignore
+        initiatives = [Initiative(itr, modifier, name, advantage) for _ in range(amount)]
+
+        if shared:
+            for i in range(1, len(initiatives)):
+                initiatives[i].raw_d20 = initiatives[0].raw_d20
+        else:
+            initiatives.sort(key=lambda init: init.get_total(), reverse=True)
+
+        for i, initiative in enumerate(initiatives):
+            initiative.name = f"{initiative.name} {i+1}"
 
         title = f"{itr.user.display_name} rolled Initiative for {amount} {name.strip().title()}(s)!"
         descriptions: list[str] = []
@@ -185,9 +196,8 @@ class InitiativeBulkModal(BaseModal):
             descriptions.append(f"``{initiative.get_total():>2}`` - {initiative.name}")
         description = "\n".join(descriptions)
 
-        view = InitiativeContainerView(itr)
         await VC.play(itr, SoundType.CREATURE, True)
-        await itr.response.edit_message(view=view)
+        await itr.response.edit_message(view=self.view.add_bulk(initiatives))
         await itr.followup.send(
             embed=UserActionEmbed(itr=itr, title=title, description=description),
             ephemeral=True,
@@ -197,8 +207,9 @@ class InitiativeBulkModal(BaseModal):
 class InitiativeClearConfirmModal(BaseModal):
     confirm = ModalCheckboxComponent(label="Yes, I want to clear all initiatives.")
 
-    def __init__(self, itr: Interaction):
+    def __init__(self, itr: Interaction, view: "InitiativeContainerView"):
         super().__init__(itr, title="Are you sure you want to clear?")
+        self.view = view
 
     async def on_submit(self, itr: Interaction):
         confirmed = self.confirm.value
@@ -209,10 +220,8 @@ class InitiativeClearConfirmModal(BaseModal):
             )
             return
 
-        Initiatives.clear(itr)
-        view = InitiativeContainerView(itr)
         await VC.play(itr, SoundType.DELETE, True)
-        await itr.response.edit_message(view=view)
+        await itr.response.edit_message(view=self.view.clear())
         await itr.followup.send(
             embed=BaseEmbed("Cleared all initiatives!", f"Cleared by {itr.user.display_name}."),
             ephemeral=True,
@@ -220,8 +229,11 @@ class InitiativeClearConfirmModal(BaseModal):
 
 
 class InitiativePlayerRow(ui.ActionRow["InitiativeContainerView"]):
-    def __init__(self, itr: discord.Interaction):
+    initiative_view: "InitiativeContainerView"
+
+    def __init__(self, view: "InitiativeContainerView"):
         super().__init__()
+        self.initiative_view = view
 
         roll_btn = ui.Button["InitiativeContainerView"](style=discord.ButtonStyle.success, custom_id="roll_btn", label="Roll")
         roll_btn.callback = self.roll_initiative
@@ -235,22 +247,25 @@ class InitiativePlayerRow(ui.ActionRow["InitiativeContainerView"]):
             style=discord.ButtonStyle.danger, custom_id="delete_btn", label="Delete Roll"
         )
         delete_btn.callback = self.remove_initiative
-        delete_btn.disabled = len(Initiatives.get(itr)) <= 0
+        delete_btn.disabled = len(self.initiative_view.initiatives) <= 0
         self.add_item(delete_btn)
 
     async def roll_initiative(self, interaction: Interaction):
-        await interaction.response.send_modal(InitiativeRollModal(interaction))
+        await interaction.response.send_modal(InitiativeRollModal(interaction, self.initiative_view))
 
     async def set_initiative(self, interaction: Interaction):
-        await interaction.response.send_modal(InitiativeSetModal(interaction))
+        await interaction.response.send_modal(InitiativeSetModal(interaction, self.initiative_view))
 
     async def remove_initiative(self, interaction: Interaction):
-        await interaction.response.send_modal(InitiativeDeleteModal(interaction))
+        await interaction.response.send_modal(InitiativeDeleteModal(interaction, self.initiative_view))
 
 
 class InitiativeDMRow(ui.ActionRow["InitiativeContainerView"]):
-    def __init__(self, itr: discord.Interaction):
+    initiative_view: "InitiativeContainerView"
+
+    def __init__(self, view: "InitiativeContainerView"):
         super().__init__()
+        self.initiative_view = view
 
         bulk_btn = ui.Button["InitiativeContainerView"](label="Bulk", style=discord.ButtonStyle.primary, custom_id="bulk_btn")
         bulk_btn.callback = self.bulk_roll_initiative
@@ -266,49 +281,93 @@ class InitiativeDMRow(ui.ActionRow["InitiativeContainerView"]):
             custom_id="clear_btn",
         )
         clear_btn.callback = self.clear_initiative
-        clear_btn.disabled = len(Initiatives.get(itr)) <= 0
+        clear_btn.disabled = len(self.initiative_view.initiatives) <= 0
         self.add_item(clear_btn)
 
     async def bulk_roll_initiative(self, interaction: Interaction):
-        await interaction.response.send_modal(InitiativeBulkModal(interaction))
+        await interaction.response.send_modal(InitiativeBulkModal(interaction, self.initiative_view))
 
     async def lock(self, interaction: Interaction):
         await VC.play(interaction, SoundType.LOCK, True)
-        await interaction.response.edit_message(view=InitiativeContainerView(interaction, True))
+        await interaction.response.edit_message(view=self.initiative_view.lock())
 
     async def clear_initiative(self, interaction: Interaction):
-        await interaction.response.send_modal(InitiativeClearConfirmModal(interaction))
+        await interaction.response.send_modal(InitiativeClearConfirmModal(interaction, self.initiative_view))
 
 
 class InitiativeUnlockButton(ui.Button["InitiativeContainerView"]):
-    def __init__(self):
+    initiative_view: "InitiativeContainerView"
+
+    def __init__(self, view: "InitiativeContainerView"):
         super().__init__(style=discord.ButtonStyle.primary, label="Unlock", custom_id="unlock_btn")
+        self.initiative_view = view
 
     async def callback(self, interaction: Interaction):
         await VC.play(interaction, SoundType.LOCK, True)
-        await interaction.response.edit_message(view=InitiativeContainerView(interaction, False))
+        await interaction.response.edit_message(view=self.initiative_view.unlock())
 
 
 class InitiativeContainerView(ui.LayoutView):
-    def __init__(self, itr: Interaction, locked: bool = False):
-        super().__init__(timeout=None)
+    locked: bool
+    initiatives: dict[str, Initiative]
+
+    def __init__(self):
+        super().__init__(timeout=3600)
+
+        self.locked = False
+        self.initiatives = dict()
+
+        self.build()
+
+    def build(self) -> "InitiativeContainerView":
+        self.clear_items()
 
         container = ui.Container["InitiativeContainerView"](accent_color=discord.Color.dark_green())
         container.add_item(ui.TextDisplay("# Initiatives"))
         container.add_item(BaseSeparator())
 
-        initiatives = Initiatives.get(itr)
+        initiatives = list(self.initiatives.values())
+        initiatives.sort(key=lambda init: (-init.get_total(), init.name, init.time_added))
+
         descriptions = [f"- ``{i.get_total():>2}`` - {i.name}" for i in initiatives]
         description = "\n".join(descriptions) or "*No initiatives rolled yet!*"
 
         container.add_item(ui.TextDisplay(description))
         container.add_item(BaseSeparator())
 
-        if locked:
-            unlock_section = ui.Section["InitiativeContainerView"]("‎", accessory=InitiativeUnlockButton())
+        if self.locked:
+            unlock_section = ui.Section["InitiativeContainerView"]("‎", accessory=InitiativeUnlockButton(self))
             container.add_item(unlock_section)
         else:
-            container.add_item(InitiativePlayerRow(itr))
-            container.add_item(InitiativeDMRow(itr))
+            container.add_item(InitiativePlayerRow(self))
+            container.add_item(InitiativeDMRow(self))
 
         self.add_item(container)
+
+        return self
+
+    def add_initiative(self, initiative: Initiative) -> "InitiativeContainerView":
+        self.initiatives[initiative.name] = initiative
+        return self.build()
+
+    def remove_initiatives(self, initiatives: list[Initiative]) -> "InitiativeContainerView":
+        for initiative in initiatives:
+            self.initiatives.pop(initiative.name)
+        return self.build()
+
+    def add_bulk(self, initiatives: list[Initiative]) -> "InitiativeContainerView":
+        for initiative in initiatives:
+            self.initiatives[initiative.name] = initiative
+        return self.build()
+
+    def clear(self) -> "InitiativeContainerView":
+        self.initiatives.clear()
+        return self.build()
+
+    def lock(self) -> "InitiativeContainerView":
+        self.locked = True
+        return self.build()
+
+    def unlock(self) -> "InitiativeContainerView":
+        self.locked = False
+        return self.build()

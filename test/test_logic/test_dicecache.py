@@ -2,7 +2,7 @@ import pytest
 from discord import Interaction
 from mocking import MockInteraction, MockUser
 
-from logic.coin import Coin
+from logic.coin import parse_coin
 from logic.dicecache import DiceCache, DiceCacheInfo, DiceCacheTrie
 
 
@@ -105,11 +105,11 @@ class TestDiceExpressionCache:
         assert len(reasons) > 0, "New user could not get reason autocomplete-suggestions."
 
     def test_store_coin(self, itr: Interaction):
-        coin = Coin(cp=1, sp=1, ep=1)
+        coin = parse_coin("1gp + 1sp + 1cp")
         DiceCache.get(itr).store_coin(coin)
         data = DiceCache.get(itr).cache
 
-        assert coin.expr in data.coin, f"{coin.expr} should be in 'coin'."
+        assert coin.expression in data.coin, f"{coin.expression} should be in 'coin'."
 
     def test_coin_autocomplete_empty_no_data(self, itr: Interaction):
         DiceCache.get(itr).cache = DiceCacheInfo([], [], 0, {}, coin=[])

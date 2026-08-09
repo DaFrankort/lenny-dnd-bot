@@ -281,10 +281,11 @@ def collect_used_units(node: ASTNode) -> set[CoinUnit]:
     Recursively traverses the AST to find all coin units
     explicitly typed by the user.
     """
+
     if isinstance(node, CoinNode):
         return {node.unit}
     if isinstance(node, NumberNode):
-        return {"gp"}
+        return set()
     if isinstance(node, BinOpNode):
         return collect_used_units(node.left) | collect_used_units(node.right)
     return set()

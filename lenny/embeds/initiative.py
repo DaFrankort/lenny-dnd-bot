@@ -315,7 +315,7 @@ class InitiativeContainerView(ui.LayoutView):
         super().__init__(timeout=3600)
 
         self.locked = False
-        self.initiatives = dict()
+        self.initiatives = {}
 
         self.build()
 

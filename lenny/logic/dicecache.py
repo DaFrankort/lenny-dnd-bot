@@ -28,7 +28,7 @@ def default_dicecache_trie() -> dict[str, int]:
 class DiceCacheInfo:
     rolls: list[str]
     reasons: list[str]
-    initiative: int
+    initiative: str
     trie: dict[str, int]
     coin: list[str]
 
@@ -98,7 +98,7 @@ class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
     def __init__(self, user_id: int):
         super().__init__(str(user_id), "user_cache")
         if not self.data:
-            self.cache = DiceCacheInfo(rolls=[], reasons=[], initiative=0, trie={}, coin=[])
+            self.cache = DiceCacheInfo(rolls=[], reasons=[], initiative="0", trie={}, coin=[])
         self._trie = DiceCacheTrie(self.cache)
 
     @property
@@ -133,7 +133,7 @@ class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
         self.cache.reasons = self.cache.reasons[-5:]  # Store max 5 reasons
         self.save()
 
-    def store_initiative(self, initiative: int):
+    def store_initiative(self, initiative: str):
         if initiative == self.cache.initiative:
             return
         self.cache.initiative = initiative
@@ -212,7 +212,7 @@ class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
         )
         return [discord.app_commands.Choice(name=reason, value=reason) for reason in filtered_reasons[:25]]
 
-    def get_last_initiative(self) -> int:
+    def get_last_initiative(self) -> str:
         return self.cache.initiative
 
 

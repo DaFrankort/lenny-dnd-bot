@@ -1,7 +1,7 @@
 import random
 from dataclasses import dataclass
 
-from logic.dnd.abstract import DNDEntryList
+from methods import read_json_file
 
 
 @dataclass
@@ -29,7 +29,7 @@ class LifeData:
         self.classes = {}
         self.backgrounds = {}
         self.trinkets = []
-        data = DNDEntryList.read_dnd_data_contents(self.path)
+        data = read_json_file(self.path)
 
         for datum in data:
             class_data = datum.get("class", {})

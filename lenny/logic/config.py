@@ -5,15 +5,15 @@ from typing import Any
 
 import discord
 
-from logic.dnd.source import ContentChoice, Source, SourceList
+from logic.dnd.source import ContentChoice, GlobalSourceList, Source
 from logic.jsonhandler import JsonFolderHandler, JsonHandler
 
 # It is important to note that all official sources (excluding the 2014 sources) are
 # allowed by default and that all partnered sources are disallowed by default. The
 # code is written in such a way that these two are always handled separately when
 # modifying the config.
-OFFICIAL_SOURCES = SourceList(content=ContentChoice.OFFICIAL)
-PARTNERED_SOURCES = SourceList(content=ContentChoice.PARTNERED)
+OFFICIAL_SOURCES = GlobalSourceList(content=ContentChoice.OFFICIAL)
+PARTNERED_SOURCES = GlobalSourceList(content=ContentChoice.PARTNERED)
 
 # Disallow PHB 2014 sources by default
 DEFAULT_DISALLOWED_OFFICIAL_SOURCES = ["PHB", "DMG", "MM"]

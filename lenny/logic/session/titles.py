@@ -1,5 +1,5 @@
-from abc import ABC, abstractmethod
 import inspect
+from abc import ABC, abstractmethod
 
 from logic.session.types import UserSessionDiceStats, UserSessionStats
 
@@ -60,7 +60,7 @@ class TitleRegistry:
 class TitleMostNat1(SessionTitle):
     name = "The Murphy's Law Enthusiast"
     description = "Rolled the most Natural 1s this session."
-    weight = 5.0
+    weight = 10.0
 
     def _evaluate(self, stats: UserSessionDiceStats, all_session_stats: dict[int, UserSessionStats]) -> float:
         if stats.nat1_count == 0:
@@ -75,7 +75,7 @@ class TitleMostNat1(SessionTitle):
 class TitleMostNat20(SessionTitle):
     name = "The Weighted Dice User"
     description = "Rolled the most Natural 20s this session."
-    weight = 5.0
+    weight = 10.0
 
     def _evaluate(self, stats: UserSessionDiceStats, all_session_stats: dict[int, UserSessionStats]) -> float:
         if stats.nat20_count == 0:
@@ -90,6 +90,7 @@ class TitleMostNat20(SessionTitle):
 class TitleConsistentRoller(SessionTitle):
     name = "The Ol' Reliable"
     description = "Maintained an average d20 roll of 14 or higher."
+    weight = 1.0
 
     def _evaluate(self, stats: UserSessionDiceStats, all_session_stats: dict[int, UserSessionStats]) -> float:
         # Require at least 5 rolls, to prevent flukes.
@@ -102,7 +103,7 @@ class TitleConsistentRoller(SessionTitle):
 class TitleHeavyHitter(SessionTitle):
     name = "The Min-Maxxer"
     description = "Dealt the highest total damage across the entire session."
-    weight = 0.7
+    weight = 0.2
 
     def _evaluate(self, stats: UserSessionDiceStats, all_session_stats: dict[int, UserSessionStats]) -> float:
         user_total_dmg = sum(stats.damage_totals)
@@ -118,7 +119,7 @@ class TitleHeavyHitter(SessionTitle):
 class TitleWeakHitter(SessionTitle):
     name = "The Emotional Support"
     description = "Dealt the least amount of damage across the entire session."
-    weight = 5.0
+    weight = 0.4
 
     def _evaluate(self, stats: UserSessionDiceStats, all_session_stats: dict[int, UserSessionStats]) -> float:
         user_total_dmg = sum(stats.damage_totals)
@@ -135,11 +136,11 @@ class TitleWeakHitter(SessionTitle):
 class TitleAdvantage(SessionTitle):
     name = "The Crit Fisher"
     description = "Rolled with advantage more times than anyone else."
-    weight = 2.0
+    weight = 3.0
 
     def _evaluate(self, stats: UserSessionDiceStats, all_session_stats: dict[int, UserSessionStats]) -> float:
         adv_count = stats.adv_count
-        if adv_count == 0:
+        if adv_count == 0 or len(all_session_stats.items()) <= 2:
             return 0
 
         max_count = max(s.dice.adv_count for s in all_session_stats.values())
@@ -151,14 +152,61 @@ class TitleAdvantage(SessionTitle):
 class TitleDisadvantage(SessionTitle):
     name = "The DM's Least Favorite"
     description = "Rolled with disadvantage more times than anyone else."
-    weight = 5.0
+    weight = 3.0
 
     def _evaluate(self, stats: UserSessionDiceStats, all_session_stats: dict[int, UserSessionStats]) -> float:
         dis_count = stats.dis_count
-        if dis_count == 0:
+        if dis_count == 0 or len(all_session_stats.items()) <= 2:
             return 0
 
         max_count = max(s.dice.dis_count for s in all_session_stats.values())
         if dis_count == max_count:
             return float(dis_count)
         return 0
+
+
+# Dice usage
+class TitleLowD20Usage(SessionTitle):
+    name = "The Quiet Observer"
+    description = "Made the fewest d20 checks during the entire session."
+    weight = 1.5
+
+    def _evaluate(self, stats: UserSessionDiceStats, all_session_stats: dict[int, UserSessionStats]) -> float:
+        d20_count = len(stats.d20_totals)
+        if d20_count == 0 or len(all_session_stats.items()) <= 2:
+            return 0
+
+        counts = [min(len(s.dice.d20_totals) for s in all_session_stats.values())]
+        if d20_count == min(counts):
+            return float(max(counts) - d20_count)
+        return 0
+
+
+class TitleHighD6Usage(SessionTitle):
+    name = "The Monopoly Player"
+    description = "Rolled significantly more d6s than any other die type, are you playing the right game?"
+    weight = 2.0
+
+    def _evaluate(self, stats: UserSessionDiceStats, all_session_stats: dict[int, UserSessionStats]) -> float:
+        most_die, uses = stats.most_used_die_type
+        if most_die == 6 and uses >= 10:  # Require at least 10 rolls to qualify
+            max_d6 = max(s.dice.rolled_dice.get(6, 0) for s in all_session_stats.values())
+            if uses == max_d6:
+                return float(uses)
+        return 0.0
+
+
+class TitleMostRollsDone(SessionTitle):
+    name = "The Main Character"
+    description = "Initiated the highest total number of roll commands."
+    weight = 1.0
+
+    def _evaluate(self, stats: UserSessionDiceStats, all_session_stats: dict[int, UserSessionStats]) -> float:
+        total_rolls = len(stats.d20_totals) + len(stats.damage_totals)
+        if total_rolls == 0:
+            return 0.0
+
+        max_rolls = max(len(s.dice.d20_totals) + len(s.dice.damage_totals) for s in all_session_stats.values())
+        if total_rolls == max_rolls:
+            return float(total_rolls)
+        return 0.0

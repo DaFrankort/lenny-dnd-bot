@@ -19,7 +19,7 @@ class ExternalAsset(str, Enum):
 class MockBot(Bot):
     def __init__(self):
         super().__init__(voice=False)
-        self.register_commands()
+        self.commands.find_and_register()
 
 
 class MockRole(discord.Role):

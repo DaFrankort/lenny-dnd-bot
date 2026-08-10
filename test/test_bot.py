@@ -7,6 +7,7 @@ import pytest
 import pytest_asyncio  # noqa: F401 # type: ignore
 from mocking import (
     MockBackgroundImage,
+    MockBot,
     MockDirectMessageInteraction,
     MockGIFImage,
     MockImage,
@@ -269,17 +270,12 @@ def get_strict_search_arguments(entry_list: DNDEntryList[TEntry]) -> list[str]:
 
 
 class TestBotCommands:
-    @pytest.fixture()
+
+    @pytest.fixture(scope="module")
     def bot(self):
-        try:
-            bot = Bot(voice=False)
+        return MockBot()
 
-            bot.register_commands()
-        except Exception:
-            pytest.fail("Bot could not be launched!")
-        return bot
-
-    @pytest.fixture()
+    @pytest.fixture(scope="module")
     def commands(self, bot: Bot) -> dict[str, BaseCommand | BaseCommandGroup]:
         return {cmd.name: cmd for cmd in bot.tree.get_commands() if isinstance(cmd, (BaseCommand, BaseCommandGroup))}
 

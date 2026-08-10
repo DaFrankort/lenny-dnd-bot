@@ -3,7 +3,6 @@ import logging
 import discord
 from discord import InteractionType, app_commands
 from discord.ext import tasks
-from dotenv import load_dotenv
 
 from logger import (
     log_application_command_interaction,
@@ -25,8 +24,7 @@ class Bot(discord.Client):
     config: BotConfig
     commands: CommandRegistry
 
-    def __init__(self, voice: bool = True):
-        load_dotenv()
+    def __init__(self, config: BotConfig):
         intents = discord.Intents.default()
         intents.members = True
         intents.message_content = True
@@ -35,9 +33,8 @@ class Bot(discord.Client):
             status=discord.Status.do_not_disturb,  # Set to online in on_ready
         )
 
-        self.config = BotConfig.load_from_env(voice)
+        self.config = config
         self.tree = app_commands.CommandTree(self)
-
         self.commands = CommandRegistry(self.tree)
 
     def run_client(self):

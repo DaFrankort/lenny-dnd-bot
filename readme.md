@@ -75,6 +75,9 @@ You can add the following arguments if you wish:
 
 - `--verbose, --no-verbose` - Run with or without debug-logging.
 - `--voice, --no-voice` - Run with or without voice-chat functionalities.
+- `--token=<token>` - Run with a specific bot token, defaults to the token in the `.env` file.
+- `--guild=<guild_id>` - Run with a specific guild ID, defaults to the guild ID in the `.env` file.
+
 
 The bot should now be online, don't forget to invite it to your servers!
 

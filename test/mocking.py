@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, MagicMock
 import discord
 
 from bot import Bot
+from services.config import BotConfig
 
 
 class ExternalAsset(str, Enum):
@@ -18,8 +19,9 @@ class ExternalAsset(str, Enum):
 
 class MockBot(Bot):
     def __init__(self):
-        super().__init__(voice=False)
-        self.register_commands()
+        config = BotConfig(token="", guild_id=0, voice_enabled=False, verbose=False)
+        super().__init__(config)
+        self.commands.find_and_register()
 
 
 class MockRole(discord.Role):

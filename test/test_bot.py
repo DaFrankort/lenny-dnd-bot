@@ -7,6 +7,7 @@ import pytest
 import pytest_asyncio  # noqa: F401 # type: ignore
 from mocking import (
     MockBackgroundImage,
+    MockBot,
     MockDirectMessageInteraction,
     MockGIFImage,
     MockImage,
@@ -14,7 +15,6 @@ from mocking import (
     MockSound,
 )
 
-from bot import Bot
 from commands.command import BaseCommand, BaseCommandGroup
 from commands.tokengen import AlignH, AlignV
 from embeds.dnd.class_ import ClassEmbed
@@ -269,19 +269,9 @@ def get_strict_search_arguments(entry_list: DNDEntryList[TEntry]) -> list[str]:
 
 
 class TestBotCommands:
-    @pytest.fixture()
-    def bot(self):
-        try:
-            bot = Bot(voice=False)
-
-            bot.register_commands()
-        except Exception:
-            pytest.fail("Bot could not be launched!")
-        return bot
-
-    @pytest.fixture()
-    def commands(self, bot: Bot) -> dict[str, BaseCommand | BaseCommandGroup]:
-        return {cmd.name: cmd for cmd in bot.tree.get_commands() if isinstance(cmd, (BaseCommand, BaseCommandGroup))}
+    @pytest.fixture(scope="module")
+    def commands(self) -> dict[str, BaseCommand | BaseCommandGroup]:
+        return {cmd.name: cmd for cmd in MockBot().tree.get_commands() if isinstance(cmd, (BaseCommand, BaseCommandGroup))}
 
     def expand_arg_variants(self, arg: dict[str, Any]) -> list[dict[str, Any]]:
         """

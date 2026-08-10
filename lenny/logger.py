@@ -2,6 +2,11 @@ import logging
 
 from discord import AppCommandType, Interaction
 
+# pylint: disable=import-private-name
+from discord.utils import (
+    _ColourFormatter,  # Discord's private formatter has proven to be quite nice to use # type: ignore
+)
+
 
 def log_application_command_interaction(itr: Interaction):
     if not itr.command:
@@ -54,3 +59,14 @@ def log_modal_submit_interaction(itr: Interaction):
             fields.append(f"[{values}]")
 
     logging.info("%s submitted modal => %s", itr.user.name, "; ".join(fields))
+
+
+def setup_logging(verbose: bool) -> None:
+    handler = logging.StreamHandler()
+    handler.setFormatter(_ColourFormatter())
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG if verbose else logging.INFO)
+    logger.addHandler(handler)
+
+    if not verbose:
+        logging.getLogger("discord.player").setLevel(logging.WARNING)

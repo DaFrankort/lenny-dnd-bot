@@ -42,7 +42,7 @@ class Bot(discord.Client):
 
     def run_client(self):
         if not self.config.token:
-            logging.warning("Bot token missing in configuration!")
+            logging.warning("Bot token missing in .env configuration!")
         # log_handler set to None, as a handler is already added in main.py
         super().run(self.config.token, log_handler=None)
 

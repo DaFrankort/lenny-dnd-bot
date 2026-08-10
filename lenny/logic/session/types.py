@@ -2,8 +2,7 @@ from dataclasses import dataclass
 
 import discord
 from d100 import Critical
-from d100.ast.dice import ASTDice
-from d100.ast.node import ASTNode
+from d100.ast.die import Die
 
 from logic.roll import Advantage, MultiRollResult, RollResult, SingleRollResult
 
@@ -52,9 +51,11 @@ class UserSessionDiceStats:
         if isinstance(result, MultiRollResult):
             warnings = result.warnings
             rolls = result.rolls
+            count = len(result.rolls)
         else:
             warnings = result.result.warnings
             rolls = result.result.rolls
+            count = 1
 
         if len(warnings) > 0:
             # Rolls with warnings are not considered valid dice-rolls.
@@ -62,10 +63,10 @@ class UserSessionDiceStats:
             return
 
         self._add_dice_count(rolls)
-        self._add_advantage(result.expression, result.advantage)
+        self._add_advantage(result.expression, result.advantage, count)
 
         for roll in rolls:
-            if "d100" in result.expression:
+            if "d100" in result.expression or "d%" in result.expression:
                 return  # We don't want to track d100's, they're not used for skill-checks or damage.
 
             if "d20" in result.expression:
@@ -74,20 +75,15 @@ class UserSessionDiceStats:
                 self._add_damage_roll(roll)
 
     def _add_dice_count(self, rolls: list[SingleRollResult]):
-        def add_from_node(node: ASTNode):
-            if isinstance(node, ASTDice):
-                size = node.size if isinstance(node.size, int) else 100  # DiceSize can also be %, which is 100.
-                if size not in self.rolled_dice:
-                    self.rolled_dice[size] = 0
-                self.rolled_dice[size] += node.num
-                # TODO 1d8e8 -> should count as 2 rolls if exploded, is this the case?
-
-            for child in node.children:
-                add_from_node(child)
+        def add_die(node: Die):
+            size = node.size if node.size != "%" else 100  # % die is the same as a d100.
+            if size not in self.rolled_dice:
+                self.rolled_dice[size] = 0
+            self.rolled_dice[size] += 1
 
         for roll in rolls:
-            for node in roll.ast.children:
-                add_from_node(node)
+            for die in roll.roll.extract_dice():
+                add_die(die)
 
     def _add_d20(self, roll: SingleRollResult):
         d20 = roll.ast.find_d20()
@@ -111,18 +107,18 @@ class UserSessionDiceStats:
             self.dmg_expressions[roll.expr] = []
         self.dmg_expressions[roll.expr].append(roll.total)
 
-    def _add_advantage(self, expression: str, advantage: Advantage):
+    def _add_advantage(self, expression: str, advantage: Advantage, count: int = 1):
         if advantage is Advantage.ADVANTAGE or advantage is Advantage.ELVEN_ACCURACY:
-            self.adv_count += 1
+            self.adv_count += count
             return
         if advantage is Advantage.DISADVANTAGE:
-            self.dis_count += 1
+            self.dis_count += count
             return
 
         if "2d20kh1" in expression or "2d20dl1" in expression or "1d20adv" in expression:
-            self.adv_count += 1
+            self.adv_count += count
         if "2d20kl1" in expression or "2d20dh1" in expression or "1d20dis" in expression:
-            self.dis_count += 1
+            self.dis_count += count
 
     @property
     def average_d20(self) -> int:

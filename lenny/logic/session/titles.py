@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import inspect
 
 from logic.session.types import UserSessionDiceStats, UserSessionStats
 
@@ -33,15 +34,7 @@ class TitleRegistry:
     assigned: set[SessionTitle]
 
     def __init__(self):
-        self.titles: list[SessionTitle] = [
-            TitleMostNat1(),
-            TitleMostNat20(),
-            TitleConsistentRoller(),
-            TitleHeavyHitter(),
-            TitleWeakHitter(),
-            TitleAdvantage(),
-            TitleDisadvantage(),
-        ]
+        self.titles = [cls() for cls in SessionTitle.__subclasses__() if not inspect.isabstract(cls)]
         self.assigned = set()
 
     def assign_title(self, stats: UserSessionDiceStats, all_session_stats: dict[int, UserSessionStats]) -> SessionTitle | None:

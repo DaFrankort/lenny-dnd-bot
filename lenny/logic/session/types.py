@@ -77,7 +77,7 @@ class UserSessionDiceStats:
         def add_from_node(node: ASTNode):
             if isinstance(node, ASTDice):
                 size = node.size if isinstance(node.size, int) else 100  # DiceSize can also be %, which is 100.
-                if not self.rolled_dice[size]:
+                if size not in self.rolled_dice:
                     self.rolled_dice[size] = 0
                 self.rolled_dice[size] += node.num
                 # TODO 1d8e8 -> should count as 2 rolls if exploded, is this the case?

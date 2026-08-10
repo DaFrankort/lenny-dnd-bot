@@ -1,5 +1,4 @@
 import logging
-import os
 
 import discord
 from discord import InteractionType, app_commands
@@ -18,13 +17,12 @@ from logic.homebrew import HomebrewData
 from logic.searchcache import SearchCache
 from logic.voice_chat import VC, Sounds
 from services.commands import CommandRegistry
+from services.config import BotConfig
 
 
 class Bot(discord.Client):
     tree: app_commands.CommandTree
-    token: str
-    guild_id: int | None
-    voice_enabled: bool
+    config: BotConfig
     commands: CommandRegistry
 
     def __init__(self, voice: bool = True):
@@ -37,26 +35,18 @@ class Bot(discord.Client):
             status=discord.Status.do_not_disturb,  # Set to online in on_ready
         )
 
+        self.config = BotConfig.load_from_env(voice)
         self.tree = app_commands.CommandTree(self)
 
-        token = os.getenv("DISCORD_BOT_TOKEN")
-        if not token:
-            logging.warning("Could not get bot token, is the .env file correctly configured?")
-            token = ""
-
-        self.token = token
-        guild_id = os.getenv("GUILD_ID")
-        self.guild_id = int(guild_id) if guild_id is not None else None
-        self.voice_enabled = voice
         self.commands = CommandRegistry(self.tree)
 
     def run_client(self):
-        """Starts the bot using the token stored in .env"""
+        if not self.config.token:
+            logging.warning("Bot token missing in configuration!")
         # log_handler set to None, as a handler is already added in main.py
-        super().run(self.token, log_handler=None)
+        super().run(self.config.token, log_handler=None)
 
     async def on_ready(self):
-        """Runs automatically when the bot is online"""
         if self.user is None:
             raise RuntimeError("The bot is not associated with a user client account!")
 
@@ -64,11 +54,11 @@ class Bot(discord.Client):
         logging.info("Logged in as %s (ID: %d)", self.user.name, self.user.id)
 
         self.commands.find_and_register()
-        await self.commands.sync(self.guild_id, self.guilds)
+        await self.commands.sync(self.config.guild_id, self.guilds)
 
         Sounds.init_folders()
         VC.clean_temp_sounds()  # Files are often unused, clearing on launch cleans up storage.
-        if self.voice_enabled:
+        if self.config.voice_enabled:
             VC.check_ffmpeg()
         else:
             VC.disable_vc()

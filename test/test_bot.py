@@ -15,7 +15,6 @@ from mocking import (
     MockSound,
 )
 
-from bot import Bot
 from commands.command import BaseCommand, BaseCommandGroup
 from commands.tokengen import AlignH, AlignV
 from embeds.dnd.class_ import ClassEmbed

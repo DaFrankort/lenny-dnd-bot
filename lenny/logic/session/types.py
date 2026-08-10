@@ -82,8 +82,8 @@ class UserSessionDiceStats:
                 self.rolled_dice[size] += node.num
                 # TODO 1d8e8 -> should count as 2 rolls if exploded, is this the case?
 
-            for node in node.children:
-                add_from_node(node)
+            for child in node.children:
+                add_from_node(child)
 
         for roll in rolls:
             for node in roll.ast.children:

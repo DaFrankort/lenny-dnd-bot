@@ -1,5 +1,5 @@
 import io
-from typing import Counter
+from collections import Counter
 
 import discord
 from matplotlib import pyplot as plt
@@ -32,7 +32,7 @@ def _d20_comparison_chart(stats: UserSessionDiceStats, color: int) -> discord.Fi
 
     ax.tick_params(colors="white")  # type: ignore
     ax.grid(color="white", alpha=0.3, linewidth=1)  # type: ignore
-    for spine in ["top", "right", "bottom", "left"]:
+    for spine in ("top", "right", "bottom", "left"):
         ax.spines[spine].set_color("white")
 
     ax.set_xticks(x_faces)  # type: ignore

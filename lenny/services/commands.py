@@ -2,7 +2,8 @@ import importlib
 import inspect
 import logging
 import pkgutil
-from typing import Any, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 import discord
 
@@ -19,7 +20,7 @@ class CommandRegistry:
 
     def find_and_register(self):
         logging.info("Finding and registering discord commands...")
-        for pkg in [commands, context_menus]:
+        for pkg in (commands, context_menus):
             for _, mod_name, _ in pkgutil.walk_packages(pkg.__path__, pkg.__name__ + "."):
                 importlib.import_module(mod_name)
 
@@ -47,7 +48,7 @@ class CommandRegistry:
             if not inspect.isabstract(cls):
                 self.tree.add_command(cls())
 
-    async def sync(self, guild_id: int | None = None, client_guilds: Sequence[discord.Guild] = []) -> None:
+    async def sync(self, guild_id: int | None = None, client_guilds: Sequence[discord.Guild] | None = None) -> None:
         if guild_id and client_guilds:
             guild = discord.utils.get(client_guilds, id=guild_id)
             if guild:

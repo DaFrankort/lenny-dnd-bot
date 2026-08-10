@@ -90,3 +90,8 @@ def read_json_file(path: str) -> list[dict[str, Any]]:
         raise TypeError(f"Path is not a JSON file: '{path}'")
     with open(path, "r", encoding="utf-8") as file:
         return json.load(file)
+
+
+def groups_of_size(items: list[T], size: int) -> list[tuple[T, ...]]:
+    # https://stackoverflow.com/a/1624988
+    return [tuple(items[i : i + size]) for i in range(0, len(items), size)]

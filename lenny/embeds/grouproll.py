@@ -15,7 +15,52 @@ from embeds.embed import BaseEmbed, UserActionEmbed
 from logic.grouproll import GroupRoll, GroupRollRoll, GroupRollSet
 from logic.roll import Advantage
 from logic.voice_chat import VC, SoundType
-from methods import when
+from methods import groups_of_size, when
+
+
+class GroupRollButton(discord.ui.Button["GroupRollContainerView"]):
+    rolls_view: "GroupRollContainerView"
+    lockable: bool
+
+    def __init__(
+        self,
+        view: "GroupRollContainerView",
+        *,
+        style: discord.ButtonStyle = discord.ButtonStyle.secondary,
+        label: str | None = None,
+        disabled: bool = False,
+        custom_id: str | None = None,
+        url: str | None = None,
+        emoji: str | discord.Emoji | discord.PartialEmoji | None = None,
+        row: int | None = None,
+        sku_id: int | None = None,
+        id: int | None = None,
+    ):
+        self.rolls_view = view
+        self.lockable = True
+
+        super().__init__(
+            style=style,
+            label=label,
+            disabled=disabled,
+            custom_id=custom_id,
+            url=url,
+            emoji=emoji,
+            row=row,
+            sku_id=sku_id,
+            id=id,
+        )
+
+    def update_locked(self, locked: bool):
+        self.disabled = self.lockable and locked
+
+
+class GroupRollRollButton(GroupRollButton):
+    def __init__(self, view: "GroupRollContainerView"):
+        super().__init__(view, style=discord.ButtonStyle.success, custom_id="roll_btn", label="Roll")
+
+    async def callback(self, interaction: Interaction):
+        await interaction.response.send_modal(GroupRollRollModal(interaction, self.rolls_view))
 
 
 class GroupRollRollModal(BaseModal):
@@ -30,6 +75,8 @@ class GroupRollRollModal(BaseModal):
 
         self.view = view
         display_name = itr.user.display_name.title().strip()
+
+        # TODO add previously stored modifier based on view.reason
 
         self.name_input = BaseLabelTextInput(
             label="Name",
@@ -92,6 +139,14 @@ class GroupRollRollModal(BaseModal):
         return SoundType.ROLL
 
 
+class GroupRollSetButton(GroupRollButton):
+    def __init__(self, view: "GroupRollContainerView"):
+        super().__init__(view, style=discord.ButtonStyle.success, custom_id="set_btn", label="Set")
+
+    async def callback(self, interaction: Interaction):
+        await interaction.response.send_modal(GroupRollSetModal(interaction, self.rolls_view))
+
+
 class GroupRollSetModal(BaseModal):
     name_input: BaseLabelTextInput
     value_input: BaseLabelTextInput
@@ -137,6 +192,14 @@ class GroupRollSetModal(BaseModal):
         return self.get_int(self.value_input)
 
 
+class GroupRollDeleteButton(GroupRollButton):
+    def __init__(self, view: "GroupRollContainerView"):
+        super().__init__(view, style=discord.ButtonStyle.danger, custom_id="delete_btn", label="Delete Roll")
+
+    async def callback(self, interaction: Interaction):
+        await interaction.response.send_modal(GroupRollDeleteModal(interaction, self.rolls_view))
+
+
 class GroupRollDeleteModal(BaseModal):
     def __init__(self, itr: Interaction, view: "GroupRollContainerView"):
         self.view = view
@@ -179,6 +242,36 @@ class GroupRollDeleteModal(BaseModal):
         await itr.followup.send(embed=embed, ephemeral=True)
 
 
+class GroupRollLockButton(GroupRollButton):
+    def __init__(self, view: "GroupRollContainerView"):
+        super().__init__(view, style=discord.ButtonStyle.primary, custom_id="lock_btn", label="Lock")
+        self.lockable = False
+
+    async def callback(self, interaction: Interaction):
+        await VC.play(interaction, SoundType.LOCK, True)
+
+        if self.rolls_view.locked:
+            await interaction.response.edit_message(view=self.rolls_view.unlock())
+        else:
+            await interaction.response.edit_message(view=self.rolls_view.lock())
+
+    def update_locked(self, locked: bool):
+        super().update_locked(locked)
+
+        if locked:
+            self.label = "Unlock"
+        else:
+            self.label = "Lock"
+
+
+class GroupRollBulkButton(GroupRollButton):
+    def __init__(self, view: "GroupRollContainerView"):
+        super().__init__(view, style=discord.ButtonStyle.primary, custom_id="bulk_btn", label="Bulk")
+
+    async def callback(self, interaction: Interaction):
+        await interaction.response.send_modal(GroupRollBulkModal(interaction, self.rolls_view))
+
+
 class GroupRollBulkModal(BaseModal):
     modifier_input = BaseLabelTextInput(label="Creature's modifier", placeholder="0", max_length=3, required=False)
     name_input = BaseLabelTextInput(label="Creature's Name", max_length=128)
@@ -187,8 +280,8 @@ class GroupRollBulkModal(BaseModal):
     shared_input = ModalCheckboxComponent(label="Share rolls")
 
     def __init__(self, itr: Interaction, view: "GroupRollContainerView"):
-        super().__init__(itr, title=f"Adding bulk {self.view.reason}!")
         self.view = view
+        super().__init__(itr, title=f"Adding bulk {self.view.reason}!")
 
     async def on_submit(self, itr: Interaction):
         if self.modifier is None or self.amount is None:
@@ -250,12 +343,20 @@ class GroupRollBulkModal(BaseModal):
         return self.shared.component.value  # type: ignore
 
 
+class GroupRollClearButton(GroupRollButton):
+    def __init__(self, view: "GroupRollContainerView"):
+        super().__init__(view, style=discord.ButtonStyle.danger, custom_id="Clear_btn", label="Clear Rolls")
+
+    async def callback(self, interaction: Interaction):
+        await interaction.response.send_modal(GroupRollClearConfirmModal(interaction, self.rolls_view))
+
+
 class GroupRollClearConfirmModal(BaseModal):
     confirm = ModalCheckboxComponent(label="Yes, I want to clear all rolls.")
 
     def __init__(self, itr: Interaction, view: "GroupRollContainerView"):
-        super().__init__(itr, title="Are you sure you want to clear?")
         self.view = view
+        super().__init__(itr, title="Are you sure you want to clear?")
 
     async def on_submit(self, itr: Interaction):
         confirmed = self.confirm.value
@@ -274,89 +375,12 @@ class GroupRollClearConfirmModal(BaseModal):
         )
 
 
-class GroupRollPlayerRow(ui.ActionRow["GroupRollContainerView"]):
-    rolls_view: "GroupRollContainerView"
-
-    def __init__(self, view: "GroupRollContainerView"):
-        super().__init__()
-        self.rolls_view = view
-
-        roll_btn = ui.Button["GroupRollContainerView"](style=discord.ButtonStyle.success, custom_id="roll_btn", label="Roll")
-        roll_btn.callback = self.roll_grouproll
-        self.add_item(roll_btn)
-
-        set_btn = ui.Button["GroupRollContainerView"](style=discord.ButtonStyle.success, custom_id="set_btn", label="Set")
-        set_btn.callback = self.set_grouproll
-        self.add_item(set_btn)
-
-        delete_btn = ui.Button["GroupRollContainerView"](
-            style=discord.ButtonStyle.danger, custom_id="delete_btn", label="Delete Roll"
-        )
-        delete_btn.callback = self.remove_grouproll
-        delete_btn.disabled = len(self.rolls_view.rolls) <= 0
-        self.add_item(delete_btn)
-
-    async def roll_grouproll(self, interaction: Interaction):
-        await interaction.response.send_modal(GroupRollRollModal(interaction, self.rolls_view))
-
-    async def set_grouproll(self, interaction: Interaction):
-        await interaction.response.send_modal(GroupRollSetModal(interaction, self.rolls_view))
-
-    async def remove_grouproll(self, interaction: Interaction):
-        await interaction.response.send_modal(GroupRollDeleteModal(interaction, self.rolls_view))
-
-
-class GroupRollDMRow(ui.ActionRow["GroupRollContainerView"]):
-    roll_view: "GroupRollContainerView"
-
-    def __init__(self, view: "GroupRollContainerView"):
-        super().__init__()
-        self.roll_view = view
-
-        bulk_btn = ui.Button["GroupRollContainerView"](label="Bulk", style=discord.ButtonStyle.primary, custom_id="bulk_btn")
-        bulk_btn.callback = self.bulk_roll_grouproll
-        self.add_item(bulk_btn)
-
-        lock_btn = ui.Button["GroupRollContainerView"](label="Lock", style=discord.ButtonStyle.primary, custom_id="lock_btn")
-        lock_btn.callback = self.lock
-        self.add_item(lock_btn)
-
-        clear_btn = ui.Button["GroupRollContainerView"](
-            label="Clear Rolls",
-            style=discord.ButtonStyle.danger,
-            custom_id="clear_btn",
-        )
-        clear_btn.callback = self.clear_grouproll
-        clear_btn.disabled = len(self.roll_view.rolls) <= 0
-        self.add_item(clear_btn)
-
-    async def bulk_roll_grouproll(self, interaction: Interaction):
-        await interaction.response.send_modal(GroupRollBulkModal(interaction, self.roll_view))
-
-    async def lock(self, interaction: Interaction):
-        await VC.play(interaction, SoundType.LOCK, True)
-        await interaction.response.edit_message(view=self.roll_view.lock())
-
-    async def clear_grouproll(self, interaction: Interaction):
-        await interaction.response.send_modal(GroupRollClearConfirmModal(interaction, self.roll_view))
-
-
-class GroupRollUnlockButton(ui.Button["GroupRollContainerView"]):
-    roll_view: "GroupRollContainerView"
-
-    def __init__(self, view: "GroupRollContainerView"):
-        super().__init__(style=discord.ButtonStyle.primary, label="Unlock", custom_id="unlock_btn")
-        self.roll_view = view
-
-    async def callback(self, interaction: Interaction):
-        await VC.play(interaction, SoundType.LOCK, True)
-        await interaction.response.edit_message(view=self.roll_view.unlock())
-
-
 class GroupRollContainerView(ui.LayoutView):
     reason: str
     locked: bool
     rolls: dict[str, GroupRoll]
+    buttons: list[GroupRollButton]
+    buttons_per_row: int
 
     def __init__(self, reason: str):
         super().__init__(timeout=3600)
@@ -364,10 +388,23 @@ class GroupRollContainerView(ui.LayoutView):
         self.reason = reason
         self.locked = False
         self.rolls = {}
+        self.buttons = []
+        self.buttons_per_row = 3
+
+        self.buttons.append(GroupRollRollButton(self))
+        self.buttons.append(GroupRollSetButton(self))
+        self.buttons.append(GroupRollDeleteButton(self))
+
+        self.buttons.append(GroupRollBulkButton(self))
+        self.buttons.append(GroupRollLockButton(self))
+        self.buttons.append(GroupRollClearButton(self))
 
         self.build()
 
     def build(self) -> "GroupRollContainerView":
+        for button in self.buttons:
+            button.update_locked(self.locked)
+
         self.clear_items()
 
         container = ui.Container["GroupRollContainerView"](accent_color=discord.Color.dark_green())
@@ -383,12 +420,12 @@ class GroupRollContainerView(ui.LayoutView):
         container.add_item(ui.TextDisplay(description))
         container.add_item(BaseSeparator())
 
-        if self.locked:
-            unlock_section = ui.Section["GroupRollContainerView"]("‎", accessory=GroupRollUnlockButton(self))
-            container.add_item(unlock_section)
-        else:
-            container.add_item(GroupRollPlayerRow(self))
-            container.add_item(GroupRollDMRow(self))
+        button_groups = groups_of_size(self.buttons, self.buttons_per_row)
+        print(button_groups)
+
+        for group in button_groups:
+            action_row = ui.ActionRow["GroupRollContainerView"](*group)
+            container.add_item(action_row)
 
         self.add_item(container)
 

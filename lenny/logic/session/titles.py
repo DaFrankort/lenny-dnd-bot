@@ -107,7 +107,7 @@ class TitleHeavyHitter(SessionTitle):
 
     def _evaluate(self, stats: UserSessionDiceStats, all_session_stats: dict[int, UserSessionStats]) -> float:
         user_total_dmg = sum(stats.damage_totals)
-        if user_total_dmg == 0:
+        if user_total_dmg == 0 or len(all_session_stats.items()) <= 1:
             return 0
 
         max_dmg = max(sum(s.dice.damage_totals) for s in all_session_stats.values())
@@ -123,7 +123,7 @@ class TitleWeakHitter(SessionTitle):
 
     def _evaluate(self, stats: UserSessionDiceStats, all_session_stats: dict[int, UserSessionStats]) -> float:
         user_total_dmg = sum(stats.damage_totals)
-        if user_total_dmg == 0:
+        if user_total_dmg == 0 or len(all_session_stats.items()) <= 1:
             return 0
 
         min_dmg = min(sum(s.dice.damage_totals) for s in all_session_stats.values())

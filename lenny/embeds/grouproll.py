@@ -69,6 +69,7 @@ class GroupRollRollModal(BaseModal):
     reason: str
     name_input: BaseLabelTextInput
     modifier_input: BaseLabelTextInput
+    force_value_input: ModalCheckboxComponent
     advantage_input: ModalSelectComponent
 
     def __init__(self, itr: Interaction, view: "GroupRollContainerView"):
@@ -97,8 +98,13 @@ class GroupRollRollModal(BaseModal):
             options=Advantage.options(),
             required=False,
         )
+        self.force_value_input = ModalCheckboxComponent(
+            label="Force set value",
+            default=False,
+        )
 
         self.add_item(self.modifier_input)
+        self.add_item(self.force_value_input)
         self.add_item(self.name_input)
         self.add_item(self.advantage_input)
 
@@ -107,16 +113,27 @@ class GroupRollRollModal(BaseModal):
         modifier = self.modifier or "0"
         advantage = self.advantage or Advantage.NORMAL
 
-        DiceCache.get(itr).store_grouproll(self.view.reason, modifier)
-        group_roll = GroupRollRoll(itr, name, modifier, advantage)
 
-        title = f"{itr.user.name} rolled {self.view.reason} for {group_roll.name}{advantage.title_suffix}!"
-        descriptions: list[str] = []
+        if self.force_value:
+            try:
+                value = int(modifier)
+            except:
+                raise ValueError(f"Could not parse '{modifier}' as an integer when value was force set.")
+            group_roll = GroupRollSet(itr, name, value)
+            title = f"{itr.user.name} set {self.view.reason} for {group_roll.name}"
+            description = f"**{self.view.reason.title()}**: {group_roll.total}"
+        else:
+            # Only store in the dice cache if the value wasn't forced
+            DiceCache.get(itr).store_grouproll(self.view.reason, modifier)
 
-        for roll in group_roll.roll.result.rolls:
-            descriptions.append(f"- ``{roll.expr}`` -> {roll.total}")
-        descriptions.append(f"\n**{self.view.reason.title()}**: {group_roll.total}")
-        description = "\n".join(descriptions)
+            group_roll = GroupRollRoll(itr, name, modifier, advantage)
+            title = f"{itr.user.name} rolled {self.view.reason} for {group_roll.name}{advantage.title_suffix}!"
+            descriptions: list[str] = []
+
+            for roll in group_roll.roll.result.rolls:
+                descriptions.append(f"- ``{roll.expr}`` -> {roll.total}")
+            descriptions.append(f"\n**{self.view.reason.title()}**: {group_roll.total}")
+            description = "\n".join(descriptions)
 
         await VC.play(itr, self.sound, True)
         await itr.response.edit_message(view=self.view.add_roll(group_roll))
@@ -133,6 +150,10 @@ class GroupRollRollModal(BaseModal):
     @property
     def advantage(self) -> Advantage | None:
         return self.get_choice(self.advantage_input, Advantage)
+
+    @property
+    def force_value(self) -> bool:
+        return self.force_value_input.value
 
     @property
     def sound(self) -> SoundType:
@@ -155,10 +176,11 @@ class GroupRollSetModal(BaseModal):
     value_input: BaseLabelTextInput
 
     def __init__(self, itr: Interaction, view: "GroupRollContainerView"):
-        super().__init__(itr, title=f"Setting your {self.view.reason} value")
-
         self.view = view
         display_name = itr.user.display_name.title().strip()
+
+        super().__init__(itr, title=f"Setting your {self.view.reason} value")
+
 
         self.name_input = BaseLabelTextInput(label=display_name, required=False, max_length=128)
         self.value_input = BaseLabelTextInput(label="Value", max_length=3)

@@ -220,7 +220,6 @@ class GroupRollBulkButton(GroupRollButton):
 
 
 class GroupRollBulkModal(GroupRollModal):
-
     def __init__(self, itr: Interaction, view: "GroupRollContainerView"):
         super().__init__(itr, title=f"Adding bulk {view.reason} rolls", view=view)
 

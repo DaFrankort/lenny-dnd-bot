@@ -12,6 +12,7 @@ from embeds.components import (
     ModalSelectComponent,
 )
 from embeds.embed import BaseEmbed, UserActionEmbed
+from logic.dicecache import DiceCache
 from logic.grouproll import GroupRoll, GroupRollRoll, GroupRollSet
 from logic.roll import Advantage
 from logic.voice_chat import VC, SoundType
@@ -75,8 +76,7 @@ class GroupRollRollModal(BaseModal):
 
         self.view = view
         display_name = itr.user.display_name.title().strip()
-
-        # TODO add previously stored modifier based on view.reason
+        prev_value = DiceCache.get(itr).get_last_grouproll(view.reason)
 
         self.name_input = BaseLabelTextInput(
             label="Name",
@@ -88,6 +88,8 @@ class GroupRollRollModal(BaseModal):
             label="Your modifier",
             max_length=32,
             required=False,
+            default=prev_value,
+            placeholder=prev_value,
         )
         self.advantage_input = ModalSelectComponent(
             label="Roll mode",
@@ -105,6 +107,7 @@ class GroupRollRollModal(BaseModal):
         modifier = self.modifier or "0"
         advantage = self.advantage or Advantage.NORMAL
 
+        DiceCache.get(itr).store_grouproll(self.view.reason, modifier)
         group_roll = GroupRollRoll(itr, name, modifier, advantage)
 
         title = f"{itr.user.name} rolled {self.view.reason} for {group_roll.name}{advantage.title_suffix}!"

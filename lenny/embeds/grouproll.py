@@ -1,5 +1,6 @@
-from typing import Sequence
 import typing
+from typing import Sequence
+
 import discord
 from discord import Interaction, ui
 

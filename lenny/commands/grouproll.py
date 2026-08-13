@@ -15,4 +15,4 @@ class GroupRollCommand(BaseCommand):
     async def handle(self, itr: discord.Interaction, reason: str):
         view = GroupRollContainerView(reason=reason)
         await itr.response.send_message(view=view)
-        await VC.play(itr, SoundType.INITIATIVE, True)
+        await VC.play(itr, SoundType.LOCK, True)

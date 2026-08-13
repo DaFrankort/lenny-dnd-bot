@@ -56,10 +56,7 @@ class RollCommand(BaseCommand):
 
         await itr.response.send_message(embed=embed)
         await VC.play_dice_roll(itr, result, reason)
-
-        stats = SessionStatistics.get(itr)
-        if stats:
-            stats.add_roll(itr, result)
+        SessionStatistics.add_roll(itr, result)
 
 
 class D20Command(BaseCommand):
@@ -70,11 +67,10 @@ class D20Command(BaseCommand):
     async def handle(self, itr: discord.Interaction):
         result = roll("1d20", Advantage.NORMAL)
         embed = RollEmbed(itr, result, None)
+
         await itr.response.send_message(embed=embed)
         await VC.play_dice_roll(itr, result)
-        stats = SessionStatistics.get(itr)
-        if stats:
-            stats.add_roll(itr, result)
+        SessionStatistics.add_roll(itr, result)
 
 
 class MultiRollCommand(BaseCommand):
@@ -108,10 +104,7 @@ class MultiRollCommand(BaseCommand):
 
         await itr.response.send_message(embed=embed)
         await VC.play(itr, SoundType.ROLL)
-
-        stats = SessionStatistics.get(itr)
-        if stats:
-            stats.add_roll(itr, result)
+        SessionStatistics.add_roll(itr, result)
 
 
 async def table_roll_autocomplete(itr: discord.Interaction, current: str):

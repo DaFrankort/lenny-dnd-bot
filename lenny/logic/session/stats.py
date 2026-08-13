@@ -60,12 +60,7 @@ class SessionStats:
     _start: float
 
     def __init__(self, itr: discord.Interaction):
-        if not isinstance(itr.user, discord.Member):
-            raise PermissionError("Interaction must belong to a user.")
-        if not itr.user.voice:
-            raise PermissionError("Session stats can only be tracked for users in a voice-chat.")
-        if not itr.user.voice.channel:
-            raise PermissionError("User not in a valid voice channel.")
+        SessionStats.check_user(itr)
 
         self._start = itr.created_at.timestamp()
         self.user_data = {}
@@ -78,18 +73,17 @@ class SessionStats:
     def timestamp(self) -> str:
         return f"<t:{self._start}:R>"
 
-    def _check_user(self, itr: discord.Interaction) -> bool:
+    @staticmethod
+    def check_user(itr: discord.Interaction):
         if not isinstance(itr.user, discord.Member):
-            return False
+            raise PermissionError("Interaction must belong to a user.")
         if not itr.user.voice:
-            return False
-        if itr.user.bot:
-            return False
-        return True
+            raise PermissionError("Session stats can only be tracked for users in a voice-chat.")
+        if not itr.user.voice.channel:
+            raise PermissionError("User not in a valid voice channel.")
 
     def add_roll(self, itr: discord.Interaction, result: RollResult | MultiRollResult):
-        if not self._check_user(itr):
-            return
+        SessionStats.check_user(itr)
         if itr.user.id not in self.user_data:
             self.user_data[itr.user.id] = UserSessionStats()
         self.user_data[itr.user.id].dice.add(result)
@@ -177,6 +171,12 @@ class GlobalSessionStats:
         if voice_id not in self._sessions:
             raise KeyError("Session can't be stopped since it does not exist.")
         del self._sessions[voice_id]
+
+    def add_roll(self, itr: discord.Interaction, result: RollResult | MultiRollResult) -> SessionStats | None:
+        stats = self.get(itr)
+        if stats:
+            stats.add_roll(itr, result)
+        return stats
 
 
 SessionStatistics = GlobalSessionStats()

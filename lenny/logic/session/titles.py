@@ -59,7 +59,7 @@ class TitleRegistry:
 # d20 check related titles
 class TitleMostNat1(SessionTitle):
     name = "The Murphy's Law Enthusiast"
-    description = "Rolled the most Natural 1s this session."
+    description = "Rolled the most natural ones this session."
     weight = 10.0
 
     def _evaluate(self, stats: UserSessionDiceStats, all_session_stats: dict[int, UserSessionStats]) -> float:
@@ -74,7 +74,7 @@ class TitleMostNat1(SessionTitle):
 
 class TitleMostNat20(SessionTitle):
     name = "The Weighted Dice User"
-    description = "Rolled the most Natural 20s this session."
+    description = "Rolled the most natural twenties this session."
     weight = 10.0
 
     def _evaluate(self, stats: UserSessionDiceStats, all_session_stats: dict[int, UserSessionStats]) -> float:
@@ -139,11 +139,11 @@ class TitleAdvantage(SessionTitle):
     weight = 3.0
 
     def _evaluate(self, stats: UserSessionDiceStats, all_session_stats: dict[int, UserSessionStats]) -> float:
-        adv_count = stats.adv_count
+        adv_count = stats.advantage_percentage
         if adv_count == 0 or len(all_session_stats.items()) <= 2:
             return 0
 
-        max_count = max(s.dice.adv_count for s in all_session_stats.values())
+        max_count = max(s.dice.advantage_percentage for s in all_session_stats.values())
         if adv_count == max_count:
             return float(adv_count)
         return 0
@@ -155,11 +155,11 @@ class TitleDisadvantage(SessionTitle):
     weight = 3.0
 
     def _evaluate(self, stats: UserSessionDiceStats, all_session_stats: dict[int, UserSessionStats]) -> float:
-        dis_count = stats.dis_count
+        dis_count = stats.disadvantage_percentage
         if dis_count == 0 or len(all_session_stats.items()) <= 2:
             return 0
 
-        max_count = max(s.dice.dis_count for s in all_session_stats.values())
+        max_count = max(s.dice.disadvantage_percentage for s in all_session_stats.values())
         if dis_count == max_count:
             return float(dis_count)
         return 0

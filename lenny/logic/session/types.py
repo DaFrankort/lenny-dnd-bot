@@ -152,6 +152,14 @@ class UserSessionDiceStats:
                 most_used = (sides, uses)
         return most_used
 
+    @property
+    def advantage_percentage(self) -> float:
+        return self.adv_count / len(self.d20_totals)
+
+    @property
+    def disadvantage_percentage(self) -> float:
+        return self.dis_count / len(self.d20_totals)
+
 
 class UserSessionStats:
     dice: UserSessionDiceStats

@@ -1,78 +1,34 @@
 import dataclasses
 import io
+import itertools
 import math
 
 import d100
 import discord
 import matplotlib
+import matplotlib.axes
+import matplotlib.figure
+import matplotlib.legend
+import numpy as np
 from d100.distribution import Distribution
 from matplotlib import pyplot as plt
 
-from logic.color import UserColor
-from logic.roll import Advantage, parse
+from logic.color import (
+    ColorRGBFloat,
+    UserColor,
+    hue_shift_n_colors_from_base,
+    lerp_float_colors,
+)
+from logic.roll import Advantage, clean_expression, parse
+from methods import ChoicedEnum
 
 # Required to calculate the chart in a separate thread, https://stackoverflow.com/questions/27147300/matplotlib-tcl-asyncdelete-async-handler-deleted-by-the-wrong-thread
 matplotlib.use("Agg")
 
 
-@dataclasses.dataclass
-class DistributionResult:
-    expression: str
-    chart: discord.File
-    advantage: Advantage
-    mean: float
-    stdev: float
-    min: int
-    max: int
-    min_to_beat: tuple[float, float] | None
-
-
-def to_matplotlib_color(color: int) -> tuple[float, float, float]:
-    r, g, b = UserColor.to_rgb(color)
-    return (r / 255.0, g / 255.0, b / 255.0)
-
-
-def _distribution_chart(
-    dist: Distribution,
-    color: int,
-    min_to_beat: float,
-) -> discord.File:
-    keys = list(sorted(dist.keys()))
-    values = [100 * dist.get(key) for key in keys]  # In percent
-
-    white = UserColor.parse("#FFFFFF")
-
-    colors: list[tuple[float, float, float]] = []
-    for key in keys:
-        if key >= min_to_beat:
-            colors.append(to_matplotlib_color(color))
-        else:
-            colors.append(to_matplotlib_color(white))
-
-    plt.rcParams["figure.dpi"] = 600
-    fig, ax = plt.subplots(subplot_kw={})  # type: ignore
-
-    keys = list(dist.keys())
-    max_ticks = 20 / len(str(max(keys)))
-    steps = int(math.ceil(len(keys) / max_ticks))
-    ax.set_xticks(range(dist.min(), dist.max() + 1, steps))  # type: ignore
-    ax.yaxis.set_major_formatter("{x:.2f}%")  # Add percent on y-axis
-
-    ax.tick_params(colors="white")  # type: ignore
-    ax.grid(color="white", alpha=0.3, linewidth=1)  # type: ignore
-    ax.spines["top"].set_color("white")
-    ax.spines["right"].set_color("white")
-    ax.spines["bottom"].set_color("white")
-    ax.spines["left"].set_color("white")
-    ax.bar(keys, values, color=colors)  # type: ignore
-    ax.set_axisbelow(True)
-
-    buf = io.BytesIO()
-    plt.savefig(buf, format="png", bbox_inches="tight", transparent=True)  # type: ignore
-    buf.seek(0)
-    plt.close(fig)
-
-    return discord.File(fp=buf, filename="distribution.png")
+class DistributionChartStyle(ChoicedEnum):
+    ADJACENT = "adjacent"
+    OVERLAP = "overlap"
 
 
 def dice_distribution(expression: str, advantage: Advantage = Advantage.NORMAL):
@@ -80,36 +36,228 @@ def dice_distribution(expression: str, advantage: Advantage = Advantage.NORMAL):
     return d100.distribution(parsed)
 
 
+class SingleDistributionResult:
+    distribution: Distribution
+    advantage: Advantage
+    expression: str
+    min_to_beat: int | None
+
+    def __init__(self, expr: str, advantage: Advantage, min_to_beat: int | None) -> None:
+        self.expression = expr
+        self.min_to_beat = min_to_beat
+        self.advantage = advantage
+        self.distribution = dice_distribution(expr, advantage=advantage)
+
+    @property
+    def min_to_beat_odds(self) -> float:
+        if self.min_to_beat is None:
+            return 0
+
+        return self.distribution.get_at_least(self.min_to_beat)
+
+    @property
+    def min(self) -> int:
+        return self.distribution.min()
+
+    @property
+    def max(self) -> int:
+        return self.distribution.max()
+
+    @property
+    def mean(self) -> float:
+        return self.distribution.mean()
+
+    @property
+    def stdev(self) -> float:
+        return self.distribution.stdev()
+
+
+@dataclasses.dataclass
+class DistributionResult:
+    distributions: list[SingleDistributionResult]
+    chart: discord.File
+    advantage: Advantage
+    min_to_beat: int | None
+
+    @property
+    def min(self) -> int:
+        return min(dist.distribution.min() for dist in self.distributions)
+
+    @property
+    def max(self) -> int:
+        return max(dist.distribution.max() for dist in self.distributions)
+
+
+def to_matplotlib_color(color: int) -> tuple[float, float, float]:
+    r, g, b = UserColor.to_rgb(color)
+    return (r / 255.0, g / 255.0, b / 255.0)
+
+
+def _empty_distribution_chart(keys: list[int]) -> tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]:
+    plt.rcParams["figure.dpi"] = 600
+    fig, ax = plt.subplots(subplot_kw={})  # type: ignore
+
+    max_ticks = 20 / len(str(max(keys)))
+    steps = int(math.ceil(len(keys) / max_ticks))
+    ax.set_xticks(range(min(keys), max(keys) + 1, steps))  # type: ignore
+    ax.yaxis.set_major_formatter("{x:.2f}%")  # Add percent on y-axis
+    ax.tick_params(colors="white")  # type: ignore
+    ax.grid(color="white", alpha=0.3, linewidth=1)  # type: ignore
+    ax.spines["top"].set_color("white")
+    ax.spines["right"].set_color("white")
+    ax.spines["bottom"].set_color("white")
+    ax.spines["left"].set_color("white")
+    ax.set_axisbelow(True)
+
+    return fig, ax
+
+
+def _style_legend(legend: matplotlib.legend.Legend) -> None:
+    frame = legend.get_frame()
+    frame.set_alpha(None)
+    frame.set_facecolor((1, 1, 1, 0.25))
+
+    frame.set_edgecolor("white")
+    frame.set_linewidth(1)
+
+    for text in legend.texts:
+        text.set_color("white")
+
+    for handle in legend.legend_handles:
+        if not handle:
+            continue
+        if hasattr(handle, "set_markeredgecolor"):
+            handle.set_markeredgecolor("white")  # type: ignore
+        if hasattr(handle, "set_markeredgewidth"):
+            handle.set_markeredgewidth(0.5)  # type: ignore
+        if hasattr(handle, "set_edgecolor"):
+            handle.set_edgecolor("white")  # type: ignore
+
+
+def _convert_and_close_fig(fig: matplotlib.figure.Figure) -> io.BytesIO:
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", bbox_inches="tight", transparent=True)  # type: ignore
+    buf.seek(0)
+    plt.close(fig)
+
+    return buf
+
+
+def _single_distribution_chart(
+    dist: Distribution,
+    color: int,
+    min_to_beat: float,
+) -> discord.File:
+    plt_color = to_matplotlib_color(color)
+    white = to_matplotlib_color(UserColor.parse("#FFFFFF"))
+
+    keys = list(sorted(dist.keys()))
+    values = [100 * dist.get(key) for key in keys]  # In percent
+    colors = [plt_color if key >= min_to_beat else white for key in keys]
+
+    fig, ax = _empty_distribution_chart(keys)
+    ax.bar(keys, values, color=colors)  # type: ignore
+
+    buf = _convert_and_close_fig(fig)
+    return discord.File(fp=buf, filename="distribution.png")
+
+
+def _multi_adjacent_distribution_chart(dists: list[SingleDistributionResult], colors: list[ColorRGBFloat]) -> discord.File:
+    min_key = min(dist.min for dist in dists)
+    max_key = max(dist.max for dist in dists)
+    keys = list(range(min_key, max_key + 1))
+
+    fig, ax = _empty_distribution_chart(keys)
+
+    total_bar_width = 0.8
+    single_bar_width = total_bar_width / len(dists)
+
+    for i, dist in enumerate(dists):
+        values = [100 * dist.distribution.get(key) for key in keys]  # In percent
+
+        offset = i * single_bar_width - total_bar_width / 2 + single_bar_width / 2
+        ax.bar(np.array(keys) + offset, values, width=single_bar_width, label=dist.expression, color=colors[i])  # type: ignore
+
+    _style_legend(ax.legend())  # type: ignore
+
+    buf = _convert_and_close_fig(fig)
+    return discord.File(fp=buf, filename="distribution.png")
+
+
+def _multi_overlap_distribution_chart(dists: list[SingleDistributionResult], colors: list[ColorRGBFloat]) -> discord.File:
+    """
+    Matplotlib does not blend colors when multiple bar charts are overlapping. To address this,
+    we manually calculate the overlapping regions and draw the regions with the most overlap
+    latest.
+    """
+
+    colors = colors[: len(dists)]
+
+    min_key = min(dist.min for dist in dists)
+    max_key = max(dist.max for dist in dists)
+    keys = list(range(min_key, max_key + 1))
+
+    fig, ax = _empty_distribution_chart(keys)
+
+    # This dict contains all the overlaps for all distributions. For example, key
+    # (0, 2, 3) contains the overlapping regions for the distributions at indices
+    # 0, 2, and 3
+    values: dict[tuple[int, ...], list[float]] = {}
+
+    for size in range(1, len(dists) + 1):
+        for combination in itertools.combinations(range(len(dists)), size):
+            overlap = [100 * min(dists[i].distribution.get(key) for i in combination) for key in keys]
+            values[combination] = overlap
+
+    combinations = sorted(values.keys(), key=lambda comb: (len(comb), comb))
+    for combination in combinations:
+        merged_color = lerp_float_colors(list(colors[i] for i in combination))
+        value = values[combination]
+
+        # If there is one value in the combination, it's one of the original distributions
+        # In this case, add a label
+        if len(combination) == 1:
+            label = dists[combination[0]].expression
+        else:
+            label = None
+
+        ax.bar(keys, value, color=merged_color, label=label)  # type: ignore
+
+    _style_legend(ax.legend())  # type: ignore
+
+    buf = _convert_and_close_fig(fig)
+    return discord.File(fp=buf, filename="distribution.png")
+
+
 def distribution(
-    expression: str,
+    expressions: str,
     advantage: Advantage,
     color: int,
-    min_to_beat: float | None = None,
+    min_to_beat: int | None = None,
+    style: DistributionChartStyle = DistributionChartStyle.ADJACENT,
 ):
-    cleaned = str(d100.parse(expr=expression))
-    dist = dice_distribution(expression, advantage)
+    split = expressions.split(",")
+    cleaned = [clean_expression(expr) for expr in split if expr]
+    results = [SingleDistributionResult(expr, advantage, min_to_beat) for expr in cleaned]
 
-    if min_to_beat is None:
-        min_to_beat = 0
-        min_to_beat_and_odds = None
+    rgb = to_matplotlib_color(color)
+    colors = hue_shift_n_colors_from_base(rgb, len(results), fallback_color=(1.0, 0.0, 0.0))
+
+    if len(results) == 0:
+        raise ValueError(f"Expected at least one dice expression in '{expressions}'!")
+
+    if len(results) == 1:
+        chart = _single_distribution_chart(dist=results[0].distribution, color=color, min_to_beat=min_to_beat or 0)
+    elif style == DistributionChartStyle.ADJACENT:
+        chart = _multi_adjacent_distribution_chart(results, colors)
+    elif style == DistributionChartStyle.OVERLAP:
+        chart = _multi_overlap_distribution_chart(results, colors)
     else:
-        min_to_beat = float(min_to_beat or 0)
-        odds = 0
-        for key in dist.keys():
-            odds += dist.get(key) if key >= min_to_beat else 0
-        min_to_beat_and_odds = (min_to_beat, odds)
-
-    mean = dist.mean()
-    stdev = dist.stdev()
-    chart = _distribution_chart(dist, color, min_to_beat)
+        raise ValueError(f"Unsupported chart style: {style}")
 
     return DistributionResult(
-        expression=cleaned,
+        distributions=results,
         chart=chart,
         advantage=advantage,
-        mean=mean,
-        stdev=stdev,
-        min=dist.min(),
-        max=dist.max(),
-        min_to_beat=min_to_beat_and_odds,
+        min_to_beat=min_to_beat,
     )

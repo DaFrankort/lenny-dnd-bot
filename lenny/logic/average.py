@@ -1,6 +1,8 @@
+import csv
 import dataclasses
 import io
 import re
+import time
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 
@@ -74,7 +76,7 @@ def _calculate_hit_chances(
     return normal_hit_chance, miss_chance, crit_hit_chance
 
 
-def _average_damage_per_attack(
+def _average_damage(
     hit: str,
     damage: str,
     ac: int,
@@ -82,18 +84,29 @@ def _average_damage_per_attack(
     crit_min: int,
     miss_damage_expr: str = "0",
     ignore_crit: bool = False,
+    attacks: int = 1,
 ) -> AverageDamageResult:
-    hit_chance, miss_chance, crit_chance = _calculate_hit_chances(hit, ac, advantage, crit_min, ignore_crit)
+    # Unlike other advantages, savage attacker should apply advantage to the
+    # *damage* and not the hit chances!
+    if advantage == Advantage.SAVAGE_ATTACKER:
+        hit_chance, miss_chance, crit_chance = _calculate_hit_chances(hit, ac, Advantage.NORMAL, crit_min, ignore_crit)
 
-    hit_damage = dice_distribution(damage)
-    miss_damage = dice_distribution(miss_damage_expr)
-    crit_damage = dice_distribution(double_dice_in_expression(damage))
+        hit_damage = dice_distribution(damage, advantage=Advantage.SAVAGE_ATTACKER)
+        miss_damage = dice_distribution(miss_damage_expr, advantage=Advantage.SAVAGE_ATTACKER)
+        crit_damage = dice_distribution(double_dice_in_expression(damage), advantage=Advantage.SAVAGE_ATTACKER)
+    else:
+        hit_chance, miss_chance, crit_chance = _calculate_hit_chances(hit, ac, advantage, crit_min, ignore_crit)
+
+        hit_damage = dice_distribution(damage)
+        miss_damage = dice_distribution(miss_damage_expr)
+        crit_damage = dice_distribution(double_dice_in_expression(damage))
 
     hit_avg = hit_damage.mean()
     miss_avg = miss_damage.mean()
     crit_avg = crit_damage.mean()
 
-    avg = (hit_chance * hit_avg) + (miss_chance * miss_avg) + (crit_chance * crit_avg)
+    avg_per_attack = (hit_chance * hit_avg) + (miss_chance * miss_avg) + (crit_chance * crit_avg)
+    avg = avg_per_attack * attacks
 
     return AverageDamageResult(
         hit=hit,
@@ -110,6 +123,13 @@ def _average_damage_per_attack(
     )
 
 
+@dataclasses.dataclass
+class ChartLabels:
+    title: str
+    xlabel: str
+    ylabel: str
+
+
 class AverageDamageResultsBase(ABC):
     """Base class to handle data calculation and chart generation."""
 
@@ -118,6 +138,7 @@ class AverageDamageResultsBase(ABC):
     data: dict[tuple[int, Advantage], float]
 
     chart: discord.File
+    csv: discord.File
     table: str
 
     damage: str
@@ -128,38 +149,37 @@ class AverageDamageResultsBase(ABC):
         x_values: list[int],
         damage: str,
         miss_damage: str,
-        title: str,
-        xlabel: str,
-        ylabel: str,
         calc_func: Callable[[int, Advantage], AverageDamageResult],
     ):
         self.x_values = x_values
-        self.advantages = Advantage.values()
+        self.advantages = [Advantage.NORMAL, Advantage.ADVANTAGE, Advantage.DISADVANTAGE]
         self.damage = damage.strip().replace(" ", "").lower()
         self.miss_damage = miss_damage.strip().replace(" ", "").lower()
         self.data = {}
 
         for x in self.x_values:
-            for adv in self.advantages:
+            for adv in Advantage.values():
                 self.data[(x, adv)] = calc_func(x, adv).avg_damage
 
-        self.chart = self.generate_chart(title, xlabel, ylabel)
+        self.chart = self.generate_chart()
+        self.csv = self.generate_csv()
         self.table = self.generate_table()
 
     def get(self, x: int, adv: Advantage) -> str:
         return f"{self.data.get((x, adv), 0.0):.2f}"
 
-    def generate_chart(self, title: str, xlabel: str, ylabel: str) -> discord.File:
+    def generate_chart(self) -> discord.File:
         plt.style.use("dark_background")  # Looks better in Discord
         plt.figure(figsize=(10, 6))  # type: ignore
 
         for adv in self.advantages:
             y_values = [float(self.get(x, adv)) for x in self.x_values]
-            plt.plot(self.x_values, y_values, label=adv, marker="o", markersize=4)  # type: ignore
+            plt.plot(self.x_values, y_values, label=adv.value, marker="o", markersize=4)  # type: ignore
 
-        plt.title(title)  # type: ignore
-        plt.xlabel(xlabel)  # type: ignore
-        plt.ylabel(ylabel)  # type: ignore
+        labels = self.chart_labels
+        plt.title(labels.title)  # type: ignore
+        plt.xlabel(labels.xlabel)  # type: ignore
+        plt.ylabel(labels.ylabel)  # type: ignore
         plt.grid(True, linestyle="--", alpha=0.6)  # type: ignore
         plt.legend(title="Advantage Type")  # type: ignore
         plt.xticks(self.x_values)  # type: ignore
@@ -169,10 +189,28 @@ class AverageDamageResultsBase(ABC):
         plt.close()
         buffer.seek(0)
 
-        return discord.File(fp=buffer, filename="average_chart.png")
+        filename = f"average_chart_{int(time.time())}.png"
+        return discord.File(fp=buffer, filename=filename)
+
+    def _headers(self, advantages: list[Advantage]) -> list[str]:
+        return [self.label, *[adv.capitalize() for adv in advantages]]
+
+    def generate_csv(self) -> discord.File:
+        advantages = Advantage.values()  # easier to work with if the format is always the same.
+        buffer = io.StringIO()
+        writer = csv.writer(buffer)
+        writer.writerow(self._headers(advantages))
+
+        for x in self.x_values:
+            row = [str(x), *[self.get(x, adv) for adv in advantages]]
+            writer.writerow(row)
+
+        bytes_buffer = io.BytesIO(buffer.getvalue().encode("utf-8"))
+        bytes_buffer.seek(0)
+        return discord.File(fp=bytes_buffer, filename=f"damage_vs_{self.label}_{int(time.time())}.csv")
 
     def generate_table(self) -> str:
-        headers = [self.label, *[str(adv).capitalize() for adv in self.advantages]]
+        headers = self._headers(self.advantages)
         rows = [(str(x), *[self.get(x, adv) for adv in self.advantages]) for x in self.x_values]
         return build_table_from_rows(headers, rows, align_right=True)
 
@@ -191,10 +229,16 @@ class AverageDamageResultsBase(ABC):
     def details(self) -> str:
         """The formatted string showing the input of the user."""
 
+    @property
+    @abstractmethod
+    def chart_labels(self) -> ChartLabels:
+        """Labels used for the chart."""
+
 
 class AverageDamageACResults(AverageDamageResultsBase):
     hit_expr: str
     crit_min: int
+    attacks: int
 
     def __init__(
         self,
@@ -204,19 +248,19 @@ class AverageDamageACResults(AverageDamageResultsBase):
         max_ac: int,
         crit_min: int,
         miss_damage: str,
+        attacks: int,
     ) -> None:
+        hit = hit.lstrip("+").replace(" ", "")
         self.hit_expr = f"1d20+{hit}" if not hit.startswith("-") else f"1d20{hit}"
         self.crit_min = crit_min
+        self.attacks = attacks
         acs = list(range(min(min_ac, max_ac), max(min_ac, max_ac) + 1))
 
         super().__init__(
             x_values=acs,
             damage=damage,
             miss_damage=miss_damage,
-            title="Average Damage vs Armor Class",
-            xlabel="Armor Class (AC)",
-            ylabel=f"Avg. Damage ({self.hit_expr} -> {damage})",
-            calc_func=lambda ac, adv: _average_damage_per_attack(hit, damage, ac, adv, crit_min, miss_damage),
+            calc_func=lambda ac, adv: _average_damage(hit, damage, ac, adv, crit_min, miss_damage, attacks=attacks),
         )
 
     @property
@@ -225,17 +269,29 @@ class AverageDamageACResults(AverageDamageResultsBase):
 
     @property
     def title(self) -> str:
-        return "Average Damage per Attack"
+        return "Average Damage"
 
     @property
     def details(self) -> str:
         details = f"**Hit**: {self.hit_expr}"
         details += f"\n**Damage**: {self.damage}"
+
+        if self.attacks != 1:
+            details += f"\n**Attacks**: {self.attacks}"
+
         if self.miss_damage != "0":
             details += f"\n**Miss damage:** {self.miss_damage}"
         if self.crit_min < 20:
             details += f"\n**Critical range:** {self.crit_min}-20"
         return details
+
+    @property
+    def chart_labels(self):
+        if self.attacks == 1:
+            ylabel = f"Avg. Damage ({self.hit_expr} -> {self.damage})"
+        else:
+            ylabel = f"Avg. Damage ({self.hit_expr} -> {self.damage}, {self.attacks} attacks)"
+        return ChartLabels(title="Average Damage vs Armor Class", xlabel="Armor Class (AC)", ylabel=ylabel)
 
 
 class AverageDamageDCResults(AverageDamageResultsBase):
@@ -256,10 +312,7 @@ class AverageDamageDCResults(AverageDamageResultsBase):
             x_values=mods,
             damage=damage,
             miss_damage=miss_damage,
-            title=f"Average Damage using DC {self.dc}",
-            xlabel="Saving Throw Modifier (1d20+x)",
-            ylabel=f"Avg. Damage ({damage} or {miss_damage})",
-            calc_func=lambda mod, adv: _average_damage_per_attack(
+            calc_func=lambda mod, adv: _average_damage(
                 str(mod), miss_damage, dc, adv, 20, damage, True
             ),  # Swap damage/miss_damage and use ignore_crit for Save DCs
         )
@@ -278,3 +331,11 @@ class AverageDamageDCResults(AverageDamageResultsBase):
         details += f"\n**Damage:** {self.damage}"
         details += f"\n**Miss damage:** {self.miss_damage}"
         return details
+
+    @property
+    def chart_labels(self):
+        return ChartLabels(
+            title=f"Average Damage using DC {self.dc}",
+            xlabel="Saving Throw Modifier (1d20+x)",
+            ylabel=f"Avg. Damage ({self.damage} or {self.miss_damage})",
+        )

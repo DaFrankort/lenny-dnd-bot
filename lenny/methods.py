@@ -1,4 +1,6 @@
+import json
 import logging
+import os
 from collections.abc import Callable
 from enum import Enum
 from typing import Any, TypeVar
@@ -61,3 +63,30 @@ def call_with_timeout(timeout: int, func: Callable[..., T], args: list[Any]) -> 
         return None
 
     return proc.result
+
+
+def join_strings(strings: list[str], separator: str, final_separator: str) -> str:
+    """
+    Join multiple strings together with a special final separator. For example:
+    join_strings(["a", "b", "c"], ",", ", and")  -> "a, b, and c"
+    """
+    if len(strings) == 0:
+        return ""
+
+    if len(strings) == 1:
+        return strings[0]
+
+    first_strings = strings[:-1]
+    last_string = strings[-1]
+    first_part = separator.join(first_strings)
+
+    return final_separator.join([first_part, last_string])
+
+
+def read_json_file(path: str) -> list[dict[str, Any]]:
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"JSON file not found: '{path}'")
+    if not os.path.isfile(path):
+        raise TypeError(f"Path is not a JSON file: '{path}'")
+    with open(path, "r", encoding="utf-8") as file:
+        return json.load(file)

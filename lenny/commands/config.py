@@ -32,7 +32,7 @@ async def source_autocomplete(itr: discord.Interaction, current: str) -> list[di
     except ValueError:
         return []  # If user fills in `search` before `content`, return nothing.
 
-    matches = fuzzy_matches_list(current, [f"{e.id}{sep}{e.name}" for e in entries])
+    matches = fuzzy_matches_list(current, [f"{e.source}{sep}{e.name}" for e in entries])
     results: list[discord.app_commands.Choice[str]] = []
     for result in matches[:25]:
         src, name = result.choice.name.split(sep)

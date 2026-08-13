@@ -18,6 +18,7 @@ class Advantage(str, ChoicedEnum):
     ADVANTAGE = "advantage"
     DISADVANTAGE = "disadvantage"
     ELVEN_ACCURACY = "elven accuracy"
+    SAVAGE_ATTACKER = "savage attacker"
 
     @property
     def title_suffix(self) -> str:
@@ -25,13 +26,14 @@ class Advantage(str, ChoicedEnum):
             self.ADVANTAGE: " with advantage",
             self.DISADVANTAGE: " with disadvantage",
             self.ELVEN_ACCURACY: " with elven accuracy",
+            self.SAVAGE_ATTACKER: " with savage attacker",
         }
         return suffixes.get(self, "")
 
     @property
     def rolls(self) -> int:
         match self:
-            case Advantage.ADVANTAGE | Advantage.DISADVANTAGE:
+            case Advantage.ADVANTAGE | Advantage.DISADVANTAGE | Advantage.SAVAGE_ATTACKER:
                 return 2
             case Advantage.ELVEN_ACCURACY:
                 return 3
@@ -92,6 +94,8 @@ def parse(expr: str, advantage: Advantage) -> tuple[ASTExpression, set[str]]:
                 parsed = d100.utils.add_advantage_to_d20_in_expression(parsed, "adv", 3)
             case Advantage.DISADVANTAGE:
                 parsed = d100.utils.add_advantage_to_d20_in_expression(parsed, "dis", 2)
+            case Advantage.SAVAGE_ATTACKER:
+                parsed = d100.parse(f"({expr})adv2")
             case _:
                 raise RollError(f"Unknown advantage type: {advantage.value}")
 
@@ -113,8 +117,12 @@ def _validate_expression(expr: str) -> D20RollResult:
         raise exception
 
 
+def clean_expression(expr: str) -> str:
+    return str(d100.parse(expr))
+
+
 def roll(expr: str, advantage: Advantage = Advantage.NORMAL) -> RollResult:
-    cleaned = str(d100.parse(expr))
+    cleaned = clean_expression(expr)
     parsed, warnings = parse(expr, advantage)
 
     stringifier = DiceStringifier()
@@ -124,7 +132,7 @@ def roll(expr: str, advantage: Advantage = Advantage.NORMAL) -> RollResult:
 
 
 def multi_roll(expr: str, amount: int, advantage: Advantage) -> MultiRollResult:
-    cleaned = str(d100.parse(expr))
+    cleaned = clean_expression(expr)
     parsed, parsing_warnings = parse(expr, advantage)
     stringifier = DiceStringifier()
     validation = _validate_expression(expr)

@@ -18,13 +18,12 @@ class Spell(DNDEntry):
     def __init__(self, obj: dict[str, Any]):
         self.entry_type = DNDEntryType.SPELL
 
-        self.name = obj["name"]
-        self.source = obj["source"]
+        super().__init__(obj)
         self.url = obj["url"]
 
         self.level = obj["level"]
         self.school = obj["school"]
-        self.casting_time = obj["casting_time"]
+        self.casting_time = obj["castingTime"]
         self.spell_range = obj["range"]
         self.components = obj["components"]
         self.duration = obj["duration"]

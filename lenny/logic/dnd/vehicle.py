@@ -13,8 +13,7 @@ class Vehicle(DNDEntry):
     def __init__(self, obj: dict[str, Any]):
         self.entry_type = DNDEntryType.VEHICLE
 
-        self.name = obj["name"]
-        self.source = obj["source"]
+        super().__init__(obj)
         self.url = obj["url"]
 
         self.token_url = obj["tokenUrl"]

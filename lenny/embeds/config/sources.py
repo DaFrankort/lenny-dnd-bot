@@ -3,7 +3,7 @@ import discord
 from embeds.components import BaseSeparator, PaginatedLayoutView
 from embeds.config.config import ConfigAllowButton
 from logic.config import Config
-from logic.dnd.source import ContentChoice, Source, SourceList
+from logic.dnd.source import ContentChoice, GlobalSourceList, Source
 
 
 class ConfigManageSourcesButton(ConfigAllowButton):
@@ -18,7 +18,7 @@ class ConfigManageSourcesButton(ConfigAllowButton):
         config = Config.get(itr)
         allowed_sources = config.allowed_sources
 
-        allowed = self.source.id in allowed_sources
+        allowed = self.source.source in allowed_sources
         disabled = not allow_configuration
 
         super().__init__(allowed=allowed, disabled=disabled)
@@ -29,9 +29,9 @@ class ConfigManageSourcesButton(ConfigAllowButton):
             raise PermissionError("You don't have permission to edit sources!")
 
         if self.allowed:
-            config.disallow_source(self.source.id)
+            config.disallow_source(self.source.source)
         else:
-            config.allow_source(self.source.id)
+            config.allow_source(self.source.source)
         await self.sources_view.rebuild(interaction)
 
 
@@ -49,11 +49,11 @@ class ConfigSourcesView(PaginatedLayoutView):
         self.search = search
 
         if self.search:
-            all_sources = SourceList(self.content)
+            all_sources = GlobalSourceList(self.content)
             sorted_entries = sorted(all_sources.entries, key=lambda s: s.name)
 
             try:
-                found_index = next(i for i, s in enumerate(sorted_entries) if s.id == self.search)
+                found_index = next(i for i, s in enumerate(sorted_entries) if s.source == self.search)
                 self.page = found_index // self.per_page
             except StopIteration:
                 self.page = 0
@@ -72,10 +72,10 @@ class ConfigSourcesView(PaginatedLayoutView):
         container.add_item(BaseSeparator())
 
         # Source list
-        sources = SourceList(self.content)
+        sources = GlobalSourceList(self.content)
         sources = sorted(sources.entries, key=lambda s: s.name)
         for source in self.viewed_sources:
-            name = f"**{source.name}**" if source.id == self.search else source.name
+            name = f"**{source.name}**" if source.source == self.search else source.name
             text = discord.ui.TextDisplay[discord.ui.LayoutView](name)
             button = ConfigManageSourcesButton(self, self.itr, source, self.allow_configuration)
             container.add_item(discord.ui.Section[discord.ui.LayoutView](text, accessory=button))
@@ -88,12 +88,12 @@ class ConfigSourcesView(PaginatedLayoutView):
 
     @property
     def entry_count(self) -> int:
-        sources = SourceList(self.content)
+        sources = GlobalSourceList(self.content)
         return len(sources.entries)
 
     @property
     def viewed_sources(self) -> list[Source]:
-        sources = SourceList(self.content)
+        sources = GlobalSourceList(self.content)
         sources = sorted(sources.entries, key=lambda s: s.name)
 
         start = self.page * self.per_page

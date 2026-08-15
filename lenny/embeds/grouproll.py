@@ -118,7 +118,7 @@ class GroupRollRollModal(GroupRollModal):
         if self.force_value:
             try:
                 value = int(modifier)
-            except:
+            except Exception:
                 raise ValueError(f"Could not parse '{modifier}' as an integer when value was force set.")
             group_roll = GroupRollSet(itr, name, value)
             title = f"{itr.user.name} set {self.view.reason} for {group_roll.name}"
@@ -284,7 +284,7 @@ class GroupRollBulkModal(GroupRollModal):
         if force_value:
             try:
                 value = int(modifier)
-            except:
+            except Exception:
                 raise ValueError(f"Could not parse '{modifier}' as an integer when value was force set.")
             rolls = [GroupRollSet(itr, name, value) for _ in range(amount)]
         else:

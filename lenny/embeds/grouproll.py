@@ -1,5 +1,5 @@
 import typing
-from typing import Sequence
+from collections.abc import Sequence
 
 import discord
 from discord import Interaction, ui
@@ -43,7 +43,6 @@ class GroupRollButton(discord.ui.Button["GroupRollContainerView"]):
         emoji: str | discord.Emoji | discord.PartialEmoji | None = None,
         row: int | None = None,
         sku_id: int | None = None,
-        id: int | None = None,
     ):
         self.rolls_view = view
 
@@ -56,7 +55,6 @@ class GroupRollButton(discord.ui.Button["GroupRollContainerView"]):
             emoji=emoji,
             row=row,
             sku_id=sku_id,
-            id=id,
         )
 
 
@@ -118,8 +116,8 @@ class GroupRollRollModal(GroupRollModal):
         if self.force_value:
             try:
                 value = int(modifier)
-            except Exception:
-                raise ValueError(f"Could not parse '{modifier}' as an integer when value was force set.")
+            except Exception as exc:
+                raise ValueError(f"Could not parse '{modifier}' as an integer when value was force set.") from exc
             group_roll = GroupRollSet(itr, name, value)
             title = f"{itr.user.name} set {self.view.reason} for {group_roll.name}"
             description = f"**{self.view.reason.title()}**: {group_roll.total}"
@@ -284,8 +282,8 @@ class GroupRollBulkModal(GroupRollModal):
         if force_value:
             try:
                 value = int(modifier)
-            except Exception:
-                raise ValueError(f"Could not parse '{modifier}' as an integer when value was force set.")
+            except Exception as exc:
+                raise ValueError(f"Could not parse '{modifier}' as an integer when value was force set.") from exc
             rolls = [GroupRollSet(itr, name, value) for _ in range(amount)]
         else:
             rolls = [GroupRollRoll(itr, name, modifier, advantage) for _ in range(amount)]

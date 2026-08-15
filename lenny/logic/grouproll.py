@@ -58,4 +58,4 @@ class GroupRollSet:
         return self.owner.id == user.id
 
 
-GroupRoll = Union[GroupRollRoll, GroupRollSet]
+GroupRoll = GroupRollRoll | GroupRollSet

@@ -27,7 +27,7 @@ class GroupRollRoll:
         # Check if the modifier contains a d20 expression, e.g. "1d20 + 5". In this case, the user
         # most likely made a mistake and placed the entire expression, rather than just the modifier.
         expr, _ = parse(modifier, advantage=advantage)
-        if expr.find_d20() != None:
+        if expr.find_d20() is not None:
             self.roll = roll(modifier, advantage=advantage)
         else:
             self.roll = roll(f"1d20 + ({modifier})", advantage=advantage)

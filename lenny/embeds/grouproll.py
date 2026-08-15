@@ -159,6 +159,8 @@ class GroupRollRollModal(GroupRollModal):
         # Specific use case for initiatives
         if self.view.reason == "initiative":
             return SoundType.CREATURE if self.name else SoundType.PLAYER
+        if self.force_value:
+            return SoundType.WRITE
         return SoundType.ROLL
 
 

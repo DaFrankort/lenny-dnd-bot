@@ -208,8 +208,8 @@ class HelpTabList:
                 "Initiative",
                 [
                     "A special version of this command called ``/initiative`` is also available, allowing you to more quickly roll for initiative."
-                ]
-            )
+                ],
+            ),
         ],
     )
 

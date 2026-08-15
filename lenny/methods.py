@@ -95,7 +95,7 @@ def read_json_file(path: str) -> list[dict[str, Any]]:
 def groups_of_size(items: list[T], size: int) -> list[tuple[T, ...]]:
     """
     Groups an list of elements into tuples of a certain size.
-    
+
     For example, take the list [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]. Calling groups_of_size(items, 3) will
     split this list into [(1,2,3), (4,5,6), (7,8,9), (10)].
     """

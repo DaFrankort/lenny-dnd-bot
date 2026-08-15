@@ -13,7 +13,7 @@ Powered by [5e.tools](https://5e.tools/) for up-to-date 5e data based on the [Le
 - **Character Stat Rolling**: Automatically roll and generate D&D character stats.
 - **Voice Chat Sound Effects**: The bot can join voice channels to play sound effects for your rolls, including special sounds for natural 1s and 20s, as well as effects for attacks, damage, and fire.
 - **Token-Image Generation** - Generate a 5etools-style token from an image or image-url for your characters or custom creatures.
-- **Initiative Tracking** - Track initiatives for combat easily, with easy-to-use buttons for players and dungeon masters.
+- **Group Roll Tracking** - Track initiatives and other group rolls for combat easily, with easy-to-use buttons for players and dungeon masters.
 - **Discord Utilities** - Various utility commands to help with planning sessions, generating timestamps, and playing sound effects.
 
 ## Installation
@@ -97,9 +97,11 @@ Roll D&D dice using dice-expressions (e.g. `2d6` / `1d20+2`).
 - `/d20` - Rolls a basic 1d20 without any modifiers.
 - `/multiroll <dice-expression> <amount> [advantage] [reason]` – Roll a dice expression multiple times, shows the individual results as well as the total.
 - `/tableroll <table-name> <roll-result>` - Rolls on a D&D table from 5e.tools, showing the result and it's description.
+- `/grouproll <reason>` - Create an embed so multiple people can roll at once. A special variant for initiative is available to make rolling initiative easier!
 
 Additionally there are some advanced dice roll commands for analyzing your rolls, helping to optimize your builds or balance your encounters.
 The averages commands also export the results to a CSV file for further analysis.
+
 - `/distribution <expression> [advantage] [min-to-beat] [style]` - Creates a graph showing likeliness of your dice expression's roll results. Supports multiple distributions at once.
 - `/average ac <hit> <damage> [min_ac] [max_ac] [crit_min] [miss_damage] [attack_count]` - Calculate the average damage of an attack based on hit chance and critical range against various armor classes.
 - `/average dc <dc> <damage> <miss_damage> [min_mod] [max_mod]` - Calculate the average damage of a save-based attack based on save DC against various saving throw modifiers.
@@ -186,19 +188,8 @@ By default the user's color is automatically generated based on their display na
 - `/color clear` - Clears your set color and enforces use of an auto-generated color.
 - `/color show` - Shows the color you've set to everyone.
 
-### Track Initiative
-
-Command to help track initiatives for combat. Names are enforced to be unique and will overwrite each other if specified twice.
-
-- `/initiative` - Summons an embed with buttons to track initiative. Available buttons are as follows:
-  - `Roll` - Rolls initiative for a user, can also roll for a creature if a name is specified.
-  - `Set` - Set an initiative to a specific value, handy to rectify mistakes or if you want precise control over certain initiatives.
-  - `Delete Roll` - Remove a single user or creature from the initiative tracker. Removes user's initiative by default.
-  - `Bulk` - Adds creature initiatives in bulk, making it easy for a DM to add a group of creatures at once. These are numbered automatically for easy tracking.
-  - `Lock` - Disables all the buttons, to avoid accidental adjustments.
-  - `Clear Rolls` - Clears all stored initiatives in the server, used after a battle.
-
 ### Coin Calculation
+
 Perform calculations on your D&D currency directly using coin expressions. Examples of a coin expression are `2pp + 5gp - 3sp` or `10gp * 1.2`.
 
 - `/coin <expression>` - Evaluate a coin expression and automatically convert the result into the optimal denominations.

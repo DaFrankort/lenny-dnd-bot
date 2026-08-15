@@ -189,36 +189,25 @@ class HelpTabList:
         ],
     )
 
-    Initiative = HelpTab(
-        tab="initiative",
-        name="Initiative",
-        commands=["initiative"],
-        text="You can track initiatives for combat using the following command:",
+    Grouproll = HelpTab(
+        tab="grouproll",
+        name="grouproll",
+        commands=["grouproll"],
+        text="You can track group rolls and initiatives for combat using the following command:",
         info=[
             (
-                "Player Buttons",
+                "Buttons",
                 [
-                    "The top row of buttons are mainly meant for players, these include:",
-                    "- ``Roll``: Roll a value by providing your __initiative modifier__ in the popup. Optionally you can provide a roll mode by typing A for Advantage and D for Disadvantage and you can roll for a creature by specifying a creature name.",
-                    "- ``Set``: Set your initiative value to a specific __value__. Optionally you can specify a name to set another creature's initiative value.",
-                    "- ``Delete Roll``: Remove your roll from the initiatives. Optionally you can specify a name to remove another creature's initiative.",
+                    "The group roll embed has several buttons to manipulate the embed:",
+                    "- ``Roll``: Roll a value by providing your __modifier__ in the popup, or you can forcefully set your value. If you write an entire 1d20 expression the entire expression will be evaluated instead!.",
+                    "- ``Bulk``: Roll for multiple creatures at once, following the same rules as Roll.",
+                    "- ``Delete Roll``: Remove your roll and any other creature's from the rolls.",
                 ],
             ),
             (
-                "DM Buttons",
+                "Initiative",
                 [
-                    "The bottom row of buttons have features which are handy for the Dungeon Master.",
-                    "- ``Bulk``: Roll Initiatives in bulk for multiple creatures by specifying their __modifiers__, __names__ and the __amount__ of creatures to add. Optionally can roll with Advantage or Disadvantage or specify to use the same initiative value for all the creatures.",
-                    "- ``Lock``: Disables all the other buttons, to prevent users from accidentally pressing any more buttons.",
-                    "- ``Clear Rolls``: Clears all the initiatives, to be used after combat.",
-                ],
-            ),
-            (
-                "Notes",
-                [
-                    "Upon calling ``/initiative`` it will assure other initiative messages won't get interacted with.",
-                    "- If the previous message is younger than 10 minutes it will be deleted.",
-                    "- If it is older, the buttons to interact with it will be deleted.",
+                    "A special version of this command called ``/initiative`` is also available, allowing you to more quickly roll for initiative."
                 ],
             ),
         ],
@@ -324,7 +313,7 @@ class HelpTabList:
             self.Character,
             self.DND,
             self.Homebrew,
-            self.Initiative,
+            self.Grouproll,
             self.TokenGen,
             self.Config,
             self.Favorites,

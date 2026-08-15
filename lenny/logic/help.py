@@ -201,9 +201,15 @@ class HelpTabList:
                     "The group roll embed has several buttons to manipulate the embed:",
                     "- ``Roll``: Roll a value by providing your __modifier__ in the popup, or you can forcefully set your value. If you write an entire 1d20 expression the entire expression will be evaluated instead!.",
                     "- ``Bulk``: Roll for multiple creatures at once, following the same rules as Roll.",
-                    "- ``Delete Roll``: Remove your roll and any other creature's from the initiatives.",
+                    "- ``Delete Roll``: Remove your roll and any other creature's from the rolls.",
                 ],
             ),
+            (
+                "Initiative",
+                [
+                    "A special version of this command called ``/initiative`` is also available, allowing you to more quickly roll for initiative."
+                ]
+            )
         ],
     )
 

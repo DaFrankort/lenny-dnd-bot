@@ -9,7 +9,7 @@ from logic.dicecache import DiceCache, DiceCacheInfo, DiceCacheTrie
 class TestDiceCacheTrie:
     @pytest.fixture
     def cache_info(self) -> DiceCacheInfo:
-        return DiceCacheInfo(rolls=[], reasons=[], initiative=0, trie={}, coin=[])
+        return DiceCacheInfo(rolls=[], reasons=[], grouproll={}, trie={}, coin=[])
 
     @pytest.fixture
     def trie_handler(self, cache_info: DiceCacheInfo) -> DiceCacheTrie:
@@ -42,7 +42,7 @@ class TestDiceCacheTrie:
         assert len(cache_info.trie) == 10, "trie data should be limited to clean-limit"
 
     def test_clean_halving_logic(self):
-        info = DiceCacheInfo(rolls=[], reasons=[], initiative=0, trie={"1d10": 120, "1d10red": 1}, coin=[])
+        info = DiceCacheInfo(rolls=[], reasons=[], grouproll={}, trie={"1d10": 120, "1d10red": 1}, coin=[])
         handler = DiceCacheTrie(info)
 
         handler.clean(limit=50, max_count=100)
@@ -81,12 +81,12 @@ class TestDiceExpressionCache:
         assert reason in data.reasons, f"'{reason} should be in 'reasons'"
 
     def test_get_autocomplete_suggestions_empty(self, itr: Interaction):
-        DiceCache.get(itr).cache = DiceCacheInfo([], [], 0, {}, coin=[])
+        DiceCache.get(itr).cache = DiceCacheInfo([], [], {}, {}, coin=[])
         suggestions = DiceCache.get(itr).get_autocomplete_suggestions("")
         assert suggestions == [], "Suggestions should be empty when no data is present."
 
     def test_autocompletes_clean_dice_instead_of_cache(self, itr: Interaction):
-        DiceCache.get(itr).cache = DiceCacheInfo([], [], 0, {}, coin=[])
+        DiceCache.get(itr).cache = DiceCacheInfo([], [], {}, {}, coin=[])
         expected = "1d20"
         cached_expression = f"{expected}+5"
         DiceCache.get(itr).store_expression(cached_expression)
@@ -112,7 +112,7 @@ class TestDiceExpressionCache:
         assert coin.expression in data.coin, f"{coin.expression} should be in 'coin'."
 
     def test_coin_autocomplete_empty_no_data(self, itr: Interaction):
-        DiceCache.get(itr).cache = DiceCacheInfo([], [], 0, {}, coin=[])
+        DiceCache.get(itr).cache = DiceCacheInfo([], [], {}, {}, coin=[])
         suggestions = DiceCache.get(itr).get_autocomplete_suggestions("")
         assert suggestions == [], "Suggestions should be empty when no data is present."
 

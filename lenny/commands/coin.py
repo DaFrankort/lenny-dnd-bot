@@ -2,8 +2,8 @@ import discord
 from discord.app_commands import autocomplete, describe
 
 from commands.command import BaseCommand
-from embeds.embed import UserActionEmbed
-from logic.coin import Coin
+from embeds.coin import CoinLayoutView
+from logic.coin import parse_coin
 from logic.dicecache import DiceCache
 
 
@@ -19,7 +19,7 @@ class CoinCommand(BaseCommand):
     @describe(expression="Units: cp, sp, ep, gp, pp; Operators: + - * /")
     @autocomplete(expression=coin_autocomplete)
     async def handle(self, itr: discord.Interaction, expression: str):
-        coin = Coin.from_string(expression)
-        embed = UserActionEmbed(itr, title=expression.lower(), description=str(coin))
-        await itr.response.send_message(embed=embed)
-        DiceCache.get(itr).store_coin(coin)
+        result = parse_coin(expression=expression)
+        view = CoinLayoutView(itr, result)
+        await itr.response.send_message(view=view)
+        DiceCache.get(itr).store_coin(result)

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from typing import ClassVar, Literal, TypeAlias, TypeGuard, cast, get_args
+from typing import ClassVar, Literal, TypeAlias, TypeGuard, get_args
 
 from lark import Lark, LarkError, Token, Transformer
 
@@ -294,15 +294,13 @@ def collect_used_units(node: ASTNode) -> set[CoinUnit]:
 def parse_coin(expression: str) -> CoinResult:
     """Parses, builds the AST, and evaluates the expression into a CoinResult."""
     try:
-        raw_tree = LARK_PARSER.parse(expression.lower())  # type: ignore
-        ast: ASTNode = AST_BUILDER.transform(raw_tree)  # type: ignore
+        raw_tree = LARK_PARSER.parse(expression.lower())
+        ast: ASTNode = AST_BUILDER.transform(raw_tree)
 
-        used_units = collect_used_units(ast)  # type: ignore
-        highest_unit: CoinUnit = "cp"
-        if used_units:
-            highest_unit = cast(CoinUnit, max(used_units, key=Coin.DENOMINATIONS.index))  # type: ignore
+        used_units = collect_used_units(ast)
+        highest_unit = max(used_units, key=Coin.DENOMINATIONS.index) if used_units else "gp"
         evaluator = CoinEvaluator(limit_to_unit=highest_unit)
-        value = evaluator.evaluate(ast)  # type: ignore
+        value = evaluator.evaluate(ast)
         return CoinResult(expression=expression, ast=ast, value=value, used_units=used_units, limit_to_unit=highest_unit)  # type: ignore
     except LarkError as e:
         allowed_units = ", ".join(f"``{u}``" for u in get_args(CoinUnit))

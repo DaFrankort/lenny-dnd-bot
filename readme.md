@@ -186,7 +186,7 @@ By default the user's color is automatically generated based on their display na
   - `[image]` - You can optionally upload a different image instead.
   - `[style]` - Apply a different color-selection algorithm, changing the overall mood of the generated colors.
 - `/color clear` - Clears your set color and enforces use of an auto-generated color.
-- `/color show` - Shows the color you've set to everyone.
+- `/color show [color]` - Shows the color you've set to everyone or any color that you like.
 
 ### Coin Calculation
 

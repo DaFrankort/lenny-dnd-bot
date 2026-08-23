@@ -101,8 +101,7 @@ SLASH_COMMAND_TESTS: Iterable[Iterable[Any]] = [
         {"color": [BasicColors.RED.value, BasicColors.BLUE.value, BasicColors.GREEN.value]},
     ),
     ("color set image", {"image": [None, MockImage()], "style": ImageColorStyle.values()}),
-    ("color show", {}),
-    ("color show", {"color": "#FF00FF"}),
+    ("color show", {"color": [None, "#FF00FF"]}),
     ("color clear", {}),  # Run clear last, to remove useless data from files.
     ("stats roll", {}),
     ("stats buy", {}),

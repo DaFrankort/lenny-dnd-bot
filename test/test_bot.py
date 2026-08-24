@@ -66,6 +66,7 @@ SLASH_COMMAND_TESTS: Iterable[Iterable[Any]] = [
     ("search species", {"name": ["Human", "abcdef"]}),
     ("search vehicle", {"name": ["Galley", "abcdef"]}),
     ("search object", {"name": ["Ballista", "abcdef"]}),
+    ("search optionalfeat", {"name": ["Agonizing Blast", "abcdef"]}),
     ("search hazard", {"name": ["Spiked Pit", "abcdef"]}),
     ("search cult", {"name": ["Cult of Dispater", "abcdef"]}),
     ("search boon", {"name": ["Demonic Boon of Balor", "abcdef"]}),
@@ -438,6 +439,7 @@ class TestBotCommands:
             ("search species", "name", ["", "Hum"]),
             ("search vehicle", "name", ["", "Shi"]),
             ("search object", "name", ["", "Can"]),
+            ("search optionalfeat", "name", ["", "Agon"]),
             ("search hazard", "name", ["", "Spi"]),
             ("search deity", "name", ["", "Anu"]),
             ("search cult", "name", ["", "Cult of Dispa"]),
@@ -492,6 +494,7 @@ class TestBotCommands:
             ("search species", {"name": get_strict_search_arguments(Data.species)}),
             ("search vehicle", {"name": get_strict_search_arguments(Data.vehicles)}),
             ("search object", {"name": get_strict_search_arguments(Data.objects)}),
+            ("search optionalfeat", {"name": get_strict_search_arguments(Data.optional_features)}),
             ("search hazard", {"name": get_strict_search_arguments(Data.hazards)}),
             ("search boon", {"name": get_strict_search_arguments(Data.boons)}),
             (

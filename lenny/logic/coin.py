@@ -238,22 +238,20 @@ class CoinEvaluator:
         return Coin.from_cp(left.total_cp - right.total_cp, self.limit_to_unit)
 
     def _mul(self, left: EvalValue, right: EvalValue) -> EvalValue:
-        if isinstance(left, Coin) and isinstance(right, Coin):
-            raise ValueError("Cannot multiply coin by coin.")
-        if isinstance(left, Coin) and isinstance(right, float | int):
+        if isinstance(right, Coin):
+            raise ValueError("Cannot multiply by coin.")
+        if isinstance(left, Coin):
             return Coin.from_cp(left.total_cp * right, self.limit_to_unit)
-        if isinstance(left, float | int) and isinstance(right, Coin):
-            return Coin.from_cp(left * right.total_cp, self.limit_to_unit)
-        return float(left * right)  # pyright: ignore
+        left = self._float_to_coin(left)
+        return Coin.from_cp(left.total_cp / right, "gp")
 
     def _div(self, left: EvalValue, right: EvalValue) -> EvalValue:
-        if isinstance(left, Coin) and isinstance(right, Coin):
-            raise ValueError("Cannot divide coin by coin.")
-        if isinstance(left, Coin) and isinstance(right, float | int):
+        if isinstance(right, Coin):
+            raise ValueError("Cannot divide by coin.")
+        if isinstance(left, Coin):
             return Coin.from_cp(left.total_cp / right, self.limit_to_unit)
-        if isinstance(left, float | int) and isinstance(right, Coin):
-            return Coin.from_cp(left / right.total_cp, self.limit_to_unit)
-        return float(left / right)  # pyright: ignore
+        left = self._float_to_coin(left)
+        return Coin.from_cp(left.total_cp / right, "gp")
 
 
 @dataclass
@@ -294,8 +292,8 @@ def collect_used_units(node: ASTNode) -> set[CoinUnit]:
 def parse_coin(expression: str) -> CoinResult:
     """Parses, builds the AST, and evaluates the expression into a CoinResult."""
     try:
-        raw_tree = LARK_PARSER.parse(expression.lower())
-        ast: ASTNode = AST_BUILDER.transform(raw_tree)
+        raw_tree = LARK_PARSER.parse(expression.lower())  # type: ignore
+        ast: ASTNode = AST_BUILDER.transform(raw_tree)  # type: ignore
 
         used_units = collect_used_units(ast)
         highest_unit = max(used_units, key=Coin.DENOMINATIONS.index) if used_units else "gp"

@@ -18,6 +18,7 @@ from embeds.dnd.hazard import HazardEmbed
 from embeds.dnd.item import ItemEmbed
 from embeds.dnd.language import LanguageEmbed
 from embeds.dnd.object import DNDObjectEmbed
+from embeds.dnd.optionalfeature import OptionalFeatureEmbed
 from embeds.dnd.rule import RuleEmbed
 from embeds.dnd.species import SpeciesEmbed
 from embeds.dnd.spell import SpellEmbed
@@ -39,6 +40,7 @@ from logic.dnd.hazard import Hazard
 from logic.dnd.item import Item
 from logic.dnd.language import Language
 from logic.dnd.object import DNDObject
+from logic.dnd.optionalfeature import OptionalFeature
 from logic.dnd.rule import Rule
 from logic.dnd.species import Species
 from logic.dnd.spell import Spell
@@ -78,6 +80,8 @@ def get_dnd_embed(itr: discord.Interaction, dnd_entry: DNDEntry):  # pylint: dis
             return VehicleEmbed(dnd_entry)
         case DNDObject():
             return DNDObjectEmbed(dnd_entry)
+        case OptionalFeature():
+            return OptionalFeatureEmbed(dnd_entry)
         case Hazard():
             return HazardEmbed(dnd_entry)
         case Deity():

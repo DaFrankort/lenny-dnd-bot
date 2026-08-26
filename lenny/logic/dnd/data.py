@@ -18,6 +18,7 @@ from logic.dnd.language import Language, LanguageList
 from logic.dnd.life import LifeData
 from logic.dnd.name import NameTable
 from logic.dnd.object import DNDObject, DNDObjectList
+from logic.dnd.optionalfeature import OptionalFeature, OptionalFeatureList
 from logic.dnd.rule import Rule, RuleList
 from logic.dnd.skills import SkillList
 from logic.dnd.species import Species, SpeciesList
@@ -42,6 +43,7 @@ class DNDData:
     species: SpeciesList
     vehicles: VehicleList
     objects: DNDObjectList
+    optional_features: OptionalFeatureList
     hazards: HazardList
     deities: DeityList
     cults: CultList
@@ -67,6 +69,7 @@ class DNDData:
         self.species = SpeciesList()
         self.vehicles = VehicleList()
         self.objects = DNDObjectList()
+        self.optional_features = OptionalFeatureList()
         self.hazards = HazardList()
         self.deities = DeityList()
         self.cults = CultList()
@@ -92,6 +95,7 @@ class DNDData:
         yield self.species
         yield self.vehicles
         yield self.objects
+        yield self.optional_features
         yield self.hazards
         yield self.deities
         yield self.cults
@@ -132,6 +136,7 @@ class DNDSearchResults:
     species: list[Species]
     vehicles: list[Vehicle]
     objects: list[DNDObject]
+    optional_feats: list[OptionalFeature]
     hazards: list[Hazard]
     deities: list[Deity]
     cults: list[Cult]
@@ -153,6 +158,7 @@ class DNDSearchResults:
         self.species = []
         self.vehicles = []
         self.objects = []
+        self.optional_feats = []
         self.hazards = []
         self.deities = []
         self.cults = []
@@ -173,6 +179,7 @@ class DNDSearchResults:
             Species: self.species,
             Vehicle: self.vehicles,
             DNDObject: self.objects,
+            OptionalFeature: self.optional_feats,
             Hazard: self.hazards,
             Deity: self.deities,
             Cult: self.cults,

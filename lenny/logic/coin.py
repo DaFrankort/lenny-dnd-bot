@@ -193,7 +193,7 @@ class CoinEvaluator:
         self.limit_to_unit = limit_to_unit
 
     def _float_to_coin(self, value: float | int) -> Coin:
-        return Coin(gp=value)
+        return Coin.from_cp(value * Coin.CONVERSIONS["gp"], "gp")
 
     def evaluate(self, node: ASTNode) -> EvalValue:
         if isinstance(node, NumberNode):
@@ -238,20 +238,20 @@ class CoinEvaluator:
         return Coin.from_cp(left.total_cp - right.total_cp, self.limit_to_unit)
 
     def _mul(self, left: EvalValue, right: EvalValue) -> EvalValue:
-        if isinstance(right, Coin):
-            raise ValueError("Cannot multiply by coin.")
-        if isinstance(left, Coin):
+        if isinstance(left, float) and isinstance(right, float):
+            return self._float_to_coin(left * right)
+        if isinstance(left, Coin) and isinstance(right, float):
             return Coin.from_cp(left.total_cp * right, self.limit_to_unit)
-        left = self._float_to_coin(left)
-        return Coin.from_cp(left.total_cp / right, "gp")
+        if isinstance(right, Coin) and isinstance(left, float):
+            return Coin.from_cp(right.total_cp * left, self.limit_to_unit)
+        raise ValueError("Cannot multiply coin by coin.")
 
     def _div(self, left: EvalValue, right: EvalValue) -> EvalValue:
         if isinstance(right, Coin):
             raise ValueError("Cannot divide by coin.")
         if isinstance(left, Coin):
             return Coin.from_cp(left.total_cp / right, self.limit_to_unit)
-        left = self._float_to_coin(left)
-        return Coin.from_cp(left.total_cp / right, "gp")
+        return self._float_to_coin(left / right)
 
 
 @dataclass
@@ -282,10 +282,10 @@ def collect_used_units(node: ASTNode) -> set[CoinUnit]:
 
     if isinstance(node, CoinNode):
         return {node.unit}
-    if isinstance(node, NumberNode):
-        return set()
     if isinstance(node, BinOpNode):
         return collect_used_units(node.left) | collect_used_units(node.right)
+    if isinstance(node, NegNode):
+        return collect_used_units(node.operand)
     return set()
 
 
@@ -295,10 +295,15 @@ def parse_coin(expression: str) -> CoinResult:
         raw_tree = LARK_PARSER.parse(expression.lower())  # type: ignore
         ast: ASTNode = AST_BUILDER.transform(raw_tree)  # type: ignore
 
+        default_unit: CoinUnit = "gp"
         used_units = collect_used_units(ast)
-        highest_unit = max(used_units, key=Coin.DENOMINATIONS.index) if used_units else "gp"
+        highest_unit = max(used_units, key=Coin.DENOMINATIONS.index) if used_units else default_unit
+
         evaluator = CoinEvaluator(limit_to_unit=highest_unit)
         value = evaluator.evaluate(ast)
+
+        used_units = used_units or {default_unit}  # If no unit given, we want to render as gp.
+
         return CoinResult(expression=expression, ast=ast, value=value, used_units=used_units, limit_to_unit=highest_unit)  # type: ignore
     except LarkError as e:
         allowed_units = ", ".join(f"``{u}``" for u in get_args(CoinUnit))

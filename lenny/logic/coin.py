@@ -33,6 +33,7 @@ COIN_GRAMMAR = r"""
 
 CoinUnit = Literal["cp", "sp", "ep", "gp", "pp"]
 Operators = Literal["+", "-", "*", "/"]
+DefaultUnit: CoinUnit = "gp"  # Calculations done without a specified unit convert to this unit.
 
 
 def is_coin_unit(val: str) -> TypeGuard[CoinUnit]:
@@ -193,7 +194,7 @@ class CoinEvaluator:
         self.limit_to_unit = limit_to_unit
 
     def _float_to_coin(self, value: float | int) -> Coin:
-        return Coin.from_cp(value * Coin.CONVERSIONS["gp"], "gp")
+        return Coin.from_cp(value * Coin.CONVERSIONS[DefaultUnit], DefaultUnit)
 
     def evaluate(self, node: ASTNode) -> EvalValue:
         if isinstance(node, NumberNode):
@@ -295,14 +296,11 @@ def parse_coin(expression: str) -> CoinResult:
         raw_tree = LARK_PARSER.parse(expression.lower())  # type: ignore
         ast: ASTNode = AST_BUILDER.transform(raw_tree)  # type: ignore
 
-        default_unit: CoinUnit = "gp"
-        used_units = collect_used_units(ast)
-        highest_unit = max(used_units, key=Coin.DENOMINATIONS.index) if used_units else default_unit
+        used_units = collect_used_units(ast) or {DefaultUnit}
+        highest_unit = max(used_units, key=Coin.DENOMINATIONS.index)
 
         evaluator = CoinEvaluator(limit_to_unit=highest_unit)
         value = evaluator.evaluate(ast)
-
-        used_units = used_units or {default_unit}  # If no unit given, we want to render as gp.
 
         return CoinResult(expression=expression, ast=ast, value=value, used_units=used_units, limit_to_unit=highest_unit)  # type: ignore
     except LarkError as e:

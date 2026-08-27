@@ -11,7 +11,7 @@ from logic.jsonhandler import JsonFolderHandler, JsonHandler
 from logic.voice_chat import SPECIAL_ROLL_REASONS
 
 
-def _normalize_key(key: str) -> str:
+def normalize_key(key: str) -> str:
     return key.strip().lower().replace(" ", "")
 
 
@@ -55,7 +55,7 @@ class DiceCacheTrie:
         self.clean()  # DiceCache is often reinitialized, we can use this behavior to periodically clean the user's trie.
 
     def add(self, expression: str):
-        expression = _normalize_key(expression)
+        expression = normalize_key(expression)
         if not expression:
             return
 
@@ -64,7 +64,7 @@ class DiceCacheTrie:
         self._data.trie = dict(self._trie.items())  # type: ignore
 
     def get_suggestions(self, expression: str, limit: int) -> list[str]:
-        expression = _normalize_key(expression)
+        expression = normalize_key(expression)
         if not expression:
             return []
 
@@ -137,7 +137,7 @@ class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
         self.save()
 
     def store_grouproll(self, reason: str, modifier: str):
-        reason = _normalize_key(reason)
+        reason = normalize_key(reason)
         self.cache.grouproll[reason] = modifier
         self.save()
 
@@ -151,7 +151,7 @@ class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
 
     def get_coin_autocomplete_suggestions(self, query: str) -> list[Choice[str]]:
         coins = self.cache.coin
-        query = _normalize_key(query)
+        query = normalize_key(query)
         if query or len(coins) == 0:
             return []
         return [Choice(name=f"({coin})", value=f"({coin})") for coin in reversed(coins)]
@@ -164,12 +164,12 @@ class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
         if len(rolls) == 0:
             return []
 
-        query = _normalize_key(query)
+        query = normalize_key(query)
         suggestions: list[str] = []
         seen: set[str] = set()
 
         def add_suggestion(value: str) -> None:
-            cleaned = _normalize_key(value)
+            cleaned = normalize_key(value)
             if cleaned in seen:
                 return
             seen.add(cleaned)
@@ -192,7 +192,7 @@ class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
         Returns auto-complete choices for the last reasons a user used when no query is given.
         If query is given, will suggest reasons containing the query.
         """
-        query = _normalize_key(query)
+        query = normalize_key(query)
         if query == "":
             last_used = self.cache.reasons
             if len(last_used) == 0:
@@ -215,7 +215,7 @@ class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
         return [discord.app_commands.Choice(name=reason, value=reason) for reason in filtered_reasons[:25]]
 
     def get_last_grouproll(self, reason: str) -> str:
-        reason = _normalize_key(reason)
+        reason = normalize_key(reason)
         return self.cache.grouproll.get(reason, "")
 
 

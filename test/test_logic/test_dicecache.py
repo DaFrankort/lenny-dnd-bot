@@ -3,7 +3,7 @@ from discord import Interaction
 from mocking import MockInteraction, MockUser
 
 from logic.coin import parse_coin
-from logic.dicecache import DiceCache, DiceCacheInfo, DiceCacheTrie
+from logic.dicecache import DiceCache, DiceCacheInfo, DiceCacheTrie, normalize_key
 
 
 class TestDiceCacheTrie:
@@ -119,3 +119,22 @@ class TestDiceExpressionCache:
     def test_coin_autocomplete_empty_on_query(self, itr: Interaction):
         suggestions = DiceCache.get(itr).get_autocomplete_suggestions("20gp")
         assert suggestions == [], "Suggestions should be empty when a query is entered."
+
+    @pytest.mark.parametrize(
+        "query, cached_expressions",
+        [
+            ("1d20", ["1d20+5", "1d20+2"]),
+            ("2d6+", ["2d6+4+2", "2d6+4"]),
+            ("Hello!", ["1d4", "1d6", "1d8", "1d10", "1d12"]),
+        ],
+    )
+    def test_autocomplete_prioritizes_user_query_input_first(self, itr: Interaction, query: str, cached_expressions: list[str]):
+        cache = DiceCache.get(itr)
+        cache.cache = DiceCacheInfo(rolls=cached_expressions, reasons=[], grouproll={}, trie={}, coin=[])
+
+        suggestions = cache.get_autocomplete_suggestions(query)
+
+        assert len(suggestions) > 0, "Suggestions list should not be empty."
+        assert suggestions[0].value == normalize_key(
+            query
+        ), f"The normalized user input '{query}' should always be the first suggestion."

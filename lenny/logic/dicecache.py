@@ -1,4 +1,3 @@
-import re
 from dataclasses import dataclass
 from typing import Any
 
@@ -176,8 +175,8 @@ class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
             seen.add(cleaned)
             suggestions.append(value)
 
-        if query and re.compile(r"^\d+d\d+$", re.IGNORECASE).match(query):
-            add_suggestion(query)  # Suggest query if is clean dice
+        if query:  # Always suggest user's input first.
+            add_suggestion(query)
 
         for roll in reversed(rolls):
             if query in roll.lower():

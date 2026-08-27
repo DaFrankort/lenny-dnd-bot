@@ -16,7 +16,7 @@ class GroupRollRoll:
     time_added: float
 
     def __init__(self, itr: Interaction, name: str | None, modifier: str, advantage: Advantage):
-        self.is_npc = True if name else False
+        self.is_npc = bool(name)
         self.name = (name or itr.user.display_name).title().strip()
         self.advantage = advantage
         self.owner = itr.user

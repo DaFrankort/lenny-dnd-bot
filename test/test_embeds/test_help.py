@@ -1,7 +1,7 @@
-from test.assertion import assert_embed_can_be_rendered
 from test.mocking import MockBot
 
 import pytest
+from assertion import assert_embed_can_be_rendered
 
 from embeds.help import HelpEmbed
 from logic.help import HelpTabs

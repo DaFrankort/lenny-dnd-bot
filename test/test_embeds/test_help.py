@@ -1,8 +1,8 @@
 import pytest
 from assertion import assert_embed_can_be_rendered
-from bot import Bot
 from mocking import MockBot
 
+from bot import Bot
 from embeds.help import HelpEmbed
 from logic.help import HelpTabs
 

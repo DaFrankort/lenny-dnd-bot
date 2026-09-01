@@ -17,7 +17,7 @@ class HelpCommand(BaseCommand):
         super().__init__()
 
     @choices(tab=HelpEmbed.get_tab_choices())
-    @describe(tab="Specify a page for more information on it's commands. Shows a general overview by default.")
+    @describe(tab="Specify a page for more information on its commands. Shows a general overview by default.")
     async def handle(self, itr: discord.Interaction, tab: str | None = None):
         embed = HelpEmbed(self.tree, tab=tab)
         await itr.response.send_message(embed=embed, view=embed.view, ephemeral=True)

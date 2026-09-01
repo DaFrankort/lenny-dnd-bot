@@ -94,8 +94,30 @@ class TestCoin:
             ("1cp /"),
             ("1cp -"),
             ("1cp +"),
+            # Cannot divide coin by coin.
+            ("1gp / 1cp"),
+            # Cannot multiply coin by coin.
+            ("1gp * 1cp"),
         ],
     )
     def test_invalid_syntax(self, expression: str):
         with pytest.raises(ValueError):
             parse_coin(expression)
+
+    @pytest.mark.parametrize(
+        "expression, expected_result",
+        [
+            ("10 + 10", Coin(gp=20)),
+            ("5 + 2.5", Coin(gp=7, ep=1)),
+            ("10 - 5", Coin(gp=5)),
+            ("10 - 2.5", Coin(gp=7, ep=1)),
+            ("10 * 2", Coin(gp=20)),
+            ("10 * 2.5", Coin(gp=25)),
+            ("10 / 5", Coin(gp=2)),
+            ("25 / 2.5", Coin(gp=10)),
+            ("66", Coin(gp=66)),  # Bug where units would resolve to CP if no expression.
+        ],
+    )
+    def test_default_unit_is_gp(self, expression: str, expected_result: Coin):
+        ast = parse_coin(expression)
+        self.assert_coin(expression, ast.coin, expected_result)

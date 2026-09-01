@@ -268,7 +268,8 @@ class CoinResult:
         """Returns result as a clean consolidated Coin object, converting floats to cp."""
         if isinstance(self.value, Coin):
             return self.value
-        return Coin.from_cp(self.value)
+        default_cp = self.value * Coin.CONVERSIONS[DefaultUnit]
+        return Coin.from_cp(default_cp, limit_to_unit=self.limit_to_unit)
 
 
 LARK_PARSER = Lark(COIN_GRAMMAR, parser="lalr")

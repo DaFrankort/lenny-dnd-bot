@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from typing import ClassVar, Literal, TypeAlias, TypeGuard, cast, get_args
+from typing import ClassVar, Literal, TypeAlias, TypeGuard, get_args
 
 from lark import Lark, LarkError, Token, Transformer
 
@@ -33,6 +33,7 @@ COIN_GRAMMAR = r"""
 
 CoinUnit = Literal["cp", "sp", "ep", "gp", "pp"]
 Operators = Literal["+", "-", "*", "/"]
+DefaultUnit: CoinUnit = "gp"  # Calculations done without a specified unit convert to this unit.
 
 
 def is_coin_unit(val: str) -> TypeGuard[CoinUnit]:
@@ -193,7 +194,7 @@ class CoinEvaluator:
         self.limit_to_unit = limit_to_unit
 
     def _float_to_coin(self, value: float | int) -> Coin:
-        return Coin(gp=value)
+        return Coin.from_cp(value * Coin.CONVERSIONS[DefaultUnit], DefaultUnit)
 
     def evaluate(self, node: ASTNode) -> EvalValue:
         if isinstance(node, NumberNode):
@@ -238,22 +239,20 @@ class CoinEvaluator:
         return Coin.from_cp(left.total_cp - right.total_cp, self.limit_to_unit)
 
     def _mul(self, left: EvalValue, right: EvalValue) -> EvalValue:
-        if isinstance(left, Coin) and isinstance(right, Coin):
-            raise ValueError("Cannot multiply coin by coin.")
-        if isinstance(left, Coin) and isinstance(right, float | int):
+        if isinstance(left, float) and isinstance(right, float):
+            return self._float_to_coin(left * right)
+        if isinstance(left, Coin) and isinstance(right, float):
             return Coin.from_cp(left.total_cp * right, self.limit_to_unit)
-        if isinstance(left, float | int) and isinstance(right, Coin):
-            return Coin.from_cp(left * right.total_cp, self.limit_to_unit)
-        return float(left * right)  # pyright: ignore
+        if isinstance(right, Coin) and isinstance(left, float):
+            return Coin.from_cp(right.total_cp * left, self.limit_to_unit)
+        raise ValueError("Cannot multiply coin by coin.")
 
     def _div(self, left: EvalValue, right: EvalValue) -> EvalValue:
-        if isinstance(left, Coin) and isinstance(right, Coin):
-            raise ValueError("Cannot divide coin by coin.")
-        if isinstance(left, Coin) and isinstance(right, float | int):
+        if isinstance(right, Coin):
+            raise ValueError("Cannot divide by coin.")
+        if isinstance(left, Coin):
             return Coin.from_cp(left.total_cp / right, self.limit_to_unit)
-        if isinstance(left, float | int) and isinstance(right, Coin):
-            return Coin.from_cp(left / right.total_cp, self.limit_to_unit)
-        return float(left / right)  # pyright: ignore
+        return self._float_to_coin(left / right)
 
 
 @dataclass
@@ -269,7 +268,8 @@ class CoinResult:
         """Returns result as a clean consolidated Coin object, converting floats to cp."""
         if isinstance(self.value, Coin):
             return self.value
-        return Coin.from_cp(self.value)
+        default_cp = self.value * Coin.CONVERSIONS[DefaultUnit]
+        return Coin.from_cp(default_cp, limit_to_unit=self.limit_to_unit)
 
 
 LARK_PARSER = Lark(COIN_GRAMMAR, parser="lalr")
@@ -284,10 +284,10 @@ def collect_used_units(node: ASTNode) -> set[CoinUnit]:
 
     if isinstance(node, CoinNode):
         return {node.unit}
-    if isinstance(node, NumberNode):
-        return set()
     if isinstance(node, BinOpNode):
         return collect_used_units(node.left) | collect_used_units(node.right)
+    if isinstance(node, NegNode):
+        return collect_used_units(node.operand)
     return set()
 
 
@@ -297,12 +297,12 @@ def parse_coin(expression: str) -> CoinResult:
         raw_tree = LARK_PARSER.parse(expression.lower())  # type: ignore
         ast: ASTNode = AST_BUILDER.transform(raw_tree)  # type: ignore
 
-        used_units = collect_used_units(ast)  # type: ignore
-        highest_unit: CoinUnit = "cp"
-        if used_units:
-            highest_unit = cast(CoinUnit, max(used_units, key=Coin.DENOMINATIONS.index))  # type: ignore
+        used_units = collect_used_units(ast) or {DefaultUnit}
+        highest_unit = max(used_units, key=Coin.DENOMINATIONS.index)
+
         evaluator = CoinEvaluator(limit_to_unit=highest_unit)
-        value = evaluator.evaluate(ast)  # type: ignore
+        value = evaluator.evaluate(ast)
+
         return CoinResult(expression=expression, ast=ast, value=value, used_units=used_units, limit_to_unit=highest_unit)  # type: ignore
     except LarkError as e:
         allowed_units = ", ".join(f"``{u}``" for u in get_args(CoinUnit))

@@ -17,7 +17,7 @@ from logic.dicecache import DiceCache
 from logic.grouproll import GroupRoll, GroupRollRoll, GroupRollSet
 from logic.roll import Advantage
 from logic.voice_chat import VC, SoundType
-from methods import groups_of_size, when
+from methods import groups_of_size, truncate_text, when
 
 
 class GroupRollModal(BaseModal):
@@ -25,6 +25,7 @@ class GroupRollModal(BaseModal):
 
     def __init__(self, itr: Interaction[discord.Client], title: str, view: "GroupRollContainerView"):
         self.view = view
+        title = truncate_text(title, 45)
         super().__init__(itr, title)
 
 

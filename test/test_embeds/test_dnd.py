@@ -27,9 +27,11 @@ class TestDNDEmbed:
             pytest.fail(f"MultiDNDSelectView failed to initialize: {e}")
 
     @pytest.mark.strict
+    @pytest.mark.timeout(60)
     @pytest.mark.parametrize("entry", [entry for entries in Data for entry in entries.entries])
     async def test_all_embeds(self, itr: discord.Interaction, entry: DNDEntry):
-        context = f"{entry.entry_type.value} {entry.title}"
+        context = f"[{entry.entry_type.value.upper()}] {entry.title}"
+
         try:
             embed = get_dnd_embed(itr, entry)
         except Exception as e:

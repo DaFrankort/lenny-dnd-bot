@@ -191,7 +191,7 @@ class HelpTabList:
 
     Grouproll = HelpTab(
         tab="grouproll",
-        name="grouproll",
+        name="Group Roll",
         commands=["grouproll"],
         text="You can track group rolls and initiatives for combat using the following command:",
         info=[
@@ -255,7 +255,7 @@ class HelpTabList:
 
     Config = HelpTab(
         tab="config",
-        name="Bot configuration",
+        name="Bot Configuration",
         commands=["config"],
         text="You can configure the bot behavior in your server using the following commands:",
         info=[

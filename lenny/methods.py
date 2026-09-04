@@ -101,3 +101,11 @@ def groups_of_size(items: list[T], size: int) -> list[tuple[T, ...]]:
     """
     # https://stackoverflow.com/a/1624988
     return [tuple(items[i : i + size]) for i in range(0, len(items), size)]  # noqa: E203
+
+
+def truncate_text(text: str, max_length: int):
+    if len(text) <= max_length:
+        return text
+    if max_length <= 3:
+        return text[:max_length]
+    return f"{text[:max_length - 3]}..."

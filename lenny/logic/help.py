@@ -191,7 +191,7 @@ class HelpTabList:
 
     Grouproll = HelpTab(
         tab="grouproll",
-        name="Grouproll",
+        name="Group Roll",
         commands=["grouproll"],
         text="You can track group rolls and initiatives for combat using the following command:",
         info=[

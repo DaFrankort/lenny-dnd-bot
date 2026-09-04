@@ -5,6 +5,7 @@ import pytest
 
 # Required to mark the library as essential for testing in our workflows
 import pytest_asyncio  # noqa: F401 # type: ignore
+import pytest_timeout  # noqa: F401 # type: ignore
 from mocking import (
     MockBackgroundImage,
     MockBot,

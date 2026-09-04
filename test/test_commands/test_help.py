@@ -1,10 +1,11 @@
-from bot import Bot
+from mocking import MockBot
+
 from commands.command import BaseCommand
 
 
 class TestHelp:
     def test_all_commands_have_help(self):
-        bot = Bot()
+        bot = MockBot()
 
         commands = [cmd for cmd in bot.tree.get_commands() if isinstance(cmd, BaseCommand)]
 

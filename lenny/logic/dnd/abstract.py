@@ -36,6 +36,7 @@ class DNDEntryType(str, ChoicedEnum):
     ITEM = "item"
     LANGUAGE = "language"
     OBJECT = "object"
+    OPTIONAL_FEAT = "optional feature"
     RULE = "rule"
     SPECIES = "species"
     SPELL = "spell"
@@ -59,6 +60,7 @@ class DNDEntryType(str, ChoicedEnum):
             self.ITEM: "🗡️",
             self.LANGUAGE: "💬",
             self.OBJECT: "🪨",
+            self.OPTIONAL_FEAT: "🧩",
             self.RULE: "📜",
             self.SPECIES: "🧝",
             self.SPELL: "🔥",

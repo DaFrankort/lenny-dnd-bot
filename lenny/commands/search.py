@@ -345,6 +345,23 @@ class SearchObjectCommand(BaseCommand):
         await send_dnd_entry_lookup_result(itr, "object", found, name)
 
 
+async def optional_feat_name_autocomplete(itr: discord.Interaction, current: str):
+    return _generic_name_autocomplete(itr, current, Data.optional_features, "optional feature")
+
+
+class SearchOptionalFeatureCommand(BaseCommand):
+    name = "optionalfeat"
+    desc = "Get the details of an optional feature."
+    help = "Looks up a D&D optional feature by name."
+
+    @autocomplete(name=optional_feat_name_autocomplete)
+    @describe(name="Name of the optional feature to look up.")
+    async def handle(self, itr: discord.Interaction, name: str):
+        sources = Config.get(itr).allowed_sources
+        found = Data.optional_features.get(name, sources)
+        await send_dnd_entry_lookup_result(itr, "optional feature", found, name)
+
+
 async def hazard_name_autocomplete(itr: discord.Interaction, current: str):
     return _generic_name_autocomplete(itr, current, Data.hazards, "hazard")
 
@@ -452,6 +469,7 @@ class SearchCommandGroup(BaseCommandGroup):
         self.add_command(SearchSpeciesCommand())
         self.add_command(SearchVehicleCommand())
         self.add_command(SearchObjectCommand())
+        self.add_command(SearchOptionalFeatureCommand())
         self.add_command(SearchHazardCommand())
         self.add_command(SearchDeityCommand())
         self.add_command(SearchCultCommand())

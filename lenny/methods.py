@@ -90,3 +90,23 @@ def read_json_file(path: str) -> list[dict[str, Any]]:
         raise TypeError(f"Path is not a JSON file: '{path}'")
     with open(path, "r", encoding="utf-8") as file:
         return json.load(file)
+
+
+def groups_of_size(items: list[T], size: int) -> list[tuple[T, ...]]:
+    """
+    Groups an list of elements into tuples of a certain size.
+
+    For example, take the list [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]. Calling groups_of_size(items, 3) will
+    split this list into [(1,2,3), (4,5,6), (7,8,9), (10)].
+    """
+    # https://stackoverflow.com/a/1624988
+    return [tuple(items[i : i + size]) for i in range(0, len(items), size)]  # noqa: E203
+
+
+def truncate_text(text: str, max_length: int, truncation_text: str = "..."):
+    trunc_length = len(truncation_text)
+    if len(text) <= max_length:
+        return text
+    if max_length <= trunc_length:
+        return text[:max_length]
+    return f"{text[:max_length - trunc_length]}{truncation_text}"

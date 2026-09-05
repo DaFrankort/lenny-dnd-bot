@@ -55,20 +55,20 @@ class HelpEmbed(discord.Embed):
                 commands.append(command)
         return commands
 
-    def _get_command_desc_line(self, cmd: BaseCommand | BaseCommandGroup) -> str:
+    def _get_command_desc_line(self, cmd: BaseCommand | BaseCommandGroup) -> list[str]:
         if isinstance(cmd, BaseCommand):
             command_comm = cmd.command
             command_help = cmd.help
-            return f"``{command_comm}``\n{command_help}\n"
+            return [f"``{command_comm}``\n{command_help}\n"]
 
         # BaseCommandGroup
         group_desc: list[str] = []
         commands = self._get_commands(cmd)
         for group_cmd in commands:
             desc = self._get_command_desc_line(group_cmd)
-            group_desc.append(desc)
+            group_desc.extend(desc)
 
-        return "\n".join(group_desc)
+        return group_desc
 
     def _iterate_commands(self, cmd: BaseCommand | BaseCommandGroup) -> list[str]:
         commands: list[str] = []
@@ -104,7 +104,7 @@ class HelpEmbed(discord.Embed):
             command = self.tree.get_command(command_name)
             if isinstance(command, (BaseCommand, BaseCommandGroup)):
                 command_desc = self._get_command_desc_line(command)
-                commands_desc.append(command_desc)
+                commands_desc.extend(command_desc)
 
         commands_parts: list[str] = []
         for desc in commands_desc:

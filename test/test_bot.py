@@ -219,6 +219,7 @@ SLASH_COMMAND_TESTS: Iterable[Iterable[Any]] = [
             ],
         },
     ),
+    ("sessionstats start", {}),
     # Homebrew commands work through modals, and are thus not testable.
     # ("", {"": "", "": ""}),
 ]

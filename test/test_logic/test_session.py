@@ -136,32 +136,20 @@ class TestGlobalSessionStats:
         assert isinstance(session, SessionStats)
         assert global_stats.get(itr) is session
 
-    def test_start_duplicate_session_raises_key_error(self, member: MockMember):
+    def test_start_duplicate_session_raises_error(self, member: MockMember):
         """Ensures starting two sessions in the same voice channel raises KeyError."""
         global_stats = GlobalSessionStats()
         itr = MockInteraction(user=member)
 
         global_stats.start(itr)
 
-        with pytest.raises(KeyError, match="Session is already active"):
+        with pytest.raises(ValueError):
             global_stats.start(itr)
 
-    def test_session_permissions_validation(self, member: MockMember):
-        """Ensures users not in a valid voice channel or not a Member raise PermissionError."""
+    def test_stop_empty_session_raises_error(self, member: MockMember):
+        """Ensures starting two sessions in the same voice channel raises KeyError."""
         global_stats = GlobalSessionStats()
+        itr = MockInteraction(user=member)
 
-        user_only = MockUser("NonMemberUser")
-        itr_user_only = MockInteraction(user=user_only)
-
-        assert global_stats.get(itr_user_only) is None
-        with pytest.raises(PermissionError, match="Interaction must belong to a user"):
-            global_stats.start(itr_user_only)
-
-        guild = MockGuild(456)
-        member_no_vc = MockMember(MockUser("NoVc"), guild, False)
-        member_no_vc.voice = None
-        itr_no_vc = MockInteraction(user=member_no_vc)
-
-        assert global_stats.get(itr_no_vc) is None
-        with pytest.raises(PermissionError, match="Session stats can only be tracked for users in a voice-chat"):
-            global_stats.start(itr_no_vc)
+        with pytest.raises(KeyError):
+            global_stats.stop(itr)

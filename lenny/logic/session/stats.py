@@ -49,30 +49,16 @@ class SessionStats:
     _start: float
 
     def __init__(self, itr: discord.Interaction):
-        SessionStats.check_user(itr)
-
         self._start = itr.created_at.timestamp()
         self.user_data = {}
-        for member in itr.user.voice.channel.members:
-            if member.bot:
-                continue
-            self.user_data[member.id] = UserSessionStats()
 
     @property
     def timestamp(self) -> str:
         return f"<t:{self._start}:R>"
 
-    @staticmethod
-    def check_user(itr: discord.Interaction):
-        if not isinstance(itr.user, discord.Member):
-            raise PermissionError("Interaction must belong to a user.")
-        if not itr.user.voice:
-            raise PermissionError("Session stats can only be tracked for users in a voice-chat.")
-        if not itr.user.voice.channel:
-            raise PermissionError("User not in a valid voice channel.")
-
     def add_roll(self, itr: discord.Interaction, result: RollResult | MultiRollResult):
-        SessionStats.check_user(itr)
+        if itr.user.bot:
+            return
         if itr.user.id not in self.user_data:
             self.user_data[itr.user.id] = UserSessionStats()
         self.user_data[itr.user.id].dice.add(result)
@@ -130,14 +116,9 @@ class GlobalSessionStats:
         self._sessions = {}
 
     def _get_itr_id(self, itr: discord.Interaction) -> int:
-        if not isinstance(itr.user, discord.Member):
-            raise PermissionError("Interaction must belong to a user.")
-        if not itr.user.voice:
-            raise PermissionError("Session stats can only be tracked for users in a voice-chat.")
-        if not itr.user.voice.channel:
-            raise PermissionError("User not in a valid voice channel.")
-
-        return itr.user.voice.channel.id
+        if not itr.channel:
+            raise PermissionError("Can only track sessions from a text channel in a server.")
+        return itr.channel.id
 
     def get(self, itr: discord.Interaction) -> SessionStats | None:
         try:
@@ -152,14 +133,19 @@ class GlobalSessionStats:
     def start(self, itr: discord.Interaction) -> SessionStats:
         session_id = self._get_itr_id(itr)
         if session_id in self._sessions:
-            raise KeyError("Session is already active for this voice-chat!")
+            raise ValueError("Session is already active for this voice-chat!")
+
         self._sessions[session_id] = SessionStats(itr)
         return self._sessions[session_id]
 
-    def stop(self, voice_id: int):
-        if voice_id not in self._sessions:
+    def stop(self, itr: discord.Interaction) -> SessionStats:
+        session_id = self._get_itr_id(itr)
+        if session_id not in self._sessions:
             raise KeyError("Session can't be stopped since it does not exist.")
-        del self._sessions[voice_id]
+
+        stats = self._sessions[session_id]
+        del self._sessions[session_id]
+        return stats
 
     def add_roll(self, itr: discord.Interaction, result: RollResult | MultiRollResult) -> SessionStats | None:
         stats = self.get(itr)

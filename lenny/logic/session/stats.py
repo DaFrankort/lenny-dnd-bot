@@ -106,7 +106,13 @@ class SessionStats:
                 UserSessionResult(user=user, color=color, title=title, description="\n- ".join(user_report), graph=graph)
             )
 
-        return SessionResult(base_info="# Session results\nHere's how everyone rolled!", users_stats=users_stats)
+        base_info = ["# Session stats"]
+        if len(users_stats) > 0:
+            base_info.append("Here's everyone's results:")
+        else:
+            base_info.append("No users have rolled yet!")
+
+        return SessionResult(base_info="\n".join(base_info), users_stats=users_stats)
 
 
 class GlobalSessionStats:

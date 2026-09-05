@@ -106,7 +106,7 @@ class DNDTableContainerView(PaginatedLayoutView):
         self.table = table
         self.tables = []
 
-        max_table_size = 4000 - 100  # Some margin
+        max_table_size = 4000 - 500  # Some margin
 
         # Calculate the longest sub-tables for the pagination
         # Not particularly optimal, but tables have a maximum of 100 rows
@@ -116,7 +116,8 @@ class DNDTableContainerView(PaginatedLayoutView):
         rows_end = len(rows)
         while len(rows) > 0:
             built = build_table_from_rows(headers, rows[:rows_end])
-            if len(built) < max_table_size:
+
+            if len(built) < max_table_size or rows_end == 1:
                 self.tables.append(built)
                 rows = rows[rows_end:]
                 rows_end = len(rows)

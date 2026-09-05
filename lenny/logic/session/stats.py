@@ -1,11 +1,14 @@
-import io
 from collections import Counter
 
 import discord
-from matplotlib import pyplot as plt
 
 from logic.color import UserColor
-from logic.distribution import to_matplotlib_color
+from logic.graphs import (
+    convert_and_close_fig,
+    empty_distribution_chart,
+    style_legend,
+    to_matplotlib_color,
+)
 from logic.roll import MultiRollResult, RollResult
 from logic.session.titles import TitleRegistry
 from logic.session.types import (
@@ -27,30 +30,16 @@ def _d20_comparison_chart(stats: UserSessionDiceStats, color: int) -> discord.Fi
     actual_percentages = [(counts[face] / total_rolls) * 100 for face in x_faces]
     average_percentage = 5.0
 
-    plt.rcParams["figure.dpi"] = 600
-    fig, ax = plt.subplots()  # type: ignore
-
-    ax.tick_params(colors="white")  # type: ignore
-    ax.grid(color="white", alpha=0.3, linewidth=1)  # type: ignore
-    for spine in ("top", "right", "bottom", "left"):
-        ax.spines[spine].set_color("white")
-
+    fig, ax = empty_distribution_chart(x_faces)
     ax.set_xticks(x_faces)  # type: ignore
-    ax.yaxis.set_major_formatter("{x:.1f}%")
-    ax.set_axisbelow(True)
     ax.axhline(y=average_percentage, color="white", linestyle="--", alpha=0.5, label=f"Average ({average_percentage}%)")  # type: ignore
 
     user_color = to_matplotlib_color(color)  # type: ignore
-    ax.bar(x_faces, actual_percentages, color=user_color, alpha=0.8, label="Your d20 Rolls")  # type: ignore
+    ax.bar(x_faces, actual_percentages, color=user_color, label="Your d20 Rolls")  # type: ignore
 
-    legend = ax.legend(loc="upper right", framealpha=0.1)  # type: ignore
-    for text in legend.get_texts():
-        text.set_color("white")
+    style_legend(ax.legend(loc="upper right"))  # type: ignore
 
-    buf = io.BytesIO()
-    plt.savefig(buf, format="png", bbox_inches="tight", transparent=True)  # type: ignore
-    buf.seek(0)
-    plt.close(fig)
+    buf = convert_and_close_fig(fig)
 
     return discord.File(fp=buf, filename=f"{color}_d20_comparison.png")
 

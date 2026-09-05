@@ -48,4 +48,4 @@ class Item(DNDEntry):
 
 class ItemList(DNDEntryList[Item]):
     type = Item
-    paths = ["items.json"]
+    paths = ["items.json", "itemsvariants.json"]

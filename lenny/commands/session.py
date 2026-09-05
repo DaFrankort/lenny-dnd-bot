@@ -70,7 +70,7 @@ class SessionStatsViewCommand(BaseCommand):
         stats = SessionStatistics.get(itr)
         if stats is None:
             raise KeyError("No session active in this channel!")
-        else:
-            result = stats.get_report(itr)
-            embeds = [UserSessionStatEmbed(stat) for stat in result.users_stats[:10]]
-            await itr.response.send_message(result.base_info, embeds=embeds, files=result.files())
+
+        result = stats.get_report(itr)
+        embeds = [UserSessionStatEmbed(stat) for stat in result.users_stats[:10]]
+        await itr.response.send_message(result.base_info, embeds=embeds, files=result.files())

@@ -387,6 +387,9 @@ class UserColorFileHandler(JsonHandler[int]):
             return color
         return UserColor.generate(itr)
 
+    def get_from_user(self, user: discord.User | discord.Member):
+        return self.data.get(str(user.id), UserColor.generate(user.display_name))
+
     def remove(self, itr: discord.Interaction) -> bool:
         """Removes a user's saved color from the file."""
         user_id = str(itr.user.id)

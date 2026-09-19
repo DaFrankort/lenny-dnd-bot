@@ -73,13 +73,14 @@ class MockGuild(discord.Guild):
 class MockUser(discord.User):
     """Mock user class to simulate Discord users."""
 
-    def __init__(self, name: str):
+    def __init__(self, name: str, is_bot: bool = False):
         self.id = abs(hash(name))
         self.name = name
         self.global_name = name
         self.discriminator = str(self.id)
         self._avatar = MagicMock()
         self._state = MagicMock()
+        self.bot = is_bot
 
     @property
     def avatar(self):
@@ -87,12 +88,28 @@ class MockUser(discord.User):
 
 
 class MockMember(discord.Member):
-    def __init__(self, user: MockUser, guild: discord.Guild, admin: bool):
+
+    def __init__(
+        self,
+        user: MockUser,
+        guild: discord.Guild,
+        admin: bool,
+        voice: discord.VoiceState | None = None,
+    ):
         self._roles = discord.utils.SnowflakeList(map(int, {}))
         self.timed_out_until = None
         self._user = user
         self.guild = guild
         self.guild_permissions.administrator = admin
+        self._voice = voice
+
+    @property
+    def voice(self) -> discord.VoiceState | None:
+        return self._voice
+
+    @voice.setter
+    def voice(self, value: discord.VoiceState | None) -> None:
+        self._voice = value
 
 
 class MockTextChannel(discord.TextChannel):
@@ -104,8 +121,9 @@ class MockTextChannel(discord.TextChannel):
 class MockInteraction(discord.Interaction):
     """Mock interaction class to simulate Discord interactions."""
 
-    def __init__(self, user: MockUser = MockUser("user"), guild_id: int = 999, channel_id: int = 100):
+    def __init__(self, user: MockUser | MockMember = MockUser("user"), guild_id: int = 999, channel_id: int = 100):
         mock_guild = MockGuild(guild_id)
+        self.id = guild_id + channel_id
         self.user = user
         self.guild_id = guild_id
         self.channel = MockTextChannel(mock_guild, channel_id)

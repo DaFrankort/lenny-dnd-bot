@@ -61,7 +61,7 @@ def _get_derived_stats(
     if char_background.feat and "tough" in char_background.feat.lower():
         start_hp += 2  # Level 1 * 2
 
-    speed = ", ".join(char_species.speed).replace("feet", "ft.").replace(" ", "")
+    speed = char_species.speed.replace(" ", "")
 
     passive_perception = 10 + wis_mod
     if has_perception_prof:

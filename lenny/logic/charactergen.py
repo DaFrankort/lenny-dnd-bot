@@ -69,7 +69,11 @@ def _get_derived_stats(
     if char_background.feat and "alert" in char_background.feat.lower():
         initiative += proficiency
     return CharacterDerivedStats(
-        proficiency=proficiency, hp=start_hp, passive_perception=passive_perception, speed=char_species.speed, initiative=initiative
+        proficiency=proficiency,
+        hp=start_hp,
+        passive_perception=passive_perception,
+        speed=char_species.speed,
+        initiative=initiative,
     )
 
 

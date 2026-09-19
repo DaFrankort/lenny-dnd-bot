@@ -10,7 +10,7 @@ from bot import Bot
 class ExternalAsset(str, Enum):
     GIF = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/25.gif"
     IMAGE = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png"
-    IMAGE_FACE = "https://raw.githubusercontent.com/opencv/opencv/master/samples/data/lena.jpg"
+    IMAGE_FACE = "https://raw.githubusercontent.com/opencv/opencv/master/samples/data/messi5.jpg"
     AVATAR = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/25.png"
     SOUND = "https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/25.ogg"
     BACKGROUND = "https://raw.githubusercontent.com/opencv/opencv/master/samples/data/starry_night.jpg"

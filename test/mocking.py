@@ -8,12 +8,12 @@ from bot import Bot
 
 
 class ExternalAsset(str, Enum):
-    GIF = "https://media1.tenor.com/m/eTAoIPj7DdIAAAAC/pokemon-pikachu.gif"
-    IMAGE = "https://archives.bulbagarden.net/media/upload/4/4a/0025Pikachu.png"
-    IMAGE_FACE = "https://archives.bulbagarden.net/media/upload/c/cd/Ash_JN.png"
-    AVATAR = "https://archives.bulbagarden.net/media/upload/c/c1/0025Pikachu-PhD.png"
+    GIF = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/25.gif"
+    IMAGE = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png"
+    IMAGE_FACE = "https://raw.githubusercontent.com/opencv/opencv/master/samples/data/messi5.jpg"
+    AVATAR = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/25.png"
     SOUND = "https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/25.ogg"
-    BACKGROUND = "https://archives.bulbagarden.net/media/upload/d/dd/Professor_Oak_Laboratory_M20.png"
+    BACKGROUND = "https://raw.githubusercontent.com/opencv/opencv/master/samples/data/starry_night.jpg"
 
 
 class MockBot(Bot):

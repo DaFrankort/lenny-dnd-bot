@@ -61,8 +61,6 @@ def _get_derived_stats(
     if char_background.feat and "tough" in char_background.feat.lower():
         start_hp += 2  # Level 1 * 2
 
-    speed = ", ".join(char_species.speed).replace("feet", "ft.").replace(" ", "")
-
     passive_perception = 10 + wis_mod
     if has_perception_prof:
         passive_perception += proficiency
@@ -71,7 +69,11 @@ def _get_derived_stats(
     if char_background.feat and "alert" in char_background.feat.lower():
         initiative += proficiency
     return CharacterDerivedStats(
-        proficiency=proficiency, hp=start_hp, passive_perception=passive_perception, speed=speed, initiative=initiative
+        proficiency=proficiency,
+        hp=start_hp,
+        passive_perception=passive_perception,
+        speed=char_species.speed,
+        initiative=initiative,
     )
 
 

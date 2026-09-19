@@ -11,8 +11,8 @@ from logic.dnd.abstract import (
 
 class Species(DNDEntry):
     image: str | None
-    sizes: list[str]
-    speed: list[str]
+    sizes: str
+    speed: str
     type: str | None
 
     description: list[Description]

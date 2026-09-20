@@ -13,8 +13,7 @@ class Cult(DNDEntry):
     def __init__(self, obj: dict[str, Any]) -> None:
         self.entry_type = DNDEntryType.CULT
 
-        self.name = obj["name"]
-        self.source = obj["source"]
+        super().__init__(obj)
         self.url = obj["url"]
         self.type = obj["type"]
 

@@ -1,4 +1,6 @@
+import json
 import logging
+import os
 from collections.abc import Callable
 from enum import Enum
 from typing import Any, TypeVar
@@ -61,3 +63,50 @@ def call_with_timeout(timeout: int, func: Callable[..., T], args: list[Any]) -> 
         return None
 
     return proc.result
+
+
+def join_strings(strings: list[str], separator: str, final_separator: str) -> str:
+    """
+    Join multiple strings together with a special final separator. For example:
+    join_strings(["a", "b", "c"], ",", ", and")  -> "a, b, and c"
+    """
+    if len(strings) == 0:
+        return ""
+
+    if len(strings) == 1:
+        return strings[0]
+
+    first_strings = strings[:-1]
+    last_string = strings[-1]
+    first_part = separator.join(first_strings)
+
+    return final_separator.join([first_part, last_string])
+
+
+def read_json_file(path: str) -> list[dict[str, Any]]:
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"JSON file not found: '{path}'")
+    if not os.path.isfile(path):
+        raise TypeError(f"Path is not a JSON file: '{path}'")
+    with open(path, "r", encoding="utf-8") as file:
+        return json.load(file)
+
+
+def groups_of_size(items: list[T], size: int) -> list[tuple[T, ...]]:
+    """
+    Groups an list of elements into tuples of a certain size.
+
+    For example, take the list [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]. Calling groups_of_size(items, 3) will
+    split this list into [(1,2,3), (4,5,6), (7,8,9), (10)].
+    """
+    # https://stackoverflow.com/a/1624988
+    return [tuple(items[i : i + size]) for i in range(0, len(items), size)]  # noqa: E203
+
+
+def truncate_text(text: str, max_length: int, truncation_text: str = "..."):
+    trunc_length = len(truncation_text)
+    if len(text) <= max_length:
+        return text
+    if max_length <= trunc_length:
+        return text[:max_length]
+    return f"{text[:max_length - trunc_length]}{truncation_text}"

@@ -1,8 +1,7 @@
 import dataclasses
 import random
 
-from logic.dnd.abstract import DNDEntryList
-from methods import ChoicedEnum
+from methods import ChoicedEnum, read_json_file
 
 
 class Gender(str, ChoicedEnum):
@@ -33,7 +32,7 @@ class NameTable:
 
     def __init__(self):
         self.tables = {}
-        data = DNDEntryList.read_dnd_data_contents(self.path)
+        data = read_json_file(self.path)
 
         for datum in data:
             male = datum["tables"]["male"]

@@ -2,6 +2,7 @@ import discord
 
 from embeds.dnd.abstract import HORIZONTAL_LINE, DNDEntryEmbed
 from logic.dnd.item import Item
+from methods import truncate_text
 
 
 class ItemEmbed(DNDEntryEmbed):
@@ -18,7 +19,8 @@ class ItemEmbed(DNDEntryEmbed):
             self.add_field(name="", value=f"*{item_type}*", inline=False)
 
         if properties is not None:
-            self.add_field(name="", value=properties, inline=False)
+            # edge case item: Blunderbuss (SGEHPP) has an absurdly long property list, thus we truncate.
+            self.add_field(name="", value=truncate_text(properties, 1024, f"... [read more]({item.url})"), inline=False)
 
         if value_weight is not None:
             self.add_field(name="", value=value_weight, inline=False)

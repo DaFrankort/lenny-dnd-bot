@@ -8,12 +8,12 @@ from bot import Bot
 
 
 class ExternalAsset(str, Enum):
-    GIF = "https://media1.tenor.com/m/eTAoIPj7DdIAAAAC/pokemon-pikachu.gif"
-    IMAGE = "https://archives.bulbagarden.net/media/upload/4/4a/0025Pikachu.png"
-    IMAGE_FACE = "https://archives.bulbagarden.net/media/upload/c/cd/Ash_JN.png"
-    AVATAR = "https://archives.bulbagarden.net/media/upload/c/c1/0025Pikachu-PhD.png"
+    GIF = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/25.gif"
+    IMAGE = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png"
+    IMAGE_FACE = "https://raw.githubusercontent.com/opencv/opencv/master/samples/data/messi5.jpg"
+    AVATAR = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/25.png"
     SOUND = "https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/25.ogg"
-    BACKGROUND = "https://archives.bulbagarden.net/media/upload/d/dd/Professor_Oak_Laboratory_M20.png"
+    BACKGROUND = "https://raw.githubusercontent.com/opencv/opencv/master/samples/data/starry_night.jpg"
 
 
 class MockBot(Bot):
@@ -73,13 +73,14 @@ class MockGuild(discord.Guild):
 class MockUser(discord.User):
     """Mock user class to simulate Discord users."""
 
-    def __init__(self, name: str):
+    def __init__(self, name: str, is_bot: bool = False):
         self.id = abs(hash(name))
         self.name = name
         self.global_name = name
         self.discriminator = str(self.id)
         self._avatar = MagicMock()
         self._state = MagicMock()
+        self.bot = is_bot
 
     @property
     def avatar(self):
@@ -87,12 +88,28 @@ class MockUser(discord.User):
 
 
 class MockMember(discord.Member):
-    def __init__(self, user: MockUser, guild: discord.Guild, admin: bool):
+
+    def __init__(
+        self,
+        user: MockUser,
+        guild: discord.Guild,
+        admin: bool,
+        voice: discord.VoiceState | None = None,
+    ):
         self._roles = discord.utils.SnowflakeList(map(int, {}))
         self.timed_out_until = None
         self._user = user
         self.guild = guild
         self.guild_permissions.administrator = admin
+        self._voice = voice
+
+    @property
+    def voice(self) -> discord.VoiceState | None:
+        return self._voice
+
+    @voice.setter
+    def voice(self, value: discord.VoiceState | None) -> None:
+        self._voice = value
 
 
 class MockTextChannel(discord.TextChannel):
@@ -104,8 +121,9 @@ class MockTextChannel(discord.TextChannel):
 class MockInteraction(discord.Interaction):
     """Mock interaction class to simulate Discord interactions."""
 
-    def __init__(self, user: MockUser = MockUser("user"), guild_id: int = 999, channel_id: int = 100):
+    def __init__(self, user: MockUser | MockMember = MockUser("user"), guild_id: int = 999, channel_id: int = 100):
         mock_guild = MockGuild(guild_id)
+        self.id = guild_id + channel_id
         self.user = user
         self.guild_id = guild_id
         self.channel = MockTextChannel(mock_guild, channel_id)

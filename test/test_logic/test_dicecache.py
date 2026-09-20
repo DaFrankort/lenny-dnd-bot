@@ -2,14 +2,14 @@ import pytest
 from discord import Interaction
 from mocking import MockInteraction, MockUser
 
-from logic.coin import Coin
-from logic.dicecache import DiceCache, DiceCacheInfo, DiceCacheTrie
+from logic.coin import parse_coin
+from logic.dicecache import DiceCache, DiceCacheInfo, DiceCacheTrie, normalize_key
 
 
 class TestDiceCacheTrie:
     @pytest.fixture
     def cache_info(self) -> DiceCacheInfo:
-        return DiceCacheInfo(rolls=[], reasons=[], initiative=0, trie={}, coin=[])
+        return DiceCacheInfo(rolls=[], reasons=[], grouproll={}, trie={}, coin=[])
 
     @pytest.fixture
     def trie_handler(self, cache_info: DiceCacheInfo) -> DiceCacheTrie:
@@ -42,7 +42,7 @@ class TestDiceCacheTrie:
         assert len(cache_info.trie) == 10, "trie data should be limited to clean-limit"
 
     def test_clean_halving_logic(self):
-        info = DiceCacheInfo(rolls=[], reasons=[], initiative=0, trie={"1d10": 120, "1d10red": 1}, coin=[])
+        info = DiceCacheInfo(rolls=[], reasons=[], grouproll={}, trie={"1d10": 120, "1d10red": 1}, coin=[])
         handler = DiceCacheTrie(info)
 
         handler.clean(limit=50, max_count=100)
@@ -81,12 +81,12 @@ class TestDiceExpressionCache:
         assert reason in data.reasons, f"'{reason} should be in 'reasons'"
 
     def test_get_autocomplete_suggestions_empty(self, itr: Interaction):
-        DiceCache.get(itr).cache = DiceCacheInfo([], [], 0, {}, coin=[])
+        DiceCache.get(itr).cache = DiceCacheInfo([], [], {}, {}, coin=[])
         suggestions = DiceCache.get(itr).get_autocomplete_suggestions("")
         assert suggestions == [], "Suggestions should be empty when no data is present."
 
     def test_autocompletes_clean_dice_instead_of_cache(self, itr: Interaction):
-        DiceCache.get(itr).cache = DiceCacheInfo([], [], 0, {}, coin=[])
+        DiceCache.get(itr).cache = DiceCacheInfo([], [], {}, {}, coin=[])
         expected = "1d20"
         cached_expression = f"{expected}+5"
         DiceCache.get(itr).store_expression(cached_expression)
@@ -105,17 +105,36 @@ class TestDiceExpressionCache:
         assert len(reasons) > 0, "New user could not get reason autocomplete-suggestions."
 
     def test_store_coin(self, itr: Interaction):
-        coin = Coin(cp=1, sp=1, ep=1)
+        coin = parse_coin("1gp + 1sp + 1cp")
         DiceCache.get(itr).store_coin(coin)
         data = DiceCache.get(itr).cache
 
-        assert coin.expr in data.coin, f"{coin.expr} should be in 'coin'."
+        assert coin.expression in data.coin, f"{coin.expression} should be in 'coin'."
 
     def test_coin_autocomplete_empty_no_data(self, itr: Interaction):
-        DiceCache.get(itr).cache = DiceCacheInfo([], [], 0, {}, coin=[])
+        DiceCache.get(itr).cache = DiceCacheInfo([], [], {}, {}, coin=[])
         suggestions = DiceCache.get(itr).get_autocomplete_suggestions("")
         assert suggestions == [], "Suggestions should be empty when no data is present."
 
     def test_coin_autocomplete_empty_on_query(self, itr: Interaction):
         suggestions = DiceCache.get(itr).get_autocomplete_suggestions("20gp")
         assert suggestions == [], "Suggestions should be empty when a query is entered."
+
+    @pytest.mark.parametrize(
+        "query, cached_expressions",
+        [
+            ("1d20", ["1d20+5", "1d20+2"]),
+            ("2d6+", ["2d6+4+2", "2d6+4"]),
+            ("Hello!", ["1d4", "1d6", "1d8", "1d10", "1d12"]),
+        ],
+    )
+    def test_autocomplete_prioritizes_user_query_input_first(self, itr: Interaction, query: str, cached_expressions: list[str]):
+        cache = DiceCache.get(itr)
+        cache.cache = DiceCacheInfo(rolls=cached_expressions, reasons=[], grouproll={}, trie={}, coin=[])
+
+        suggestions = cache.get_autocomplete_suggestions(query)
+
+        assert len(suggestions) > 0, "Suggestions list should not be empty."
+        assert suggestions[0].value == normalize_key(
+            query
+        ), f"The normalized user input '{query}' should always be the first suggestion."

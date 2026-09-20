@@ -1,4 +1,3 @@
-import re
 from dataclasses import dataclass
 from typing import Any
 
@@ -6,10 +5,14 @@ import discord
 import pygtrie  # pyright: ignore[reportMissingTypeStubs]
 from discord.app_commands import Choice
 
-from logic.coin import Coin
+from logic.coin import CoinResult
 from logic.dnd.data import Data
 from logic.jsonhandler import JsonFolderHandler, JsonHandler
 from logic.voice_chat import SPECIAL_ROLL_REASONS
+
+
+def normalize_key(key: str) -> str:
+    return key.strip().lower().replace(" ", "")
 
 
 def default_dicecache_trie() -> dict[str, int]:
@@ -28,7 +31,7 @@ def default_dicecache_trie() -> dict[str, int]:
 class DiceCacheInfo:
     rolls: list[str]
     reasons: list[str]
-    initiative: int
+    grouproll: dict[str, str]
     trie: dict[str, int]
     coin: list[str]
 
@@ -37,7 +40,7 @@ class DiceCacheInfo:
         return cls(
             rolls=obj.get("rolls", []),
             reasons=obj.get("reasons", []),
-            initiative=obj.get("initiative", 0),
+            grouproll=obj.get("grouproll", {}),
             trie=obj.get("trie", default_dicecache_trie()),
             coin=obj.get("coin", []),
         )
@@ -52,7 +55,7 @@ class DiceCacheTrie:
         self.clean()  # DiceCache is often reinitialized, we can use this behavior to periodically clean the user's trie.
 
     def add(self, expression: str):
-        expression = expression.strip().lower().replace(" ", "")
+        expression = normalize_key(expression)
         if not expression:
             return
 
@@ -61,7 +64,7 @@ class DiceCacheTrie:
         self._data.trie = dict(self._trie.items())  # type: ignore
 
     def get_suggestions(self, expression: str, limit: int) -> list[str]:
-        expression = expression.strip().lower().replace(" ", "")
+        expression = normalize_key(expression)
         if not expression:
             return []
 
@@ -98,7 +101,7 @@ class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
     def __init__(self, user_id: int):
         super().__init__(str(user_id), "user_cache")
         if not self.data:
-            self.cache = DiceCacheInfo(rolls=[], reasons=[], initiative=0, trie={}, coin=[])
+            self.cache = DiceCacheInfo(rolls=[], reasons=[], grouproll={}, trie={}, coin=[])
         self._trie = DiceCacheTrie(self.cache)
 
     @property
@@ -133,14 +136,13 @@ class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
         self.cache.reasons = self.cache.reasons[-5:]  # Store max 5 reasons
         self.save()
 
-    def store_initiative(self, initiative: int):
-        if initiative == self.cache.initiative:
-            return
-        self.cache.initiative = initiative
+    def store_grouproll(self, reason: str, modifier: str):
+        reason = normalize_key(reason)
+        self.cache.grouproll[reason] = modifier
         self.save()
 
-    def store_coin(self, coin: Coin):
-        expression = coin.expr
+    def store_coin(self, coin: CoinResult):
+        expression = coin.expression  # TODO use evaluated expression instead.
         if expression in self.cache.coin:
             self.cache.coin.remove(expression)
         self.cache.coin.append(expression)
@@ -149,7 +151,7 @@ class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
 
     def get_coin_autocomplete_suggestions(self, query: str) -> list[Choice[str]]:
         coins = self.cache.coin
-        query = query.strip().lower().replace(" ", "")
+        query = normalize_key(query)
         if query or len(coins) == 0:
             return []
         return [Choice(name=f"({coin})", value=f"({coin})") for coin in reversed(coins)]
@@ -162,19 +164,19 @@ class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
         if len(rolls) == 0:
             return []
 
-        query = query.strip().lower().replace(" ", "")
+        query = normalize_key(query)
         suggestions: list[str] = []
         seen: set[str] = set()
 
         def add_suggestion(value: str) -> None:
-            cleaned = value.strip().lower().replace(" ", "")
+            cleaned = normalize_key(value)
             if cleaned in seen:
                 return
             seen.add(cleaned)
             suggestions.append(value)
 
-        if query and re.compile(r"^\d+d\d+$", re.IGNORECASE).match(query):
-            add_suggestion(query)  # Suggest query if is clean dice
+        if query:  # Always suggest user's input first.
+            add_suggestion(query)
 
         for roll in reversed(rolls):
             if query in roll.lower():
@@ -190,7 +192,7 @@ class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
         Returns auto-complete choices for the last reasons a user used when no query is given.
         If query is given, will suggest reasons containing the query.
         """
-        query = query.strip().lower().replace(" ", "")
+        query = normalize_key(query)
         if query == "":
             last_used = self.cache.reasons
             if len(last_used) == 0:
@@ -212,8 +214,9 @@ class DiceCacheHandler(JsonHandler[DiceCacheInfo]):
         )
         return [discord.app_commands.Choice(name=reason, value=reason) for reason in filtered_reasons[:25]]
 
-    def get_last_initiative(self) -> int:
-        return self.cache.initiative
+    def get_last_grouproll(self, reason: str) -> str:
+        reason = normalize_key(reason)
+        return self.cache.grouproll.get(reason, "")
 
 
 class GlobalDiceCache(JsonFolderHandler[DiceCacheHandler]):

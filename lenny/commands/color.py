@@ -160,12 +160,16 @@ class ColorSetImageCommand(BaseCommand):
 
 class ColorShowCommand(BaseCommand):
     name = "show"
-    desc = "Show off your current color!"
+    desc = "Show off your current color or any color that you like!"
     help = "Shows the color that you are currently using publicly."
 
-    async def handle(self, itr: discord.Interaction):
-        color = UserColor.get(itr)
-        embed = ColorShowEmbed(itr, color)
+    @describe(color="An optional color to show instead of the user color.")
+    async def handle(self, itr: discord.Interaction, color: str | None = None):
+        if color is None:
+            shown_color = UserColor.get(itr)
+        else:
+            shown_color = UserColor.parse(color)
+        embed = ColorShowEmbed(itr, shown_color)
         await itr.response.send_message(embed=embed, file=embed.file)
 
 

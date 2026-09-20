@@ -1,7 +1,6 @@
-from typing import Any
+from typing import Any, Literal
 
-from logic.dnd.abstract import DNDEntryList
-from methods import ChoicedEnum
+from methods import ChoicedEnum, read_json_file
 
 
 class ContentChoice(ChoicedEnum):
@@ -13,23 +12,23 @@ class ContentChoice(ChoicedEnum):
 class Source:
     """Note: this object does not inherit from DNDEntry as it is meta data about DNDEntries"""
 
-    id: str
     name: str
+    abbreviation: str
     source: str
-    published: str
-    author: str | None
-    group: str
+    published: str | None
+    category: Literal["core", "supplemental", "core-supplemental", "adventure", "partnered"]
+    legacy: bool
 
     def __init__(self, source: dict[str, Any]):
-        self.id = source["id"]
         self.name = source["name"]
+        self.abbreviation = source["abbreviation"]
         self.source = source["source"]
         self.published = source["published"]
-        self.author = source["author"]
-        self.group = source["group"]
+        self.category = source["category"]
+        self.legacy = source["legacy"]
 
 
-class SourceList:
+class GlobalSourceList:
     path_official = "./submodules/lenny-dnd-data/generated/official/sources.json"
     path_partnered = "./submodules/lenny-dnd-data/generated/partnered/sources.json"
     entries: list[Source]
@@ -50,7 +49,7 @@ class SourceList:
                 paths = [self.path_partnered]
 
         for path in paths:
-            data = DNDEntryList.read_dnd_data_contents(path)
+            data = read_json_file(path)
             self.entries.extend([Source(e) for e in data])
 
     def contains(self, source: str) -> bool:
@@ -58,4 +57,20 @@ class SourceList:
 
     @property
     def source_ids(self) -> set[str]:
-        return set(entry.id for entry in self.entries)
+        return set(entry.source for entry in self.entries)
+
+    def get(self, source_id: str) -> Source:
+        for source in self.entries:
+            if source.source == source_id:
+                return source
+        raise KeyError(f"Could not find source by id '{source_id}'")
+
+    def get_from_abbreviation(self, abbreviation: str) -> Source:
+        abbreviation = abbreviation.lower()
+        for source in self.entries:
+            if source.abbreviation.lower() == abbreviation:
+                return source
+        raise KeyError(f"Could not find source by abbreviation '{abbreviation}'")
+
+
+SourceList = GlobalSourceList()

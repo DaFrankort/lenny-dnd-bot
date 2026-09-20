@@ -22,8 +22,7 @@ class DNDTable(DNDEntry):
     def __init__(self, obj: dict[str, Any]):
         self.entry_type = DNDEntryType.TABLE
 
-        self.name = obj["name"]
-        self.source = obj["source"]
+        super().__init__(obj)
         self.url = obj["url"]
 
         self.dice_notation = obj["roll"]
@@ -62,10 +61,14 @@ class DNDTable(DNDEntry):
                     return row
                 continue
 
-            if row_range["min"] <= value <= row_range["max"]:
+            r_min = row_range["min"]
+            r_max = row_range["max"]
+            if r_min <= value <= r_max:
+                return row
+            if r_max == 0 and r_min <= value:  # Edge case: {min: X, max: 0} means -> X and above
                 return row
 
-        raise LookupError(f"The value {value} is out of range for a {self.dice_notation} roll!")
+        raise LookupError(f"The value {value} is out of range for a {self.dice_notation} roll in table {self.title}!")
 
 
 class DNDTableList(DNDEntryList[DNDTable]):

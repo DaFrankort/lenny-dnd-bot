@@ -18,6 +18,7 @@ from logic.dnd.language import Language, LanguageList
 from logic.dnd.life import LifeData
 from logic.dnd.name import NameTable
 from logic.dnd.object import DNDObject, DNDObjectList
+from logic.dnd.optionalfeature import OptionalFeature, OptionalFeatureList
 from logic.dnd.rule import Rule, RuleList
 from logic.dnd.skills import SkillList
 from logic.dnd.species import Species, SpeciesList
@@ -42,6 +43,7 @@ class DNDData:
     species: SpeciesList
     vehicles: VehicleList
     objects: DNDObjectList
+    optional_features: OptionalFeatureList
     hazards: HazardList
     deities: DeityList
     cults: CultList
@@ -67,6 +69,7 @@ class DNDData:
         self.species = SpeciesList()
         self.vehicles = VehicleList()
         self.objects = DNDObjectList()
+        self.optional_features = OptionalFeatureList()
         self.hazards = HazardList()
         self.deities = DeityList()
         self.cults = CultList()
@@ -92,6 +95,7 @@ class DNDData:
         yield self.species
         yield self.vehicles
         yield self.objects
+        yield self.optional_features
         yield self.hazards
         yield self.deities
         yield self.cults
@@ -110,7 +114,7 @@ class DNDData:
                 name = entry.name.strip().lower()
                 source = entry.source
 
-                if source not in allowed_sources:
+                if source.source not in allowed_sources:
                     continue
                 if fuzz.partial_ratio(query, name) > threshold:
                     results.add(entry)
@@ -132,6 +136,7 @@ class DNDSearchResults:
     species: list[Species]
     vehicles: list[Vehicle]
     objects: list[DNDObject]
+    optional_feats: list[OptionalFeature]
     hazards: list[Hazard]
     deities: list[Deity]
     cults: list[Cult]
@@ -153,6 +158,7 @@ class DNDSearchResults:
         self.species = []
         self.vehicles = []
         self.objects = []
+        self.optional_feats = []
         self.hazards = []
         self.deities = []
         self.cults = []
@@ -173,6 +179,7 @@ class DNDSearchResults:
             Species: self.species,
             Vehicle: self.vehicles,
             DNDObject: self.objects,
+            OptionalFeature: self.optional_feats,
             Hazard: self.hazards,
             Deity: self.deities,
             Cult: self.cults,
@@ -192,7 +199,7 @@ class DNDSearchResults:
         return all_entries
 
     def get_all_sorted(self) -> list[DNDEntry]:
-        return sorted(self.get_all(), key=lambda r: (r.entry_type, r.name, r.source))
+        return sorted(self.get_all(), key=lambda r: (r.entry_type, r.name, r.source.abbreviation))
 
     def __len__(self) -> int:
         return len(self.get_all())

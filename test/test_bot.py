@@ -5,8 +5,10 @@ import pytest
 
 # Required to mark the library as essential for testing in our workflows
 import pytest_asyncio  # noqa: F401 # type: ignore
+import pytest_timeout  # noqa: F401 # type: ignore
 from mocking import (
     MockBackgroundImage,
+    MockBot,
     MockDirectMessageInteraction,
     MockGIFImage,
     MockImage,
@@ -21,6 +23,7 @@ from embeds.dnd.class_ import ClassEmbed
 from logic.charactergen import class_choices, species_choices
 from logic.color import BasicColors, ImageColorStyle
 from logic.config import Config, ConfigHandler
+from logic.distribution import DistributionChartStyle
 from logic.dnd.abstract import DNDEntry, DNDEntryList
 from logic.dnd.data import Data
 from logic.dnd.name import Gender
@@ -65,6 +68,7 @@ SLASH_COMMAND_TESTS: Iterable[Iterable[Any]] = [
     ("search species", {"name": ["Human", "abcdef"]}),
     ("search vehicle", {"name": ["Galley", "abcdef"]}),
     ("search object", {"name": ["Ballista", "abcdef"]}),
+    ("search optionalfeat", {"name": ["Agonizing Blast", "abcdef"]}),
     ("search hazard", {"name": ["Spiked Pit", "abcdef"]}),
     ("search cult", {"name": ["Cult of Dispater", "abcdef"]}),
     ("search boon", {"name": ["Demonic Boon of Balor", "abcdef"]}),
@@ -100,7 +104,7 @@ SLASH_COMMAND_TESTS: Iterable[Iterable[Any]] = [
         {"color": [BasicColors.RED.value, BasicColors.BLUE.value, BasicColors.GREEN.value]},
     ),
     ("color set image", {"image": [None, MockImage()], "style": ImageColorStyle.values()}),
-    ("color show", {}),
+    ("color show", {"color": [None, "#FF00FF"]}),
     ("color clear", {}),  # Run clear last, to remove useless data from files.
     ("stats roll", {}),
     ("stats buy", {}),
@@ -165,7 +169,15 @@ SLASH_COMMAND_TESTS: Iterable[Iterable[Any]] = [
             },
         ],
     ),
-    ("distribution", {"expression": ["1d20", "1d8ro1"], "advantage": Advantage.values(), "min_to_beat": [None, "5"]}),
+    (
+        "distribution",
+        {
+            "expression": ["1d20", "1d8ro1", "1d20,2d20,3d20"],
+            "advantage": Advantage.values(),
+            "min_to_beat": [None, 5],
+            "style": DistributionChartStyle.values(),
+        },
+    ),
     (
         "charactergen",
         {
@@ -177,7 +189,18 @@ SLASH_COMMAND_TESTS: Iterable[Iterable[Any]] = [
     ("favorites add", {"name": Data.spells.entries[0].title}),
     ("favorites view", {}),
     ("favorites remove", {"name": Data.spells.entries[0].title}),
-    ("average ac", {"hit": "1d4+4", "damage": "2d6+4", "min_ac": 4, "max_ac": 16, "crit_min": 19, "miss_damage": "4"}),
+    (
+        "average ac",
+        {
+            "hit": "1d4+4",
+            "damage": "2d6+4",
+            "min_ac": 4,
+            "max_ac": 16,
+            "crit_min": 19,
+            "miss_damage": "4",
+            "attacks": 2,
+        },
+    ),
     (
         "average dc",
         {
@@ -199,6 +222,7 @@ SLASH_COMMAND_TESTS: Iterable[Iterable[Any]] = [
             ],
         },
     ),
+    ("sessionstats start", {}),
     # Homebrew commands work through modals, and are thus not testable.
     # ("", {"": "", "": ""}),
 ]
@@ -251,13 +275,7 @@ def get_strict_search_arguments(entry_list: DNDEntryList[TEntry]) -> list[str]:
 class TestBotCommands:
     @pytest.fixture()
     def bot(self):
-        try:
-            bot = Bot(voice=False)
-
-            bot.register_commands()
-        except Exception:
-            pytest.fail("Bot could not be launched!")
-        return bot
+        return MockBot()
 
     @pytest.fixture()
     def commands(self, bot: Bot) -> dict[str, BaseCommand | BaseCommandGroup]:
@@ -418,6 +436,7 @@ class TestBotCommands:
             ("search species", "name", ["", "Hum"]),
             ("search vehicle", "name", ["", "Shi"]),
             ("search object", "name", ["", "Can"]),
+            ("search optionalfeat", "name", ["", "Agon"]),
             ("search hazard", "name", ["", "Spi"]),
             ("search deity", "name", ["", "Anu"]),
             ("search cult", "name", ["", "Cult of Dispa"]),
@@ -472,6 +491,7 @@ class TestBotCommands:
             ("search species", {"name": get_strict_search_arguments(Data.species)}),
             ("search vehicle", {"name": get_strict_search_arguments(Data.vehicles)}),
             ("search object", {"name": get_strict_search_arguments(Data.objects)}),
+            ("search optionalfeat", {"name": get_strict_search_arguments(Data.optional_features)}),
             ("search hazard", {"name": get_strict_search_arguments(Data.hazards)}),
             ("search boon", {"name": get_strict_search_arguments(Data.boons)}),
             (
@@ -515,7 +535,7 @@ class TestBotCommands:
         """Tests the class embeds for all classes and subclasses at all levels"""
         itr = MockInteraction()
         sources = Config.get(itr).all_sources
-        sources = set(source.id for source in sources)
+        sources = set(source.source for source in sources)
 
         classes = Data.classes
         levels = list(range(0, 21))

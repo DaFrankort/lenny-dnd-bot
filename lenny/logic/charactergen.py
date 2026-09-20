@@ -14,12 +14,12 @@ from logic.stats import Stats
 
 
 def species_choices(xphb_only: bool = True) -> list[discord.app_commands.Choice[str]]:
-    species = [e.name for e in Data.species.entries if (e.source == "XPHB" or not xphb_only) and "(" not in e.name]
+    species = [e.name for e in Data.species.entries if (e.source.source == "XPHB" or not xphb_only) and "(" not in e.name]
     return [discord.app_commands.Choice(name=spec, value=spec) for spec in species[:25]]
 
 
 def class_choices(xphb_only: bool = True) -> list[discord.app_commands.Choice[str]]:
-    classes = [e.name for e in Data.classes.entries if (e.source == "XPHB" or not xphb_only)]
+    classes = [e.name for e in Data.classes.entries if (e.source.source == "XPHB" or not xphb_only)]
     return [discord.app_commands.Choice(name=char_cls, value=char_cls) for char_cls in classes[:25]]
 
 
@@ -61,8 +61,6 @@ def _get_derived_stats(
     if char_background.feat and "tough" in char_background.feat.lower():
         start_hp += 2  # Level 1 * 2
 
-    speed = ", ".join(char_species.speed).replace("feet", "ft.").replace(" ", "")
-
     passive_perception = 10 + wis_mod
     if has_perception_prof:
         passive_perception += proficiency
@@ -71,7 +69,11 @@ def _get_derived_stats(
     if char_background.feat and "alert" in char_background.feat.lower():
         initiative += proficiency
     return CharacterDerivedStats(
-        proficiency=proficiency, hp=start_hp, passive_perception=passive_perception, speed=speed, initiative=initiative
+        proficiency=proficiency,
+        hp=start_hp,
+        passive_perception=passive_perception,
+        speed=char_species.speed,
+        initiative=initiative,
     )
 
 
@@ -142,7 +144,7 @@ class CharacterGenResult:
 
 
 def _get_random_xphb_entry(entries: list[TDND]) -> TDND:
-    xphb_entries = [e for e in entries if e.source == "XPHB" and "(" not in e.name]
+    xphb_entries = [e for e in entries if e.source.source == "XPHB" and "(" not in e.name]
     return random.choice(xphb_entries)
 
 
@@ -238,7 +240,7 @@ def _get_character_proficiencies(char_class: Class, species: Species, background
 
     # Handle free-choice
     remaining: list[tuple[str, str]] = [
-        (e.ability, e.name.lower()) for e in Data.skills.entries if e.source == "XPHB" and e.name.lower() not in result
+        (e.ability, e.name.lower()) for e in Data.skills.entries if e.source.source == "XPHB" and e.name.lower() not in result
     ]
 
     preferred: list[tuple[str, str]] = []

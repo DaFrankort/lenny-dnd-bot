@@ -11,8 +11,8 @@ from logic.dnd.abstract import (
 
 class Species(DNDEntry):
     image: str | None
-    sizes: list[str]
-    speed: list[str]
+    sizes: str
+    speed: str
     type: str | None
 
     description: list[Description]
@@ -22,8 +22,7 @@ class Species(DNDEntry):
     def __init__(self, obj: dict[str, Any]):
         self.entry_type = DNDEntryType.SPECIES
 
-        self.name = obj["name"]
-        self.source = obj["source"]
+        super().__init__(obj)
         self.url = obj["url"]
 
         self.image = obj["image"]

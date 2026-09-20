@@ -106,7 +106,7 @@ class DNDTableContainerView(PaginatedLayoutView):
         self.table = table
         self.tables = []
 
-        max_table_size = 4000 - 100  # Some margin
+        max_table_size = 4000 - 500  # Some margin
 
         # Calculate the longest sub-tables for the pagination
         # Not particularly optimal, but tables have a maximum of 100 rows
@@ -116,7 +116,8 @@ class DNDTableContainerView(PaginatedLayoutView):
         rows_end = len(rows)
         while len(rows) > 0:
             built = build_table_from_rows(headers, rows[:rows_end])
-            if len(built) < max_table_size:
+
+            if len(built) < max_table_size or rows_end == 1:
                 self.tables.append(built)
                 rows = rows[rows_end:]
                 rows_end = len(rows)
@@ -129,7 +130,7 @@ class DNDTableContainerView(PaginatedLayoutView):
         self.clear_items()
         container = ui.Container[DNDTableContainerView](accent_color=discord.Color.dark_green())
 
-        title_display = TitleTextDisplay(name=self.table.name, source=self.table.source, url=self.table.url)
+        title_display = TitleTextDisplay(name=self.table.name, source=self.table.source.abbreviation, url=self.table.url)
         if self.table.is_rollable:
             title_section = ui.Section(title_display, accessory=DNDTableRollButton(self.table))
             container.add_item(title_section)

@@ -154,10 +154,14 @@ class UserSessionDiceStats:
 
     @property
     def advantage_percentage(self) -> float:
+        if len(self.d20_totals) == 0:
+            return 0
         return self.adv_count / len(self.d20_totals)
 
     @property
     def disadvantage_percentage(self) -> float:
+        if len(self.d20_totals) == 0:
+            return 0
         return self.dis_count / len(self.d20_totals)
 
 

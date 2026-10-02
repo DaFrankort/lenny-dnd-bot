@@ -10,8 +10,7 @@ from mocking import MockGuild, MockInteraction, MockMember, MockUser
 from logic.roll import Advantage, MultiRollResult
 from logic.session.stats import GlobalSessionStats, SessionStats
 from logic.session.titles import TitleMostRollsDone
-from logic.session.types import UserSessionDiceStats
-from logic.session.types import UserSessionStats
+from logic.session.types import UserSessionDiceStats, UserSessionStats
 
 
 def create_mock_single_roll(

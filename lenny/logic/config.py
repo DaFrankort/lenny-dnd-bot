@@ -1,6 +1,6 @@
 import time
 from collections.abc import Iterable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 import discord
@@ -34,6 +34,23 @@ def is_partnered_source(source: str) -> bool:
 
 
 @dataclass
+class CalendarTargetConfig:
+    calendar_id: str
+    announcement_channel_id: int
+    reminder_hours: int = 1
+    reminder_role_id: int | None = None
+
+    @classmethod
+    def fromdict(cls, obj: Any) -> "CalendarTargetConfig":
+        return cls(
+            calendar_id=obj["calendar_id"],
+            announcement_channel_id=obj["announcement_channel_id"],
+            reminder_hours=obj.get("reminder_hours", 1),
+            reminder_role_id=obj.get("reminder_role_id"),
+        )
+
+
+@dataclass
 class GuildConfig:
     # Lookup
     disallowed_official_sources: list[str]
@@ -42,12 +59,25 @@ class GuildConfig:
     # Permissions
     roles: list[int]
 
+    calendar_targets: dict[str, CalendarTargetConfig] = field(default_factory=lambda: dict[str, CalendarTargetConfig]())
+    calendar_event_ids: dict[int, dict[str, str]] = field(default_factory=lambda: dict[int, dict[str, str]]())
+    calendar_sent_reminders: list[str] = field(default_factory=lambda: list[str]())
+
     @classmethod
     def fromdict(cls, obj: Any) -> "GuildConfig":
+        calendar_targets = {
+            name: CalendarTargetConfig.fromdict(target) for name, target in obj.get("calendar_targets", {}).items()
+        }
+
         return cls(
             disallowed_official_sources=obj.get("disallowed_official_sources", DEFAULT_DISALLOWED_OFFICIAL_SOURCES),
             allowed_partnered_sources=obj.get("allowed_partnered_sources", []),
             roles=obj.get("roles", []),
+            calendar_targets=calendar_targets,
+            calendar_event_ids={
+                int(event_id): mappings for event_id, mappings in obj.get("calendar_event_ids", {}).items()
+            },
+            calendar_sent_reminders=obj.get("calendar_sent_reminders", []),
         )
 
     @property
@@ -119,6 +149,28 @@ class ConfigHandler(JsonHandler[GuildConfig]):
             allowed_partnered_sources=[],
             roles=self.default_config_roles,
         )
+
+    def set_calendar_target(
+        self,
+        target_name: str,
+        calendar_id: str,
+        announcement_channel_id: int,
+        reminder_hours: int,
+        reminder_role_id: int | None,
+    ) -> None:
+        self.config.calendar_targets[target_name] = CalendarTargetConfig(
+            calendar_id=calendar_id,
+            announcement_channel_id=announcement_channel_id,
+            reminder_hours=reminder_hours,
+            reminder_role_id=reminder_role_id,
+        )
+        self.save()
+
+    def clear_calendar_settings(self) -> None:
+        self.config.calendar_targets.clear()
+        self.config.calendar_event_ids.clear()
+        self.config.calendar_sent_reminders.clear()
+        self.save()
 
     def deserialize(self, obj: Any) -> GuildConfig:
         return GuildConfig.fromdict(obj)
@@ -267,6 +319,13 @@ class GlobalConfigHandler(JsonFolderHandler[ConfigHandler]):
         key = self._itr_key(itr)
         if key not in self._data:
             self._data[key] = ConfigHandler(itr.guild)
+        self._last_accessed[key] = int(time.time())
+        return self._data[key]
+
+    def get_for_guild(self, guild: discord.Guild) -> ConfigHandler:
+        key = guild.id
+        if key not in self._data:
+            self._data[key] = ConfigHandler(guild)
         self._last_accessed[key] = int(time.time())
         return self._data[key]
 

@@ -1,5 +1,7 @@
+from typing import Protocol, cast
+
 import discord
-from discord.app_commands import autocomplete, choices, describe
+from discord.app_commands import Range, autocomplete, choices, describe
 
 from commands.command import BaseCommand, BaseCommandGroup
 from embeds.config.permissions import ConfigPermissionsView
@@ -8,6 +10,14 @@ from embeds.embed import ErrorEmbed
 from logic.config import OFFICIAL_SOURCES, PARTNERED_SOURCES, Config
 from logic.dnd.abstract import fuzzy_matches_list
 from logic.dnd.source import ContentChoice
+from logic.google_calendar import (
+    GoogleCalendarSync,
+    normalize_calendar_target_name,
+)
+
+
+class CalendarEventRefresher(Protocol):
+    async def refresh_calendar_events(self, guild: discord.Guild) -> None: ...
 
 
 async def source_autocomplete(itr: discord.Interaction, current: str) -> list[discord.app_commands.Choice[str]]:
@@ -83,6 +93,144 @@ class ConfigPermissionsCommand(BaseCommand):
             await itr.response.send_message(embed=embed, ephemeral=True)
 
 
+class ConfigCalendarStatusCommand(BaseCommand):
+    name = "status"
+    desc = "View Google Calendar sync settings."
+    help = "Show the configured shared calendar and reminder settings."
+
+    async def handle(self, itr: discord.Interaction):
+        config = Config.get(itr)
+        if not config.user_is_admin_or_has_config_permissions(itr.user):
+            raise PermissionError("Only admins or users with config permissions can view calendar settings.")
+
+        targets = config.config.calendar_targets
+        if not targets:
+            await itr.response.send_message("Google Calendar sync is not configured.", ephemeral=True)
+            return
+
+        lines: list[str] = []
+        for target_name, target in targets.items():
+            role = f"<@&{target.reminder_role_id}>" if target.reminder_role_id else "@everyone"
+            lead = f"{target.reminder_hours} hour(s) before and at start" if target.reminder_hours else "at start only"
+            lines.append(
+                f"`#{target_name}`: `{target.calendar_id}`; <#{target.announcement_channel_id}>; "
+                f"{role}; reminders {lead}"
+            )
+        await itr.response.send_message(
+            "\n".join(lines),
+            ephemeral=True,
+        )
+
+
+class ConfigCalendarAddCommand(BaseCommand):
+    name = "add"
+    desc = "Add or update a named Google Calendar target."
+    help = "Configure a marker, shared calendar, reminder channel, lead time, and optional role."
+
+    @describe(
+        target_name="Marker name without # (for example group-1).",
+        calendar_id="Google Calendar ID for this group's shared agenda.",
+        announcement_channel="Text channel for this group's reminders.",
+        reminder_hours="Hours before the event; 0 disables the early reminder but keeps the start reminder.",
+        reminder_role="Role to mention instead of @everyone; omit to notify everyone.",
+    )
+    async def handle(
+        self,
+        itr: discord.Interaction,
+        target_name: str,
+        calendar_id: str,
+        announcement_channel: discord.TextChannel,
+        reminder_hours: Range[int, 0, 168] = 1,
+        reminder_role: discord.Role | None = None,
+    ):
+        if itr.guild is None:
+            raise PermissionError("Calendar sync can only be configured in a server.")
+
+        config = Config.get(itr)
+        if not config.user_is_admin_or_has_config_permissions(itr.user):
+            raise PermissionError("Only admins or users with config permissions can configure calendar sync.")
+
+        target_name = normalize_calendar_target_name(target_name)
+        await itr.response.defer(ephemeral=True, thinking=True)
+        existing_target = config.config.calendar_targets.get(target_name)
+        if existing_target and existing_target.calendar_id != calendar_id:
+            await GoogleCalendarSync.clear_target(itr.guild, target_name)
+            config = Config.get(itr)
+
+        config.set_calendar_target(
+            target_name,
+            calendar_id,
+            announcement_channel.id,
+            reminder_hours,
+            reminder_role.id if reminder_role else None,
+        )
+        client = cast(CalendarEventRefresher, itr.client)
+        await client.refresh_calendar_events(itr.guild)
+
+        role_text = reminder_role.mention if reminder_role else "@everyone"
+        lead_text = f"{reminder_hours} hour(s) before and at start" if reminder_hours else "at start only"
+        await itr.followup.send(
+            f"`#{target_name}` now syncs to the configured calendar and mentions {role_text} "
+            f"in {announcement_channel.mention} {lead_text}.",
+            ephemeral=True,
+        )
+
+
+class ConfigCalendarListCommand(ConfigCalendarStatusCommand):
+    name = "list"
+    desc = "List configured Google Calendar targets."
+    help = "Show all calendar markers, calendars, reminder channels, roles, and reminder times."
+
+
+class ConfigCalendarRemoveCommand(BaseCommand):
+    name = "remove"
+    desc = "Remove a named calendar target and its synced events."
+    help = "Remove a target's calendar events, reminder settings, and marker mapping."
+
+    async def handle(self, itr: discord.Interaction, target_name: str):
+        if itr.guild is None:
+            raise PermissionError("Calendar sync can only be configured in a server.")
+
+        config = Config.get(itr)
+        if not config.user_is_admin_or_has_config_permissions(itr.user):
+            raise PermissionError("Only admins or users with config permissions can configure calendar sync.")
+
+        target_name = normalize_calendar_target_name(target_name)
+        await itr.response.defer(ephemeral=True, thinking=True)
+        await GoogleCalendarSync.clear_target(itr.guild, target_name)
+        await itr.followup.send(f"Calendar target `#{target_name}` was removed.", ephemeral=True)
+
+
+class ConfigCalendarDisableCommand(BaseCommand):
+    name = "disable"
+    desc = "Disable Google Calendar sync and reminders."
+    help = "Remove the bot's synced calendar events and disable calendar reminders."
+
+    async def handle(self, itr: discord.Interaction):
+        config = Config.get(itr)
+        if not config.user_is_admin_or_has_config_permissions(itr.user):
+            raise PermissionError("Only admins or users with config permissions can disable calendar sync.")
+        if itr.guild is None:
+            raise PermissionError("Calendar sync can only be configured in a server.")
+
+        await itr.response.defer(ephemeral=True, thinking=True)
+        await GoogleCalendarSync.clear_guild(itr.guild)
+        await itr.followup.send("Google Calendar sync and reminders are disabled.", ephemeral=True)
+
+
+class ConfigCalendarCommandGroup(BaseCommandGroup):
+    name = "calendar"
+    desc = "Configure Google Calendar sync and event reminders."
+
+    def __init__(self):
+        super().__init__()
+        self.add_command(ConfigCalendarAddCommand())
+        self.add_command(ConfigCalendarRemoveCommand())
+        self.add_command(ConfigCalendarStatusCommand())
+        self.add_command(ConfigCalendarListCommand())
+        self.add_command(ConfigCalendarDisableCommand())
+
+
 class ConfigCommand(BaseCommandGroup):
     name = "config"
     desc = "Configure your server's settings!"
@@ -91,4 +239,5 @@ class ConfigCommand(BaseCommandGroup):
         super().__init__()
         self.add_command(ConfigPermissionsCommand())
         self.add_command(ConfigSourcesCommand())
+        self.add_command(ConfigCalendarCommandGroup())
         self.guild_only = True

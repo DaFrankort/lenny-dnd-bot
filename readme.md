@@ -88,6 +88,12 @@ Configure bot-specific settings for your server.
 
 - `/config permissions` - Set the roles which are allowed to configure the bot further. Only the server admin is allowed to use this command.
 - `/config sources <content> [search]` - Enable or disable which sources will be used during the `/search` commands. Only users with the permission roles can change the sources. You can filter content between official & partnered, and also quick-search to find the page a specific source is on.
+- `/config calendar add <target_name> <calendar_id> <announcement_channel> [reminder_hours] [reminder_role]` - Add or update a named target. Events with `#<target_name>` sync to that calendar. A configured role is mentioned instead of `@everyone`; reminders are sent both the configured number of hours before and at the start. Set `reminder_hours` to `0` to disable the early reminder.
+- `/config calendar remove <target_name>` - Remove a target and its synced Google Calendar events.
+- `/config calendar list` or `/config calendar status` - View all configured targets and reminder settings.
+- `/config calendar disable` - Remove synced events and disable calendar sync and reminders.
+
+Google Calendar sync uses a Google service account. Enable the Google Calendar API, then set `GOOGLE_SERVICE_ACCOUNT_FILE` to the path of its JSON credentials file. Share every target calendar with the service account email with permission to make changes, and share each calendar with its players. Add one marker per group on its own line in a Discord event description, such as `#group-1` or `#group-2`; an event with both markers syncs to both calendars. Titles, times, locations, and descriptions are mirrored, and updates, cancellations, and deletions are reflected in Google Calendar. Every 15 minutes, Discord events are reconciled into Google Calendar. If a Google event is moved to another calendar, the bot recreates it in its configured calendar but cannot remove the moved copy from a calendar it does not manage.
 
 ### Dice Rolls
 

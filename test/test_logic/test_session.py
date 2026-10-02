@@ -42,12 +42,16 @@ def create_mock_multi_roll_result(
     advantage: Advantage = Advantage.NORMAL,
     warnings: list[str] | None = None,
     rolls: list[SingleRollResult] | None = None,
+    rolls_lose_1: list[SingleRollResult] | None = None,
+    rolls_lose_2: list[SingleRollResult] | None = None,
 ) -> MultiRollResult:
     result = MagicMock(spec=MultiRollResult)
     result.expression = expression
     result.advantage = advantage
     result.warnings = warnings or []
     result.rolls = rolls or [create_mock_single_roll(expr=expression)]
+    result.rolls_lose_1 = rolls_lose_1 or []
+    result.rolls_lose_2 = rolls_lose_2 or []
 
     return result
 
@@ -56,7 +60,8 @@ class TestSessionStats:
     def test_empty_stats_do_not_divide_by_zero(self):
         stats = UserSessionDiceStats()
 
-        assert stats.average_d20 == 0
+        assert stats.average_rolled_d20 == 0
+        assert stats.average_resolved_d20 == 0
         assert stats.average_dmg == 0
         assert stats.advantage_percentage == 0
         assert stats.disadvantage_percentage == 0
@@ -80,8 +85,9 @@ class TestSessionStats:
         assert stats.nat20_count == 1
         assert stats.nat1_count == 1
         assert stats.dirty20_count == 1
-        assert len(stats.d20_totals) == 4
-        assert stats.average_d20 == 12  # (20 + 1 + 20 + 10) // 4 = 12
+        assert len(stats.rolled_d20_totals) == 4
+        assert len(stats.resolved_d20_totals) == 4
+        assert stats.average_resolved_d20 == 12  # (20 + 1 + 20 + 10) // 4 = 12
 
     def test_ignore_rolls_with_warnings(self):
         stats = UserSessionDiceStats()
@@ -89,8 +95,46 @@ class TestSessionStats:
 
         stats.add(roll_with_warn)
 
-        assert len(stats.d20_totals) == 0
+        assert len(stats.resolved_d20_totals) == 0
+        assert len(stats.rolled_d20_totals) == 0
         assert stats.total_dice_rolled == 0
+
+    def test_count_discarded_multi_roll_dice(self):
+        stats = UserSessionDiceStats()
+        result = create_mock_multi_roll_result(
+            expression="1d20",
+            advantage=Advantage.ELVEN_ACCURACY,
+            rolls=[create_mock_single_roll(rolled_total=18), create_mock_single_roll(rolled_total=16)],
+            rolls_lose_1=[create_mock_single_roll(rolled_total=7), create_mock_single_roll(rolled_total=4)],
+            rolls_lose_2=[create_mock_single_roll(rolled_total=12), create_mock_single_roll(rolled_total=2)],
+        )
+
+        stats.add(result)
+
+        assert stats.rolled_dice[20] == 6
+        assert stats.rolled_d20_totals == [18, 16, 7, 4, 12, 2]
+        assert stats.resolved_d20_totals == [18, 16]
+        assert stats.average_rolled_d20 == 9
+        assert stats.average_resolved_d20 == 17
+        assert stats.nat1_count == 0
+
+    def test_single_roll_records_all_advantage_dice_and_resolved_result(self):
+        stats = UserSessionDiceStats()
+        result = MagicMock()
+        result.expression = "1d20"
+        result.advantage = Advantage.ELVEN_ACCURACY
+        result.result.warnings = []
+        result.result.total = 17
+        result.result.rolls = [
+            create_mock_single_roll(rolled_total=5),
+            create_mock_single_roll(rolled_total=17),
+            create_mock_single_roll(rolled_total=12),
+        ]
+
+        stats.add(result)
+
+        assert stats.rolled_d20_totals == [5, 17, 12]
+        assert stats.resolved_d20_totals == [17]
 
     def test_ignore_d100_and_percentile_rolls(self):
         stats = UserSessionDiceStats()
@@ -100,7 +144,8 @@ class TestSessionStats:
 
         stats.add(roll_d100)
 
-        assert len(stats.d20_totals) == 0
+        assert len(stats.rolled_d20_totals) == 0
+        assert len(stats.resolved_d20_totals) == 0
         assert len(stats.damage_totals) == 0
         assert stats.rolled_dice.get(100) == 1
 

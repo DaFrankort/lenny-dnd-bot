@@ -94,8 +94,8 @@ class TitleConsistentRoller(SessionTitle):
 
     def _evaluate(self, stats: UserSessionDiceStats, all_session_stats: dict[int, UserSessionStats]) -> float:
         # Require at least 5 rolls, to prevent flukes.
-        if len(stats.d20_totals) >= 5 and stats.average_d20 >= 14:
-            return float(stats.average_d20)
+        if len(stats.resolved_d20_totals) >= 5 and stats.average_resolved_d20 >= 14:
+            return float(stats.average_resolved_d20)
         return 0
 
 
@@ -172,11 +172,11 @@ class TitleLowD20Usage(SessionTitle):
     weight = 1.5
 
     def _evaluate(self, stats: UserSessionDiceStats, all_session_stats: dict[int, UserSessionStats]) -> float:
-        d20_count = len(stats.d20_totals)
+        d20_count = len(stats.resolved_d20_totals)
         if d20_count == 0 or len(all_session_stats.items()) <= 2:
             return 0
 
-        counts = [min(len(s.dice.d20_totals) for s in all_session_stats.values())]
+        counts = [min(len(s.dice.resolved_d20_totals) for s in all_session_stats.values())]
         if d20_count == min(counts):
             return float(max(counts) - d20_count)
         return 0
@@ -202,11 +202,11 @@ class TitleMostRollsDone(SessionTitle):
     weight = 1.0
 
     def _evaluate(self, stats: UserSessionDiceStats, all_session_stats: dict[int, UserSessionStats]) -> float:
-        total_rolls = len(stats.d20_totals) + len(stats.damage_totals)
+        total_rolls = len(stats.resolved_d20_totals) + len(stats.damage_totals)
         if total_rolls == 0:
             return 0.0
 
-        max_rolls = max(len(s.dice.d20_totals) + len(s.dice.damage_totals) for s in all_session_stats.values())
+        max_rolls = max(len(s.dice.resolved_d20_totals) + len(s.dice.damage_totals) for s in all_session_stats.values())
         if total_rolls == max_rolls:
             return float(total_rolls)
         return 0.0

@@ -20,11 +20,11 @@ from logic.session.types import (
 
 
 def _d20_comparison_chart(stats: UserSessionDiceStats, color: int) -> discord.File | None:
-    if not stats.d20_totals:
+    if not stats.rolled_d20_totals:
         return None
 
-    total_rolls = len(stats.d20_totals)
-    counts = Counter(stats.d20_totals)
+    total_rolls = len(stats.rolled_d20_totals)
+    counts = Counter(stats.rolled_d20_totals)
 
     x_faces = list(range(1, 21))
     if total_rolls == 0:
@@ -90,8 +90,10 @@ class SessionStats:
                 user_report.append("")
 
             user_report.append(f"Dice rolled: ``{dice.total_dice_rolled}``")
-            user_report.append(f"Average d20 result: ``{dice.average_d20}``")
-            user_report.append(f"D20's rolled: ``{len(dice.d20_totals)}``")
+            user_report.append(f"Average d20 die: ``{dice.average_rolled_d20}``")
+            user_report.append(f"D20s rolled: ``{len(dice.rolled_d20_totals)}``")
+            user_report.append(f"D20 checks resolved: ``{len(dice.resolved_d20_totals)}``")
+            user_report.append(f"Average resolved d20: ``{dice.average_resolved_d20}``")
             if dice.nat1_count > 0:
                 user_report.append(f"Natural 1s rolled: ``{dice.nat1_count}``")
             if dice.nat20_count > 0:

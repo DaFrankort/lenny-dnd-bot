@@ -24,6 +24,7 @@ class _CharacterGenInfoButton(ui.Button["CharacterGenContainerView"]):
 
 class CharacterGenContainerView(ui.LayoutView):
     chart: discord.File
+    sheet: discord.File
 
     def _build_ability_table(
         self,
@@ -53,8 +54,9 @@ class CharacterGenContainerView(ui.LayoutView):
 
         return build_table_from_rows(headers=headers, rows=rows)
 
-    def __init__(self, result: CharacterGenResult):
+    def __init__(self, result: CharacterGenResult, sheet: discord.File):
         super().__init__(timeout=None)
+        self.sheet = sheet
         color = discord.Color(UserColor.generate(result.name))
         container = ui.Container[CharacterGenContainerView](accent_color=color)
         container.add_item(TitleTextDisplay(result.name))
@@ -91,6 +93,8 @@ class CharacterGenContainerView(ui.LayoutView):
         container.add_item(ui.TextDisplay(self._get_proficiency_info(result)))
         container.add_item(ui.TextDisplay(self._get_language_info(result)))
         container.add_item(ui.TextDisplay(self._get_starting_equipment_info(result)))
+
+        container.add_item(ui.File(self.sheet))
 
         self.add_item(container)
 

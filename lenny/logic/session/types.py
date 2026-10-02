@@ -86,15 +86,11 @@ class UserSessionDiceStats:
                 add_die(die)
 
     def _add_d20(self, roll: SingleRollResult):
-        d20 = roll.ast.find_d20()
-        if d20 is None:
+        d20_dice = [die for die in roll.roll.extract_dice() if die.size == 20]
+        if not d20_dice:
             return
 
-        value = roll.roll.find_from_ast(d20)  # Cache rolled result without modifiers.
-        if value is None:
-            return
-
-        self.d20_totals.append(value.total)
+        self.d20_totals.extend(die.value for die in d20_dice)
         if roll.crit is Critical.CRIT:
             self.nat20_count += 1
         elif roll.crit is Critical.FAIL:

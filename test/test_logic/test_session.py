@@ -17,18 +17,23 @@ def create_mock_single_roll(
     die_size: int = 20,
     rolled_total: int = 15,
     crit: Critical = Critical.NONE,
+    d20_values: list[int] | None = None,
 ) -> SingleRollResult:
     roll_res = MagicMock()
     roll_res.expr = expr
     roll_res.total = rolled_total
     roll_res.crit = crit
 
-    mock_die = MagicMock(spec=Die)
-    mock_die.size = die_size
+    mock_dice: list[MagicMock] = []
+    for value in d20_values or [rolled_total]:
+        mock_die = MagicMock(spec=Die)
+        mock_die.size = die_size
+        mock_die.value = value
+        mock_dice.append(mock_die)
 
     mock_ast_node = MagicMock()
     roll_res.ast.find_d20.return_value = mock_ast_node if die_size == 20 else None
-    roll_res.roll.extract_dice.return_value = [mock_die]
+    roll_res.roll.extract_dice.return_value = mock_dice
 
     cached_val = MagicMock()
     cached_val.total = rolled_total
@@ -82,6 +87,18 @@ class TestSessionStats:
         assert stats.dirty20_count == 1
         assert len(stats.d20_totals) == 4
         assert stats.average_d20 == 12  # (20 + 1 + 20 + 10) // 4 = 12
+
+    def test_add_multiple_d20_from_single_expression(self):
+        stats = UserSessionDiceStats()
+        result = create_mock_multi_roll_result(
+            expression="2d20",
+            rolls=[create_mock_single_roll(expr="2d20", rolled_total=23, d20_values=[8, 15])],
+        )
+
+        stats.add(result)
+
+        assert stats.d20_totals == [8, 15]
+        assert stats.average_d20 == 11
 
     def test_ignore_rolls_with_warnings(self):
         stats = UserSessionDiceStats()

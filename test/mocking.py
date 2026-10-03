@@ -88,7 +88,6 @@ class MockUser(discord.User):
 
 
 class MockMember(discord.Member):
-
     def __init__(
         self,
         user: MockUser,

@@ -1,9 +1,12 @@
+import typing
 from unittest.mock import MagicMock
 
+import d100
+import d100.ast.dice
+import d100.utils.crit
+import d100.utils.find
 import discord
 import pytest
-from d100 import Critical
-from d100.ast.die import Die
 from d100.roll import SingleRollResult
 from mocking import MockGuild, MockInteraction, MockMember, MockUser
 
@@ -12,29 +15,18 @@ from logic.session.stats import GlobalSessionStats, SessionStats
 from logic.session.types import UserSessionDiceStats
 
 
-def create_mock_single_roll(
-    expr: str = "1d20",
-    die_size: int = 20,
-    rolled_total: int = 15,
-    crit: Critical = Critical.NONE,
-) -> SingleRollResult:
-    roll_res = MagicMock()
-    roll_res.expr = expr
-    roll_res.total = rolled_total
-    roll_res.crit = crit
+def create_mock_single_roll(expr: str, sides: int, force: int | None = None) -> SingleRollResult:
+    result = d100.roll(expr)
 
-    mock_die = MagicMock(spec=Die)
-    mock_die.size = die_size
+    if force:
+        ast = d100.utils.find.find_dice(result.roll.ast, 1, sides)
+        dice = typing.cast(d100.ast.dice.Dice, result.roll.roll.find_from_ast(ast))
+        dice.dice[0].values.append(force)
 
-    mock_ast_node = MagicMock()
-    roll_res.ast.find_d20.return_value = mock_ast_node if die_size == 20 else None
-    roll_res.roll.extract_dice.return_value = [mock_die]
+        # Re-determine the crit type, as this is a constant value
+        result.roll.crit = d100.utils.crit.determine_crit_type(result.roll.roll, dice)
 
-    cached_val = MagicMock()
-    cached_val.total = rolled_total
-    roll_res.roll.find_from_ast.return_value = cached_val
-
-    return roll_res
+    return result.roll
 
 
 def create_mock_multi_roll_result(
@@ -47,7 +39,7 @@ def create_mock_multi_roll_result(
     result.expression = expression
     result.advantage = advantage
     result.warnings = warnings or []
-    result.rolls = rolls or [create_mock_single_roll(expr=expression)]
+    result.rolls = rolls or []
 
     return result
 
@@ -57,12 +49,10 @@ class TestSessionStats:
         """Ensures Natural 20s, Natural 1s, and regular d20 rolls are recorded properly."""
         stats = UserSessionDiceStats()
 
-        roll_nat20 = create_mock_multi_roll_result("1d20", rolls=[create_mock_single_roll(rolled_total=20, crit=Critical.CRIT)])
-        roll_nat1 = create_mock_multi_roll_result("1d20", rolls=[create_mock_single_roll(rolled_total=1, crit=Critical.FAIL)])
-        roll_dirty = create_mock_multi_roll_result(
-            "1d20", rolls=[create_mock_single_roll(rolled_total=20, crit=Critical.DIRTY)]
-        )
-        roll_norm = create_mock_multi_roll_result("1d20", rolls=[create_mock_single_roll(rolled_total=10, crit=Critical.NONE)])
+        roll_nat20 = create_mock_multi_roll_result("1d20", rolls=[create_mock_single_roll("1d20", 20, 20)])
+        roll_nat1 = create_mock_multi_roll_result("1d20", rolls=[create_mock_single_roll("1d20", 20, 1)])
+        roll_dirty = create_mock_multi_roll_result("1d20", rolls=[create_mock_single_roll("1d20+3", 20, 17)])
+        roll_norm = create_mock_multi_roll_result("1d20", rolls=[create_mock_single_roll("1d20", 20, 10)])
 
         stats.add(roll_nat20)
         stats.add(roll_nat1)
@@ -86,9 +76,7 @@ class TestSessionStats:
 
     def test_ignore_d100_and_percentile_rolls(self):
         stats = UserSessionDiceStats()
-        roll_d100 = create_mock_multi_roll_result(
-            "1d100", rolls=[create_mock_single_roll("1d100", die_size=100, rolled_total=50)]
-        )
+        roll_d100 = create_mock_multi_roll_result("1d100", rolls=[create_mock_single_roll("1d100", 100, 50)])
 
         stats.add(roll_d100)
 
@@ -99,8 +87,8 @@ class TestSessionStats:
     def test_damage_tracking_and_averages(self):
         stats = UserSessionDiceStats()
 
-        dmg1 = create_mock_multi_roll_result("1d8+3", rolls=[create_mock_single_roll("1d8+3", die_size=8, rolled_total=11)])
-        dmg2 = create_mock_multi_roll_result("1d8+3", rolls=[create_mock_single_roll("1d8+3", die_size=8, rolled_total=5)])
+        dmg1 = create_mock_multi_roll_result("1d8+3", rolls=[create_mock_single_roll("1d8+3", 8, 8)])
+        dmg2 = create_mock_multi_roll_result("1d8+3", rolls=[create_mock_single_roll("1d8+3", 8, 2)])
 
         stats.add(dmg1)
         stats.add(dmg2)

@@ -3,6 +3,7 @@ from dataclasses import dataclass
 import discord
 from d100 import Critical
 from d100.ast.die import Die
+from d100.utils.find import find_d20
 
 from logic.roll import Advantage, MultiRollResult, RollResult, SingleRollResult
 
@@ -86,7 +87,7 @@ class UserSessionDiceStats:
                 add_die(die)
 
     def _add_d20(self, roll: SingleRollResult):
-        d20 = roll.ast.find_d20()
+        d20 = find_d20(roll.ast)
         if d20 is None:
             return
 

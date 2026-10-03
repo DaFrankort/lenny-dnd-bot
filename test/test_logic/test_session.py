@@ -45,6 +45,14 @@ def create_mock_multi_roll_result(
 
 
 class TestSessionStats:
+    def test_empty_stats_do_not_divide_by_zero(self):
+        stats = UserSessionDiceStats()
+
+        assert stats.average_d20 == 0
+        assert stats.average_dmg == 0
+        assert stats.advantage_percentage == 0
+        assert stats.disadvantage_percentage == 0
+
     def test_add_d20_rolls_and_criticals(self):
         """Ensures Natural 20s, Natural 1s, and regular d20 rolls are recorded properly."""
         stats = UserSessionDiceStats()

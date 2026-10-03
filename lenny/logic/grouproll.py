@@ -1,11 +1,11 @@
 import time
 
 import discord
+from d100.utils.find import find_d20
 from discord import Interaction
 
 from logic.roll import Advantage, RollResult, parse, roll
 
-from d100.utils.find import find_d20
 
 class GroupRollRoll:
     name: str

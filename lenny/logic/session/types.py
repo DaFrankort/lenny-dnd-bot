@@ -3,6 +3,7 @@ from dataclasses import dataclass
 import discord
 from d100 import Critical
 from d100.ast.die import Die
+from d100.utils.find import find_d20
 
 from logic.roll import Advantage, MultiRollResult, RollResult, SingleRollResult
 

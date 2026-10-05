@@ -12,7 +12,8 @@ from mocking import MockGuild, MockInteraction, MockMember, MockUser
 
 from logic.roll import Advantage, MultiRollResult
 from logic.session.stats import GlobalSessionStats, SessionStats
-from logic.session.types import UserSessionDiceStats
+from logic.session.titles import TitleMostRollsDone
+from logic.session.types import UserSessionDiceStats, UserSessionStats
 
 
 def create_mock_single_roll(expr: str, sides: int, force: int | None = None) -> SingleRollResult:
@@ -104,6 +105,21 @@ class TestSessionStats:
         assert stats.damage_totals == [11, 5]
         assert stats.average_dmg == 8
         assert stats.most_used_die_type == (8, 2)
+
+    def test_main_character_title_uses_total_dice_rolled(self):
+        bill = UserSessionStats()
+        bill.dice.rolled_dice = {20: 200}
+        bill.dice.d20_totals = [15] * 10
+
+        bob = UserSessionStats()
+        bob.dice.rolled_dice = {20: 130}
+        bob.dice.d20_totals = [15] * 20
+
+        all_session_stats = {1: bill, 2: bob}
+        title = TitleMostRollsDone()
+
+        assert title.evaluate(bill.dice, all_session_stats) == 200.0
+        assert title.evaluate(bob.dice, all_session_stats) == 0.0
 
 
 class TestGlobalSessionStats:

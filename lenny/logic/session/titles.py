@@ -198,15 +198,15 @@ class TitleHighD6Usage(SessionTitle):
 
 class TitleMostRollsDone(SessionTitle):
     name = "The Main Character"
-    description = "Initiated the highest total number of roll commands."
+    description = "Rolled the highest total number of dice."
     weight = 1.0
 
     def _evaluate(self, stats: UserSessionDiceStats, all_session_stats: dict[int, UserSessionStats]) -> float:
-        total_rolls = len(stats.d20_totals) + len(stats.damage_totals)
-        if total_rolls == 0:
+        total_dice = stats.total_dice_rolled
+        if total_dice == 0:
             return 0.0
 
-        max_rolls = max(len(s.dice.d20_totals) + len(s.dice.damage_totals) for s in all_session_stats.values())
-        if total_rolls == max_rolls:
-            return float(total_rolls)
+        max_dice = max(s.dice.total_dice_rolled for s in all_session_stats.values())
+        if total_dice == max_dice:
+            return float(total_dice)
         return 0.0

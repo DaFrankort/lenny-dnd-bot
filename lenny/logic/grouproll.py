@@ -1,6 +1,7 @@
 import time
 
 import discord
+from d100.utils.find import find_d20
 from discord import Interaction
 
 from logic.roll import Advantage, RollResult, parse, roll
@@ -26,7 +27,7 @@ class GroupRollRoll:
         # Check if the modifier contains a d20 expression, e.g. "1d20 + 5". In this case, the user
         # most likely made a mistake and placed the entire expression, rather than just the modifier.
         expr, _ = parse(modifier, advantage=advantage)
-        if expr.find_d20() is not None:
+        if find_d20(expr) is not None:
             self.roll = roll(modifier, advantage=advantage)
         else:
             self.roll = roll(f"1d20 + ({modifier})", advantage=advantage)

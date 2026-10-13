@@ -3,7 +3,6 @@ from logic.dnd.optionalfeature import OptionalFeature
 
 
 class OptionalFeatureEmbed(DNDEntryEmbed):
-
     def __init__(self, optional_feat: OptionalFeature):
         super().__init__(entry=optional_feat)
         self.description = f"*{optional_feat.type}*"

@@ -50,9 +50,10 @@ class SessionStatsStopCommand(BaseCommand):
 
     async def handle(self, itr: discord.Interaction):
         stats = SessionStatistics.stop(itr)
+        await itr.response.defer(thinking=True)
         result = stats.get_report(itr)
         embeds = [UserSessionStatEmbed(stat) for stat in result.users_stats[:10]]
-        await itr.response.send_message(
+        await itr.followup.send(
             f"Session tracking stopped by {itr.user.mention}!\n{result.base_info}", embeds=embeds, files=result.files()
         )
 
@@ -71,6 +72,7 @@ class SessionStatsViewCommand(BaseCommand):
         if stats is None:
             raise KeyError("No session active in this channel!")
 
+        await itr.response.defer(thinking=True)
         result = stats.get_report(itr)
         embeds = [UserSessionStatEmbed(stat) for stat in result.users_stats[:10]]
-        await itr.response.send_message(result.base_info, embeds=embeds, files=result.files())
+        await itr.followup.send(result.base_info, embeds=embeds, files=result.files())

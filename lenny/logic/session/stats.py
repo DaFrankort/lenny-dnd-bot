@@ -27,6 +27,9 @@ def _d20_comparison_chart(stats: UserSessionDiceStats, color: int) -> discord.Fi
     counts = Counter(stats.d20_totals)
 
     x_faces = list(range(1, 21))
+    if total_rolls == 0:
+        return None
+
     actual_percentages = [(counts[face] / total_rolls) * 100 for face in x_faces]
     average_percentage = 5.0
 

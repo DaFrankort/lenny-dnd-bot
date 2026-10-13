@@ -3,6 +3,7 @@ import discord
 from context_menus.context_menu import BaseContextMenu
 from embeds.favorites import FavoriteAddedEmbed
 from logic.dnd.data import Data
+from logic.dnd.source import SourceList
 from logic.favorites import FavoritesCache
 
 
@@ -68,6 +69,7 @@ class AddFavoriteContextMenu(BaseContextMenu):
         if name is None or source is None:
             raise ValueError("Adding to favorites doesn't work on this message type!")
 
+        source = SourceList.get_from_abbreviation(source).source
         entries = Data.search(name, set([source]), 95).get_all()
         for entry in entries:
             if entry.name == name and entry.source.source == source:

@@ -1,7 +1,7 @@
 import dataclasses
 
 import d100
-import d100.utils
+import d100.utils.advantage
 from d100.ast.dice import Dice
 from d100.ast.die import DiceSize, Die
 from d100.ast.expression import ASTExpression, Expression
@@ -89,11 +89,11 @@ def parse(expr: str, advantage: Advantage) -> tuple[ASTExpression, set[str]]:
             case Advantage.NORMAL:
                 ...
             case Advantage.ADVANTAGE:
-                parsed = d100.utils.add_advantage_to_d20_in_expression(parsed, "adv", 2)
+                parsed = d100.utils.advantage.add_advantage_to_d20_in_expression(parsed, "adv", 2)
             case Advantage.ELVEN_ACCURACY:
-                parsed = d100.utils.add_advantage_to_d20_in_expression(parsed, "adv", 3)
+                parsed = d100.utils.advantage.add_advantage_to_d20_in_expression(parsed, "adv", 3)
             case Advantage.DISADVANTAGE:
-                parsed = d100.utils.add_advantage_to_d20_in_expression(parsed, "dis", 2)
+                parsed = d100.utils.advantage.add_advantage_to_d20_in_expression(parsed, "dis", 2)
             case Advantage.SAVAGE_ATTACKER:
                 parsed = d100.parse(f"({expr})adv2")
             case _:

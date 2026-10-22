@@ -198,7 +198,7 @@ class TitleHighD6Usage(SessionTitle):
 
 class TitleMostRollsDone(SessionTitle):
     name = "The Main Character"
-    description = "Initiated the highest total number of roll commands."
+    description = "Rolled the highest total number of dice."
     weight = 1.0
 
     def _evaluate(self, stats: UserSessionDiceStats, all_session_stats: dict[int, UserSessionStats]) -> float:

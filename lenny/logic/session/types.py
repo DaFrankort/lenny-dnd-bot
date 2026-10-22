@@ -3,7 +3,6 @@ from dataclasses import dataclass
 import discord
 from d100 import Critical
 from d100.ast.die import Die
-from d100.utils.find import find_d20
 
 from logic.roll import Advantage, MultiRollResult, RollResult, SingleRollResult
 
@@ -93,8 +92,8 @@ class UserSessionDiceStats:
 
         self.d20_totals.extend(die.value for die in d20_dice)
         # Criticals are only valid for single d20 roll or when only one die is kept.
-        # Xd20 rolls whre multiple dice are kept will have Critical.NONE
-        # As such, we dont need to iterate on the dice, and can simply check Criticality of the roll itself.  
+        # Xd20 rolls where multiple dice are kept will have Critical.NONE
+        # As such, we dont need to iterate on the dice, and can simply check Criticality of the roll itself.
         if roll.crit is Critical.CRIT:
             self.nat20_count += 1
         elif roll.crit is Critical.FAIL:

@@ -202,11 +202,11 @@ class TitleMostRollsDone(SessionTitle):
     weight = 1.0
 
     def _evaluate(self, stats: UserSessionDiceStats, all_session_stats: dict[int, UserSessionStats]) -> float:
-        total_rolls = len(stats.resolved_d20_totals) + len(stats.damage_totals)
-        if total_rolls == 0:
+        total_dice_rolled = stats.total_dice_rolled
+        if total_dice_rolled == 0:
             return 0.0
 
-        max_rolls = max(len(s.dice.resolved_d20_totals) + len(s.dice.damage_totals) for s in all_session_stats.values())
-        if total_rolls == max_rolls:
-            return float(total_rolls)
+        max_dice_rolled = max(s.dice.total_dice_rolled for s in all_session_stats.values())
+        if total_dice_rolled == max_dice_rolled:
+            return float(total_dice_rolled)
         return 0.0

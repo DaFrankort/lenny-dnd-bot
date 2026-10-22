@@ -16,7 +16,7 @@ from logic.session.titles import TitleMostRollsDone
 from logic.session.types import UserSessionDiceStats, UserSessionStats
 
 
-def create_mock_single_roll(expr: str, sides: int, force: int | None = None) -> SingleRollResult:
+def create_mock_single_roll(expr: str = "1d20", sides: int = 20, force: int | None = None) -> SingleRollResult:
     result = d100.roll(expr)
 
     if force:
@@ -95,9 +95,9 @@ class TestSessionStats:
         result = create_mock_multi_roll_result(
             expression="1d20",
             advantage=Advantage.ELVEN_ACCURACY,
-            rolls=[create_mock_single_roll(rolled_total=18), create_mock_single_roll(rolled_total=16)],
-            rolls_lose_1=[create_mock_single_roll(rolled_total=7), create_mock_single_roll(rolled_total=4)],
-            rolls_lose_2=[create_mock_single_roll(rolled_total=12), create_mock_single_roll(rolled_total=2)],
+            rolls=[create_mock_single_roll(force=18), create_mock_single_roll(force=16)],
+            rolls_lose_1=[create_mock_single_roll(force=7), create_mock_single_roll(force=4)],
+            rolls_lose_2=[create_mock_single_roll(force=12), create_mock_single_roll(force=2)],
         )
 
         stats.add(result)
@@ -117,9 +117,9 @@ class TestSessionStats:
         result.result.warnings = []
         result.result.total = 17
         result.result.rolls = [
-            create_mock_single_roll(rolled_total=5),
-            create_mock_single_roll(rolled_total=17),
-            create_mock_single_roll(rolled_total=12),
+            create_mock_single_roll(force=5),
+            create_mock_single_roll(force=17),
+            create_mock_single_roll(force=12),
         ]
 
         stats.add(result)
@@ -154,11 +154,8 @@ class TestSessionStats:
     def test_main_character_title_uses_total_dice_rolled(self):
         bill = UserSessionStats()
         bill.dice.rolled_dice = {20: 200}
-        bill.dice.d20_totals = [15] * 10
-
         bob = UserSessionStats()
         bob.dice.rolled_dice = {20: 130}
-        bob.dice.d20_totals = [15] * 20
 
         all_session_stats = {1: bill, 2: bob}
         title = TitleMostRollsDone()

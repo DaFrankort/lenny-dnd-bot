@@ -16,13 +16,16 @@ from logic.session.titles import TitleMostRollsDone
 from logic.session.types import UserSessionDiceStats, UserSessionStats
 
 
-def create_mock_single_roll(expr: str, sides: int, force: int | None = None) -> SingleRollResult:
+def create_mock_single_roll(expr: str, sides: int, force: int | list[int] | None = None) -> SingleRollResult:
     result = d100.roll(expr)
 
-    if force:
+    if force is not None:
         ast = d100.utils.find.find_dice(result.roll.ast, 1, sides)
         dice = typing.cast(d100.ast.dice.Dice, result.roll.roll.find_from_ast(ast))
-        dice.dice[0].values.append(force)
+        if isinstance(force, list):
+            dice.dice[0].values = force
+        else:
+            dice.dice[0].values.append(force)
 
         # Re-determine the crit type, as this is a constant value
         result.roll.crit = d100.utils.crit.determine_crit_type(result.roll.roll, dice)
@@ -78,7 +81,7 @@ class TestSessionStats:
         stats = UserSessionDiceStats()
         result = create_mock_multi_roll_result(
             expression="2d20",
-            rolls=[create_mock_single_roll(expr="2d20", rolled_total=23, d20_values=[8, 15])],
+            rolls=[create_mock_single_roll("2d20", 20, [8, 15])],
         )
 
         stats.add(result)

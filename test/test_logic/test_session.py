@@ -10,7 +10,7 @@ import pytest
 from d100.roll import SingleRollResult
 from mocking import MockGuild, MockInteraction, MockMember, MockUser
 
-from logic.roll import Advantage, MultiRollResult
+from logic.roll import Advantage, MultiRollResult, roll as roll_dice
 from logic.session.stats import GlobalSessionStats, SessionStats
 from logic.session.titles import TitleMostRollsDone
 from logic.session.types import UserSessionDiceStats, UserSessionStats
@@ -126,6 +126,21 @@ class TestSessionStats:
 
         assert stats.rolled_d20_totals == [5, 17, 12]
         assert stats.resolved_d20_totals == [17]
+
+    @pytest.mark.parametrize(("expression", "resolved_count"), [("5d20", 5), ("5d20kh1", 1)])
+    def test_multi_d20_expression_tracks_each_die(self, expression: str, resolved_count: int):
+        result = roll_dice(expression)
+        dice = result.result.rolls[0].roll.value.dice
+        rolled_values = [die.value for die in dice]
+        resolved_values = [die.value for die in dice if die.kept]
+
+        stats = UserSessionDiceStats()
+        stats.add(result)
+
+        assert stats.rolled_dice[20] == 5
+        assert stats.rolled_d20_totals == rolled_values
+        assert len(stats.resolved_d20_totals) == resolved_count
+        assert stats.resolved_d20_totals == resolved_values
 
     def test_ignore_d100_and_percentile_rolls(self):
         stats = UserSessionDiceStats()

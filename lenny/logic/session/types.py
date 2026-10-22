@@ -2,10 +2,17 @@ from dataclasses import dataclass
 
 import discord
 from d100 import Critical
+from d100.ast.dice import ASTDice, Dice
 from d100.ast.die import Die
-from d100.utils.find import find_d20
+from d100.ast.node import ASTNode
 
 from logic.roll import Advantage, MultiRollResult, RollResult, SingleRollResult
+
+
+def _find_dice_nodes(node: ASTNode) -> list[ASTDice]:
+    if isinstance(node, ASTDice):
+        return [node]
+    return [dice for child in node.children for dice in _find_dice_nodes(child)]
 
 
 @dataclass
@@ -89,21 +96,28 @@ class UserSessionDiceStats:
             self.rolled_dice[size] += 1
 
         for roll in rolls:
-            for die in roll.roll.extract_dice():
-                add_die(die)
+            for dice_node in _find_dice_nodes(roll.ast):
+                dice = roll.roll.find_from_ast(dice_node)
+                if isinstance(dice, Dice):
+                    for die in dice.dice:
+                        add_die(die)
 
     def _add_d20(self, roll: SingleRollResult, resolved: bool):
-        d20 = find_d20(roll.ast)
-        if d20 is None:
+        d20_dice: list[Die] = []
+        for dice_node in _find_dice_nodes(roll.ast):
+            if dice_node.size != 20:
+                continue
+            dice = roll.roll.find_from_ast(dice_node)
+            if isinstance(dice, Dice):
+                d20_dice.extend(dice.dice)
+
+        if not d20_dice:
             return
 
-        value = roll.roll.find_from_ast(d20)
-        if value is None:
-            return
-
-        self.rolled_d20_totals.append(value.total)
-        if resolved:
-            self.resolved_d20_totals.append(value.total)
+        for die in d20_dice:
+            self.rolled_d20_totals.append(die.value)
+            if resolved and die.kept:
+                self.resolved_d20_totals.append(die.value)
 
         if roll.crit is Critical.CRIT:
             self.nat20_count += 1

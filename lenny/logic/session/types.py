@@ -92,6 +92,9 @@ class UserSessionDiceStats:
             return
 
         self.d20_totals.extend(die.value for die in d20_dice)
+        # Criticals are only valid for single d20 roll or when only one die is kept.
+        # Xd20 rolls whre multiple dice are kept will have Critical.NONE
+        # As such, we dont need to iterate on the dice, and can simply check Criticality of the roll itself.  
         if roll.crit is Critical.CRIT:
             self.nat20_count += 1
         elif roll.crit is Critical.FAIL:

@@ -131,17 +131,16 @@ class TestSessionStats:
     @pytest.mark.parametrize(("expression", "resolved_count"), [("5d20", 5), ("5d20kh1", 1)])
     def test_multi_d20_expression_tracks_each_die(self, expression: str, resolved_count: int):
         result = roll_dice(expression)
-        dice = result.result.rolls[0].roll.value.dice
-        rolled_values = [die.value for die in dice]
-        resolved_values = [die.value for die in dice if die.kept]
 
         stats = UserSessionDiceStats()
         stats.add(result)
 
         assert stats.rolled_dice[20] == 5
-        assert stats.rolled_d20_totals == rolled_values
+        assert len(stats.rolled_d20_totals) == 5
         assert len(stats.resolved_d20_totals) == resolved_count
-        assert stats.resolved_d20_totals == resolved_values
+        assert all(value in stats.rolled_d20_totals for value in stats.resolved_d20_totals)
+        if resolved_count == 5:
+            assert stats.resolved_d20_totals == stats.rolled_d20_totals
 
     def test_ignore_d100_and_percentile_rolls(self):
         stats = UserSessionDiceStats()

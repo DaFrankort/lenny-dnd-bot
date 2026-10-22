@@ -10,7 +10,8 @@ import pytest
 from d100.roll import SingleRollResult
 from mocking import MockGuild, MockInteraction, MockMember, MockUser
 
-from logic.roll import Advantage, MultiRollResult, roll as roll_dice
+from logic.roll import Advantage, MultiRollResult
+from logic.roll import roll as roll_dice
 from logic.session.stats import GlobalSessionStats, SessionStats
 from logic.session.titles import TitleMostRollsDone
 from logic.session.types import UserSessionDiceStats, UserSessionStats

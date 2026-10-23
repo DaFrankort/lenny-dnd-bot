@@ -128,16 +128,13 @@ class UserSessionDiceStats:
 
         if roll.crit is Critical.CRIT:
             self.nat20_count += 1
-            if kept:
-                self.kept_nat20_count += 1
+            self.kept_nat20_count += 1 if kept else 0
         elif roll.crit is Critical.FAIL:
             self.nat1_count += 1
-            if kept:
-                self.kept_nat1_count += 1
+            self.kept_nat1_count += 1 if kept else 0
         elif roll.crit is Critical.DIRTY:
             self.dirty20_count += 1
-            if kept:
-                self.kept_dirty20_count += 1
+            self.kept_dirty20_count += 1 if kept else 0
 
     def _add_damage_roll(self, roll: SingleRollResult):
         if roll.expr not in self.dmg_expressions:

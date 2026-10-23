@@ -40,7 +40,7 @@ def _d20_comparison_chart(stats: UserSessionDiceStats, color: int) -> discord.Fi
     luminance = get_luminance(user_rgb)
     kept_average_lightness = 45.0 if luminance > 0.5 else 90.0
     kept_average_rgb = adjust_rgb_color_lightness(user_rgb, kept_average_lightness)
-    non_kept_color = "#{:02X}{:02X}{:02X}".format(*kept_average_rgb)
+    non_kept_color = f"#{kept_average_rgb[0]:02X}{kept_average_rgb[1]:02X}{kept_average_rgb[2]:02X}"
     ax.set_xticks(x_faces)  # type: ignore
     ax.axvline(  # type: ignore
         x=stats.average_rolled_d20,

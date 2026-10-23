@@ -17,13 +17,18 @@ from logic.session.titles import TitleMostRollsDone
 from logic.session.types import UserSessionDiceStats, UserSessionStats
 
 
-def create_mock_single_roll(expr: str = "1d20", sides: int = 20, force: int | None = None) -> SingleRollResult:
+def create_mock_single_roll(expr: str = "1d20", sides: int = 20, force: int | list[int] | None = None) -> SingleRollResult:
     result = d100.roll(expr)
 
-    if force:
-        ast = d100.utils.find.find_dice(result.roll.ast, 1, sides)
+    if force is not None:
+        count = len(force) if isinstance(force, list) else 1
+        ast = d100.utils.find.find_dice(result.roll.ast, count, sides)
         dice = typing.cast(d100.ast.dice.Dice, result.roll.roll.find_from_ast(ast))
-        dice.dice[0].values.append(force)
+        if isinstance(force, list):
+            for die, value in zip(dice.dice, force, strict=True):
+                die.set_value(value)
+        else:
+            dice.dice[0].values.append(force)
 
         # Re-determine the crit type, as this is a constant value
         result.roll.crit = d100.utils.crit.determine_crit_type(result.roll.roll, dice)
@@ -80,6 +85,18 @@ class TestSessionStats:
         assert len(stats.rolled_d20_totals) == 4
         assert len(stats.resolved_d20_totals) == 4
         assert stats.average_resolved_d20 == 12  # (20 + 1 + 20 + 10) // 4 = 12
+
+    def test_add_multiple_d20_from_single_expression(self):
+        stats = UserSessionDiceStats()
+        result = create_mock_multi_roll_result(
+            expression="2d20",
+            rolls=[create_mock_single_roll("2d20", 20, [8, 15])],
+        )
+
+        stats.add(result)
+
+        assert stats.rolled_d20_totals == [8, 15]
+        assert stats.average_rolled_d20 == 11
 
     def test_ignore_rolls_with_warnings(self):
         stats = UserSessionDiceStats()

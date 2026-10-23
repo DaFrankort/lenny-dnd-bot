@@ -60,7 +60,7 @@ class TestSessionStats:
         stats = UserSessionDiceStats()
 
         assert stats.average_rolled_d20 == 0
-        assert stats.average_resolved_d20 == 0
+        assert stats.average_kept_d20 == 0
         assert stats.average_dmg == 0
         assert stats.advantage_percentage == 0
         assert stats.disadvantage_percentage == 0
@@ -82,9 +82,30 @@ class TestSessionStats:
         assert stats.nat20_count == 1
         assert stats.nat1_count == 1
         assert stats.dirty20_count == 1
+        assert stats.kept_nat20_count == 1
+        assert stats.kept_nat1_count == 1
+        assert stats.kept_dirty20_count == 1
         assert len(stats.rolled_d20_totals) == 4
-        assert len(stats.resolved_d20_totals) == 4
-        assert stats.average_resolved_d20 == 12  # (20 + 1 + 20 + 10) // 4 = 12
+        assert len(stats.kept_d20_totals) == 4
+        assert stats.average_kept_d20 == 12  # (20 + 1 + 20 + 10) // 4 = 12
+
+    def test_critical_counts_only_include_kept_rolls(self):
+        stats = UserSessionDiceStats()
+        result = create_mock_multi_roll_result(
+            expression="1d20",
+            rolls=[create_mock_single_roll(force=20)],
+            rolls_lose_1=[create_mock_single_roll(force=1)],
+            rolls_lose_2=[create_mock_single_roll("1d20+3", force=17)],
+        )
+
+        stats.add(result)
+
+        assert stats.nat20_count == 1
+        assert stats.nat1_count == 1
+        assert stats.dirty20_count == 1
+        assert stats.kept_nat20_count == 1
+        assert stats.kept_nat1_count == 0
+        assert stats.kept_dirty20_count == 0
 
     def test_add_multiple_d20_from_single_expression(self):
         stats = UserSessionDiceStats()
@@ -104,7 +125,7 @@ class TestSessionStats:
 
         stats.add(roll_with_warn)
 
-        assert len(stats.resolved_d20_totals) == 0
+        assert len(stats.kept_d20_totals) == 0
         assert len(stats.rolled_d20_totals) == 0
         assert stats.total_dice_rolled == 0
 
@@ -122,12 +143,12 @@ class TestSessionStats:
 
         assert stats.rolled_dice[20] == 6
         assert stats.rolled_d20_totals == [18, 16, 7, 4, 12, 2]
-        assert stats.resolved_d20_totals == [18, 16]
+        assert stats.kept_d20_totals == [18, 16]
         assert stats.average_rolled_d20 == 9
-        assert stats.average_resolved_d20 == 17
+        assert stats.average_kept_d20 == 17
         assert stats.nat1_count == 0
 
-    def test_single_roll_records_all_advantage_dice_and_resolved_result(self):
+    def test_single_roll_records_all_advantage_dice_and_kept_result(self):
         stats = UserSessionDiceStats()
         result = MagicMock()
         result.expression = "1d20"
@@ -143,10 +164,10 @@ class TestSessionStats:
         stats.add(result)
 
         assert stats.rolled_d20_totals == [5, 17, 12]
-        assert stats.resolved_d20_totals == [17]
+        assert stats.kept_d20_totals == [17]
 
-    @pytest.mark.parametrize(("expression", "resolved_count"), [("5d20", 5), ("5d20kh1", 1)])
-    def test_multi_d20_expression_tracks_each_die(self, expression: str, resolved_count: int):
+    @pytest.mark.parametrize(("expression", "kept_count"), [("5d20", 5), ("5d20kh1", 1)])
+    def test_multi_d20_expression_tracks_each_die(self, expression: str, kept_count: int):
         result = roll_dice(expression)
 
         stats = UserSessionDiceStats()
@@ -154,10 +175,10 @@ class TestSessionStats:
 
         assert stats.rolled_dice[20] == 5
         assert len(stats.rolled_d20_totals) == 5
-        assert len(stats.resolved_d20_totals) == resolved_count
-        assert all(value in stats.rolled_d20_totals for value in stats.resolved_d20_totals)
-        if resolved_count == 5:
-            assert stats.resolved_d20_totals == stats.rolled_d20_totals
+        assert len(stats.kept_d20_totals) == kept_count
+        assert all(value in stats.rolled_d20_totals for value in stats.kept_d20_totals)
+        if kept_count == 5:
+            assert stats.kept_d20_totals == stats.rolled_d20_totals
 
     def test_ignore_d100_and_percentile_rolls(self):
         stats = UserSessionDiceStats()
@@ -166,7 +187,7 @@ class TestSessionStats:
         stats.add(roll_d100)
 
         assert len(stats.rolled_d20_totals) == 0
-        assert len(stats.resolved_d20_totals) == 0
+        assert len(stats.kept_d20_totals) == 0
         assert len(stats.damage_totals) == 0
         assert stats.rolled_dice.get(100) == 1
 

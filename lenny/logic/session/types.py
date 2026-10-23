@@ -20,7 +20,8 @@ class UserSessionResult:
     user: discord.Member
     color: discord.Color
     title: str
-    description: str
+    title_description: str
+    dice: "UserSessionDiceStats"
     graph: discord.File | None
 
 
@@ -37,11 +38,14 @@ class UserSessionDiceStats:
     nat20_count: int
     nat1_count: int
     dirty20_count: int
+    kept_nat20_count: int
+    kept_nat1_count: int
+    kept_dirty20_count: int
     adv_count: int
     dis_count: int
 
     rolled_d20_totals: list[int]
-    resolved_d20_totals: list[int]
+    kept_d20_totals: list[int]
     dmg_expressions: dict[str, list[int]]
     rolled_dice: dict[int, int]
 
@@ -49,11 +53,14 @@ class UserSessionDiceStats:
         self.nat20_count = 0
         self.nat1_count = 0
         self.dirty20_count = 0
+        self.kept_nat20_count = 0
+        self.kept_nat1_count = 0
+        self.kept_dirty20_count = 0
         self.adv_count = 0
         self.dis_count = 0
 
         self.rolled_d20_totals = []
-        self.resolved_d20_totals = []
+        self.kept_d20_totals = []
         self.dmg_expressions = {}
         self.rolled_dice = {}
 
@@ -61,13 +68,13 @@ class UserSessionDiceStats:
         if isinstance(result, MultiRollResult):
             warnings = result.warnings
             all_rolls = [*result.rolls, *result.rolls_lose_1, *result.rolls_lose_2]
-            resolved_rolls = result.rolls
+            kept_rolls = result.rolls
             count = len(result.rolls)
         else:
             warnings = result.result.warnings
             all_rolls = result.result.rolls
-            resolved_roll = next((roll for roll in all_rolls if roll.total == result.result.total), None)
-            resolved_rolls = [resolved_roll] if resolved_roll else []
+            kept_roll = next((roll for roll in all_rolls if roll.total == result.result.total), None)
+            kept_rolls = [kept_roll] if kept_roll else []
             count = 1
 
         if len(warnings) > 0:
@@ -78,14 +85,14 @@ class UserSessionDiceStats:
         self._add_dice_count(all_rolls)
         self._add_advantage(result.expression, result.advantage, count)
 
-        resolved_roll_ids = {id(roll) for roll in resolved_rolls}
+        kept_roll_ids = {id(roll) for roll in kept_rolls}
         for roll in all_rolls:
             if "d100" in result.expression or "d%" in result.expression:
                 return  # We don't want to track d100's, they're not used for skill-checks or damage.
 
             if "d20" in result.expression:
-                self._add_d20(roll, resolved=id(roll) in resolved_roll_ids)
-            elif not isinstance(result, MultiRollResult) or id(roll) in resolved_roll_ids:
+                self._add_d20(roll, kept=id(roll) in kept_roll_ids)
+            elif not isinstance(result, MultiRollResult) or id(roll) in kept_roll_ids:
                 self._add_damage_roll(roll)
 
     def _add_dice_count(self, rolls: list[SingleRollResult]):
@@ -102,7 +109,7 @@ class UserSessionDiceStats:
                     for die in dice.dice:
                         add_die(die)
 
-    def _add_d20(self, roll: SingleRollResult, resolved: bool):
+    def _add_d20(self, roll: SingleRollResult, kept: bool):
         d20_dice: list[Die] = []
         for dice_node in _find_dice_nodes(roll.ast):
             if dice_node.size != 20:
@@ -116,15 +123,18 @@ class UserSessionDiceStats:
 
         for die in d20_dice:
             self.rolled_d20_totals.append(die.value)
-            if resolved and die.kept:
-                self.resolved_d20_totals.append(die.value)
+            if kept and die.kept:
+                self.kept_d20_totals.append(die.value)
 
         if roll.crit is Critical.CRIT:
             self.nat20_count += 1
+            self.kept_nat20_count += 1 if kept else 0
         elif roll.crit is Critical.FAIL:
             self.nat1_count += 1
+            self.kept_nat1_count += 1 if kept else 0
         elif roll.crit is Critical.DIRTY:
             self.dirty20_count += 1
+            self.kept_dirty20_count += 1 if kept else 0
 
     def _add_damage_roll(self, roll: SingleRollResult):
         if roll.expr not in self.dmg_expressions:
@@ -151,10 +161,10 @@ class UserSessionDiceStats:
         return sum(self.rolled_d20_totals) // len(self.rolled_d20_totals)
 
     @property
-    def average_resolved_d20(self) -> int:
-        if len(self.resolved_d20_totals) == 0:
+    def average_kept_d20(self) -> int:
+        if len(self.kept_d20_totals) == 0:
             return 0
-        return sum(self.resolved_d20_totals) // len(self.resolved_d20_totals)
+        return sum(self.kept_d20_totals) // len(self.kept_d20_totals)
 
     @property
     def damage_totals(self) -> list[int]:
@@ -184,15 +194,15 @@ class UserSessionDiceStats:
 
     @property
     def advantage_percentage(self) -> float:
-        if len(self.resolved_d20_totals) == 0:
+        if len(self.kept_d20_totals) == 0:
             return 0
-        return self.adv_count / len(self.resolved_d20_totals)
+        return self.adv_count / len(self.kept_d20_totals)
 
     @property
     def disadvantage_percentage(self) -> float:
-        if len(self.resolved_d20_totals) == 0:
+        if len(self.kept_d20_totals) == 0:
             return 0
-        return self.dis_count / len(self.resolved_d20_totals)
+        return self.dis_count / len(self.kept_d20_totals)
 
 
 class UserSessionStats:

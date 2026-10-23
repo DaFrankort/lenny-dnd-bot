@@ -78,9 +78,30 @@ class TestSessionStats:
         assert stats.nat20_count == 1
         assert stats.nat1_count == 1
         assert stats.dirty20_count == 1
+        assert stats.resolved_nat20_count == 1
+        assert stats.resolved_nat1_count == 1
+        assert stats.resolved_dirty20_count == 1
         assert len(stats.rolled_d20_totals) == 4
         assert len(stats.resolved_d20_totals) == 4
         assert stats.average_resolved_d20 == 12  # (20 + 1 + 20 + 10) // 4 = 12
+
+    def test_critical_counts_only_include_resolved_rolls(self):
+        stats = UserSessionDiceStats()
+        result = create_mock_multi_roll_result(
+            expression="1d20",
+            rolls=[create_mock_single_roll(force=20)],
+            rolls_lose_1=[create_mock_single_roll(force=1)],
+            rolls_lose_2=[create_mock_single_roll("1d20+3", force=17)],
+        )
+
+        stats.add(result)
+
+        assert stats.nat20_count == 1
+        assert stats.nat1_count == 1
+        assert stats.dirty20_count == 1
+        assert stats.resolved_nat20_count == 1
+        assert stats.resolved_nat1_count == 0
+        assert stats.resolved_dirty20_count == 0
 
     def test_add_multiple_d20_from_single_expression(self):
         stats = UserSessionDiceStats()

@@ -81,34 +81,25 @@ class SessionStats:
 
             assigned_title = title_registry.assign_title(dice, self.user_data) or "Adventurer"
 
-            user_report: list[str] = []
             if not isinstance(assigned_title, str):
                 title = assigned_title.name
-                user_report.append(f"-# {assigned_title.description}")
+                title_description = f"-# {assigned_title.description}"
             else:
                 title = assigned_title
-                user_report.append("")
-
-            user_report.append(f"Dice rolled: ``{dice.total_dice_rolled}``")
-            user_report.append(f"Average d20 die: ``{dice.average_rolled_d20}``")
-            user_report.append(f"D20s rolled: ``{len(dice.rolled_d20_totals)}``")
-            user_report.append(f"D20 checks resolved: ``{len(dice.resolved_d20_totals)}``")
-            user_report.append(f"Average resolved d20: ``{dice.average_resolved_d20}``")
-            if dice.nat1_count > 0:
-                user_report.append(f"Natural 1s rolled: ``{dice.nat1_count}``")
-            if dice.nat20_count > 0:
-                user_report.append(f"Natural 20s rolled: ``{dice.nat20_count}``")
-            if dice.damage_totals:
-                user_report.append(f"Total damage: ``{sum(dice.damage_totals)}``")
-                user_report.append(f"Average damage: ``{dice.average_dmg}``")
-            user_report.append(f"Rolled with Advantage: ``{dice.adv_count}`` time(s)")
-            user_report.append(f"Rolled with Disadvantage: ``{dice.dis_count}`` time(s)")
+                title_description = ""
 
             color = discord.Color(UserColor.get_from_user(user))
             graph = _d20_comparison_chart(dice, color.value)
 
             users_stats.append(
-                UserSessionResult(user=user, color=color, title=title, description="\n- ".join(user_report), graph=graph)
+                UserSessionResult(
+                    user=user,
+                    color=color,
+                    title=title,
+                    title_description=title_description,
+                    dice=dice,
+                    graph=graph,
+                )
             )
 
         base_info = ["# Session stats"]

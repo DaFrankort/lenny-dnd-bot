@@ -2,7 +2,7 @@ from collections import Counter
 
 import discord
 
-from logic.color import UserColor
+from logic.color import UserColor, adjust_rgb_color_lightness, get_luminance
 from logic.graphs import (
     convert_and_close_fig,
     empty_distribution_chart,
@@ -25,22 +25,47 @@ def _d20_comparison_chart(stats: UserSessionDiceStats, color: int) -> discord.Fi
 
     total_rolls = len(stats.rolled_d20_totals)
     counts = Counter(stats.rolled_d20_totals)
+    resolved_counts = Counter(stats.resolved_d20_totals)
 
     x_faces = list(range(1, 21))
     if total_rolls == 0:
         return None
 
     actual_percentages = [(counts[face] / total_rolls) * 100 for face in x_faces]
-    average_percentage = 5.0
+    resolved_percentages = [(resolved_counts[face] / total_rolls) * 100 for face in x_faces]
 
     fig, ax = empty_distribution_chart(x_faces)
-    ax.set_xticks(x_faces)  # type: ignore
-    ax.axhline(y=average_percentage, color="white", linestyle="--", alpha=0.5, label=f"Average ({average_percentage}%)")  # type: ignore
-
     user_color = to_matplotlib_color(color)  # type: ignore
-    ax.bar(x_faces, actual_percentages, color=user_color, label="Your d20 Rolls")  # type: ignore
+    user_rgb = UserColor.to_rgb(color)
+    luminance = get_luminance(user_rgb)
+    resolved_average_lightness = 45.0 if luminance > 0.5 else 85.0
+    resolved_average_rgb = adjust_rgb_color_lightness(user_rgb, resolved_average_lightness)
+    non_resolved_color = "#{:02X}{:02X}{:02X}".format(*resolved_average_rgb)
+    ax.set_xticks(x_faces)  # type: ignore
+    ax.axvline(  # type: ignore
+        x=stats.average_rolled_d20,
+        color="gray",
+        linestyle="--",
+        label="Average raw",
+    )
+    ax.axvline(  # type: ignore
+        x=stats.average_resolved_d20,
+        color="white",
+        linestyle="--",
+        alpha=0.5,
+        label="Average resolved",
+    )
 
-    style_legend(ax.legend(loc="upper right"))  # type: ignore
+    ax.bar(  # type: ignore
+        x_faces,
+        actual_percentages,
+        bottom=resolved_percentages,
+        color=non_resolved_color,
+        alpha=0.7,
+        label="Raw d20s",
+    )
+    ax.bar(x_faces, resolved_percentages, color=user_color, label="Resolved d20s")  # type: ignore
+    style_legend(ax.legend(loc="best"))  # type: ignore
 
     buf = convert_and_close_fig(fig)
 

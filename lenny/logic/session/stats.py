@@ -34,13 +34,18 @@ def _d20_comparison_chart(stats: UserSessionDiceStats, color: int) -> discord.Fi
     dropped_percentages = [((counts[face] - kept_counts[face]) / total_rolls) * 100 for face in x_faces]
     kept_percentages = [(kept_counts[face] / total_rolls) * 100 for face in x_faces]
 
-    fig, ax = empty_distribution_chart(x_faces)
     user_color = to_matplotlib_color(color)  # type: ignore
     user_rgb = UserColor.to_rgb(color)
     luminance = get_luminance(user_rgb)
-    kept_average_lightness = 45.0 if luminance > 0.5 else 90.0
-    kept_average_rgb = adjust_rgb_color_lightness(user_rgb, kept_average_lightness)
-    non_kept_color = f"#{kept_average_rgb[0]:02X}{kept_average_rgb[1]:02X}{kept_average_rgb[2]:02X}"
+    user_color_is_dark = luminance > 0.5
+    alt_lightness = 45.0 if user_color_is_dark else 90.0
+    alt_rgb = adjust_rgb_color_lightness(user_rgb, alt_lightness)
+    alt_color = f"#{alt_rgb[0]:02X}{alt_rgb[1]:02X}{alt_rgb[2]:02X}"
+    if not user_color_is_dark:
+        # Prefer lightest color as kept d20s
+        alt_color, user_color = user_color, alt_color
+
+    fig, ax = empty_distribution_chart(x_faces)
     ax.set_xticks(x_faces)  # type: ignore
     ax.axvline(  # type: ignore
         x=stats.average_rolled_d20,
@@ -55,12 +60,11 @@ def _d20_comparison_chart(stats: UserSessionDiceStats, color: int) -> discord.Fi
         alpha=0.5,
         label="Average kept",
     )
-
     ax.bar(  # type: ignore
         x_faces,
         dropped_percentages,
         bottom=kept_percentages,
-        color=non_kept_color,
+        color=alt_color,
         alpha=0.7,
         label="Dropped d20s",
     )

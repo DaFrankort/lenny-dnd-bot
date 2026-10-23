@@ -29,7 +29,6 @@ class UserSessionStatEmbed(BaseEmbed):
                 ]
             ),
         )
-        self.add_field(name="", value="")  # Padding
         self.add_field(
             name="Damage results",
             value="\n".join(
@@ -40,6 +39,7 @@ class UserSessionStatEmbed(BaseEmbed):
                 ]
             ),
         )
+        self.add_field(name="", value="")  # Padding
 
         self.add_field(
             name="Raw d20 results",
@@ -53,7 +53,6 @@ class UserSessionStatEmbed(BaseEmbed):
                 ]
             ),
         )
-        self.add_field(name="", value="")  # Padding
         self.add_field(
             name="Resolved d20s",
             value="\n".join(
@@ -66,6 +65,7 @@ class UserSessionStatEmbed(BaseEmbed):
                 ]
             ),
         )
+        self.add_field(name="", value="")  # Padding
 
         if result.graph:
             self.set_image(url=f"attachment://{result.graph.filename}")

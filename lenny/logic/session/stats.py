@@ -31,14 +31,14 @@ def _d20_comparison_chart(stats: UserSessionDiceStats, color: int) -> discord.Fi
     if total_rolls == 0:
         return None
 
-    actual_percentages = [(counts[face] / total_rolls) * 100 for face in x_faces]
+    unresolved_percentages = [((counts[face] - resolved_counts[face]) / total_rolls) * 100 for face in x_faces]
     resolved_percentages = [(resolved_counts[face] / total_rolls) * 100 for face in x_faces]
 
     fig, ax = empty_distribution_chart(x_faces)
     user_color = to_matplotlib_color(color)  # type: ignore
     user_rgb = UserColor.to_rgb(color)
     luminance = get_luminance(user_rgb)
-    resolved_average_lightness = 45.0 if luminance > 0.5 else 85.0
+    resolved_average_lightness = 45.0 if luminance > 0.5 else 90.0
     resolved_average_rgb = adjust_rgb_color_lightness(user_rgb, resolved_average_lightness)
     non_resolved_color = "#{:02X}{:02X}{:02X}".format(*resolved_average_rgb)
     ax.set_xticks(x_faces)  # type: ignore
@@ -58,11 +58,11 @@ def _d20_comparison_chart(stats: UserSessionDiceStats, color: int) -> discord.Fi
 
     ax.bar(  # type: ignore
         x_faces,
-        actual_percentages,
+        unresolved_percentages,
         bottom=resolved_percentages,
         color=non_resolved_color,
         alpha=0.7,
-        label="Raw d20s",
+        label="Unresolved d20s",
     )
     ax.bar(x_faces, resolved_percentages, color=user_color, label="Resolved d20s")  # type: ignore
     style_legend(ax.legend(loc="best"))  # type: ignore

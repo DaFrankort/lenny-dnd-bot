@@ -20,7 +20,8 @@ class UserSessionResult:
     user: discord.Member
     color: discord.Color
     title: str
-    description: str
+    title_description: str
+    dice: "UserSessionDiceStats"
     graph: discord.File | None
 
 
@@ -37,6 +38,9 @@ class UserSessionDiceStats:
     nat20_count: int
     nat1_count: int
     dirty20_count: int
+    resolved_nat20_count: int
+    resolved_nat1_count: int
+    resolved_dirty20_count: int
     adv_count: int
     dis_count: int
 
@@ -49,6 +53,9 @@ class UserSessionDiceStats:
         self.nat20_count = 0
         self.nat1_count = 0
         self.dirty20_count = 0
+        self.resolved_nat20_count = 0
+        self.resolved_nat1_count = 0
+        self.resolved_dirty20_count = 0
         self.adv_count = 0
         self.dis_count = 0
 
@@ -121,10 +128,16 @@ class UserSessionDiceStats:
 
         if roll.crit is Critical.CRIT:
             self.nat20_count += 1
+            if resolved:
+                self.resolved_nat20_count += 1
         elif roll.crit is Critical.FAIL:
             self.nat1_count += 1
+            if resolved:
+                self.resolved_nat1_count += 1
         elif roll.crit is Critical.DIRTY:
             self.dirty20_count += 1
+            if resolved:
+                self.resolved_dirty20_count += 1
 
     def _add_damage_roll(self, roll: SingleRollResult):
         if roll.expr not in self.dmg_expressions:

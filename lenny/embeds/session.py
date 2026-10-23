@@ -54,14 +54,14 @@ class UserSessionStatEmbed(BaseEmbed):
             ),
         )
         self.add_field(
-            name="Resolved d20s",
+            name="Kept d20s",
             value="\n".join(
                 [
-                    self._format_line(len(dice.resolved_d20_totals), "d20s resolved"),
-                    self._format_line(dice.average_resolved_d20, "resolved d20 average"),
-                    self._format_line(dice.resolved_nat1_count, "natural 1s"),
-                    self._format_line(dice.resolved_nat20_count, "natural 20s"),
-                    self._format_line(dice.resolved_dirty20_count, "dirty 20s"),
+                    self._format_line(len(dice.kept_d20_totals), "d20s kept"),
+                    self._format_line(dice.average_kept_d20, "kept d20 average"),
+                    self._format_line(dice.kept_nat1_count, "natural 1s"),
+                    self._format_line(dice.kept_nat20_count, "natural 20s"),
+                    self._format_line(dice.kept_dirty20_count, "dirty 20s"),
                 ]
             ),
         )
@@ -70,5 +70,5 @@ class UserSessionStatEmbed(BaseEmbed):
         if result.graph:
             self.set_image(url=f"attachment://{result.graph.filename}")
         self.set_footer(
-            text="*Resolved d20s are dice that counted towards the final result (e.g. the die kept with advantage)."
+            text="*kept d20s are dice that counted towards the final result (e.g. the die kept with advantage)."
         )

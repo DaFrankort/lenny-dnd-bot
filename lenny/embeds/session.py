@@ -69,6 +69,3 @@ class UserSessionStatEmbed(BaseEmbed):
 
         if result.graph:
             self.set_image(url=f"attachment://{result.graph.filename}")
-        self.set_footer(
-            text="*kept d20s are dice that counted towards the final result (e.g. the die kept with advantage)."
-        )

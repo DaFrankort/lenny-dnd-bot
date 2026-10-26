@@ -35,7 +35,7 @@ class RollCommand(BaseCommand):
         diceroll="The dice-expression of the roll you want to make (Example: 1d20+3, 1d8ro1, ...)",
         reason="An optional reason for rolling, for additional clarity. (Example: Attack, Damage, ...)",
         advantage="Does the dice roll have advantage?",
-        rolls="The number of rolls",
+        roll_count="The number of dice to roll",
     )
     @choices(advantage=Advantage.choices())
     async def handle(
@@ -44,19 +44,19 @@ class RollCommand(BaseCommand):
         diceroll: str,
         reason: str | None = None,
         advantage: str | None = None,
-        rolls: discord.app_commands.Range[int, 1, 32] = 1,
+        roll_count: discord.app_commands.Range[int, 1, 32] = 1,
     ):
         if advantage is None:
             advantage = Advantage.NORMAL
         else:
             advantage = Advantage(advantage)
 
-        if rolls == 1:
+        if roll_count == 1:
             result = roll(diceroll, advantage)
             embed = RollEmbed(itr, result, reason)
             await VC.play_dice_roll(itr, result, reason)
         else:
-            result = multi_roll(diceroll, rolls, advantage)
+            result = multi_roll(diceroll, roll_count, advantage)
             embed = MultiRollEmbed(itr, result, reason)
             await VC.play(itr, SoundType.ROLL)
 

@@ -41,29 +41,46 @@ class UserSessionStatEmbed(BaseEmbed):
         )
         self.add_field(name="", value="")  # Padding
 
+        raw_d20_results = [
+            self._format_line(len(dice.rolled_d20_totals), "d20s rolled"),
+            self._format_line(dice.average_rolled_d20, "d20 average"),
+        ]
+        kept_d20s = [
+            self._format_line(len(dice.kept_d20_totals), "d20s kept"),
+            self._format_line(dice.average_kept_d20, "kept d20 average"),
+        ]
+
+        if dice.nat1_count > 0:
+            raw_d20_results.append(
+                self._format_line(dice.nat1_count, "natural 1s"),
+            )
+            kept_d20s.append(
+                self._format_line(dice.kept_nat1_count, "natural 1s"),
+            )
+
+        if dice.nat20_count > 0:
+            raw_d20_results.append(
+                self._format_line(dice.nat20_count, "natural 20s"),
+            )
+            kept_d20s.append(
+                self._format_line(dice.kept_nat20_count, "natural 20s"),
+            )
+
+        if dice.dirty20_count > 0:
+            raw_d20_results.append(
+                self._format_line(dice.dirty20_count, "dirty 20s"),
+            )
+            kept_d20s.append(
+                self._format_line(dice.kept_dirty20_count, "dirty 20s"),
+            )
+
         self.add_field(
             name="Raw d20 results",
-            value="\n".join(
-                [
-                    self._format_line(len(dice.rolled_d20_totals), "d20s rolled"),
-                    self._format_line(dice.average_rolled_d20, "d20 average"),
-                    self._format_line(dice.nat1_count, "natural 1s"),
-                    self._format_line(dice.nat20_count, "natural 20s"),
-                    self._format_line(dice.dirty20_count, "dirty 20s"),
-                ]
-            ),
+            value="\n".join(raw_d20_results),
         )
         self.add_field(
             name="Kept d20s",
-            value="\n".join(
-                [
-                    self._format_line(len(dice.kept_d20_totals), "d20s kept"),
-                    self._format_line(dice.average_kept_d20, "kept d20 average"),
-                    self._format_line(dice.kept_nat1_count, "natural 1s"),
-                    self._format_line(dice.kept_nat20_count, "natural 20s"),
-                    self._format_line(dice.kept_dirty20_count, "dirty 20s"),
-                ]
-            ),
+            value="\n".join(kept_d20s),
         )
         self.add_field(name="", value="")  # Padding
 

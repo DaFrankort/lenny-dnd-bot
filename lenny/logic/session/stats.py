@@ -47,12 +47,14 @@ def _d20_comparison_chart(stats: UserSessionDiceStats, color: int) -> discord.Fi
 
     fig, ax = empty_distribution_chart(x_faces)
     ax.set_xticks(x_faces)  # type: ignore
-    ax.axvline(  # type: ignore
-        x=stats.average_rolled_d20,
-        color="gray",
-        linestyle="--",
-        label="Average raw",
-    )
+    if stats.average_kept_d20 != stats.average_rolled_d20:
+        ax.axvline(  # type: ignore
+            x=stats.average_rolled_d20,
+            color="gray",
+            linestyle="--",
+            alpha=0.5,
+            label="Average raw",
+        )
     ax.axvline(  # type: ignore
         x=stats.average_kept_d20,
         color="white",

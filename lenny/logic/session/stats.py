@@ -2,7 +2,7 @@ from collections import Counter
 
 import discord
 
-from logic.color import UserColor
+from logic.color import UserColor, adjust_rgb_color_lightness, get_luminance
 from logic.graphs import (
     convert_and_close_fig,
     empty_distribution_chart,
@@ -23,27 +23,60 @@ def _d20_comparison_chart(stats: UserSessionDiceStats, color: int) -> discord.Fi
     if not stats.rolled_d20_totals:
         return None
 
-    total_rolls = len(stats.rolled_d20_totals)
+    total_rolls = len(stats.rolled_d20_totals) + len(stats.unmodified_d20_totals)
     counts = Counter(stats.rolled_d20_totals)
+    unmodified_counts = Counter(stats.unmodified_d20_totals)
+    kept_counts = Counter(stats.kept_d20_totals)
 
     x_faces = list(range(1, 21))
     if total_rolls == 0:
         return None
 
-    actual_percentages = [(counts[face] / total_rolls) * 100 for face in x_faces]
-    average_percentage = 5.0
+    dropped_percentages = [
+        ((counts[face] + unmodified_counts[face] - kept_counts[face]) / total_rolls) * 100 for face in x_faces
+    ]
+    kept_percentages = [(kept_counts[face] / total_rolls) * 100 for face in x_faces]
+
+    user_color = to_matplotlib_color(color)  # type: ignore
+    user_rgb = UserColor.to_rgb(color)
+    luminance = get_luminance(user_rgb)
+    user_color_is_dark = luminance > 0.5
+    alt_lightness = 45.0 if user_color_is_dark else 90.0
+    alt_rgb = adjust_rgb_color_lightness(user_rgb, alt_lightness)
+    alt_color = f"#{alt_rgb[0]:02X}{alt_rgb[1]:02X}{alt_rgb[2]:02X}"
+    if not user_color_is_dark:
+        # Prefer lightest color as kept d20s
+        alt_color, user_color = user_color, alt_color
 
     fig, ax = empty_distribution_chart(x_faces)
     ax.set_xticks(x_faces)  # type: ignore
-    ax.axhline(y=average_percentage, color="white", linestyle="--", alpha=0.5, label=f"Average ({average_percentage}%)")  # type: ignore
-
-    user_color = to_matplotlib_color(color)  # type: ignore
-    ax.bar(x_faces, actual_percentages, color=user_color, label="Your d20 Rolls")  # type: ignore
-
-    style_legend(ax.legend(loc="upper right"))  # type: ignore
+    if stats.average_kept_d20 != stats.average_rolled_d20:
+        ax.axvline(  # type: ignore
+            x=stats.average_rolled_d20,
+            color="gray",
+            linestyle="--",
+            alpha=0.5,
+            label="Average raw",
+        )
+    ax.axvline(  # type: ignore
+        x=stats.average_kept_d20,
+        color="white",
+        linestyle="--",
+        alpha=0.5,
+        label="Average kept",
+    )
+    ax.bar(  # type: ignore
+        x_faces,
+        dropped_percentages,
+        bottom=kept_percentages,
+        color=alt_color,
+        alpha=0.7,
+        label="Dropped d20s",
+    )
+    ax.bar(x_faces, kept_percentages, color=user_color, label="Kept d20s")  # type: ignore
+    style_legend(ax.legend(loc="best"))  # type: ignore
 
     buf = convert_and_close_fig(fig)
-
     return discord.File(fp=buf, filename=f"{color}_d20_comparison.png")
 
 
@@ -81,34 +114,25 @@ class SessionStats:
 
             assigned_title = title_registry.assign_title(dice, self.user_data) or "Adventurer"
 
-            user_report: list[str] = []
             if not isinstance(assigned_title, str):
                 title = assigned_title.name
-                user_report.append(f"-# {assigned_title.description}")
+                title_description = f"-# {assigned_title.description}"
             else:
                 title = assigned_title
-                user_report.append("")
-
-            user_report.append(f"Dice rolled: ``{dice.total_dice_rolled}``")
-            user_report.append(f"Average d20 die: ``{dice.average_rolled_d20}``")
-            user_report.append(f"D20s rolled: ``{len(dice.rolled_d20_totals)}``")
-            user_report.append(f"D20 checks resolved: ``{len(dice.resolved_d20_totals)}``")
-            user_report.append(f"Average resolved d20: ``{dice.average_resolved_d20}``")
-            if dice.nat1_count > 0:
-                user_report.append(f"Natural 1s rolled: ``{dice.nat1_count}``")
-            if dice.nat20_count > 0:
-                user_report.append(f"Natural 20s rolled: ``{dice.nat20_count}``")
-            if dice.damage_totals:
-                user_report.append(f"Total damage: ``{sum(dice.damage_totals)}``")
-                user_report.append(f"Average damage: ``{dice.average_dmg}``")
-            user_report.append(f"Rolled with Advantage: ``{dice.adv_count}`` time(s)")
-            user_report.append(f"Rolled with Disadvantage: ``{dice.dis_count}`` time(s)")
+                title_description = ""
 
             color = discord.Color(UserColor.get_from_user(user))
             graph = _d20_comparison_chart(dice, color.value)
 
             users_stats.append(
-                UserSessionResult(user=user, color=color, title=title, description="\n- ".join(user_report), graph=graph)
+                UserSessionResult(
+                    user=user,
+                    color=color,
+                    title=title,
+                    title_description=title_description,
+                    dice=dice,
+                    graph=graph,
+                )
             )
 
         base_info = ["# Session stats"]

@@ -41,7 +41,7 @@ class HelpTabList:
     Roll = HelpTab(
         tab="roll",
         name="Roll",
-        commands=["roll", "d20", "multiroll", "tableroll"],
+        commands=["roll", "d20", "tableroll"],
         text="You can roll dice using the following commands:",
         info=[
             (

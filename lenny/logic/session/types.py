@@ -118,7 +118,7 @@ class UserSessionDiceStats:
                 continue
             dice = roll.roll.find_from_ast(dice_node)
             if isinstance(dice, Dice):
-                has_minimum_or_maximum = any(operation.op in ("mi", "ma") for operation in dice_node.operations)
+                has_minimum_or_maximum = any(operation.op in {"mi", "ma"} for operation in dice_node.operations)
                 for die in dice.dice:
                     d20_dice.append(die)
                     if has_minimum_or_maximum and die.value != die.values[0]:

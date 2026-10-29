@@ -3,7 +3,6 @@ from unittest.mock import MagicMock
 
 import d100
 import d100.ast.dice
-import d100.utils.crit
 import d100.utils.find
 import discord
 import pytest
@@ -29,9 +28,6 @@ def create_mock_single_roll(expr: str = "1d20", sides: int = 20, force: int | li
                 die.set_value(value)
         else:
             dice.dice[0].values.append(force)
-
-        # Re-determine the crit type, as this is a constant value
-        result.roll.crit = d100.utils.crit.determine_crit_type(result.roll.roll, dice)
 
     return result.roll
 

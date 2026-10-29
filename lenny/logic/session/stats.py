@@ -23,15 +23,18 @@ def _d20_comparison_chart(stats: UserSessionDiceStats, color: int) -> discord.Fi
     if not stats.rolled_d20_totals:
         return None
 
-    total_rolls = len(stats.rolled_d20_totals)
+    total_rolls = len(stats.rolled_d20_totals) + len(stats.unmodified_d20_totals)
     counts = Counter(stats.rolled_d20_totals)
+    unmodified_counts = Counter(stats.unmodified_d20_totals)
     kept_counts = Counter(stats.kept_d20_totals)
 
     x_faces = list(range(1, 21))
     if total_rolls == 0:
         return None
 
-    dropped_percentages = [((counts[face] - kept_counts[face]) / total_rolls) * 100 for face in x_faces]
+    dropped_percentages = [
+        ((counts[face] + unmodified_counts[face] - kept_counts[face]) / total_rolls) * 100 for face in x_faces
+    ]
     kept_percentages = [(kept_counts[face] / total_rolls) * 100 for face in x_faces]
 
     user_color = to_matplotlib_color(color)  # type: ignore

@@ -45,6 +45,7 @@ class UserSessionDiceStats:
     dis_count: int
 
     rolled_d20_totals: list[int]
+    unmodified_d20_totals: list[int]  # Original values of modified dice (mi, ma)
     kept_d20_totals: list[int]
     dmg_expressions: dict[str, list[int]]
     rolled_dice: dict[int, int]
@@ -60,6 +61,7 @@ class UserSessionDiceStats:
         self.dis_count = 0
 
         self.rolled_d20_totals = []
+        self.unmodified_d20_totals = []
         self.kept_d20_totals = []
         self.dmg_expressions = {}
         self.rolled_dice = {}
@@ -116,7 +118,11 @@ class UserSessionDiceStats:
                 continue
             dice = roll.roll.find_from_ast(dice_node)
             if isinstance(dice, Dice):
-                d20_dice.extend(dice.dice)
+                has_minimum_or_maximum = any(operation.op in ("mi", "ma") for operation in dice_node.operations)
+                for die in dice.dice:
+                    d20_dice.append(die)
+                    if has_minimum_or_maximum and die.value != die.values[0]:
+                        self.unmodified_d20_totals.append(die.values[0])
 
         if not d20_dice:
             return
@@ -158,7 +164,9 @@ class UserSessionDiceStats:
     def average_rolled_d20(self) -> int:
         if len(self.rolled_d20_totals) == 0:
             return 0
-        return sum(self.rolled_d20_totals) // len(self.rolled_d20_totals)
+        summed = sum(self.rolled_d20_totals) + sum(self.unmodified_d20_totals)
+        total = len(self.rolled_d20_totals) + len(self.unmodified_d20_totals)
+        return summed // total
 
     @property
     def average_kept_d20(self) -> int:

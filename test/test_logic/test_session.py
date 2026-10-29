@@ -115,6 +115,27 @@ class TestSessionStats:
         assert stats.rolled_d20_totals == [8, 15]
         assert stats.average_rolled_d20 == 11
 
+    @pytest.mark.parametrize(
+        ("expression", "die_values", "expected_unmodified"),
+        [
+            ("1d20mi10", [5, 10], [5]),
+            ("1d20ma10", [15, 10], [15]),
+            ("1d20mi10", [15], []),
+            ("1d20", [10], []),
+        ],
+    )
+    def test_add_unmodified_d20_totals(self, expression: str, die_values: list[int], expected_unmodified: list[int]):
+        stats = UserSessionDiceStats()
+        roll = create_mock_single_roll(expression)
+        dice_node = d100.utils.find.find_dice(roll.ast, 1, 20)
+        dice = typing.cast(d100.ast.dice.Dice, roll.roll.find_from_ast(dice_node))
+        dice.dice[0].values[:] = die_values
+
+        stats.add(create_mock_multi_roll_result(expression=expression, rolls=[roll]))
+
+        assert stats.rolled_d20_totals == [die_values[-1]]
+        assert stats.unmodified_d20_totals == expected_unmodified
+
     def test_ignore_rolls_with_warnings(self):
         stats = UserSessionDiceStats()
         roll_with_warn = create_mock_multi_roll_result("1d20", warnings=["Invalid operator"])

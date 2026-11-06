@@ -9,6 +9,7 @@ pycolornames==1.1.0
 RapidFuzz==3.14.6
 rich==15.0.0
 pygtrie==2.6.2
+PyNaCl==1.6.2
 pytest==9.2.0
 pytest-asyncio==1.4.1.post1
 pytest-benchmark==5.3.1

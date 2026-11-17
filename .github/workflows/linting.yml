@@ -70,9 +70,12 @@ jobs:
     name: isort
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v2
+
+      # We do not use the general setup here; We dont need to install the requirements.
+      - uses: actions/setup-python@v4
         with:
-          python-version: 3.11
+          python-version: 3.12
+
       - uses: isort/isort-action@master
         with:
             requirementsFiles: "requirements.txt requirements-test.txt"

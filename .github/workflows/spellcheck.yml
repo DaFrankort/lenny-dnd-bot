@@ -9,7 +9,6 @@ on:
     paths:
       - "readme.md"
       - "**/*.py"
-      - "./.github/workflows/spellcheck.yml"
       - "cspell.json"
   workflow_dispatch:
 

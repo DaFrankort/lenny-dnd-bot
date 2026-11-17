@@ -6,6 +6,7 @@ on:
     paths:
       - "**/*.py"
       - "pyproject.toml"
+      - "./.github/workflows/linting.yml"
   workflow_dispatch:
 
 jobs:

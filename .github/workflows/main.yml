@@ -7,7 +7,6 @@ on:
       - "*.md"
       - "*.bat"
       - ".env.example"
-      - "./.github/**"
       - "cspell.json"
   workflow_dispatch:
 

@@ -1,7 +1,7 @@
 # Lenny D&D Bot
 
 A Discord bot for Dungeons & Dragons players which aims to provide commands using modern Discord features.
-
+Python v3.12 or above is recommended. v3.11 is currently being phased out and may break down the line.
 Powered by [5e.tools](https://5e.tools/) for up-to-date 5e data based on the [Lenny D&D data repository](https://github.com/pipieter/lenny-dnd-data).
 
 ## Features

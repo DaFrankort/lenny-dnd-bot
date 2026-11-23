@@ -4,10 +4,21 @@ import discord
 import pytest
 from mocking import MockInteraction
 
-from logic.color import ColorRGBFloat, UserColor, is_nearly_grayscale
+from logic.color import ColorRGBFloat, UserColor, get_luminance, is_nearly_grayscale
 
 
 class TestColorUtil:
+    @pytest.mark.parametrize(
+        "rgb,expected",
+        [
+            ((0, 0, 0), 0.0),
+            ((255, 255, 255), 1.0),
+            ((255, 0, 0), 0.2126),
+        ],
+    )
+    def test_get_luminance(self, rgb: tuple[int, int, int], expected: float):
+        assert get_luminance(rgb) == pytest.approx(expected)
+
     @pytest.mark.parametrize(
         "color,grayscale",
         [

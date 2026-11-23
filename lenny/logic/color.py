@@ -47,7 +47,12 @@ ColorRGBInt = tuple[int, int, int]
 ColorRGBFloat = tuple[float, float, float]
 
 
-def _adjust_rgb_color_lightness(rgb: tuple[int, int, int], new_lightness: float) -> tuple[int, int, int]:
+def get_luminance(rgb: ColorRGBInt) -> float:
+    r, g, b = rgb
+    return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255
+
+
+def adjust_rgb_color_lightness(rgb: ColorRGBInt, new_lightness: float) -> ColorRGBInt:
     """
     Adjust the perceived lightness (CIELAB L*) of an sRGB color.
 
@@ -73,13 +78,12 @@ def _get_luminance_font_color(rgb: tuple[int, int, int]) -> tuple[int, int, int]
     Returns a brighter font color based on the given background rgb values.
     Has a fallback to pure white or black if the adjusted color is too similar to the background color.
     """
-    r, g, b = rgb
-    luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255
+    luminance = get_luminance(rgb)
     if luminance > 0.5:
-        adjusted_rgb = _adjust_rgb_color_lightness(rgb, 20.0)
+        adjusted_rgb = adjust_rgb_color_lightness(rgb, 20.0)
         fallback = (0, 0, 0)  # Black
     else:
-        adjusted_rgb = _adjust_rgb_color_lightness(rgb, 90.0)
+        adjusted_rgb = adjust_rgb_color_lightness(rgb, 90.0)
         fallback = (255, 255, 255)  # White
 
     if _get_perceived_color_delta(rgb, adjusted_rgb) < 30:

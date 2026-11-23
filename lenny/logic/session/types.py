@@ -2,10 +2,17 @@ from dataclasses import dataclass
 
 import discord
 from d100 import Critical
+from d100.ast.dice import ASTDice, Dice
 from d100.ast.die import Die
-from d100.utils.find import find_d20
+from d100.ast.node import ASTNode
 
 from logic.roll import Advantage, MultiRollResult, RollResult, SingleRollResult
+
+
+def _find_dice_nodes(node: ASTNode) -> list[ASTDice]:
+    if isinstance(node, ASTDice):
+        return [node]
+    return [dice for child in node.children for dice in _find_dice_nodes(child)]
 
 
 @dataclass
@@ -13,7 +20,8 @@ class UserSessionResult:
     user: discord.Member
     color: discord.Color
     title: str
-    description: str
+    title_description: str
+    dice: "UserSessionDiceStats"
     graph: discord.File | None
 
 
@@ -30,10 +38,15 @@ class UserSessionDiceStats:
     nat20_count: int
     nat1_count: int
     dirty20_count: int
+    kept_nat20_count: int
+    kept_nat1_count: int
+    kept_dirty20_count: int
     adv_count: int
     dis_count: int
 
-    d20_totals: list[int]
+    rolled_d20_totals: list[int]
+    unmodified_d20_totals: list[int]  # Original values of modified dice (mi, ma)
+    kept_d20_totals: list[int]
     dmg_expressions: dict[str, list[int]]
     rolled_dice: dict[int, int]
 
@@ -41,21 +54,29 @@ class UserSessionDiceStats:
         self.nat20_count = 0
         self.nat1_count = 0
         self.dirty20_count = 0
+        self.kept_nat20_count = 0
+        self.kept_nat1_count = 0
+        self.kept_dirty20_count = 0
         self.adv_count = 0
         self.dis_count = 0
 
-        self.d20_totals = []
+        self.rolled_d20_totals = []
+        self.unmodified_d20_totals = []
+        self.kept_d20_totals = []
         self.dmg_expressions = {}
         self.rolled_dice = {}
 
     def add(self, result: RollResult | MultiRollResult):
         if isinstance(result, MultiRollResult):
             warnings = result.warnings
-            rolls = result.rolls
+            all_rolls = [*result.rolls, *result.rolls_lose_1, *result.rolls_lose_2]
+            kept_rolls = result.rolls
             count = len(result.rolls)
         else:
             warnings = result.result.warnings
-            rolls = result.result.rolls
+            all_rolls = result.result.rolls
+            kept_roll = next((roll for roll in all_rolls if roll.total == result.result.total), None)
+            kept_rolls = [kept_roll] if kept_roll else []
             count = 1
 
         if len(warnings) > 0:
@@ -63,16 +84,17 @@ class UserSessionDiceStats:
             # But often appear when users want to quickly calculate something.
             return
 
-        self._add_dice_count(rolls)
+        self._add_dice_count(all_rolls)
         self._add_advantage(result.expression, result.advantage, count)
 
-        for roll in rolls:
+        kept_roll_ids = {id(roll) for roll in kept_rolls}
+        for roll in all_rolls:
             if "d100" in result.expression or "d%" in result.expression:
                 return  # We don't want to track d100's, they're not used for skill-checks or damage.
 
             if "d20" in result.expression:
-                self._add_d20(roll)
-            else:
+                self._add_d20(roll, kept=id(roll) in kept_roll_ids)
+            elif not isinstance(result, MultiRollResult) or id(roll) in kept_roll_ids:
                 self._add_damage_roll(roll)
 
     def _add_dice_count(self, rolls: list[SingleRollResult]):
@@ -83,25 +105,42 @@ class UserSessionDiceStats:
             self.rolled_dice[size] += 1
 
         for roll in rolls:
-            for die in roll.roll.extract_dice():
-                add_die(die)
+            for dice_node in _find_dice_nodes(roll.ast):
+                dice = roll.roll.find_from_ast(dice_node)
+                if isinstance(dice, Dice):
+                    for die in dice.dice:
+                        add_die(die)
 
-    def _add_d20(self, roll: SingleRollResult):
-        d20 = find_d20(roll.ast)
-        if d20 is None:
+    def _add_d20(self, roll: SingleRollResult, kept: bool):
+        d20_dice: list[Die] = []
+        for dice_node in _find_dice_nodes(roll.ast):
+            if dice_node.size != 20:
+                continue
+            dice = roll.roll.find_from_ast(dice_node)
+            if isinstance(dice, Dice):
+                has_minimum_or_maximum = any(operation.op in {"mi", "ma"} for operation in dice_node.operations)
+                for die in dice.dice:
+                    d20_dice.append(die)
+                    if has_minimum_or_maximum and die.value != die.values[0]:
+                        self.unmodified_d20_totals.append(die.values[0])
+
+        if not d20_dice:
             return
 
-        value = roll.roll.find_from_ast(d20)  # Cache rolled result without modifiers.
-        if value is None:
-            return
+        for die in d20_dice:
+            self.rolled_d20_totals.append(die.value)
+            if kept and die.kept:
+                self.kept_d20_totals.append(die.value)
 
-        self.d20_totals.append(value.total)
         if roll.crit is Critical.CRIT:
             self.nat20_count += 1
+            self.kept_nat20_count += 1 if kept else 0
         elif roll.crit is Critical.FAIL:
             self.nat1_count += 1
+            self.kept_nat1_count += 1 if kept else 0
         elif roll.crit is Critical.DIRTY:
             self.dirty20_count += 1
+            self.kept_dirty20_count += 1 if kept else 0
 
     def _add_damage_roll(self, roll: SingleRollResult):
         if roll.expr not in self.dmg_expressions:
@@ -122,10 +161,18 @@ class UserSessionDiceStats:
             self.dis_count += count
 
     @property
-    def average_d20(self) -> int:
-        if len(self.d20_totals) == 0:
+    def average_rolled_d20(self) -> int:
+        if len(self.rolled_d20_totals) == 0:
             return 0
-        return sum(self.d20_totals) // len(self.d20_totals)
+        summed = sum(self.rolled_d20_totals) + sum(self.unmodified_d20_totals)
+        total = len(self.rolled_d20_totals) + len(self.unmodified_d20_totals)
+        return summed // total
+
+    @property
+    def average_kept_d20(self) -> int:
+        if len(self.kept_d20_totals) == 0:
+            return 0
+        return sum(self.kept_d20_totals) // len(self.kept_d20_totals)
 
     @property
     def damage_totals(self) -> list[int]:
@@ -155,15 +202,15 @@ class UserSessionDiceStats:
 
     @property
     def advantage_percentage(self) -> float:
-        if len(self.d20_totals) == 0:
+        if len(self.kept_d20_totals) == 0:
             return 0
-        return self.adv_count / len(self.d20_totals)
+        return self.adv_count / len(self.kept_d20_totals)
 
     @property
     def disadvantage_percentage(self) -> float:
-        if len(self.d20_totals) == 0:
+        if len(self.kept_d20_totals) == 0:
             return 0
-        return self.dis_count / len(self.d20_totals)
+        return self.dis_count / len(self.kept_d20_totals)
 
 
 class UserSessionStats:

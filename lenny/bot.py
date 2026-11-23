@@ -20,12 +20,7 @@ from commands.initiative import InitiativeCommand
 from commands.namegen import NameGenCommand
 from commands.plansession import PlanSessionCommand
 from commands.playsound import PlaySoundCommand
-from commands.roll import (
-    D20Command,
-    MultiRollCommand,
-    RollCommand,
-    TableRollCommand,
-)
+from commands.roll import D20Command, RollCommand, TableRollCommand
 from commands.search import SearchCommandGroup
 from commands.session import SessionStatsCommandGroup
 from commands.stats import StatsCommandGroup
@@ -86,7 +81,6 @@ class Bot(discord.Client):
         self.tree.add_command(StatsCommandGroup())
         self.tree.add_command(RollCommand())
         self.tree.add_command(D20Command())
-        self.tree.add_command(MultiRollCommand())
         self.tree.add_command(TableRollCommand())
         self.tree.add_command(TokenGenCommandGroup())
         self.tree.add_command(InitiativeCommand())

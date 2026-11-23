@@ -37,27 +37,17 @@ SLASH_COMMAND_TESTS: Iterable[Iterable[Any]] = [
             "diceroll": ["1d20+6", "4d8kh3", "1d8ro1", "1>0", "1<0", "(1d20+7>14) * 1d8"],
             "reason": [None, "Attack", "Fire"],
             "advantage": [None, "normal", "advantage", "disadvantage"],
+            "roll_count": [1, 3, 20],
         },
     ),
     ("d20", {}),
-    (
-        "multiroll",
-        {
-            "diceroll": ["1d20+6", "4d8kh3", "1d8ro1", "1>0", "1<0", "(1d20+7>14) * 1d8"],
-            "amount": [1, 3],
-            "advantage": Advantage.values(),
-            "reason": [None, "Attack"],
-        },
-    ),
     ("tableroll", {"name": "Wild Magic Surge", "roll_result": [None, 37]}),
     ("search spell", {"name": ["Fire Bolt", "abcdef"]}),
     ("search item", {"name": ["Sword", "abcdef"]}),
     ("search condition", {"name": ["Poisoned", "abcdef"]}),
     ("search creature", {"name": ["Goblin", "abcdef"]}),
-    (
-        "search class",
-        {"name": ["Wizard", "Fighter", "abcdef"]},
-    ),  # Search spellcaster & non spellcaster classes, since they render differently
+    # Search spellcaster & non spellcaster classes, since they render differently
+    ("search class", {"name": ["Wizard", "Fighter", "abcdef"]}),
     ("search rule", {"name": ["Action", "abcdef"]}),
     ("search action", {"name": ["Attack", "abcdef"]}),
     ("search deity", {"name": ["Arawai", "Anubis", "abcdef"]}),
@@ -418,9 +408,7 @@ class TestBotCommands:
         "cmd_name, param_name, queries",
         [
             ("roll", "diceroll", ["", "1d20"]),
-            ("multiroll", "diceroll", ["", "1d20"]),
             ("roll", "reason", ["", "Att"]),
-            ("multiroll", "reason", ["", "Att"]),
             ("tableroll", "name", ["", "Wild"]),
             ("search spell", "name", ["", "Fireb"]),
             ("search item", "name", ["", "Dag"]),

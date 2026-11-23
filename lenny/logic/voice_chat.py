@@ -8,6 +8,7 @@ from pathlib import Path
 
 import davey  # noqa: F401 # pylint: disable=unused-import # type: ignore
 import discord
+import nacl  # noqa: F401 # pylint: disable=unused-import # type: ignore
 from d100.enums import Critical
 from discord import Interaction
 

@@ -28,5 +28,5 @@ async def test_in_weeks_autocomplete():
     assert choices[0].name.startswith("In 48 weeks (")
 
     choices = await in_weeks_autocomplete(interaction, "")
-    assert len(choices) == 25
+    assert len(choices) == 5
     assert choices[0].name == "This week"

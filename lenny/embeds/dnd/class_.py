@@ -98,9 +98,7 @@ class ClassEmbed(DNDEntryEmbed):
         level = max(0, min(max_level, level))
 
         super().__init__(character_class)
-
-        if subclass:
-            self.url = character_class.subclass_data[subclass].url
+        self.url = character_class.subclass_data[subclass].url if subclass else character_class.url
 
         if level == 0:  # Core Info (page 0)
             self.description = "*Core Info*"

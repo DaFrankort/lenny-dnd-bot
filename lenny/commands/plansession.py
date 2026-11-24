@@ -1,8 +1,9 @@
 import discord
-from discord.app_commands import describe
+from discord.app_commands import autocomplete, describe
 
 from commands.command import BaseCommand
 from embeds.plansession import SessionPlanPoll
+from logic.plansession import in_weeks_autocomplete
 
 
 class PlanSessionCommand(BaseCommand):
@@ -15,9 +16,10 @@ class PlanSessionCommand(BaseCommand):
         self.guild_only = True
 
     @describe(
-        in_weeks="How many weeks from now? (0 = this week, 1 = next week, ...)",
+        in_weeks="How many weeks from now?",
         poll_duration="How long until the poll closes? (Defaults to 24h)",
     )
+    @autocomplete(in_weeks=in_weeks_autocomplete)
     async def handle(
         self,
         itr: discord.Interaction,

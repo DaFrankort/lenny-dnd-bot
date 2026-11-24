@@ -6,7 +6,7 @@ import discord
 def get_week_phrase(in_weeks: int) -> str:
     if in_weeks == 0:
         return "this week"
-    elif in_weeks == 1:
+    if in_weeks == 1:
         return "next week"
     return f"in {in_weeks} weeks"
 

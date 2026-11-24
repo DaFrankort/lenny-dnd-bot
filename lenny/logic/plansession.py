@@ -23,16 +23,16 @@ def get_week_choice_name(in_weeks: int, today: datetime.date | None = None) -> s
 
 
 async def in_weeks_autocomplete(_: discord.Interaction, current: str) -> list[discord.app_commands.Choice[int]]:
-    query = current.strip().casefold()
+    query = current.strip().lower()
     choices: list[discord.app_commands.Choice[int]] = []
 
     for in_weeks in range(49):
         name = get_week_choice_name(in_weeks)
-        if query and query not in name.casefold() and not str(in_weeks).startswith(query):
+        if query and query not in name.lower() and not str(in_weeks).startswith(query):
             continue
 
         choices.append(discord.app_commands.Choice(name=name, value=in_weeks))
-        if len(choices) == 25:
+        if len(choices) == 5:
             break
 
     return choices

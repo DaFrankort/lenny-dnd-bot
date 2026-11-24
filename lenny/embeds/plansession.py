@@ -2,6 +2,7 @@ import datetime
 
 import discord
 
+from logic.plansession import get_week_phrase
 from methods import when
 
 
@@ -16,13 +17,7 @@ class SessionPlanPoll(discord.Poll):
         self._add_date_answers(in_weeks)
 
     def _get_question(self, in_weeks: int):
-        if in_weeks == 0:
-            week_phrase = "this week"
-        elif in_weeks == 1:
-            week_phrase = "next week"
-        else:
-            week_phrase = f"in {in_weeks} weeks"
-
+        week_phrase = get_week_phrase(in_weeks)
         return f"Session {week_phrase}, which days work for you?"
 
     def _add_date_answers(self, in_weeks: int):

@@ -429,6 +429,7 @@ class TestBotCommands:
             ("search deity", "name", ["", "Anu"]),
             ("search cult", "name", ["", "Cult of Dispa"]),
             ("search boon", "name", ["", "Demonic Boon of Bal"]),
+            ("plansession", "in_weeks", ["", "this", "next", "48"]),
             # ('', '', ''),
         ],
     )

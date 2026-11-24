@@ -34,7 +34,16 @@ class ClassStartingProficiencies:
         )
 
 
+@dataclass
+class ClassSubclassData:
+    name: str
+    source: str
+    url: str
+    reprint: object | None  # Unused
+
+
 class Class(DNDEntry):
+    max_level: int
     subclass_unlock_level: int | None
     primary_ability: str | None
     spellcast_ability: str | None
@@ -44,6 +53,7 @@ class Class(DNDEntry):
     level_resources: dict[str, list[Description]]
     level_features: dict[str, list[Description]]
     subclass_level_features: dict[str, dict[str, list[Description]]]
+    subclass_data: dict[str, ClassSubclassData]
 
     def __init__(self, obj: dict[str, Any]):
         self.entry_type = DNDEntryType.CLASS
@@ -51,6 +61,7 @@ class Class(DNDEntry):
         super().__init__(obj)
         self.url = obj["url"]
 
+        self.max_level = obj["maxLevel"]
         self.subclass_unlock_level = obj["subclassUnlockLevel"]
         self.primary_ability = obj["primaryAbility"]
         self.spellcast_ability = obj["spellcastAbility"]
@@ -60,6 +71,8 @@ class Class(DNDEntry):
         self.level_resources = obj["levelResources"]
         self.level_features = obj["levelFeatures"]
         self.subclass_level_features = obj["subclassLevelFeatures"]
+
+        self.subclass_data = {key: ClassSubclassData(**data) for key, data in obj["subclassData"].items()}
 
     def __repr__(self):
         return str(self)

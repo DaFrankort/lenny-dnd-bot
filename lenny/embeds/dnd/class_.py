@@ -94,9 +94,13 @@ class ClassEmbed(DNDEntryEmbed):
         if subclass and not character_class.has_subclass(subclass):
             raise KeyError(f"Class {character_class.name} ({character_class.source}) does not have '{subclass}' as a subclass!")
 
-        level = max(0, min(20, level))
+        max_level = character_class.max_level
+        level = max(0, min(max_level, level))
 
         super().__init__(character_class)
+
+        if subclass:
+            self.url = character_class.subclass_data[subclass].url
 
         if level == 0:  # Core Info (page 0)
             self.description = "*Core Info*"
@@ -149,5 +153,5 @@ class ClassEmbed(DNDEntryEmbed):
                 self.add_field(name="", value=HORIZONTAL_LINE, inline=False)
                 self.add_description_fields(descriptions=descriptions)
 
-        self.set_footer(text=f"Page {level + 1} / 21", icon_url="")
+        self.set_footer(text=f"Page {level + 1} / {max_level + 1}", icon_url="")
         self.view = ClassNavigationView(character_class, allowed_sources, level, subclass)

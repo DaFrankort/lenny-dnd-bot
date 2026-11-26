@@ -4,6 +4,7 @@ from discord.app_commands import choices, describe
 from commands.command import BaseCommand
 from embeds.charactergen import CharacterGenContainerView
 from logic.charactergen import class_choices, generate_dnd_character, species_choices
+from logic.csheet import generate_character_sheet
 from logic.dnd.name import Gender
 
 
@@ -26,5 +27,6 @@ class CharacterGenCommand(BaseCommand):
         char_class: str | None = None,
     ):
         result = generate_dnd_character(gender, species, char_class)
-        view = CharacterGenContainerView(result)
-        await itr.response.send_message(view=view, file=view.chart)
+        sheet = generate_character_sheet(result)
+        view = CharacterGenContainerView(result, sheet)
+        await itr.response.send_message(view=view, files=[view.chart, view.sheet])
